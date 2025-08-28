@@ -1,0 +1,460 @@
+{
+  "inventory": [
+    {
+      "id": "INV001",
+      "itemCode": "SEM-001",
+      "category": "material",
+      "subcategory": "cement",
+      "name": "Semen Portland Type I",
+      "brand": "Holcim",
+      "unit": "ton",
+      "specification": "Semen Portland Type I sesuai SNI 15-2049-2004",
+      "supplier": {
+        "primary": "SUP001",
+        "secondary": [
+          "SUP002",
+          "SUP003"
+        ]
+      },
+      "stock": {
+        "available": 250,
+        "reserved": 50,
+        "onOrder": 100,
+        "minimum": 20,
+        "maximum": 500
+      },
+      "location": {
+        "warehouse": "WH001",
+        "zone": "A1",
+        "rack": "R001"
+      },
+      "pricing": {
+        "lastPurchasePrice": 850000,
+        "averagePrice": 845000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-10",
+        "type": "in",
+        "quantity": 50,
+        "project": "PRJ001"
+      }
+    },
+    {
+      "id": "INV002",
+      "itemCode": "PAS-001",
+      "category": "material",
+      "subcategory": "sand",
+      "name": "Pasir Halus",
+      "brand": "Lokal",
+      "unit": "m3",
+      "specification": "Pasir halus untuk campuran beton dan plester",
+      "supplier": {
+        "primary": "SUP004",
+        "secondary": [
+          "SUP005"
+        ]
+      },
+      "stock": {
+        "available": 150,
+        "reserved": 30,
+        "onOrder": 200,
+        "minimum": 10,
+        "maximum": 300
+      },
+      "location": {
+        "warehouse": "WH002",
+        "zone": "B1",
+        "rack": "OPEN"
+      },
+      "pricing": {
+        "lastPurchasePrice": 450000,
+        "averagePrice": 440000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-12",
+        "type": "out",
+        "quantity": 25,
+        "project": "PRJ002"
+      }
+    },
+    {
+      "id": "INV003",
+      "itemCode": "KER-001",
+      "category": "material",
+      "subcategory": "gravel",
+      "name": "Kerikil Beton 1-2 cm",
+      "brand": "Lokal",
+      "unit": "m3",
+      "specification": "Kerikil untuk campuran beton ukuran 1-2 cm",
+      "supplier": {
+        "primary": "SUP004",
+        "secondary": [
+          "SUP006"
+        ]
+      },
+      "stock": {
+        "available": 180,
+        "reserved": 40,
+        "onOrder": 150,
+        "minimum": 15,
+        "maximum": 350
+      },
+      "location": {
+        "warehouse": "WH002",
+        "zone": "B2",
+        "rack": "OPEN"
+      },
+      "pricing": {
+        "lastPurchasePrice": 550000,
+        "averagePrice": 545000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-11",
+        "type": "in",
+        "quantity": 80,
+        "project": "PRJ001"
+      }
+    },
+    {
+      "id": "INV005",
+      "itemCode": "CAT-001",
+      "category": "material",
+      "subcategory": "paint",
+      "name": "Cat Tembok Exterior Putih",
+      "brand": "Dulux",
+      "unit": "gallon",
+      "specification": "Cat tembok exterior weathershield putih 2.5L",
+      "supplier": {
+        "primary": "SUP010",
+        "secondary": [
+          "SUP011"
+        ]
+      },
+      "stock": {
+        "available": 120,
+        "reserved": 25,
+        "onOrder": 50,
+        "minimum": 10,
+        "maximum": 200
+      },
+      "location": {
+        "warehouse": "WH003",
+        "zone": "D1",
+        "rack": "R020"
+      },
+      "pricing": {
+        "lastPurchasePrice": 285000,
+        "averagePrice": 280000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-08",
+        "type": "in",
+        "quantity": 30,
+        "project": "PRJ005"
+      }
+    },
+    {
+      "id": "INV006",
+      "itemCode": "EXC-001",
+      "category": "equipment",
+      "subcategory": "heavy_equipment",
+      "name": "Excavator Komatsu PC200",
+      "brand": "Komatsu",
+      "unit": "unit",
+      "specification": "Excavator PC200-8M0 dengan bucket 1.0 m3",
+      "supplier": {
+        "primary": "SUP012",
+        "secondary": []
+      },
+      "stock": {
+        "available": 2,
+        "reserved": 1,
+        "onOrder": 0,
+        "minimum": 1,
+        "maximum": 3
+      },
+      "location": {
+        "warehouse": "YARD001",
+        "zone": "HEAVY",
+        "rack": "EQ001"
+      },
+      "pricing": {
+        "lastPurchasePrice": 2500000000,
+        "averagePrice": 2500000000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-05",
+        "type": "assign",
+        "quantity": 1,
+        "project": "PRJ002"
+      },
+      "maintenance": {
+        "lastService": "2024-07-15",
+        "nextService": "2024-09-15",
+        "condition": "good"
+      }
+    },
+    {
+      "id": "INV007",
+      "itemCode": "MIX-001",
+      "category": "equipment",
+      "subcategory": "mixing",
+      "name": "Concrete Mixer 350L",
+      "brand": "Molen Tiger",
+      "unit": "unit",
+      "specification": "Molen beton kapasitas 350 liter dengan engine 5.5 HP",
+      "supplier": {
+        "primary": "SUP013",
+        "secondary": [
+          "SUP014"
+        ]
+      },
+      "stock": {
+        "available": 5,
+        "reserved": 2,
+        "onOrder": 1,
+        "minimum": 2,
+        "maximum": 8
+      },
+      "location": {
+        "warehouse": "WH001",
+        "zone": "E1",
+        "rack": "EQ010"
+      },
+      "pricing": {
+        "lastPurchasePrice": 15000000,
+        "averagePrice": 14500000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-07",
+        "type": "assign",
+        "quantity": 2,
+        "project": "PRJ003"
+      },
+      "maintenance": {
+        "lastService": "2024-07-20",
+        "nextService": "2024-10-20",
+        "condition": "good"
+      }
+    },
+    {
+      "id": "INV008",
+      "itemCode": "GEN-001",
+      "category": "equipment",
+      "subcategory": "generator",
+      "name": "Generator Set 100 KVA",
+      "brand": "Perkins",
+      "unit": "unit",
+      "specification": "Generator set 100 KVA dengan engine Perkins diesel",
+      "supplier": {
+        "primary": "SUP015",
+        "secondary": []
+      },
+      "stock": {
+        "available": 3,
+        "reserved": 1,
+        "onOrder": 0,
+        "minimum": 1,
+        "maximum": 4
+      },
+      "location": {
+        "warehouse": "YARD001",
+        "zone": "POWER",
+        "rack": "EQ020"
+      },
+      "pricing": {
+        "lastPurchasePrice": 450000000,
+        "averagePrice": 440000000,
+        "currency": "IDR"
+      },
+      "lastTransaction": {
+        "date": "2024-08-06",
+        "type": "assign",
+        "quantity": 1,
+        "project": "PRJ001"
+      },
+      "maintenance": {
+        "lastService": "2024-08-01",
+        "nextService": "2024-11-01",
+        "condition": "excellent"
+      }
+    }
+  ],
+  "transactions": [
+    {
+      "id": "TXN001",
+      "type": "in",
+      "transactionNumber": "GR-2024-001",
+      "date": "2024-08-10",
+      "items": [
+        {
+          "itemId": "INV001",
+          "quantity": 50,
+          "unitPrice": 850000,
+          "totalPrice": 42500000
+        }
+      ],
+      "supplier": "SUP001",
+      "project": "PRJ001",
+      "notes": "Pengiriman sesuai PO-2024-015",
+      "status": "completed",
+      "createdBy": "USR004",
+      "approvedBy": "USR002"
+    },
+    {
+      "id": "TXN002",
+      "type": "out",
+      "transactionNumber": "MR-2024-002",
+      "date": "2024-08-12",
+      "items": [
+        {
+          "itemId": "INV002",
+          "quantity": 25,
+          "unitPrice": 450000,
+          "totalPrice": 11250000
+        }
+      ],
+      "supplier": null,
+      "project": "PRJ002",
+      "notes": "Material request untuk pengecoran lantai",
+      "status": "completed",
+      "createdBy": "USR006",
+      "approvedBy": "USR004"
+    },
+    {
+      "id": "TXN003",
+      "type": "transfer",
+      "transactionNumber": "TR-2024-003",
+      "date": "2024-08-11",
+      "items": [
+        {
+          "itemId": "INV003",
+          "quantity": 30,
+          "unitPrice": 550000,
+          "totalPrice": 16500000
+        }
+      ],
+      "fromWarehouse": "WH002",
+      "toWarehouse": "SITE001",
+      "project": "PRJ001",
+      "notes": "Transfer ke site untuk pengecoran struktur",
+      "status": "completed",
+      "createdBy": "USR006",
+      "approvedBy": "USR004"
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "SUP001",
+      "code": "HOLC001",
+      "name": "PT. Holcim Indonesia Tbk",
+      "category": "material",
+      "contact": {
+        "person": "Bapak Agus Susanto",
+        "phone": "+62811-1111-1111",
+        "email": "agus@holcim.co.id",
+        "address": "Jl. Raya Cibitung No. 1, Bekasi"
+      },
+      "products": [
+        "cement",
+        "ready_mix"
+      ],
+      "rating": 4.5,
+      "paymentTerms": "30 days",
+      "isActive": true
+    },
+    {
+      "id": "SUP004",
+      "code": "PASS001",
+      "name": "CV. Pasir Subur Jaya",
+      "category": "material",
+      "contact": {
+        "person": "Bapak Sutrisno",
+        "phone": "+62812-2222-2222",
+        "email": "sutrisno@pasirsubur.com",
+        "address": "Jl. Raya Bogor KM 30, Cibinong"
+      },
+      "products": [
+        "sand",
+        "gravel",
+        "stone"
+      ],
+      "rating": 4.2,
+      "paymentTerms": "COD",
+      "isActive": true
+    },
+    {
+      "id": "SUP007",
+      "code": "KRAK001",
+      "name": "PT. Krakatau Steel",
+      "category": "material",
+      "contact": {
+        "person": "Ibu Diana Sari",
+        "phone": "+62813-3333-3333",
+        "email": "diana@krakatau-steel.com",
+        "address": "Jl. Industri No. 5, Cilegon"
+      },
+      "products": [
+        "steel",
+        "rebar",
+        "structural_steel"
+      ],
+      "rating": 4.8,
+      "paymentTerms": "45 days",
+      "isActive": true
+    }
+  ],
+  "warehouses": [
+    {
+      "id": "WH001",
+      "name": "Gudang Utama Jakarta",
+      "type": "main",
+      "address": "Jl. Industri Raya No. 100, Jakarta Timur",
+      "capacity": 10000,
+      "occupied": 6500,
+      "zones": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "manager": "USR004"
+    },
+    {
+      "id": "WH002",
+      "name": "Gudang Material Bekasi",
+      "type": "material",
+      "address": "Jl. Raya Bekasi KM 25, Bekasi",
+      "capacity": 5000,
+      "occupied": 3200,
+      "zones": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "manager": "USR026"
+    },
+    {
+      "id": "YARD001",
+      "name": "Equipment Yard",
+      "type": "equipment",
+      "address": "Jl. Bypass Cakung No. 50, Jakarta Timur",
+      "capacity": 50,
+      "occupied": 32,
+      "zones": [
+        "HEAVY",
+        "LIGHT",
+        "POWER"
+      ],
+      "manager": "USR027"
+    }
+  ]
+}

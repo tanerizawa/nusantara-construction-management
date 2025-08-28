@@ -1,0 +1,496 @@
+{
+  "projects": [
+    {
+      "id": "PRJ001",
+      "projectCode": "YK-2024-001",
+      "name": "Pembangunan Gedung Perkantoran PT. Maju Bersama",
+      "description": "Pembangunan gedung perkantoran 10 lantai dengan luas total 5000 m² di Jakarta Selatan",
+      "client": {
+        "company": "PT. Maju Bersama",
+        "contactPerson": "Ibu Diana Sari",
+        "phone": "+62812-9876-5432",
+        "email": "diana@majubersama.com",
+        "address": "Jl. Sudirman No. 123, Jakarta Selatan"
+      },
+      "location": {
+        "address": "Jl. TB Simatupang No. 456, Jakarta Selatan",
+        "city": "Jakarta Selatan",
+        "province": "DKI Jakarta",
+        "coordinates": {
+          "lat": -6.2615,
+          "lng": 106.7942
+        }
+      },
+      "timeline": {
+        "startDate": "2024-01-15",
+        "endDate": "2024-12-15",
+        "duration": 11,
+        "unit": "months"
+      },
+      "status": "in_progress",
+      "phase": "construction",
+      "progress": {
+        "percentage": 65,
+        "currentMilestone": "Struktur Lantai 7",
+        "lastUpdated": "2024-08-10"
+      },
+      "budget": {
+        "contractValue": 15000000000,
+        "approvedBudget": 15000000000,
+        "actualCost": 9750000000,
+        "remaining": 5250000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR002",
+        "siteSupervisor": "USR006",
+        "teamMembers": ["USR008", "USR009", "USR010"]
+      },
+      "milestones": [
+        {
+          "id": "M001",
+          "name": "Persiapan Lahan",
+          "plannedDate": "2024-02-15",
+          "actualDate": "2024-02-10",
+          "status": "completed",
+          "progress": 100
+        },
+        {
+          "id": "M002",
+          "name": "Pondasi",
+          "plannedDate": "2024-04-15",
+          "actualDate": "2024-04-20",
+          "status": "completed",
+          "progress": 100
+        },
+        {
+          "id": "M003",
+          "name": "Struktur s/d Lantai 5",
+          "plannedDate": "2024-07-15",
+          "actualDate": "2024-07-18",
+          "status": "completed",
+          "progress": 100
+        },
+        {
+          "id": "M004",
+          "name": "Struktur s/d Lantai 10",
+          "plannedDate": "2024-09-15",
+          "actualDate": null,
+          "status": "in_progress",
+          "progress": 70
+        },
+        {
+          "id": "M005",
+          "name": "Finishing Interior",
+          "plannedDate": "2024-11-15",
+          "actualDate": null,
+          "status": "planned",
+          "progress": 0
+        }
+      ],
+      "risks": [
+        {
+          "id": "R001",
+          "description": "Keterlambatan pengiriman material baja",
+          "impact": "medium",
+          "probability": "high",
+          "mitigation": "Backup supplier sudah disiapkan",
+          "status": "mitigated"
+        }
+      ],
+      "documents": [
+        {
+          "id": "DOC001",
+          "name": "Kontrak Kerja",
+          "type": "contract",
+          "uploadDate": "2024-01-10",
+          "url": "/documents/PRJ001/kontrak.pdf"
+        },
+        {
+          "id": "DOC002",
+          "name": "Gambar Teknik",
+          "type": "drawing",
+          "uploadDate": "2024-01-12",
+          "url": "/documents/PRJ001/drawings.pdf"
+        }
+      ]
+    },
+    {
+      "id": "PRJ002",
+      "projectCode": "YK-2024-002",
+      "name": "Renovasi Pabrik PT. Industri Jaya",
+      "description": "Renovasi dan ekspansi pabrik tekstil dengan penambahan area produksi seluas 2000 m²",
+      "client": {
+        "company": "PT. Industri Jaya",
+        "contactPerson": "Bapak Sutrisno",
+        "phone": "+62813-1234-5678",
+        "email": "sutrisno@industrijaya.com",
+        "address": "Jl. Raya Bogor KM 25, Cibinong"
+      },
+      "location": {
+        "address": "Jl. Raya Bogor KM 25, Cibinong",
+        "city": "Bogor",
+        "province": "Jawa Barat",
+        "coordinates": {
+          "lat": -6.4817,
+          "lng": 106.8540
+        }
+      },
+      "timeline": {
+        "startDate": "2024-03-01",
+        "endDate": "2024-10-31",
+        "duration": 8,
+        "unit": "months"
+      },
+      "status": "in_progress",
+      "phase": "construction",
+      "progress": {
+        "percentage": 45,
+        "currentMilestone": "Demolisi Area Lama",
+        "lastUpdated": "2024-08-12"
+      },
+      "budget": {
+        "contractValue": 8500000000,
+        "approvedBudget": 8500000000,
+        "actualCost": 3825000000,
+        "remaining": 4675000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR002",
+        "siteSupervisor": "USR011",
+        "teamMembers": ["USR012", "USR013"]
+      },
+      "milestones": [
+        {
+          "id": "M006",
+          "name": "Survey dan Planning",
+          "plannedDate": "2024-03-15",
+          "actualDate": "2024-03-12",
+          "status": "completed",
+          "progress": 100
+        },
+        {
+          "id": "M007",
+          "name": "Demolisi Area Lama",
+          "plannedDate": "2024-05-01",
+          "actualDate": null,
+          "status": "in_progress",
+          "progress": 80
+        },
+        {
+          "id": "M008",
+          "name": "Konstruksi Area Baru",
+          "plannedDate": "2024-08-15",
+          "actualDate": null,
+          "status": "planned",
+          "progress": 0
+        }
+      ]
+    },
+    {
+      "id": "PRJ003",
+      "projectCode": "YK-2024-003",
+      "name": "Pembangunan Perumahan Green Valley",
+      "description": "Pembangunan perumahan cluster dengan 50 unit rumah type 45 dan 36",
+      "client": {
+        "company": "PT. Green Valley Property",
+        "contactPerson": "Ibu Melissa Tan",
+        "phone": "+62814-9876-5432",
+        "email": "melissa@greenvalley.com",
+        "address": "Jl. Boulevard Raya No. 88, Bekasi"
+      },
+      "location": {
+        "address": "Jl. Raya Cileungsi KM 3, Bekasi",
+        "city": "Bekasi",
+        "province": "Jawa Barat",
+        "coordinates": {
+          "lat": -6.3951,
+          "lng": 106.9570
+        }
+      },
+      "timeline": {
+        "startDate": "2024-02-01",
+        "endDate": "2025-01-31",
+        "duration": 12,
+        "unit": "months"
+      },
+      "status": "in_progress",
+      "phase": "construction",
+      "progress": {
+        "percentage": 30,
+        "currentMilestone": "Infrastruktur Jalan",
+        "lastUpdated": "2024-08-14"
+      },
+      "budget": {
+        "contractValue": 25000000000,
+        "approvedBudget": 25000000000,
+        "actualCost": 7500000000,
+        "remaining": 17500000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR014",
+        "siteSupervisor": "USR015",
+        "teamMembers": ["USR016", "USR017", "USR018"]
+      }
+    },
+    {
+      "id": "PRJ004",
+      "projectCode": "YK-2024-004",
+      "name": "Pembangunan Jembatan Sungai Ciliwung",
+      "description": "Pembangunan jembatan beton dengan panjang 150 meter untuk menghubungkan dua kelurahan",
+      "client": {
+        "company": "Dinas Pekerjaan Umum DKI Jakarta",
+        "contactPerson": "Bapak Ir. Bambang Suryadi",
+        "phone": "+62811-2345-6789",
+        "email": "bambang@pu.jakarta.go.id",
+        "address": "Jl. Pramuka Raya No. 1, Jakarta Pusat"
+      },
+      "location": {
+        "address": "Sungai Ciliwung, Kelurahan Menteng",
+        "city": "Jakarta Pusat",
+        "province": "DKI Jakarta",
+        "coordinates": {
+          "lat": -6.1944,
+          "lng": 106.8229
+        }
+      },
+      "timeline": {
+        "startDate": "2024-06-01",
+        "endDate": "2024-12-31",
+        "duration": 7,
+        "unit": "months"
+      },
+      "status": "planning",
+      "phase": "design",
+      "progress": {
+        "percentage": 15,
+        "currentMilestone": "Detailed Engineering Design",
+        "lastUpdated": "2024-08-13"
+      },
+      "budget": {
+        "contractValue": 12000000000,
+        "approvedBudget": 12000000000,
+        "actualCost": 600000000,
+        "remaining": 11400000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR019",
+        "siteSupervisor": null,
+        "teamMembers": ["USR020", "USR021"]
+      }
+    },
+    {
+      "id": "PRJ005",
+      "projectCode": "YK-2024-005",
+      "name": "Renovasi Sekolah SDN 01 Menteng",
+      "description": "Renovasi total gedung sekolah dasar meliputi 12 ruang kelas dan fasilitas pendukung",
+      "client": {
+        "company": "Dinas Pendidikan DKI Jakarta",
+        "contactPerson": "Ibu Dr. Siti Nurhaliza",
+        "phone": "+62812-3456-7890",
+        "email": "siti@pendidikan.jakarta.go.id",
+        "address": "Jl. Gatot Subroto No. 200, Jakarta Selatan"
+      },
+      "location": {
+        "address": "Jl. Menteng Raya No. 45, Jakarta Pusat",
+        "city": "Jakarta Pusat",
+        "province": "DKI Jakarta",
+        "coordinates": {
+          "lat": -6.1889,
+          "lng": 106.8269
+        }
+      },
+      "timeline": {
+        "startDate": "2024-07-15",
+        "endDate": "2024-11-15",
+        "duration": 4,
+        "unit": "months"
+      },
+      "status": "completed",
+      "phase": "handover",
+      "progress": {
+        "percentage": 100,
+        "currentMilestone": "Serah Terima",
+        "lastUpdated": "2024-11-10"
+      },
+      "budget": {
+        "contractValue": 3500000000,
+        "approvedBudget": 3500000000,
+        "actualCost": 3450000000,
+        "remaining": 50000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR022",
+        "siteSupervisor": "USR023",
+        "teamMembers": ["USR024", "USR025"]
+      }
+    }
+    ,
+    {
+      "id": "PRJ006",
+      "projectCode": "YK-2024-006",
+      "name": "Pembangunan Gudang Logistik KIIC Karawang",
+      "description": "Pembangunan gudang logistik modern dengan sistem racking tinggi di Kawasan Industri KIIC, Karawang",
+      "client": {
+        "company": "PT. Karawang Logistics Nusantara",
+        "contactPerson": "Bapak Andri Prasetyo",
+        "phone": "+62812-1111-2222",
+        "email": "andri@kln.co.id",
+        "address": "KIIC, Telukjambe, Karawang"
+      },
+      "location": {
+        "address": "Kawasan Industri KIIC, Telukjambe",
+        "city": "Karawang",
+        "province": "Jawa Barat",
+        "coordinates": { "lat": -6.3544, "lng": 107.2970 }
+      },
+      "timeline": {
+        "startDate": "2024-05-10",
+        "endDate": "2025-01-30",
+        "duration": 9,
+        "unit": "months"
+      },
+      "status": "in_progress",
+      "phase": "construction",
+      "progress": {
+        "percentage": 55,
+        "currentMilestone": "Pemasangan Struktur Baja",
+        "lastUpdated": "2024-08-12"
+      },
+      "budget": {
+        "contractValue": 12000000000,
+        "approvedBudget": 12000000000,
+        "actualCost": 6600000000,
+        "remaining": 5400000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR030",
+        "siteSupervisor": "USR031",
+        "teamMembers": ["USR032", "USR033", "USR034"]
+      }
+    },
+    {
+      "id": "PRJ007",
+      "projectCode": "YK-2024-007",
+      "name": "Peningkatan Jalan Akses Kawasan Suryacipta",
+      "description": "Rehabilitasi dan pelebaran jalan akses utama menuju Kawasan Industri Suryacipta, Karawang",
+      "client": {
+        "company": "Dinas PUPR Kabupaten Karawang",
+        "contactPerson": "Ibu Ir. Ratna Dewi",
+        "phone": "+62813-2222-3333",
+        "email": "ratna@pupr.karawangkab.go.id",
+        "address": "Jl. Ahmad Yani No. 1, Karawang"
+      },
+      "location": {
+        "address": "Akses Suryacipta City of Industry",
+        "city": "Karawang",
+        "province": "Jawa Barat",
+        "coordinates": { "lat": -6.3921, "lng": 107.3106 }
+      },
+      "timeline": {
+        "startDate": "2024-07-01",
+        "endDate": "2024-12-15",
+        "duration": 6,
+        "unit": "months"
+      },
+      "status": "planning",
+      "phase": "design",
+      "progress": {
+        "percentage": 20,
+        "currentMilestone": "Detail Engineering Design",
+        "lastUpdated": "2024-08-10"
+      },
+      "budget": {
+        "contractValue": 6000000000,
+        "approvedBudget": 6000000000,
+        "actualCost": 300000000,
+        "remaining": 5700000000,
+        "currency": "IDR"
+      },
+      "team": {
+        "projectManager": "USR035",
+        "siteSupervisor": null,
+        "teamMembers": ["USR036", "USR037"]
+      }
+    }
+  ],
+  "projectStatuses": [
+    {
+      "id": "planning",
+      "name": "Planning",
+      "description": "Project in planning phase",
+      "color": "#FFA500"
+    },
+    {
+      "id": "in_progress",
+      "name": "In Progress",
+      "description": "Project currently under construction",
+      "color": "#4CAF50"
+    },
+    {
+      "id": "on_hold",
+      "name": "On Hold",
+      "description": "Project temporarily suspended",
+      "color": "#FF9800"
+    },
+    {
+      "id": "completed",
+      "name": "Completed",
+      "description": "Project successfully completed",
+      "color": "#2196F3"
+    },
+    {
+      "id": "cancelled",
+      "name": "Cancelled",
+      "description": "Project cancelled",
+      "color": "#F44336"
+    }
+  ],
+  "projectPhases": [
+    {
+      "id": "initiation",
+      "name": "Initiation",
+      "description": "Project initiation and approval"
+    },
+    {
+      "id": "planning",
+      "name": "Planning",
+      "description": "Detailed planning and design"
+    },
+    {
+      "id": "design",
+      "name": "Design",
+      "description": "Engineering design phase"
+    },
+    {
+      "id": "procurement",
+      "name": "Procurement",
+      "description": "Material and equipment procurement"
+    },
+    {
+      "id": "construction",
+      "name": "Construction",
+      "description": "Main construction phase"
+    },
+    {
+      "id": "testing",
+      "name": "Testing",
+      "description": "Quality testing and commissioning"
+    },
+    {
+      "id": "handover",
+      "name": "Handover",
+      "description": "Project handover to client"
+    },
+    {
+      "id": "closure",
+      "name": "Closure",
+      "description": "Project closure and documentation"
+    }
+  ]
+}

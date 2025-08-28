@@ -1,0 +1,626 @@
+{
+  "employees": [
+    {
+      "id": "EMP-001",
+      "employeeId": "EMP-001",
+      "name": "Budi Santoso",
+      "position": "Site Manager",
+      "department": "Construction",
+      "email": "budi.santoso@ykgroup.com",
+      "phone": "08123456789",
+      "joinDate": "2023-01-15",
+      "birthDate": "1985-05-20",
+      "address": "Jl. Merdeka No. 123, Jakarta Pusat",
+      "status": "active",
+      "employmentType": "permanent",
+      "salary": 15000000,
+      "currentProject": "PRJ-2025-001",
+      "projectName": "Pembangunan Rumah Tinggal Jl. Mawar",
+      "skills": [
+        {
+          "name": "Project Management",
+          "level": "expert",
+          "certifiedDate": "2022-03-15"
+        },
+        {
+          "name": "Construction Safety",
+          "level": "expert",
+          "certifiedDate": "2021-08-10"
+        },
+        {
+          "name": "Team Leadership",
+          "level": "advanced",
+          "certifiedDate": "2020-12-05"
+        }
+      ],
+      "certifications": [
+        {
+          "name": "PMP",
+          "issuer": "PMI",
+          "issueDate": "2022-03-15",
+          "expiryDate": "2025-03-15",
+          "status": "active"
+        },
+        {
+          "name": "OSHA 30",
+          "issuer": "OSHA",
+          "issueDate": "2021-08-10",
+          "expiryDate": "2024-08-10",
+          "status": "active"
+        }
+      ],
+      "performance": {
+        "rating": 4.5,
+        "lastReviewDate": "2024-06-30",
+        "nextReviewDate": "2024-12-30"
+      },
+      "attendance": {
+        "currentMonthRate": 95,
+        "yearToDateRate": 93,
+        "totalAbsent": 3,
+        "totalLate": 2
+      },
+      "overtime": {
+        "currentMonth": 25,
+        "yearToDate": 180
+      },
+      "emergencyContact": {
+        "name": "Siti Santoso",
+        "relationship": "spouse",
+        "phone": "08198765432"
+      }
+    },
+    {
+      "id": "EMP-002",
+      "employeeId": "EMP-002",
+      "name": "Sari Dewi",
+      "position": "Civil Engineer",
+      "department": "Engineering",
+      "email": "sari.dewi@ykgroup.com",
+      "phone": "08234567890",
+      "joinDate": "2023-03-20",
+      "birthDate": "1990-11-15",
+      "address": "Jl. Sudirman No. 456, Jakarta Selatan",
+      "status": "active",
+      "employmentType": "permanent",
+      "salary": 12000000,
+      "currentProject": "PRJ-2025-002",
+      "projectName": "Renovasi Gedung Perkantoran",
+      "skills": [
+        {
+          "name": "Structural Design",
+          "level": "advanced",
+          "certifiedDate": "2023-01-20"
+        },
+        {
+          "name": "AutoCAD",
+          "level": "expert",
+          "certifiedDate": "2022-09-15"
+        },
+        {
+          "name": "Quality Control",
+          "level": "intermediate",
+          "certifiedDate": "2023-06-10"
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Professional Engineer",
+          "issuer": "PII",
+          "issueDate": "2023-01-20",
+          "expiryDate": "2026-01-20",
+          "status": "active"
+        },
+        {
+          "name": "AutoCAD Professional",
+          "issuer": "Autodesk",
+          "issueDate": "2022-09-15",
+          "expiryDate": "2024-09-15",
+          "status": "active"
+        }
+      ],
+      "performance": {
+        "rating": 4.2,
+        "lastReviewDate": "2024-06-30",
+        "nextReviewDate": "2024-12-30"
+      },
+      "attendance": {
+        "currentMonthRate": 98,
+        "yearToDateRate": 96,
+        "totalAbsent": 1,
+        "totalLate": 1
+      },
+      "overtime": {
+        "currentMonth": 15,
+        "yearToDate": 120
+      },
+      "emergencyContact": {
+        "name": "Dewi Sari",
+        "relationship": "sister",
+        "phone": "08187654321"
+      }
+    },
+    {
+      "id": "EMP-003",
+      "employeeId": "EMP-003",
+      "name": "Ahmad Rifki",
+      "position": "Foreman",
+      "department": "Construction",
+      "email": "ahmad.rifki@ykgroup.com",
+      "phone": "08345678901",
+      "joinDate": "2022-08-10",
+      "birthDate": "1988-03-25",
+      "address": "Jl. Gatot Subroto No. 789, Jakarta Timur",
+      "status": "active",
+      "employmentType": "permanent",
+      "salary": 8500000,
+      "currentProject": "PRJ-2025-001",
+      "projectName": "Pembangunan Rumah Tinggal Jl. Mawar",
+      "skills": [
+        {
+          "name": "Construction Supervision",
+          "level": "expert",
+          "certifiedDate": "2021-05-15"
+        },
+        {
+          "name": "Safety Management",
+          "level": "advanced",
+          "certifiedDate": "2022-02-20"
+        },
+        {
+          "name": "Quality Assurance",
+          "level": "advanced",
+          "certifiedDate": "2022-11-10"
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Construction Supervisor",
+          "issuer": "LPJK",
+          "issueDate": "2021-05-15",
+          "expiryDate": "2024-05-15",
+          "status": "active"
+        },
+        {
+          "name": "Safety Officer",
+          "issuer": "Depnaker",
+          "issueDate": "2022-02-20",
+          "expiryDate": "2025-02-20",
+          "status": "active"
+        }
+      ],
+      "performance": {
+        "rating": 4.0,
+        "lastReviewDate": "2024-06-30",
+        "nextReviewDate": "2024-12-30"
+      },
+      "attendance": {
+        "currentMonthRate": 92,
+        "yearToDateRate": 90,
+        "totalAbsent": 4,
+        "totalLate": 5
+      },
+      "overtime": {
+        "currentMonth": 35,
+        "yearToDate": 220
+      },
+      "emergencyContact": {
+        "name": "Fatimah Ahmad",
+        "relationship": "mother",
+        "phone": "08176543210"
+      }
+    },
+    {
+      "id": "EMP-004",
+      "employeeId": "EMP-004",
+      "name": "Lisa Pratiwi",
+      "position": "HR Specialist",
+      "department": "Human Resources",
+      "email": "lisa.pratiwi@ykgroup.com",
+      "phone": "08456789012",
+      "joinDate": "2023-06-01",
+      "birthDate": "1992-07-08",
+      "address": "Jl. Thamrin No. 321, Jakarta Pusat",
+      "status": "active",
+      "employmentType": "permanent",
+      "salary": 10000000,
+      "currentProject": null,
+      "projectName": null,
+      "skills": [
+        {
+          "name": "Recruitment",
+          "level": "advanced",
+          "certifiedDate": "2023-04-10"
+        },
+        {
+          "name": "Employee Relations",
+          "level": "intermediate",
+          "certifiedDate": "2023-07-15"
+        },
+        {
+          "name": "Training & Development",
+          "level": "intermediate",
+          "certifiedDate": "2023-09-20"
+        }
+      ],
+      "certifications": [
+        {
+          "name": "SHRM-CP",
+          "issuer": "SHRM",
+          "issueDate": "2023-04-10",
+          "expiryDate": "2026-04-10",
+          "status": "active"
+        }
+      ],
+      "performance": {
+        "rating": 4.3,
+        "lastReviewDate": "2024-06-30",
+        "nextReviewDate": "2024-12-30"
+      },
+      "attendance": {
+        "currentMonthRate": 97,
+        "yearToDateRate": 95,
+        "totalAbsent": 2,
+        "totalLate": 1
+      },
+      "overtime": {
+        "currentMonth": 10,
+        "yearToDate": 85
+      },
+      "emergencyContact": {
+        "name": "Budi Pratiwi",
+        "relationship": "father",
+        "phone": "08165432109"
+      }
+    },
+    {
+      "id": "EMP-005",
+      "employeeId": "EMP-005",
+      "name": "Joko Widodo",
+      "position": "Heavy Equipment Operator",
+      "department": "Construction",
+      "email": "joko.widodo@ykgroup.com",
+      "phone": "08567890123",
+      "joinDate": "2022-11-15",
+      "birthDate": "1985-12-03",
+      "address": "Jl. Ahmad Yani No. 654, Jakarta Utara",
+      "status": "active",
+      "employmentType": "contract",
+      "salary": 7500000,
+      "currentProject": "PRJ-2025-003",
+      "projectName": "Pembangunan Jalan Akses",
+      "skills": [
+        {
+          "name": "Excavator Operation",
+          "level": "expert",
+          "certifiedDate": "2021-03-15"
+        },
+        {
+          "name": "Crane Operation",
+          "level": "advanced",
+          "certifiedDate": "2022-08-20"
+        },
+        {
+          "name": "Equipment Maintenance",
+          "level": "intermediate",
+          "certifiedDate": "2022-12-10"
+        }
+      ],
+      "certifications": [
+        {
+          "name": "Heavy Equipment License",
+          "issuer": "Disnaker",
+          "issueDate": "2021-03-15",
+          "expiryDate": "2024-03-15",
+          "status": "expiring_soon"
+        },
+        {
+          "name": "Crane Operator License",
+          "issuer": "Disnaker",
+          "issueDate": "2022-08-20",
+          "expiryDate": "2025-08-20",
+          "status": "active"
+        }
+      ],
+      "performance": {
+        "rating": 3.8,
+        "lastReviewDate": "2024-06-30",
+        "nextReviewDate": "2024-12-30"
+      },
+      "attendance": {
+        "currentMonthRate": 88,
+        "yearToDateRate": 85,
+        "totalAbsent": 6,
+        "totalLate": 8
+      },
+      "overtime": {
+        "currentMonth": 40,
+        "yearToDate": 280
+      },
+      "emergencyContact": {
+        "name": "Sri Widodo",
+        "relationship": "spouse",
+        "phone": "08154321098"
+      }
+    }
+  ],
+  "departments": [
+    {
+      "id": "DEPT-001",
+      "name": "Construction",
+      "head": "EMP-001",
+      "employeeCount": 3
+    },
+    {
+      "id": "DEPT-002", 
+      "name": "Engineering",
+      "head": "EMP-002",
+      "employeeCount": 1
+    },
+    {
+      "id": "DEPT-003",
+      "name": "Human Resources", 
+      "head": "EMP-004",
+      "employeeCount": 1
+    }
+  ],
+  "skills": [
+    "Project Management",
+    "Construction Safety",
+    "Team Leadership",
+    "Structural Design",
+    "AutoCAD",
+    "Quality Control",
+    "Construction Supervision",
+    "Safety Management",
+    "Quality Assurance",
+    "Recruitment",
+    "Employee Relations",
+    "Training & Development",
+    "Excavator Operation",
+    "Crane Operation",
+    "Equipment Maintenance"
+  ],
+  "attendance": [
+    {
+      "employeeId": "EMP-001",
+      "date": "2024-08-27",
+      "checkIn": "07:30:00",
+      "checkOut": "17:00:00",
+      "status": "present",
+      "overtime": 1.5
+    },
+    {
+      "employeeId": "EMP-002",
+      "date": "2024-08-27",
+      "checkIn": "08:00:00",
+      "checkOut": "17:00:00",
+      "status": "present",
+      "overtime": 0
+    },
+    {
+      "employeeId": "EMP-003",
+      "date": "2024-08-27",
+      "checkIn": "07:45:00",
+      "checkOut": "17:30:00",
+      "status": "present",
+      "overtime": 2
+    },
+    {
+      "employeeId": "EMP-004",
+      "date": "2024-08-27",
+      "checkIn": "08:15:00",
+      "checkOut": "17:00:00",
+      "status": "present",
+      "overtime": 0
+    },
+    {
+      "employeeId": "EMP-005",
+      "date": "2024-08-27",
+      "checkIn": "06:30:00",
+      "checkOut": "18:00:00",
+      "status": "present",
+      "overtime": 3
+    }
+  ],
+  "trainingPrograms": [
+    {
+      "id": "TRN-001",
+      "title": "Advanced Construction Safety",
+      "description": "Comprehensive safety training for construction workers",
+      "category": "Safety",
+      "instructor": "Dr. Safety Expert",
+      "duration": 16,
+      "maxParticipants": 20,
+      "startDate": "2024-09-15",
+      "endDate": "2024-09-16",
+      "location": "Training Center A",
+      "status": "scheduled",
+      "cost": 2500000,
+      "requirements": ["Basic Safety Certification"],
+      "participants": ["EMP-001", "EMP-003", "EMP-005"]
+    },
+    {
+      "id": "TRN-002", 
+      "title": "Project Management Fundamentals",
+      "description": "Basic project management skills for team leaders",
+      "category": "Management",
+      "instructor": "John Manager",
+      "duration": 24,
+      "maxParticipants": 15,
+      "startDate": "2024-09-20",
+      "endDate": "2024-09-22",
+      "location": "Training Center B",
+      "status": "scheduled",
+      "cost": 3500000,
+      "requirements": ["2+ years experience"],
+      "participants": ["EMP-001", "EMP-002"]
+    },
+    {
+      "id": "TRN-003",
+      "title": "Heavy Equipment Operation Refresher",
+      "description": "Annual refresher for equipment operators",
+      "category": "Technical",
+      "instructor": "Expert Operator",
+      "duration": 8,
+      "maxParticipants": 10,
+      "startDate": "2024-09-10",
+      "endDate": "2024-09-10",
+      "location": "Field Training Site",
+      "status": "completed",
+      "cost": 1500000,
+      "requirements": ["Valid Equipment License"],
+      "participants": ["EMP-005"],
+      "completionDate": "2024-09-10"
+    }
+  ],
+  "safetyIncidents": [
+    {
+      "id": "INC-001",
+      "reportDate": "2024-08-15",
+      "incidentDate": "2024-08-15",
+      "location": "PRJ-2025-001 - Construction Site",
+      "reportedBy": "EMP-001",
+      "involvedEmployees": ["EMP-003"],
+      "severity": "minor",
+      "category": "slip_fall",
+      "description": "Worker slipped on wet surface near concrete mixer",
+      "immediateAction": "First aid provided, area cordoned off",
+      "rootCause": "Inadequate drainage in work area",
+      "correctiveActions": [
+        "Install better drainage",
+        "Add non-slip mats",
+        "Review safety protocols"
+      ],
+      "status": "closed",
+      "followUpDate": "2024-08-22",
+      "investigator": "EMP-001"
+    },
+    {
+      "id": "INC-002",
+      "reportDate": "2024-08-20",
+      "incidentDate": "2024-08-20", 
+      "location": "PRJ-2025-002 - Office Building",
+      "reportedBy": "EMP-002",
+      "involvedEmployees": ["EMP-002"],
+      "severity": "minor",
+      "category": "equipment_malfunction",
+      "description": "Measuring equipment malfunction caused minor delay",
+      "immediateAction": "Equipment replaced, work resumed",
+      "rootCause": "Equipment maintenance overdue",
+      "correctiveActions": [
+        "Implement preventive maintenance schedule",
+        "Train staff on equipment checks"
+      ],
+      "status": "investigating",
+      "investigator": "EMP-004"
+    }
+  ],
+  "performanceReviews": [
+    {
+      "id": "REV-001",
+      "employeeId": "EMP-001",
+      "reviewPeriod": "2024-H1",
+      "reviewDate": "2024-06-30",
+      "reviewer": "HR Manager",
+      "overallRating": 4.5,
+      "categories": {
+        "technicalSkills": 4.5,
+        "leadership": 4.8,
+        "communication": 4.3,
+        "teamwork": 4.6,
+        "punctuality": 4.2,
+        "qualityOfWork": 4.7
+      },
+      "strengths": [
+        "Excellent leadership skills",
+        "Strong technical knowledge",
+        "Effective team management"
+      ],
+      "areasForImprovement": [
+        "Time management",
+        "Documentation skills"
+      ],
+      "goals": [
+        {
+          "description": "Complete advanced project management certification",
+          "deadline": "2024-12-31",
+          "status": "in_progress"
+        },
+        {
+          "description": "Improve project documentation processes",
+          "deadline": "2024-10-31",
+          "status": "not_started"
+        }
+      ],
+      "nextReviewDate": "2024-12-30"
+    },
+    {
+      "id": "REV-002",
+      "employeeId": "EMP-002",
+      "reviewPeriod": "2024-H1",
+      "reviewDate": "2024-06-30",
+      "reviewer": "EMP-001",
+      "overallRating": 4.2,
+      "categories": {
+        "technicalSkills": 4.5,
+        "leadership": 3.8,
+        "communication": 4.2,
+        "teamwork": 4.3,
+        "punctuality": 4.6,
+        "qualityOfWork": 4.4
+      },
+      "strengths": [
+        "Strong technical expertise",
+        "Attention to detail",
+        "Quality focused"
+      ],
+      "areasForImprovement": [
+        "Leadership development",
+        "Presentation skills"
+      ],
+      "goals": [
+        {
+          "description": "Lead a project team",
+          "deadline": "2024-12-31", 
+          "status": "in_progress"
+        },
+        {
+          "description": "Complete presentation skills training",
+          "deadline": "2024-11-30",
+          "status": "not_started"
+        }
+      ],
+      "nextReviewDate": "2024-12-30"
+    }
+  ],
+  "certificationAlerts": [
+    {
+      "employeeId": "EMP-005",
+      "certificationType": "Heavy Equipment License",
+      "expiryDate": "2024-03-15",
+      "daysUntilExpiry": -165,
+      "status": "expired",
+      "priority": "high",
+      "actionRequired": "Immediate renewal required"
+    },
+    {
+      "employeeId": "EMP-002",
+      "certificationType": "AutoCAD Professional",
+      "expiryDate": "2024-09-15",
+      "daysUntilExpiry": 19,
+      "status": "expiring_soon",
+      "priority": "medium",
+      "actionRequired": "Schedule renewal"
+    },
+    {
+      "employeeId": "EMP-003",
+      "certificationType": "Construction Supervisor",
+      "expiryDate": "2024-05-15",
+      "daysUntilExpiry": -104,
+      "status": "expired",
+      "priority": "high",
+      "actionRequired": "Immediate renewal required"
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "users": [
+    {
+      "id": "USR001",
+      "username": "admin",
+      "email": "admin@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "admin",
+      "profile": {
+        "fullName": "Budi Santoso",
+        "position": "IT Administrator",
+        "phone": "+62812-3456-7890",
+        "avatar": "/avatars/admin.jpg",
+        "department": "IT",
+        "joinDate": "2024-01-15",
+        "isActive": true
+      },
+      "permissions": ["all"]
+    },
+    {
+      "id": "USR002",
+      "username": "project_manager1",
+      "email": "pm1@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "project_manager",
+      "profile": {
+        "fullName": "Sari Wijayanti",
+        "position": "Senior Project Manager",
+        "phone": "+62813-2345-6789",
+        "avatar": "/avatars/pm1.jpg",
+        "department": "Project Management",
+        "joinDate": "2023-03-10",
+        "isActive": true
+      },
+      "permissions": ["project_read", "project_write", "inventory_read", "manpower_read", "finance_read"]
+    },
+    {
+      "id": "USR003",
+      "username": "finance_manager",
+      "email": "finance@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "finance_manager",
+      "profile": {
+        "fullName": "Ahmad Hidayat",
+        "position": "Finance Manager",
+        "phone": "+62814-3456-7890",
+        "avatar": "/avatars/finance.jpg",
+        "department": "Finance",
+        "joinDate": "2023-01-20",
+        "isActive": true
+      },
+      "permissions": ["finance_read", "finance_write", "tax_read", "tax_write", "project_read"]
+    },
+    {
+      "id": "USR004",
+      "username": "inventory_manager",
+      "email": "inventory@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "inventory_manager",
+      "profile": {
+        "fullName": "Linda Kusuma",
+        "position": "Inventory Manager",
+        "phone": "+62815-4567-8901",
+        "avatar": "/avatars/inventory.jpg",
+        "department": "Logistics",
+        "joinDate": "2023-05-15",
+        "isActive": true
+      },
+      "permissions": ["inventory_read", "inventory_write", "project_read"]
+    },
+    {
+      "id": "USR005",
+      "username": "hr_manager",
+      "email": "hr@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "hr_manager",
+      "profile": {
+        "fullName": "Rina Marlina",
+        "position": "HR Manager",
+        "phone": "+62816-5678-9012",
+        "avatar": "/avatars/hr.jpg",
+        "department": "Human Resources",
+        "joinDate": "2023-02-28",
+        "isActive": true
+      },
+      "permissions": ["manpower_read", "manpower_write", "project_read"]
+    },
+    {
+      "id": "USR006",
+      "username": "site_supervisor1",
+      "email": "supervisor1@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "site_supervisor",
+      "profile": {
+        "fullName": "Joko Prabowo",
+        "position": "Site Supervisor",
+        "phone": "+62817-6789-0123",
+        "avatar": "/avatars/supervisor1.jpg",
+        "department": "Operations",
+        "joinDate": "2023-06-10",
+        "isActive": true
+      },
+      "permissions": ["project_read", "inventory_read", "manpower_read"]
+    },
+    {
+      "id": "USR007",
+      "username": "director",
+      "email": "director@ykconstruction.com",
+      "password": "$2b$10$encrypted_password_hash",
+      "role": "director",
+      "profile": {
+        "fullName": "Teguh Prasetyo",
+        "position": "Operations Director",
+        "phone": "+62818-7890-1234",
+        "avatar": "/avatars/director.jpg",
+        "department": "Management",
+        "joinDate": "2022-01-01",
+        "isActive": true
+      },
+      "permissions": ["all"]
+    }
+  ],
+  "roles": [
+    {
+      "id": "admin",
+      "name": "Administrator",
+      "description": "System administrator with full access",
+      "permissions": ["all"]
+    },
+    {
+      "id": "director",
+      "name": "Director",
+      "description": "Company director with executive access",
+      "permissions": ["all"]
+    },
+    {
+      "id": "project_manager",
+      "name": "Project Manager",
+      "description": "Manages construction projects",
+      "permissions": ["project_read", "project_write", "inventory_read", "manpower_read", "finance_read"]
+    },
+    {
+      "id": "finance_manager",
+      "name": "Finance Manager",
+      "description": "Manages company finances and taxes",
+      "permissions": ["finance_read", "finance_write", "tax_read", "tax_write", "project_read"]
+    },
+    {
+      "id": "inventory_manager",
+      "name": "Inventory Manager",
+      "description": "Manages inventory and supplies",
+      "permissions": ["inventory_read", "inventory_write", "project_read"]
+    },
+    {
+      "id": "hr_manager",
+      "name": "HR Manager",
+      "description": "Manages human resources and manpower",
+      "permissions": ["manpower_read", "manpower_write", "project_read"]
+    },
+    {
+      "id": "site_supervisor",
+      "name": "Site Supervisor",
+      "description": "Supervises construction sites",
+      "permissions": ["project_read", "inventory_read", "manpower_read"]
+    }
+  ]
+}

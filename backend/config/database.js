@@ -4,8 +4,8 @@ require('dotenv').config();
 // Database configuration
 const config = {
   development: {
-    username: process.env.DB_USER || process.env.DB_USERNAME || 'odangrodiana',
-    password: process.env.DB_PASSWORD || '',
+    username: process.env.DB_USERNAME || 'postgres',
+    password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_NAME || 'yk_construction_dev',
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,

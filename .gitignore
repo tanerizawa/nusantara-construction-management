@@ -60,8 +60,10 @@ typings/
 .env
 .env.test
 .env.local
+.env.development
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -100,6 +102,7 @@ public
 # Frontend build files
 frontend/build/
 frontend/dist/
+frontend/public/
 
 # Backend uploads
 backend/uploads/
@@ -130,10 +133,16 @@ Thumbs.db
 *.backup
 *.bak
 *.tmp
+*_backup.*
+*_Enhanced.*
+*_Fixed.*
+*_New.*
 
 # Development files
-.env.development
-.env.production
+backend/.env.development
+backend/.env.production
+frontend/.env.development
+frontend/.env.production
 
 # Test files
 coverage/

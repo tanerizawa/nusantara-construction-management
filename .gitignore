@@ -129,6 +129,10 @@ Thumbs.db
 *.swo
 *~
 
+# Keep project-specific VS Code settings
+!.vscode/settings.json
+!.vscode/extensions.json
+
 # Backup files
 *.backup
 *.bak

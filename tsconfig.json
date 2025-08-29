@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "es6"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "ignoreDeprecations": "5.0"
+  },
+  "include": [
+    "frontend/src",
+    "backend/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "backend/node_modules",
+    "frontend/node_modules",
+    "frontend/build",
+    "**/*.test.js",
+    "**/*.spec.js"
+  ]
+}

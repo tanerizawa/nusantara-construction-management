@@ -1,7 +1,17 @@
 import axios from 'axios';
 
-// API Configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// API Configuration - Consistent with AuthContext
+const getApiUrl = () => {
+  // If accessed from production domain, use relative path for Apache proxy
+  if (window.location.hostname === 'nusantaragroup.co' || window.location.hostname.includes('nusantaragroup')) {
+    return '/api';
+  }
+  
+  // For localhost development
+  return 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiUrl();
 
 // Create axios instance with default config
 const apiClient = axios.create({

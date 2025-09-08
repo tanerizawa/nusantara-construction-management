@@ -1,5 +1,16 @@
 // API utilities for backend communication
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// API Configuration - Consistent with other API files
+const getApiUrl = () => {
+  // If accessed from production domain, use relative path for Apache proxy
+  if (window.location.hostname === 'nusantaragroup.co' || window.location.hostname.includes('nusantaragroup')) {
+    return '/api';
+  }
+  
+  // For localhost development
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getApiUrl();
 
 export const checkBackendHealth = async () => {
   try {

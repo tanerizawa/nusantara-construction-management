@@ -3,9 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import Auth Context
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Import Auth components
 import Login from './components/Auth/Login';
+
+// Import Layout
+import MainLayout from './components/Layout/MainLayout';
 
 // Import pages
 import Landing from './pages/Landing';
@@ -24,29 +28,65 @@ import './index.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Auth Routes */}
-            <Route path="/login" element={<Login />} />
-            
-            {/* Main Routes */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/finance" element={<Finance />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/manpower" element={<Manpower />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/analytics" element={<Analytics />} />
-            
-            {/* Inventory Sub-routes */}
-            <Route path="/inventory/*" element={<InventoryRoutes />} />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              {/* Auth Routes */}
+              <Route path="/login" element={<Login />} />
+              
+              {/* Landing Page without sidebar */}
+              <Route path="/" element={<Landing />} />
+              
+              {/* Main Routes with sidebar */}
+              <Route path="/dashboard" element={
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              } />
+              <Route path="/admin" element={
+                <MainLayout>
+                  <Dashboard />
+                </MainLayout>
+              } />
+              <Route path="/finance" element={
+                <MainLayout>
+                  <Finance />
+                </MainLayout>
+              } />
+              <Route path="/projects" element={
+                <MainLayout>
+                  <Projects />
+                </MainLayout>
+              } />
+              <Route path="/manpower" element={
+                <MainLayout>
+                  <Manpower />
+                </MainLayout>
+              } />
+              <Route path="/users" element={
+                <MainLayout>
+                  <Users />
+                </MainLayout>
+              } />
+              <Route path="/analytics" element={
+                <MainLayout>
+                  <Analytics />
+                </MainLayout>
+              } />
+              
+              {/* Inventory Sub-routes with sidebar */}
+              <Route path="/inventory/*" element={
+                <MainLayout>
+                  <InventoryRoutes />
+                </MainLayout>
+              } />
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

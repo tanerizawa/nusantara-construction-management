@@ -65,18 +65,6 @@ const Header = ({ onMenuClick }) => {
           >
             <Menu size={20} />
           </button>
-
-          {/* Logo & Company Name */}
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm font-bold">NG</span>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                Nusantara Group
-              </h1>
-            </div>
-          </div>
         </div>
 
         {/* Right Section */}

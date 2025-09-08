@@ -1,0 +1,78 @@
+# DEVELOPMENT MODE - Docker Compose untuk Frontend React Dev Server
+services:
+  # Frontend React Development Server
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    container_name: yk-frontend-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5000/api
+      - REACT_APP_BACKEND_URL=http://localhost:5000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src:delegated
+      - ./frontend/public:/app/public:delegated
+      - /app/node_modules
+    networks:
+      - yk-dev-network
+    stdin_open: true
+    tty: true
+    command: ["npm", "start"]
+
+  # Backend API (existing)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    container_name: yk-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_NAME: yk_construction_dev
+      DB_USERNAME: postgres
+      DB_PASSWORD: dev_password
+      JWT_SECRET: dev_jwt_secret_key
+      JWT_EXPIRES_IN: 24h
+      PORT: 5000
+    ports:
+      - "5000:5000"
+      - "9229:9229"
+    depends_on:
+      - database
+    networks:
+      - yk-dev-network
+    volumes:
+      - ./backend:/app:delegated
+      - /app/node_modules
+
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: yk-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: yk_construction_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev_password
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./data:/docker-entrypoint-initdb.d/mockup-data:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - yk-dev-network
+
+networks:
+  yk-dev-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:

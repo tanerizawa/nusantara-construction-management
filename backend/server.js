@@ -47,6 +47,8 @@ const logError = (error, req = null) => {
 };
 
 // Security middleware with production configuration
+// Temporarily disabled for CORS debugging
+/*
 app.use(helmet({
   contentSecurityPolicy: isProduction ? {
     directives: {
@@ -62,6 +64,7 @@ app.use(helmet({
     preload: true
   } : false
 }));
+*/
 
 app.use(compression({
   filter: (req, res) => {
@@ -94,15 +97,30 @@ app.use(limiter);
 // CORS configuration with environment-based origins
 const allowedOrigins = isProduction 
   ? [process.env.CORS_ORIGIN].filter(Boolean)
-  : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001'];
+  : [
+      'http://localhost:3000',
+      'https://nusantaragroup.co',
+      'http://nusantaragroup.co',
+      'https://www.nusantaragroup.co',
+      'http://www.nusantaragroup.co'
+    ]; // Allow specific origins in development
+
+// Debug CORS
+console.log('🔧 CORS Configuration:', { isProduction, allowedOrigins });
 
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
   optionsSuccessStatus: 200
 }));
+
+// Debug middleware untuk melihat request
+app.use((req, res, next) => {
+  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  next();
+});
 
 // Request parsing with security limits
 app.use(express.json({ 
@@ -201,15 +219,44 @@ app.use('/api', (req, res, next) => {
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
+app.use('/api/subsidiaries', require('./routes/subsidiaries'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/manpower', require('./routes/manpower'));
 app.use('/api/finance', require('./routes/finance'));
 app.use('/api/tax', require('./routes/tax'));
+app.use('/api/chart-of-accounts', require('./routes/chartOfAccounts'));
+app.use('/api/journal-entries', require('./routes/journalEntries'));
+app.use('/api/reports', require('./routes/financialReports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 console.log('Loading purchase-orders route...');
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 console.log('Purchase-orders route loaded successfully');
+
+// Root endpoint for health check
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Nusantara YK Construction API',
+    version: '1.0.0',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      projects: '/api/projects',
+      dashboard: '/api/dashboard'
+    }
+  });
+});
+
+// API health check
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'API is running',
+    version: '1.0.0',
+    status: 'healthy',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // 404 handler
 app.use('/api/*', (req, res) => {
@@ -317,7 +364,7 @@ const startServerWithDatabase = () => {
   // Start the server
   const server = app.listen(PORT, () => {
     console.log(`
-🚀 YK Construction SaaS Server Running
+🚀 Nusantara Group SaaS Server Running
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📍 Server: http://localhost:${PORT}
 🌍 Environment: ${environment}
@@ -348,7 +395,7 @@ const startServerFallback = () => {
   // Start the server without database
   const server = app.listen(PORT, () => {
     console.log(`
-🚀 YK Construction SaaS Server Running (FALLBACK MODE)
+🚀 Nusantara Group SaaS Server Running (FALLBACK MODE)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📍 Server: http://localhost:${PORT}
 🌍 Environment: ${environment}

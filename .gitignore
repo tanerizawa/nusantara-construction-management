@@ -6,6 +6,13 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Backups and data directories (not needed in git)
+backups/
+backend/data/
+backend/transformed-data/
+backend/uploads/
+backend/logs/
+
 # Runtime data
 pids
 *.pid

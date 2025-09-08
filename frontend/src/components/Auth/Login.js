@@ -39,11 +39,11 @@ const Login = () => {
     });
   };
 
-  // Demo credentials untuk testing - Password apapun > 3 karakter akan diterima
+  // Development credentials untuk testing mode - Updated dengan database aktual
   const demoCredentials = [
-    { username: 'admin', password: 'admin', role: 'Administrator' },
-    { username: 'manager', password: 'manager', role: 'Project Manager' },
-    { username: 'demo', password: 'demo', role: 'Demo User' }
+    { username: 'admin', password: 'admin123', role: 'Administrator', info: 'Database User - AKTIF' },
+    { username: 'project_manager1', password: 'pm123', role: 'Project Manager', info: 'Database User - AKTIF' },
+    { username: 'finance_manager', password: 'finance123', role: 'Finance Manager', info: 'Database User - AKTIF' }
   ];
 
   const fillDemo = (username, password) => {
@@ -73,7 +73,7 @@ const Login = () => {
             Portal Admin
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Masuk ke sistem administrasi YK Construction
+            Masuk ke sistem administrasi NUSANTARA GROUP
           </p>
         </div>
 
@@ -136,10 +136,10 @@ const Login = () => {
           {/* Demo Credentials */}
           <div className="mt-8 border-t border-gray-200 pt-6">
             <p className="text-sm font-medium text-gray-900 mb-2">
-              🚀 Demo Mockup - Login Mudah:
+              🚀 Database Login - Kredensial Aktual:
             </p>
             <p className="text-xs text-gray-600 mb-3">
-              Username apapun + Password minimal 3 karakter akan diterima
+              Sistem sudah menggunakan database PostgreSQL dengan user real
             </p>
             <div className="space-y-2">
               {demoCredentials.map((demo, index) => (
@@ -156,6 +156,9 @@ const Login = () => {
                       <div className="text-xs text-gray-500">
                         {demo.role}
                       </div>
+                      <div className="text-xs text-green-600 font-medium">
+                        {demo.info}
+                      </div>
                     </div>
                     <div className="text-xs text-blue-600">
                       Klik untuk isi otomatis
@@ -164,9 +167,12 @@ const Login = () => {
                 </button>
               ))}
             </div>
-            <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-              <p className="text-xs text-blue-700">
-                💡 Tip: Gunakan username "test" dan password "123" untuk coba cepat
+            <div className="mt-3 p-2 bg-green-50 rounded-lg">
+              <p className="text-xs text-green-700">
+                ✅ Database Mode: PostgreSQL dengan 6 user aktif!
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                💡 Password semua user: admin123 (admin) | password123 (lainnya)
               </p>
             </div>
           </div>
@@ -174,7 +180,7 @@ const Login = () => {
 
         {/* Footer */}
         <div className="text-center text-sm text-gray-500">
-          © 2024 YK Construction. All rights reserved.
+          © 2024 NUSANTARA GROUP. All rights reserved.
         </div>
       </div>
     </div>

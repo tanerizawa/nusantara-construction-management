@@ -5,6 +5,17 @@ const User = require('./User');
 const Project = require('./Project');
 const InventoryItem = require('./InventoryItem');
 const FinanceTransaction = require('./FinanceTransaction');
+const Manpower = require('./Manpower');
+const PurchaseOrder = require('./PurchaseOrder');
+const TaxRecord = require('./TaxRecord');
+const ProjectRAB = require('./ProjectRAB');
+const ProjectMilestone = require('./ProjectMilestone');
+const ProjectTeamMember = require('./ProjectTeamMember');
+const ProjectDocument = require('./ProjectDocument');
+const Subsidiary = require('./Subsidiary');
+const ChartOfAccounts = require('./ChartOfAccounts');
+const JournalEntry = require('./JournalEntry');
+const JournalEntryLine = require('./JournalEntryLine');
 
 // Define relationships
 const setupAssociations = () => {
@@ -19,15 +30,36 @@ const setupAssociations = () => {
     as: 'projectManager'
   });
 
-  // Project - FinanceTransaction relationships
-  Project.hasMany(FinanceTransaction, {
-    foreignKey: 'projectId',
-    as: 'transactions'
+  // Project user tracking relationships
+  User.hasMany(Project, {
+    foreignKey: 'createdBy',
+    as: 'createdProjects'
   });
   
+  User.hasMany(Project, {
+    foreignKey: 'updatedBy',
+    as: 'updatedProjects'
+  });
+  
+  Project.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator'
+  });
+  
+  Project.belongsTo(User, {
+    foreignKey: 'updatedBy',
+    as: 'updater'
+  });
+
+  // FinanceTransaction - Project relationships
   FinanceTransaction.belongsTo(Project, {
     foreignKey: 'projectId',
     as: 'project'
+  });
+  
+  Project.hasMany(FinanceTransaction, {
+    foreignKey: 'projectId',
+    as: 'transactions'
   });
 
   // User - FinanceTransaction relationships (for approval)
@@ -40,6 +72,124 @@ const setupAssociations = () => {
     foreignKey: 'approvedBy',
     as: 'approver'
   });
+
+  // Manpower - Project relationships (via currentProject field)
+  Manpower.belongsTo(Project, {
+    foreignKey: 'currentProject',
+    as: 'project'
+  });
+  
+  Project.hasMany(Manpower, {
+    foreignKey: 'currentProject',
+    as: 'manpower'
+  });
+
+  // PurchaseOrder - Project relationships
+  PurchaseOrder.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+  
+  Project.hasMany(PurchaseOrder, {
+    foreignKey: 'projectId',
+    as: 'purchaseOrders'
+  });
+
+  // PurchaseOrder - User relationships
+  PurchaseOrder.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator'
+  });
+
+  PurchaseOrder.belongsTo(User, {
+    foreignKey: 'approvedBy',
+    as: 'approver'
+  });
+
+  // TaxRecord - Project relationships
+  TaxRecord.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+  
+  Project.hasMany(TaxRecord, {
+    foreignKey: 'projectId',
+    as: 'taxRecords'
+  });
+
+  // TaxRecord - User relationships
+  TaxRecord.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator'
+  });
+
+  // Project - ProjectRAB relationships
+  Project.hasMany(ProjectRAB, {
+    foreignKey: 'projectId',
+    as: 'rabItemsList'
+  });
+  
+  ProjectRAB.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // Project - ProjectMilestone relationships
+  Project.hasMany(ProjectMilestone, {
+    foreignKey: 'projectId',
+    as: 'milestonesList'
+  });
+  
+  ProjectMilestone.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // Project - ProjectTeamMember relationships
+  Project.hasMany(ProjectTeamMember, {
+    foreignKey: 'projectId',
+    as: 'teamMembersList'
+  });
+  
+  ProjectTeamMember.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // Project - ProjectDocument relationships
+  Project.hasMany(ProjectDocument, {
+    foreignKey: 'projectId',
+    as: 'documentsList'
+  });
+  
+  ProjectDocument.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // Journal Entry associations
+  JournalEntry.hasMany(JournalEntryLine, {
+    foreignKey: 'journalEntryId',
+    as: 'lines'
+  });
+  
+  JournalEntryLine.belongsTo(JournalEntry, {
+    foreignKey: 'journalEntryId',
+    as: 'journalEntry'
+  });
+
+  // Journal Entry Line - Chart of Accounts associations
+  JournalEntryLine.belongsTo(ChartOfAccounts, {
+    foreignKey: 'accountId',
+    as: 'account'
+  });
+  
+  ChartOfAccounts.hasMany(JournalEntryLine, {
+    foreignKey: 'accountId',
+    as: 'journalEntryLines'
+  });
+
+  console.log('✅ Model associations established');
 };
 
 // Initialize associations
@@ -78,8 +228,20 @@ module.exports = {
     User,
     Project,
     InventoryItem,
-    FinanceTransaction
+    FinanceTransaction,
+    Manpower,
+    PurchaseOrder,
+    TaxRecord,
+    ProjectRAB,
+    ProjectMilestone,
+    ProjectTeamMember,
+    ProjectDocument,
+    Subsidiary,
+    ChartOfAccounts,
+    JournalEntry,
+    JournalEntryLine
   },
+  setupAssociations,
   syncDatabase,
   resetDatabase
 };

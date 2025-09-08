@@ -92,6 +92,41 @@ const Project = sequelize.define('Project', {
     allowNull: true,
     field: 'project_manager_id'
   },
+  subsidiaryId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'subsidiary_id',
+    references: {
+      model: 'subsidiaries',
+      key: 'id'
+    }
+  },
+  createdBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'created_by',
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    comment: 'User ID who created this project'
+  },
+  updatedBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'updated_by',
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    comment: 'User ID who last updated this project'
+  },
+  subsidiaryInfo: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    field: 'subsidiary_info',
+    defaultValue: {}
+  },
   team: {
     type: DataTypes.JSONB,
     allowNull: true,

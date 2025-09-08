@@ -451,7 +451,8 @@ const SmartEmployeeMatching = () => {
                         <p className="text-sm text-gray-600 mb-2">Skill Match:</p>
                         <div className="space-y-1">
                           {employee.skills.slice(0, 4).map((skill, idx) => {
-                            const isRequired = projects.find(p => p.id === selectedProject)?.requiredSkills.includes(skill);
+                            const skillName = typeof skill === 'string' ? skill : skill.name;
+                            const isRequired = projects.find(p => p.id === selectedProject)?.requiredSkills.includes(skillName);
                             return (
                               <div key={idx} className="flex items-center gap-2">
                                 {isRequired ? (
@@ -460,7 +461,7 @@ const SmartEmployeeMatching = () => {
                                   <div className="h-3 w-3 rounded-full bg-gray-300"></div>
                                 )}
                                 <span className={`text-xs ${isRequired ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
-                                  {skill}
+                                  {skillName}
                                 </span>
                               </div>
                             );

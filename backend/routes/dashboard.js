@@ -1,35 +1,64 @@
 const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Load all data for dashboard
+// Import Sequelize models (Database-only mode)
+const { models } = require('../models');
+const Project = models.Project;
+const Finance = models.FinanceTransaction;
+const Manpower = models.Manpower;
+const Inventory = models.InventoryItem;
+const Tax = models.TaxRecord;
+
+console.log('✅ Dashboard: Database-only mode initialized');
+
+// Load all data for dashboard (Database only - no fallback)
 const loadAllData = async () => {
   try {
-    const projectsPath = path.join(__dirname, '../../data/projects.json');
-    const financePath = path.join(__dirname, '../../data/finance.json');
-    const manpowerPath = path.join(__dirname, '../../data/manpower.json');
-    const inventoryPath = path.join(__dirname, '../../data/inventory.json');
-    const taxPath = path.join(__dirname, '../../data/tax.json');
-
+    console.log('🗄️ Dashboard: Loading data from database...');
+    
     const [projectsData, financeData, manpowerData, inventoryData, taxData] = await Promise.all([
-      fs.readFile(projectsPath, 'utf8').then(data => JSON.parse(data)).catch(() => ({ projects: [] })),
-      fs.readFile(financePath, 'utf8').then(data => Array.isArray(JSON.parse(data)) ? JSON.parse(data) : []).catch(() => []),
-      fs.readFile(manpowerPath, 'utf8').then(data => Array.isArray(JSON.parse(data)) ? JSON.parse(data) : []).catch(() => []),
-      fs.readFile(inventoryPath, 'utf8').then(data => JSON.parse(data)).catch(() => ({ inventory: [] })),
-      fs.readFile(taxPath, 'utf8').then(data => Array.isArray(JSON.parse(data)) ? JSON.parse(data) : []).catch(() => [])
+      Project.findAll().catch(err => {
+        console.error('❌ Project.findAll error:', err.message);
+        return [];
+      }),
+      Finance.findAll().catch(err => {
+        console.error('❌ Finance.findAll error:', err.message);
+        return [];
+      }),
+      Manpower.findAll().catch(err => {
+        console.error('❌ Manpower.findAll error:', err.message);
+        return [];
+      }),
+      Inventory.findAll().catch(err => {
+        console.error('❌ Inventory.findAll error:', err.message);
+        return [];
+      }),
+      Tax.findAll().catch(err => {
+        console.error('❌ Tax.findAll error:', err.message);
+        return [];
+      })
     ]);
 
+    console.log('📊 Database results:', {
+      projects: projectsData.length,
+      finance: financeData.length,
+      manpower: manpowerData.length,
+      inventory: inventoryData.length,
+      tax: taxData.length
+    });
+
     return {
-      projects: projectsData.projects || [],
-      finance: financeData,
-      manpower: manpowerData,
-      inventory: inventoryData.inventory || [],
-      tax: taxData
+      projects: projectsData || [],
+      finance: financeData || [],
+      manpower: manpowerData || [],
+      inventory: inventoryData || [],
+      tax: taxData || []
     };
   } catch (error) {
-    console.error('Error loading dashboard data:', error);
+    console.error('❌ Error loading dashboard data from database:', error);
+    // Return empty data instead of fallback to JSON
     return {
       projects: [],
       finance: [],
@@ -43,7 +72,7 @@ const loadAllData = async () => {
 // @route   GET /api/dashboard/overview
 // @desc    Get dashboard overview statistics
 // @access  Private
-router.get('/overview', async (req, res) => {
+router.get('/overview', verifyToken, async (req, res) => {
   try {
     const data = await loadAllData();
 
@@ -119,7 +148,7 @@ router.get('/overview', async (req, res) => {
         type: 'project',
         title: `Project: ${p.name}`,
         status: p.status,
-        date: p.createdAt?.split('T')[0] || p.timeline?.startDate
+        date: p.createdAt ? (p.createdAt instanceof Date ? p.createdAt.toISOString().split('T')[0] : p.createdAt.split('T')[0]) : p.timeline?.startDate
       }))
     ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
 

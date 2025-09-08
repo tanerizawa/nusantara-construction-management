@@ -4,15 +4,18 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
-// API Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+// API Configuration - Configured for production domain access
+const getApiUrl = () => {
+  // Always use server IP when accessed from production domain
+  if (window.location.hostname === 'nusantaragroup.co' || window.location.hostname.includes('nusantaragroup')) {
+    return 'http://31.97.222.208:5000/api';
+  }
+  
+  // For localhost development (fallback)
+  return 'http://31.97.222.208:5000/api';
+};
 
-// Configure axios
-axios.defaults.baseURL = API_URL;
-axios.defaults.headers.common['Content-Type'] = 'application/json';
-
-// Debug: Log the API URL
-console.log('AuthContext API_URL:', API_URL);
+const API_URL = getApiUrl();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -31,57 +34,39 @@ export const AuthProvider = ({ children }) => {
     const verifyToken = async () => {
       try {
         const verifyUrl = `${API_URL}/auth/me`;
-        console.log('Verify token URL:', verifyUrl);
         const response = await axios.get(verifyUrl);
-        setUser(response.data);
+        
+        // Extract user from response structure like login does
+        if (response.data.success && response.data.user) {
+          setUser(response.data.user);
+        } else {
+          throw new Error('Invalid response structure');
+        }
       } catch (error) {
         console.error('Token verification failed:', error);
-        // For development, create a mock user if backend is not available or token is invalid
-        if (error.code === 'ERR_NETWORK' || error.response?.status === 401) {
-          console.log('Using mock user for development');
-          setUser({
-            id: 1,
-            name: 'Admin User',
-            email: 'admin@ykgroup.com',
-            role: 'admin'
-          });
-        } else {
-          logout();
-        }
+        // Remove token and logout on any error
+        logout();
       } finally {
         setLoading(false);
       }
     };
 
+    // Clear any mock tokens first
     const token = localStorage.getItem('token');
+    if (token === 'mock-development-token') {
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setLoading(false);
+      return;
+    }
+
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
-      // Skip verification for mock development token
-      if (token === 'mock-development-token') {
-        console.log('Using mock token, skipping verification');
-        setUser({
-          id: 1,
-          name: 'Admin User',
-          email: 'admin@ykgroup.com',
-          role: 'admin'
-        });
-        setLoading(false);
-      } else {
-        // Verify real token
-        verifyToken();
-      }
+      // Verify real token with backend
+      verifyToken();
     } else {
-      // For development, set a mock token and user
-      console.log('No token found, creating mock session for development');
-      localStorage.setItem('token', 'mock-development-token');
-      axios.defaults.headers.common['Authorization'] = `Bearer mock-development-token`;
-      setUser({
-        id: 1,
-        name: 'Admin User',
-        email: 'admin@ykgroup.com',
-        role: 'admin'
-      });
+      // No token found, user needs to login
       setLoading(false);
     }
   }, []);
@@ -90,24 +75,27 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // Add timeout dan retry untuk mockup
-      const config = {
-        timeout: 10000, // 10 detik timeout
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      };
-      
-      // Use explicit full URL to ensure correct endpoint
       const loginUrl = `${API_URL}/auth/login`;
-      console.log('Login URL:', loginUrl);
+      console.log('🔗 Login URL:', loginUrl);
+      console.log('🌐 Current hostname:', window.location.hostname);
       
-      const response = await axios.post(loginUrl, credentials, config);
+      // Simple fetch call without complex headers
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(credentials)
+      });
       
-      if (response.data.success) {
-        const { token, user } = response.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const { token, user } = data;
         
         // Store token
         localStorage.setItem('token', token);
@@ -117,19 +105,17 @@ export const AuthProvider = ({ children }) => {
         toast.success('Login berhasil!');
         return { success: true };
       } else {
-        throw new Error(response.data.error || 'Login gagal');
+        throw new Error(data.error || 'Login gagal');
       }
     } catch (error) {
       console.error('Login error:', error);
       
       let message = 'Login gagal';
       
-      if (error.code === 'ERR_NETWORK') {
-        message = 'Koneksi ke server bermasalah. Pastikan backend berjalan di port 5001';
-      } else if (error.response?.status === 429) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        message = 'Koneksi ke server bermasalah. Pastikan backend berjalan di port 5000';
+      } else if (error.message.includes('429')) {
         message = 'Terlalu banyak percobaan login. Coba lagi nanti';
-      } else if (error.response?.data?.error) {
-        message = error.response.data.error;
       } else if (error.message) {
         message = error.message;
       }

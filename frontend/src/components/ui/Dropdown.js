@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { ChevronDown, Search, X, Check } from 'lucide-react';
 
 /**
@@ -23,6 +24,8 @@ export const Dropdown = ({
   ...props
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [actualPlacement, setActualPlacement] = useState(placement);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
   
@@ -76,22 +79,54 @@ export const Dropdown = ({
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [open, close]);
+
+  // Calculate position for portal rendering
+  useEffect(() => {
+    if (!open || !triggerRef.current) return;
+
+    const updatePosition = () => {
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      let top = triggerRect.bottom + offset;
+      let left = triggerRect.left;
+      let newPlacement = placement;
+      
+      // Smart positioning - check if dropdown would overflow viewport
+      const menuWidth = 200; // estimated menu width
+      const menuHeight = 200; // estimated menu height
+      
+      // Horizontal overflow check
+      if (left + menuWidth > viewportWidth) {
+        left = triggerRect.right - menuWidth;
+        newPlacement = newPlacement.replace('start', 'end');
+      }
+      
+      // Vertical overflow check
+      if (top + menuHeight > viewportHeight) {
+        top = triggerRect.top - menuHeight - offset;
+        newPlacement = newPlacement.replace('bottom', 'top');
+      }
+      
+      setPosition({ top, left });
+      setActualPlacement(newPlacement);
+    };
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [open, placement, offset]);
   
   const handleMenuClick = (event) => {
     if (closeOnClick) {
       close();
     }
-  };
-  
-  const placements = {
-    'top-start': 'bottom-0 left-0 mb-2',
-    'top-end': 'bottom-0 right-0 mb-2',
-    'bottom-start': 'top-full left-0 mt-2',
-    'bottom-end': 'top-full right-0 mt-2',
-    'left-start': 'right-full top-0 mr-2',
-    'left-end': 'right-full bottom-0 mr-2',
-    'right-start': 'left-full top-0 ml-2',
-    'right-end': 'left-full bottom-0 ml-2'
   };
   
   return (
@@ -101,22 +136,30 @@ export const Dropdown = ({
         {trigger}
       </div>
       
-      {/* Menu */}
-      {open && (
+      {/* Menu - Rendered via Portal to bypass overflow containers */}
+      {open && ReactDOM.createPortal(
         <div
           ref={menuRef}
-          className={`
-            absolute z-50 ${placements[placement]}
-            bg-white border border-gray-200 rounded-xl shadow-lg
-            min-w-[200px] max-h-96 overflow-y-auto
-            transform transition-all duration-200 ease-out
-            origin-top-left animate-in fade-in-0 zoom-in-95
-            ${menuClassName}
-          `}
+          style={{
+            position: 'fixed',
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+            zIndex: 999999, // Super high z-index to appear above everything
+            minWidth: '200px',
+            maxHeight: '24rem',
+            overflowY: 'auto',
+            backgroundColor: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '0.75rem',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            transformOrigin: 'top left',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
           onClick={handleMenuClick}
         >
           {children}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

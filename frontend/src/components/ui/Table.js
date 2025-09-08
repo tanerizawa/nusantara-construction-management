@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronUp, ChevronDown, MoreHorizontal, ArrowUpDown, Filter, Search, Download, RefreshCw, Shield, User } from 'lucide-react';
+import { ChevronUp, ChevronDown, MoreHorizontal, ArrowUpDown, Filter, Search, Download, RefreshCw, Shield, User, Edit, Archive, Trash2 } from 'lucide-react';
 import { StatusBadge, ProgressBadge, CategoryBadge, InventoryStatusBadge } from './Badge';
 import Button from './Button';
 import { Dropdown, DropdownItem, DropdownSeparator } from './Dropdown';
@@ -599,7 +599,7 @@ export const SimpleTable = ({
 };
 
 // Table components for YK Project modules
-export const ProjectTable = ({ projects = [], ...props }) => {
+export const ProjectTable = ({ projects = [], onEdit, onDelete, onArchive, ...props }) => {
   const columns = [
     {
       key: 'name',
@@ -608,7 +608,12 @@ export const ProjectTable = ({ projects = [], ...props }) => {
       render: (value, row) => (
         <div>
           <div className="font-medium">{value}</div>
-          <div className="text-sm text-gray-500">{row.location}</div>
+          <div className="text-sm text-gray-500">
+            {row.location && typeof row.location === 'object' 
+              ? `${row.location.city || ''}, ${row.location.province || ''}`
+              : row.location || ''
+            }
+          </div>
         </div>
       )
     },
@@ -640,8 +645,37 @@ export const ProjectTable = ({ projects = [], ...props }) => {
       render: (value) => (value ? new Date(value).toLocaleDateString('id-ID') : '-')
     }
   ];
+
+  // Define actions for project management
+  const actions = [
+    {
+      label: 'Edit Proyek',
+      icon: <Edit size={16} />,
+      onClick: (project) => onEdit?.(project)
+    },
+    {
+      label: 'Arsipkan',
+      icon: <Archive size={16} />,
+      onClick: (project) => onArchive?.(project),
+      variant: 'warning',
+      disabled: (project) => project.status === 'archived'
+    },
+    { type: 'separator' },
+    {
+      label: 'Hapus Proyek',
+      icon: <Trash2 size={16} />,
+      onClick: (project) => onDelete?.(project),
+      variant: 'danger'
+    }
+  ];
   
-  return <DataTable data={projects} columns={columns} {...props} />;
+  return <DataTable 
+    data={projects} 
+    columns={columns} 
+    actions={actions}
+    onAction={(action, ids, row) => action.onClick?.(row)}
+    {...props} 
+  />;
 };
 
 export const InventoryTable = ({ items = [], ...props }) => {

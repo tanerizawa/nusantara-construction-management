@@ -153,8 +153,13 @@ export const DataCard = ({
   actions, 
   children,
   onClick,
+  isEmpty = false,
+  description,
   ...props 
 }) => {
+  // Filter out component-specific props to prevent React warnings
+  const { action, actionText, ...domProps } = props;
+  
   const statusColors = {
     active: 'text-success bg-green-50 border-green-200',
     inactive: 'text-error bg-red-50 border-red-200',
@@ -163,11 +168,26 @@ export const DataCard = ({
     default: 'text-gray-600 bg-gray-50 border-gray-200'
   };
 
+  // Handle empty state
+  if (isEmpty) {
+    return (
+      <Card padding="lg" {...domProps}>
+        <div className="text-center py-8">
+          <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <div className="w-6 h-6 bg-gray-300 rounded"></div>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
+          <p className="text-gray-500">{description || subtitle}</p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card 
       hover={!!onClick} 
       onClick={onClick}
-      {...props}
+      {...domProps}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">

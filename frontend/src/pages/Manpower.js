@@ -23,8 +23,11 @@ import {
   Settings,
   Brain,
   MessageCircle,
-  UserPlus
+  UserPlus,
+  LayoutDashboard,
+  AlertTriangle
 } from 'lucide-react';
+import { employeeAPI } from '../services/api';
 import TrainingManagement from '../components/TrainingManagement';
 import SafetyComplianceManagement from '../components/SafetyComplianceManagement';
 import PerformanceEvaluationManagement from '../components/PerformanceEvaluationManagement';
@@ -48,122 +51,29 @@ const Manpower = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Mock data - in real app, this would come from API
-    const mockEmployeeData = [
-    {
-      id: 1,
-      employeeId: 'EMP-001',
-      name: 'Budi Santoso',
-      position: 'Site Manager',
-      department: 'Construction',
-      email: 'budi.santoso@ykgroup.com',
-      phone: '08123456789',
-      joinDate: '2023-01-15',
-      status: 'active',
-      salary: 15000000,
-      currentProject: 'PRJ-2025-001',
-      projectName: 'Pembangunan Rumah Tinggal Jl. Mawar',
-      skills: ['Project Management', 'Construction Safety', 'Team Leadership'],
-      certifications: ['PMP', 'OSHA 30'],
-      performance: 4.5,
-      attendance: 95,
-      overtimeHours: 25,
-      profileImage: null,
-      lastLogin: '2025-08-25'
-    },
-    {
-      id: 2,
-      employeeId: 'EMP-002',
-      name: 'Sari Dewi',
-      position: 'Project Engineer',
-      department: 'Engineering',
-      email: 'sari.dewi@ykgroup.com',
-      phone: '08123456790',
-      joinDate: '2023-03-20',
-      status: 'active',
-      salary: 12000000,
-      currentProject: 'PRJ-2025-002',
-      projectName: 'Renovasi Kantor PT ABC',
-      skills: ['AutoCAD', 'Structural Analysis', 'Quality Control'],
-      certifications: ['Professional Engineer', 'ISO 9001'],
-      performance: 4.8,
-      attendance: 98,
-      overtimeHours: 18,
-      profileImage: null,
-      lastLogin: '2025-08-25'
-    },
-    {
-      id: 3,
-      employeeId: 'EMP-003',
-      name: 'Ahmad Rizki',
-      position: 'Heavy Equipment Operator',
-      department: 'Operations',
-      email: 'ahmad.rizki@ykgroup.com',
-      phone: '08123456791',
-      joinDate: '2022-11-10',
-      status: 'active',
-      salary: 8000000,
-      currentProject: 'PRJ-2025-001',
-      projectName: 'Pembangunan Rumah Tinggal Jl. Mawar',
-      skills: ['Excavator Operation', 'Crane Operation', 'Equipment Maintenance'],
-      certifications: ['Heavy Equipment License', 'Safety Certificate'],
-      performance: 4.2,
-      attendance: 92,
-      overtimeHours: 35,
-      profileImage: null,
-      lastLogin: '2025-08-24'
-    },
-    {
-      id: 4,
-      employeeId: 'EMP-004',
-      name: 'Rina Sari',
-      position: 'Quality Inspector',
-      department: 'Quality Assurance',
-      email: 'rina.sari@ykgroup.com',
-      phone: '08123456792',
-      joinDate: '2023-06-01',
-      status: 'active',
-      salary: 9000000,
-      currentProject: 'PRJ-2025-003',
-      projectName: 'Pembangunan Warehouse PT XYZ',
-      skills: ['Quality Testing', 'Documentation', 'Compliance'],
-      certifications: ['QA Inspector', 'Material Testing'],
-      performance: 4.6,
-      attendance: 97,
-      overtimeHours: 12,
-      profileImage: null,
-      lastLogin: '2025-08-25'
-    },
-    {
-      id: 5,
-      employeeId: 'EMP-005',
-      name: 'Tono Wijaya',
-      position: 'Construction Worker',
-      department: 'Construction',
-      email: 'tono.wijaya@ykgroup.com',
-      phone: '08123456793',
-      joinDate: '2024-01-15',
-      status: 'on_leave',
-      salary: 5500000,
-      currentProject: null,
-      projectName: null,
-      skills: ['Concrete Work', 'Rebar Installation', 'General Construction'],
-      certifications: ['Construction Safety'],
-      performance: 4.0,
-      attendance: 89,
-      overtimeHours: 42,
-      profileImage: null,
-      lastLogin: '2025-08-20'
-    }
-    ];
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await employeeAPI.getAll();
+        console.log('Manpower API Response:', response);
+        
+        // Backend returns data array directly or with data property
+        const employeeData = response.data || response;
+        setEmployees(Array.isArray(employeeData) ? employeeData : []);
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        setError(error.message || 'Failed to fetch employee data');
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Simulate API call
-    setTimeout(() => {
-      setEmployees(mockEmployeeData);
-      setLoading(false);
-    }, 1000);
+    fetchEmployees();
   }, []);
 
   const getStatusColor = (status) => {
@@ -347,7 +257,7 @@ const Manpower = () => {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Optimized Tabs - Construction Industry Focus */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
@@ -359,17 +269,19 @@ const Manpower = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Employee Overview
+              <LayoutDashboard className="w-4 h-4 inline mr-1" />
+              Overview & Dashboard
             </button>
             <button
-              onClick={() => setActiveTab('attendance')}
+              onClick={() => setActiveTab('employee-management')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'attendance'
+                activeTab === 'employee-management'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Attendance & Payroll
+              <Users className="w-4 h-4 inline mr-1" />
+              Employee Management
             </button>
             <button
               onClick={() => setActiveTab('performance')}
@@ -379,7 +291,8 @@ const Manpower = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Performance
+              <TrendingUp className="w-4 h-4 inline mr-1" />
+              Performance & Evaluation
             </button>
             <button
               onClick={() => setActiveTab('training')}
@@ -393,39 +306,6 @@ const Manpower = () => {
               Training Management
             </button>
             <button
-              onClick={() => setActiveTab('safety')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'safety'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Shield className="w-4 h-4 inline mr-1" />
-              Safety Compliance
-            </button>
-            <button
-              onClick={() => setActiveTab('evaluation')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'evaluation'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Target className="w-4 h-4 inline mr-1" />
-              Performance Evaluation
-            </button>
-            <button
-              onClick={() => setActiveTab('certifications')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'certifications'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Bell className="w-4 h-4 inline mr-1" />
-              Certification Alerts
-            </button>
-            <button
               onClick={() => setActiveTab('analytics')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'analytics'
@@ -434,7 +314,7 @@ const Manpower = () => {
               }`}
             >
               <BarChart3 className="w-4 h-4 inline mr-1" />
-              HR Analytics
+              Analytics & Reports
             </button>
             <button
               onClick={() => setActiveTab('quickactions')}
@@ -444,104 +324,82 @@ const Manpower = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              <TrendingUp className="w-4 h-4 inline mr-1" />
-              Quick Actions
-            </button>
-            <button
-              onClick={() => setActiveTab('reports')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'reports'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <FileText className="w-4 h-4 inline mr-1" />
-              Reports
-            </button>
-            <button
-              onClick={() => setActiveTab('workflow')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'workflow'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
               <Settings className="w-4 h-4 inline mr-1" />
-              Workflow
-            </button>
-            <button
-              onClick={() => setActiveTab('advanced')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'advanced'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Users className="w-4 h-4 inline mr-1" />
-              Advanced Dashboard
-            </button>
-            <button
-              onClick={() => setActiveTab('selfservice')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'selfservice'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <UserCheck className="w-4 h-4 inline mr-1" />
-              Self Service
-            </button>
-            <button
-              onClick={() => setActiveTab('notifications')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'notifications'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Bell className="w-4 h-4 inline mr-1" />
-              Notifications
-            </button>
-            <button
-              onClick={() => setActiveTab('ai-analytics')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'ai-analytics'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <Brain className="w-4 h-4 inline mr-1" />
-              AI Analytics
-            </button>
-            <button
-              onClick={() => setActiveTab('smart-matching')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'smart-matching'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <UserPlus className="w-4 h-4 inline mr-1" />
-              Smart Matching
-            </button>
-            <button
-              onClick={() => setActiveTab('ai-assistant')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'ai-assistant'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <MessageCircle className="w-4 h-4 inline mr-1" />
-              AI Assistant
+              Quick Actions
             </button>
           </nav>
         </div>
 
         <div className="p-6">
           {activeTab === 'overview' && (
-            <div className="space-y-4">
-              {filteredEmployees.map((employee) => (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Manpower Overview & Dashboard</h3>
+                <div className="flex space-x-2">
+                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <FileText className="w-4 h-4 inline mr-1" />
+                    Generate Report
+                  </button>
+                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <Users className="w-4 h-4 inline mr-1" />
+                    Quick Add Employee
+                  </button>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-blue-800 text-sm">
+                  <strong>Construction Industry Focus:</strong> Use dedicated submenu for detailed operations - 
+                  Attendance & Payroll, Safety & K3 Management, Training & Certifications available in sidebar.
+                </p>
+              </div>
+
+              {/* Quick Access Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900">Employee Directory</h4>
+                      <p className="text-sm text-gray-600">Access complete workforce</p>
+                    </div>
+                    <Users className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    View All Employees
+                  </button>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900">Performance Review</h4>
+                      <p className="text-sm text-gray-600">Evaluate & track progress</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-green-600" />
+                  </div>
+                  <button className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    Start Evaluation
+                  </button>
+                </div>
+
+                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900">Training Programs</h4>
+                      <p className="text-sm text-gray-600">Schedule & manage training</p>
+                    </div>
+                    <BookOpen className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <button className="mt-4 w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                    Training Manager
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'employee-management' && (
+            <div className="space-y-4">{filteredEmployees.map((employee) => (
                 <div key={employee.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
@@ -618,7 +476,7 @@ const Manpower = () => {
                       <div className="flex flex-wrap gap-1 mt-1">
                         {employee.skills.slice(0, 3).map((skill, index) => (
                           <span key={index} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded">
-                            {skill}
+                            {typeof skill === 'string' ? skill : skill.name}
                           </span>
                         ))}
                         {employee.skills.length > 3 && (
@@ -649,49 +507,162 @@ const Manpower = () => {
             </div>
           )}
 
-          {activeTab === 'attendance' && (
-            <div className="text-center py-12">
-              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Attendance & Payroll</h3>
-              <p className="text-gray-600">Attendance tracking dan payroll management akan ditampilkan di sini</p>
-            </div>
-          )}
-
           {activeTab === 'performance' && (
-            <div className="text-center py-12">
-              <TrendingUp className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Performance Management</h3>
-              <p className="text-gray-600">Employee performance tracking dan reviews akan ditampilkan di sini</p>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Performance & Evaluation Management</h3>
+                <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                  <TrendingUp className="w-4 h-4 inline mr-1" />
+                  Start New Evaluation
+                </button>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Performance Overview</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">87%</div>
+                    <div className="text-sm text-gray-600">Avg Performance Score</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">23</div>
+                    <div className="text-sm text-gray-600">Pending Reviews</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">45</div>
+                    <div className="text-sm text-gray-600">Completed Q4</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
-          {activeTab === 'training' && <TrainingManagement />}
-          
-          {activeTab === 'safety' && <SafetyComplianceManagement />}
-          
-          {activeTab === 'evaluation' && <PerformanceEvaluationManagement />}
-          
-          {activeTab === 'certifications' && <CertificationAlertsManagement />}
-          
-          {activeTab === 'analytics' && <HRPredictiveAnalytics />}
-          
-          {activeTab === 'quickactions' && <EmployeeQuickActions />}
-          
-          {activeTab === 'reports' && <HRReports />}
-          
-          {activeTab === 'workflow' && <HRWorkflow />}
-          
-          {activeTab === 'advanced' && <EmployeeDashboard />}
-          
-          {activeTab === 'selfservice' && <EmployeeSelfService />}
-          
-          {activeTab === 'notifications' && <HRNotifications />}
-          
-          {activeTab === 'ai-analytics' && <HRPredictiveAnalytics />}
-          
-          {activeTab === 'smart-matching' && <SmartEmployeeMatching />}
-          
-          {activeTab === 'ai-assistant' && <HRChatbot />}
+          {activeTab === 'training' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Training Management</h3>
+                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                  <BookOpen className="w-4 h-4 inline mr-1" />
+                  Schedule Training
+                </button>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg border border-gray-200">
+                <h4 className="text-md font-medium text-gray-900 mb-4">Training Programs</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900">K3 Safety Training</h5>
+                    <p className="text-sm text-gray-600 mt-1">Next session: Dec 15, 2024</p>
+                    <div className="mt-2 flex justify-between text-sm">
+                      <span>Enrolled: 15/20</span>
+                      <span className="text-green-600">75% completion</span>
+                    </div>
+                  </div>
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <h5 className="font-medium text-gray-900">Technical Skills</h5>
+                    <p className="text-sm text-gray-600 mt-1">Next session: Dec 20, 2024</p>
+                    <div className="mt-2 flex justify-between text-sm">
+                      <span>Enrolled: 8/15</span>
+                      <span className="text-blue-600">53% completion</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Analytics & Reports</h3>
+                <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                  <BarChart3 className="w-4 h-4 inline mr-1" />
+                  Export Analytics
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-lg border border-gray-200">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Workforce Analytics</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Total Productivity</span>
+                      <span className="text-sm font-medium text-green-600">↑ 12%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Safety Compliance</span>
+                      <span className="text-sm font-medium text-green-600">96%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Training Completion</span>
+                      <span className="text-sm font-medium text-blue-600">87%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg border border-gray-200">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">AI Insights</h4>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <span className="text-gray-600">Predicted turnover risk:</span>
+                      <span className="ml-2 text-yellow-600 font-medium">3 employees</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-gray-600">Skill gap analysis:</span>
+                      <span className="ml-2 text-red-600 font-medium">Critical: Welding</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-gray-600">Optimal team size:</span>
+                      <span className="ml-2 text-green-600 font-medium">+5 for Q1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'quickactions' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Quick Actions & Tools</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button className="p-6 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <UserPlus className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                  <span className="text-sm font-medium block">Add Employee</span>
+                  <span className="text-xs text-gray-500">Quick onboarding</span>
+                </button>
+                
+                <button className="p-6 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Calendar className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                  <span className="text-sm font-medium block">Schedule Meeting</span>
+                  <span className="text-xs text-gray-500">Team coordination</span>
+                </button>
+                
+                <button className="p-6 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <FileText className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                  <span className="text-sm font-medium block">Generate Report</span>
+                  <span className="text-xs text-gray-500">Instant reports</span>
+                </button>
+                
+                <button className="p-6 text-center border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Shield className="w-8 h-8 mx-auto mb-2 text-red-600" />
+                  <span className="text-sm font-medium block">Safety Alert</span>
+                  <span className="text-xs text-gray-500">Emergency protocols</span>
+                </button>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800 text-sm">
+                  <strong>Note:</strong> For detailed operations, use dedicated submenu items:
+                  <br />• Attendance & Payroll (sidebar submenu)
+                  <br />• Safety & K3 Management (sidebar submenu)  
+                  <br />• Training & Certifications (sidebar submenu)
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -780,7 +751,7 @@ const Manpower = () => {
                   <div className="flex flex-wrap gap-2">
                     {selectedEmployee.skills.map((skill, index) => (
                       <span key={index} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full">
-                        {skill}
+                        {typeof skill === 'string' ? skill : skill.name}
                       </span>
                     ))}
                   </div>

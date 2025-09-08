@@ -1,0 +1,32 @@
+# Development Dockerfile - optimized for development with hot reload
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install development dependencies including nodemon
+RUN npm install -g nodemon
+
+# Copy package files
+COPY backend/package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Copy application code
+COPY backend/ .
+
+# Create logs directory
+RUN mkdir -p logs
+
+# Create uploads directory for testing
+RUN mkdir -p uploads
+
+# Expose port for development
+EXPOSE 5000
+
+# Add debugging port
+EXPOSE 9229
+
+# Development command with hot reload and debugging
+CMD ["npm", "run", "dev"]

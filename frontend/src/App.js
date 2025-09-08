@@ -1,15 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Import Auth Context
+// Import Contexts
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
-// Import Auth components
-import Login from './components/Auth/Login';
-
 // Import Layout
 import MainLayout from './components/Layout/MainLayout';
+
+// Import Auth components
+import Login from './components/Auth/Login';
 
 // Import pages
 import Landing from './pages/Landing';
@@ -33,13 +33,13 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              {/* Auth Routes */}
+              {/* Auth Routes - No Layout */}
               <Route path="/login" element={<Login />} />
               
-              {/* Landing Page without sidebar */}
+              {/* Landing Page - No Layout */}
               <Route path="/" element={<Landing />} />
               
-              {/* Main Routes with sidebar */}
+              {/* Main Routes - With Layout */}
               <Route path="/dashboard" element={
                 <MainLayout>
                   <Dashboard />
@@ -76,7 +76,7 @@ function App() {
                 </MainLayout>
               } />
               
-              {/* Inventory Sub-routes with sidebar */}
+              {/* Inventory Sub-routes - With Layout */}
               <Route path="/inventory/*" element={
                 <MainLayout>
                   <InventoryRoutes />

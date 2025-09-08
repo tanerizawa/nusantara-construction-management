@@ -23,7 +23,6 @@ import {
   PieChart,
   TrendingUp,
   Database,
-  Bell,
   Search,
   UserCheck,
   Cog,

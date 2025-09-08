@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from './Header';
-import SidebarProfessional from './SidebarProfessional';
+import SidebarProfessional from './Sidebar';
 
 const MainLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,26 +14,25 @@ const MainLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header onMenuClick={handleMenuClick} />
-      
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <SidebarProfessional 
         isOpen={sidebarOpen} 
         onClose={handleSidebarClose} 
       />
       
-      {/* Main Content */}
-      <main className={`transition-all duration-300 ease-in-out ${
-        sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'
-      } pt-16`}>
-        <div className="p-4 lg:p-6">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <Header onMenuClick={handleMenuClick} />
+        
+        {/* Page content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
       
-      {/* Overlay for mobile */}
+      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"

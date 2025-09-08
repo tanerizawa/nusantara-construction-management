@@ -743,31 +743,32 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 truncate">
-            Dashboard Analytics
-          </h1>
-          <p className="text-gray-600 mt-1 text-sm lg:text-base">
-            Ringkasan lengkap performa bisnis realtime
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            Update: {lastUpdated.toLocaleString('id-ID')}
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-4 lg:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 truncate">
+              Dashboard Analytics
+            </h1>
+            <p className="text-gray-600 mt-1 text-sm lg:text-base">
+              Ringkasan lengkap performa bisnis realtime
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Update: {lastUpdated.toLocaleString('id-ID')}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button 
+              onClick={fetchDashboardData}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <button 
-            onClick={fetchDashboardData}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-        </div>
-      </div>
 
         {/* Alerts */}
         {dashboardData?.alerts && dashboardData.alerts.length > 0 && (
@@ -923,6 +924,7 @@ const Dashboard = () => {
         {/* Recent Activities */}
         <ActivityCard activities={recentActivities} />
       </div>
+    </div>
   );
 };
 

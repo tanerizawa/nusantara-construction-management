@@ -30,11 +30,15 @@ import { Link } from 'react-router-dom';
 const BarChart = ({ data, height = 200, className = "" }) => {
   if (!data || data.length === 0) return null;
   
-  const maxValue = Math.max(...data.map(d => d.value));
+  // Validate and clean data
+  const validData = data.filter(d => d && typeof d.value === 'number' && !isNaN(d.value) && isFinite(d.value));
+  if (validData.length === 0) return null;
+  
+  const maxValue = Math.max(...validData.map(d => d.value));
   
   return (
     <div className={`flex items-end justify-between h-${height} gap-2 ${className}`} style={{ height: `${height}px` }}>
-      {data.map((item, index) => (
+      {validData.map((item, index) => (
         <div key={index} className="flex flex-col items-center flex-1 min-w-0">
           <div className="text-xs font-medium text-gray-600 mb-1 truncate w-full text-center">
             {typeof item.value === 'number' ? new Intl.NumberFormat('id-ID').format(item.value) : item.value}
@@ -42,7 +46,7 @@ const BarChart = ({ data, height = 200, className = "" }) => {
           <div 
             className="w-full bg-blue-500 rounded-t-sm transition-all duration-700 ease-out min-h-[4px]"
             style={{ 
-              height: `${(item.value / maxValue) * (height - 40)}px`,
+              height: `${maxValue > 0 ? (item.value / maxValue) * (height - 40) : 4}px`,
               background: item.color || `linear-gradient(to top, #3b82f6, #60a5fa)`
             }}
           />
@@ -121,13 +125,18 @@ const DonutChart = ({ data, size = 120, strokeWidth = 20 }) => {
 const LineChart = ({ data, height = 200, className = "" }) => {
   if (!data || data.length === 0) return null;
   
-  const maxValue = Math.max(...data.map(d => d.value));
-  const minValue = Math.min(...data.map(d => d.value));
+  // Validate and clean data
+  const validData = data.filter(d => d && typeof d.value === 'number' && !isNaN(d.value) && isFinite(d.value));
+  if (validData.length === 0) return null;
+  
+  const values = validData.map(d => d.value);
+  const maxValue = Math.max(...values);
+  const minValue = Math.min(...values);
   const range = maxValue - minValue || 1;
   const width = 300;
   
-  const points = data.map((item, index) => {
-    const x = (index / (data.length - 1)) * width;
+  const points = validData.map((item, index) => {
+    const x = validData.length > 1 ? (index / (validData.length - 1)) * width : width / 2;
     const y = height - 40 - ((item.value - minValue) / range) * (height - 60);
     return `${x},${y}`;
   }).join(' ');
@@ -171,9 +180,13 @@ const LineChart = ({ data, height = 200, className = "" }) => {
         />
         
         {/* Data points */}
-        {data.map((item, index) => {
-          const x = (index / (data.length - 1)) * width;
+        {validData.map((item, index) => {
+          const x = validData.length > 1 ? (index / (validData.length - 1)) * width : width / 2;
           const y = height - 40 - ((item.value - minValue) / range) * (height - 60);
+          
+          // Additional validation for coordinates
+          if (isNaN(x) || isNaN(y) || !isFinite(x) || !isFinite(y)) return null;
+          
           return (
             <circle
               key={index}
@@ -189,8 +202,12 @@ const LineChart = ({ data, height = 200, className = "" }) => {
         })}
         
         {/* Labels */}
-        {data.map((item, index) => {
-          const x = (index / (data.length - 1)) * width;
+        {validData.map((item, index) => {
+          const x = validData.length > 1 ? (index / (validData.length - 1)) * width : width / 2;
+          
+          // Additional validation for x coordinate
+          if (isNaN(x) || !isFinite(x)) return null;
+          
           return (
             <text
               key={index}
@@ -483,15 +500,22 @@ const Dashboard = () => {
       });
 
       // Generate chart data
+      console.log('🔍 Preparing chart data...');
       const monthlyRevenue = generateMonthlyData(finance);
       const projectStatusData = [
-        { label: 'Aktif', value: projectStats.active, color: '#10b981' },
-        { label: 'Selesai', value: projectStats.completed, color: '#6b7280' },
-        { label: 'Perencanaan', value: projectStats.planning, color: '#3b82f6' },
-        { label: 'On Hold', value: projectStats.onHold, color: '#f59e0b' }
+        { label: 'Aktif', value: projectStats.active || 0, color: '#10b981' },
+        { label: 'Selesai', value: projectStats.completed || 0, color: '#6b7280' },
+        { label: 'Perencanaan', value: projectStats.planning || 0, color: '#3b82f6' },
+        { label: 'On Hold', value: projectStats.onHold || 0, color: '#f59e0b' }
       ];
       
       const expenseCategories = generateExpenseData(finance);
+
+      console.log('🔍 Chart data generated:', {
+        revenue: monthlyRevenue,
+        projects: projectStatusData,
+        expenses: expenseCategories
+      });
 
       setChartData({
         revenue: monthlyRevenue,
@@ -526,42 +550,110 @@ const Dashboard = () => {
   }, []);
 
   const generateMonthlyData = (finance) => {
+    console.log('🔍 Generating monthly data from finance:', finance);
+    
+    if (!finance || !Array.isArray(finance)) {
+      console.warn('⚠️ Finance data is not an array:', finance);
+      return [];
+    }
+
     const monthlyData = {};
     finance.forEach(transaction => {
-      const date = new Date(transaction.transactionDate || transaction.createdAt);
-      const monthKey = date.toLocaleDateString('id-ID', { month: 'short' });
-      
-      if (!monthlyData[monthKey]) {
-        monthlyData[monthKey] = { income: 0, expense: 0 };
-      }
-      
-      const amount = parseFloat(transaction.amount || 0);
-      if (transaction.transactionType === 'income') {
-        monthlyData[monthKey].income += amount;
-      } else {
-        monthlyData[monthKey].expense += amount;
+      try {
+        const date = new Date(transaction.transactionDate || transaction.createdAt);
+        
+        // Validate date
+        if (isNaN(date.getTime())) {
+          console.warn('⚠️ Invalid date in transaction:', transaction);
+          return;
+        }
+        
+        const monthKey = date.toLocaleDateString('id-ID', { month: 'short' });
+        
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { income: 0, expense: 0 };
+        }
+        
+        const amount = parseFloat(transaction.amount || 0);
+        
+        // Validate amount
+        if (isNaN(amount) || !isFinite(amount)) {
+          console.warn('⚠️ Invalid amount in transaction:', transaction);
+          return;
+        }
+        
+        if (transaction.transactionType === 'income') {
+          monthlyData[monthKey].income += amount;
+        } else {
+          monthlyData[monthKey].expense += amount;
+        }
+      } catch (error) {
+        console.error('❌ Error processing transaction:', transaction, error);
       }
     });
     
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      label: month,
-      value: data.income - data.expense
-    }));
+    const result = Object.entries(monthlyData).map(([month, data]) => {
+      const value = data.income - data.expense;
+      
+      // Validate result value
+      if (isNaN(value) || !isFinite(value)) {
+        console.warn('⚠️ Invalid value calculated:', { month, data, value });
+        return { label: month, value: 0 };
+      }
+      
+      return {
+        label: month,
+        value: value
+      };
+    });
+    
+    console.log('✅ Generated monthly data:', result);
+    return result;
   };
 
   const generateExpenseData = (finance) => {
+    console.log('🔍 Generating expense data from finance:', finance);
+    
+    if (!finance || !Array.isArray(finance)) {
+      console.warn('⚠️ Finance data is not an array for expenses:', finance);
+      return [];
+    }
+
     const expenses = finance.filter(f => f.transactionType === 'expense');
     const categories = {};
     
     expenses.forEach(expense => {
-      const category = expense.category || 'Lainnya';
-      categories[category] = (categories[category] || 0) + parseFloat(expense.amount || 0);
+      try {
+        const category = expense.category || 'Lainnya';
+        const amount = parseFloat(expense.amount || 0);
+        
+        // Validate amount
+        if (isNaN(amount) || !isFinite(amount)) {
+          console.warn('⚠️ Invalid expense amount:', expense);
+          return;
+        }
+        
+        categories[category] = (categories[category] || 0) + amount;
+      } catch (error) {
+        console.error('❌ Error processing expense:', expense, error);
+      }
     });
     
-    return Object.entries(categories).map(([category, amount]) => ({
-      label: category,
-      value: amount
-    }));
+    const result = Object.entries(categories).map(([category, amount]) => {
+      // Validate final amount
+      if (isNaN(amount) || !isFinite(amount)) {
+        console.warn('⚠️ Invalid category amount:', { category, amount });
+        return { label: category, value: 0 };
+      }
+      
+      return {
+        label: category,
+        value: amount
+      };
+    });
+    
+    console.log('✅ Generated expense data:', result);
+    return result;
   };
 
   const generateAlerts = (inventory, projects, finance) => {

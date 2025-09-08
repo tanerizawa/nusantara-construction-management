@@ -1,0 +1,26 @@
+# Production Frontend Dockerfile
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install all dependencies (including dev for build)
+RUN npm install
+
+# Copy source code
+COPY frontend/ .
+
+# Build for production
+ARG NODE_ENV=production
+ARG REACT_APP_API_URL=/api
+ENV NODE_ENV=$NODE_ENV
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+ENV GENERATE_SOURCEMAP=false
+
+RUN npm run build
+
+# Keep the container running so we can extract files
+CMD ["tail", "-f", "/dev/null"]

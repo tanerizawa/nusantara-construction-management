@@ -22,8 +22,8 @@ const MainLayout = ({ children }) => {
       />
       
       {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
-        {/* Header */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header - seamlessly connected to sidebar */}
         <Header onMenuClick={handleMenuClick} />
         
         {/* Page content */}

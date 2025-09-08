@@ -53,14 +53,14 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-gradient-to-r from-white via-blue-50/30 to-purple-50/30 backdrop-blur-xl border-b border-gray-200/60 shadow-lg">
+    <header className="sticky top-0 z-30 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 backdrop-blur-xl border-b border-slate-700/50 shadow-lg">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Left Section */}
         <div className="flex items-center space-x-4">
           {/* Menu Button */}
           <button
             onClick={onMenuClick}
-            className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white/80 transition-all duration-200 lg:hidden"
+            className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200 lg:hidden"
             aria-label="Toggle menu"
           >
             <Menu size={20} />
@@ -68,12 +68,12 @@ const Header = ({ onMenuClick }) => {
 
           {/* Logo & Company Name */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm font-bold">YK</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+              <span className="text-white text-sm font-bold">NG</span>
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Nusantara Construction
+              <h1 className="text-lg font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                Nusantara Group
               </h1>
             </div>
           </div>
@@ -84,7 +84,7 @@ const Header = ({ onMenuClick }) => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white/80 transition-all duration-200"
+            className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
             aria-label="Toggle theme"
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
@@ -94,7 +94,7 @@ const Header = ({ onMenuClick }) => {
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-white/80 transition-all duration-200"
+              className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
               aria-label="Notifications"
             >
               <Bell size={18} />
@@ -132,18 +132,18 @@ const Header = ({ onMenuClick }) => {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/80 transition-all duration-200"
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200"
               aria-label="User menu"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
                 <User size={16} className="text-white" />
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-white">
                   {user?.profile?.fullName || 'Admin User'}
                 </p>
               </div>
-              <ChevronDown size={16} className="text-gray-500" />
+              <ChevronDown size={16} className="text-gray-400" />
             </button>
 
             {/* User Dropdown */}

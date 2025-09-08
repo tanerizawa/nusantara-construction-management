@@ -103,9 +103,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700/50">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-              <span className="text-white text-sm font-bold">YK</span>
+              <span className="text-white text-sm font-bold">NG</span>
             </div>
-            <span className="text-white font-semibold text-lg">Menu</span>
+            <span className="text-white font-semibold text-lg">Nusantara Group</span>
           </div>
           
           {/* Close button for mobile */}
@@ -197,7 +197,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-t border-slate-700/50">
           <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gradient-to-r from-slate-800/50 to-slate-700/50">
             <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">YK</span>
+              <span className="text-white text-xs font-bold">NG</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">Admin User</p>

@@ -4,15 +4,17 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
-// API Configuration - Configured for production domain access
+// API Configuration - Use existing Apache/Virtualmin setup
 const getApiUrl = () => {
-  // Always use server IP when accessed from production domain
+  // If accessed from production domain, use same domain for API
+  // This assumes Apache is already configured to proxy /api/ to backend
   if (window.location.hostname === 'nusantaragroup.co' || window.location.hostname.includes('nusantaragroup')) {
-    return 'http://31.97.222.208:5000/api';
+    // Use relative path so it uses same protocol and domain as frontend
+    return '/api';
   }
   
-  // For localhost development (fallback)
-  return 'http://31.97.222.208:5000/api';
+  // For localhost development
+  return 'http://localhost:5000/api';
 };
 
 const API_URL = getApiUrl();

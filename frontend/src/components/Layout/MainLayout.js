@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
 import Header from './Header';
-import Sidebar from './SidebarSimple';
+import Sidebar from './Sidebar';
 
 const MainLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   const handleMenuClick = () => {
-    // On mobile, toggle sidebar open/close
-    // On desktop, toggle sidebar expanded/collapsed
-    if (window.innerWidth < 1024) {
-      setSidebarOpen(!sidebarOpen);
-    } else {
-      setSidebarExpanded(!sidebarExpanded);
-    }
+    setSidebarOpen(!sidebarOpen);
   };
 
   const handleSidebarClose = () => {
@@ -24,20 +17,18 @@ const MainLayout = ({ children }) => {
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <Sidebar 
-        isOpen={sidebarOpen || sidebarExpanded} 
+        isOpen={sidebarOpen} 
         onClose={handleSidebarClose} 
       />
       
       {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden lg:ml-0">
         {/* Header */}
         <Header onMenuClick={handleMenuClick} />
         
         {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-6">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+          {children}
         </main>
       </div>
       

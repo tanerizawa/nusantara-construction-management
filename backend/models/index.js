@@ -16,6 +16,10 @@ const Subsidiary = require('./Subsidiary');
 const ChartOfAccounts = require('./ChartOfAccounts');
 const JournalEntry = require('./JournalEntry');
 const JournalEntryLine = require('./JournalEntryLine');
+const ApprovalWorkflow = require('./ApprovalWorkflow');
+const ApprovalInstance = require('./ApprovalInstance');
+const ApprovalStep = require('./ApprovalStep');
+const ApprovalNotification = require('./ApprovalNotification');
 
 // Define relationships
 const setupAssociations = () => {
@@ -189,6 +193,61 @@ const setupAssociations = () => {
     as: 'journalEntryLines'
   });
 
+  // Approval Workflow associations
+  ApprovalWorkflow.hasMany(ApprovalInstance, {
+    foreignKey: 'workflowId',
+    as: 'instances'
+  });
+  
+  ApprovalInstance.belongsTo(ApprovalWorkflow, {
+    foreignKey: 'workflowId',
+    as: 'ApprovalWorkflow'
+  });
+
+  // Approval Instance - Approval Step associations
+  ApprovalInstance.hasMany(ApprovalStep, {
+    foreignKey: 'instanceId',
+    as: 'ApprovalSteps'
+  });
+  
+  ApprovalStep.belongsTo(ApprovalInstance, {
+    foreignKey: 'instanceId',
+    as: 'ApprovalInstance'
+  });
+
+  // User - Approval Step associations (approver)
+  User.hasMany(ApprovalStep, {
+    foreignKey: 'approverId',
+    as: 'approvalSteps'
+  });
+  
+  ApprovalStep.belongsTo(User, {
+    foreignKey: 'approverId',
+    as: 'approver'
+  });
+
+  // User - Approval Notification associations
+  User.hasMany(ApprovalNotification, {
+    foreignKey: 'userId',
+    as: 'notifications'
+  });
+  
+  ApprovalNotification.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user'
+  });
+
+  // Approval Step - Approval Notification associations
+  ApprovalStep.hasMany(ApprovalNotification, {
+    foreignKey: 'stepId',
+    as: 'notifications'
+  });
+  
+  ApprovalNotification.belongsTo(ApprovalStep, {
+    foreignKey: 'stepId',
+    as: 'step'
+  });
+
   console.log('✅ Model associations established');
 };
 
@@ -239,7 +298,11 @@ module.exports = {
     Subsidiary,
     ChartOfAccounts,
     JournalEntry,
-    JournalEntryLine
+    JournalEntryLine,
+    ApprovalWorkflow,
+    ApprovalInstance,
+    ApprovalStep,
+    ApprovalNotification
   },
   setupAssociations,
   syncDatabase,

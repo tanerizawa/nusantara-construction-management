@@ -10,7 +10,8 @@ import {
   X,
   ChevronDown,
   BarChart3,
-  Building
+  Building,
+  CheckSquare
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -30,6 +31,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'Proyek',
       icon: FolderOpen,
       path: '/projects'
+    },
+    {
+      id: 'approval',
+      label: 'Persetujuan',
+      icon: CheckSquare,
+      path: '/approval'
     },
     {
       id: 'inventory',

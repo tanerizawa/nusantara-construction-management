@@ -29,6 +29,7 @@ import Subsidiaries from './pages/Subsidiaries';
 import SubsidiaryCreate from './pages/SubsidiaryCreate';
 import SubsidiaryDetail from './pages/SubsidiaryDetail';
 import SubsidiaryEdit from './pages/SubsidiaryEdit';
+import ApprovalDashboard from './components/ApprovalDashboard';
 
 // Import routes
 import InventoryRoutes from './routes/InventoryRoutes';
@@ -75,6 +76,13 @@ function App() {
                 <ProtectedRoute>
                   <MainLayout>
                     <Projects />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/approval" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ApprovalDashboard />
                   </MainLayout>
                 </ProtectedRoute>
               } />

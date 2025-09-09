@@ -229,6 +229,7 @@ app.use('/api/journal-entries', require('./routes/journalEntries'));
 app.use('/api/reports', require('./routes/financialReports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/approval', require('./routes/approval'));
 console.log('Loading purchase-orders route...');
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 console.log('Purchase-orders route loaded successfully');

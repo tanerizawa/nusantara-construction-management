@@ -30,6 +30,7 @@ import SubsidiaryCreate from './pages/SubsidiaryCreate';
 import SubsidiaryDetail from './pages/SubsidiaryDetail';
 import SubsidiaryEdit from './pages/SubsidiaryEdit';
 import ApprovalDashboard from './components/ApprovalDashboard';
+import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 
 // Import routes
 import InventoryRoutes from './routes/InventoryRoutes';
@@ -83,6 +84,13 @@ function App() {
                 <ProtectedRoute>
                   <MainLayout>
                     <ApprovalDashboard />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <AdvancedAnalyticsDashboard />
                   </MainLayout>
                 </ProtectedRoute>
               } />

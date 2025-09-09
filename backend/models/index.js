@@ -217,12 +217,12 @@ const setupAssociations = () => {
 
   // User - Approval Step associations (approver)
   User.hasMany(ApprovalStep, {
-    foreignKey: 'approverId',
+    foreignKey: 'approverUserId',
     as: 'approvalSteps'
   });
   
   ApprovalStep.belongsTo(User, {
-    foreignKey: 'approverId',
+    foreignKey: 'approverUserId',
     as: 'approver'
   });
 

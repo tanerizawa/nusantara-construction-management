@@ -230,6 +230,8 @@ app.use('/api/reports', require('./routes/financialReports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/notifications', require('./routes/notifications'));
 console.log('Loading purchase-orders route...');
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 console.log('Purchase-orders route loaded successfully');

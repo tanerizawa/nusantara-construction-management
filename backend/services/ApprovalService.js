@@ -1,9 +1,9 @@
-const ApprovalWorkflow = require('../models/ApprovalWorkflow');
 const ApprovalInstance = require('../models/ApprovalInstance');
 const ApprovalStep = require('../models/ApprovalStep');
-const ApprovalNotification = require('../models/ApprovalNotification');
+const ApprovalWorkflow = require('../models/ApprovalWorkflow');
 const ProjectRAB = require('../models/ProjectRAB');
 const User = require('../models/User');
+const NotificationService = require('./NotificationService');
 
 class ApprovalService {
   /**
@@ -55,8 +55,10 @@ class ApprovalService {
       // Create approval steps based on workflow and amount
       const steps = await this.createApprovalSteps(instance, workflow, totalAmount);
 
-      // Send notification to first approver
-      await this.sendApprovalNotification(instance.id, steps[0].id);
+            // Send notification to approvers for the first step
+      if (steps.length > 0) {
+        await NotificationService.sendApprovalRequestNotification(instance.id, steps[0].id);
+      }
 
       // Update RAB record with approval instance
       await ProjectRAB.update(
@@ -133,8 +135,8 @@ class ApprovalService {
         approvedAt: new Date()
       });
 
-      // Send notification about this decision
-      await this.sendDecisionNotification(instanceId, stepId, decision, approverUserId);
+            // Send notification about this decision
+      await NotificationService.sendApprovalDecisionNotification(instanceId, currentStep.id, decision, userId);
 
       if (decision === 'reject') {
         // Reject the entire approval
@@ -179,7 +181,7 @@ class ApprovalService {
         );
 
         // Send completion notification
-        await this.sendCompletionNotification(instanceId);
+        await NotificationService.sendCompletionNotification(instanceId);
 
         return { status: 'approved', completed: true };
       }
@@ -268,8 +270,20 @@ class ApprovalService {
    */
   static async getPendingApprovals(userId, entityType = null, limit = 20, offset = 0) {
     try {
+      const { Op } = require('sequelize');
+      
+      // Find user to get their role
+      const user = await User.findByPk(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
       const whereClause = {
-        status: 'pending'
+        status: 'pending',
+        [Op.or]: [
+          { approverUserId: userId },
+          { requiredRole: user.role }
+        ]
       };
 
       // Build include for ApprovalInstance
@@ -296,17 +310,20 @@ class ApprovalService {
         instanceId: step.instanceId,
         stepNumber: step.stepNumber,
         stepName: step.stepName,
-        entityType: step.ApprovalInstance.entityType,
+        requiredRole: step.requiredRole,
+        status: step.status,
+        dueDate: step.dueDate,
         entityId: step.ApprovalInstance.entityId,
+        entityType: step.ApprovalInstance.entityType,
         entityData: step.ApprovalInstance.entityData,
-        requestedBy: step.ApprovalInstance.requestedBy,
-        createdAt: step.ApprovalInstance.createdAt,
-        currentStep: step.ApprovalInstance.currentStep
+        totalAmount: step.ApprovalInstance.totalAmount,
+        submittedBy: step.ApprovalInstance.submittedBy,
+        submittedAt: step.ApprovalInstance.submittedAt
       }));
 
     } catch (error) {
       console.error('Error getting pending approvals:', error);
-      throw error;
+      return [];
     }
   }
 
@@ -462,6 +479,118 @@ class ApprovalService {
     } catch (error) {
       console.error('Error processing approval decision:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Get user approval statistics
+   */
+  static async getUserApprovalStats(userId) {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const stats = await ApprovalStep.findAndCountAll({
+        where: {
+          approverUserId: userId,
+          approvedAt: {
+            [require('sequelize').Op.gte]: today
+          }
+        },
+        attributes: ['decision'],
+        raw: true
+      });
+
+      const approved = stats.rows.filter(s => s.decision === 'approve' || s.decision === 'approve_with_conditions').length;
+      const rejected = stats.rows.filter(s => s.decision === 'reject').length;
+
+      return {
+        approved,
+        rejected,
+        total: stats.count
+      };
+    } catch (error) {
+      console.error('Error getting user approval stats:', error);
+      return { approved: 0, rejected: 0, total: 0 };
+    }
+  }
+
+  /**
+   * Get recent approvals processed by user
+   */
+  static async getRecentApprovals(userId, limit = 10) {
+    try {
+      const recentApprovals = await ApprovalStep.findAll({
+        where: {
+          approverUserId: userId,
+          status: ['approved', 'rejected']
+        },
+        include: [
+          {
+            model: ApprovalInstance,
+            as: 'ApprovalInstance',
+            attributes: ['id', 'entityId', 'entityType', 'totalAmount', 'completedAt']
+          }
+        ],
+        order: [['approvedAt', 'DESC']],
+        limit,
+        raw: false
+      });
+
+      return recentApprovals.map(approval => ({
+        id: approval.id,
+        entityId: approval.ApprovalInstance.entityId,
+        entityType: approval.ApprovalInstance.entityType,
+        status: approval.decision,
+        totalAmount: approval.ApprovalInstance.totalAmount,
+        completedAt: approval.approvedAt,
+        comments: approval.comments
+      }));
+    } catch (error) {
+      console.error('Error getting recent approvals:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get submissions by user
+   */
+  static async getMySubmissions(userId, limit = 20, offset = 0) {
+    try {
+      const submissions = await ApprovalInstance.findAll({
+        where: {
+          submittedBy: userId
+        },
+        include: [
+          {
+            model: ApprovalStep,
+            as: 'ApprovalSteps',
+            attributes: ['stepNumber', 'stepName', 'status', 'decision'],
+            order: [['stepNumber', 'ASC']]
+          }
+        ],
+        order: [['submittedAt', 'DESC']],
+        limit,
+        offset,
+        raw: false
+      });
+
+      return submissions.map(instance => ({
+        id: instance.id,
+        instanceId: instance.id,
+        entityId: instance.entityId,
+        entityType: instance.entityType,
+        entityData: instance.entityData,
+        totalAmount: instance.totalAmount,
+        overallStatus: instance.overallStatus,
+        currentStep: instance.currentStep,
+        submittedAt: instance.submittedAt,
+        completedAt: instance.completedAt,
+        steps: instance.ApprovalSteps || []
+      }));
+    } catch (error) {
+      console.error('Error getting user submissions:', error);
+      return [];
     }
   }
 }

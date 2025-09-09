@@ -101,6 +101,77 @@ router.post('/instance/:instanceId/decision', verifyToken, async (req, res) => {
   }
 });
 
+// @route   GET /api/approval/dashboard
+// @desc    Get dashboard data for current user
+// @access  Private
+router.get('/dashboard', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get pending count for current user
+    const pendingApprovals = await ApprovalService.getPendingApprovals(userId);
+    const pendingCount = pendingApprovals.length;
+
+    // Get user's approval statistics
+    const stats = await ApprovalService.getUserApprovalStats(userId);
+    
+    // Get recent approvals processed by user
+    const recentApprovals = await ApprovalService.getRecentApprovals(userId, 10);
+
+    res.json({
+      success: true,
+      data: {
+        pendingCount,
+        stats,
+        recentApprovals
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load dashboard data',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/approval/my-submissions
+// @desc    Get approval instances submitted by current user
+// @access  Private
+router.get('/my-submissions', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { limit = 20, page = 1 } = req.query;
+
+    const limitNum = Math.max(1, parseInt(limit));
+    const pageNum = Math.max(1, parseInt(page));
+
+    const submissions = await ApprovalService.getMySubmissions(
+      userId,
+      limitNum,
+      (pageNum - 1) * limitNum
+    );
+
+    res.json({
+      success: true,
+      data: submissions,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: submissions.length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching my submissions:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch submissions',
+      details: error.message
+    });
+  }
+});
+
 // @route   GET /api/approval/pending
 // @desc    Get pending approvals for current user
 // @access  Private

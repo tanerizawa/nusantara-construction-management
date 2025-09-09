@@ -1,92 +1,85 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: nusantara-postgres
+    container_name: nusantara-postgres-prod
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nusantara_construction
-      POSTGRES_USER: admin
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: nusantara_construction
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_prod:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    ports:
-      - "5432:5432"
     networks:
       - nusantara-network
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d nusantara_construction"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
       retries: 5
 
-  # Backend API
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.backend.dev
-    container_name: nusantara-backend
+      dockerfile: Dockerfile.backend.optimized
+    container_name: nusantara-backend-prod
     restart: unless-stopped
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: nusantara_construction
-      DB_USERNAME: admin
+      DB_USER: postgres
       DB_PASSWORD: admin123
-      JWT_SECRET: nusantara-jwt-secret-2025
+      JWT_SECRET: nusantara_jwt_secret_2024_construction_management_system
       PORT: 5000
+      CORS_ORIGIN: https://nusantaragroup.co
     ports:
       - "5000:5000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - ./uploads:/app/uploads
-    networks:
-      - nusantara-network
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - nusantara-network
+    volumes:
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Frontend React App
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend.dev
-    container_name: nusantara-frontend
+      dockerfile: Dockerfile.frontend.prod
+    container_name: nusantara-frontend-prod
     restart: unless-stopped
     environment:
       REACT_APP_API_URL: https://nusantaragroup.co/api
       REACT_APP_ENV: production
-      CHOKIDAR_USEPOLLING: false
-      FAST_REFRESH: true
+      GENERATE_SOURCEMAP: false
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "3000:80"
     networks:
       - nusantara-network
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+volumes:
+  postgres_data_prod:
+    driver: local
+
 networks:
   nusantara-network:
     driver: bridge
-
-volumes:
-  postgres_data:
-    driver: local

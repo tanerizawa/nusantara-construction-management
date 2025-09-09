@@ -8,11 +8,11 @@ import { Pagination } from '../components/ui/Pagination';
 import ConfirmationDialog from '../components/ui/ConfirmationDialog';
 import ProjectDetailModal from '../components/ui/ProjectDetailModal';
 import { LoadingState, EmptyState, ErrorState } from '../components/ui/StateComponents';
-import ProjectHeader from '../components/projects/ProjectHeader';
-import ProjectCard from '../components/projects/ProjectCard';
-import ProjectTable from '../components/projects/ProjectTable';
-import ProjectCategories from '../components/projects/ProjectCategories';
-import ProjectControls from '../components/projects/ProjectControls';
+import ProjectHeader from '../components/Projects/ProjectHeader';
+import ProjectCard from '../components/Projects/ProjectCard';
+import ProjectTable from '../components/Projects/ProjectTable';
+import ProjectCategories from '../components/Projects/ProjectCategories';
+import ProjectControls from '../components/Projects/ProjectControls';
 
 // Custom Hook Imports
 import useProjects from '../hooks/useProjects';

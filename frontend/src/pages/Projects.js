@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Pagination } from '../components/ui/Pagination';
 import ConfirmationDialog from '../components/ui/ConfirmationDialog';
+import ProjectDetailModal from '../components/ui/ProjectDetailModal';
 import { LoadingState, EmptyState, ErrorState } from '../components/ui/StateComponents';
 import ProjectHeader from '../components/projects/ProjectHeader';
 import ProjectCard from '../components/projects/ProjectCard';
@@ -49,9 +50,9 @@ const Projects = () => {
 
   // Subsidiary data management with dedicated hook
   const { 
-    subsidiaries, 
-    loading: loadingSubsidiaries, 
-    error: subsidiaryError 
+    subsidiaries 
+    // loadingSubsidiaries, 
+    // subsidiaryError 
   } = useSubsidiaries({
     filterBy: { status: 'active' },
     includeStats: true
@@ -60,6 +61,7 @@ const Projects = () => {
   // UI State management
   const [deleteDialog, setDeleteDialog] = useState({ show: false, project: null });
   const [archiveDialog, setArchiveDialog] = useState({ show: false, project: null });
+  const [detailModal, setDetailModal] = useState({ show: false, project: null });
   const [viewMode, setViewMode] = useState('grid');
 
   // Professional Event Handlers
@@ -104,6 +106,31 @@ const Projects = () => {
       console.error('Archive failed:', error);
     }
   }, [archiveDialog.project, archiveProject]);
+
+  // Detail Modal Action Handlers
+  const handleDetailModalEdit = useCallback((project) => {
+    setDetailModal({ show: false, project: null });
+    navigate(`/admin/projects/${project.id}/edit`);
+  }, [navigate]);
+
+  const handleDetailModalArchive = useCallback((project) => {
+    setDetailModal({ show: false, project: null });
+    setArchiveDialog({ show: true, project });
+  }, []);
+
+  const handleDetailModalDelete = useCallback((project) => {
+    setDetailModal({ show: false, project: null });
+    setDeleteDialog({ show: true, project });
+  }, []);
+
+  const handleDetailModalViewFull = useCallback((project) => {
+    setDetailModal({ show: false, project: null });
+    navigate(`/admin/projects/${project.id}`);
+  }, [navigate]);
+
+  const closeDetailModal = useCallback(() => {
+    setDetailModal({ show: false, project: null });
+  }, []);
 
   // Professional filtering logic with comprehensive subsidiary matching
   const filteredProjects = projects.filter(project => {
@@ -369,6 +396,17 @@ const Projects = () => {
           confirmVariant="secondary"
           onConfirm={confirmArchive}
           onCancel={() => setArchiveDialog({ show: false, project: null })}
+        />
+
+        {/* Project Detail Modal */}
+        <ProjectDetailModal
+          isOpen={detailModal.show}
+          project={detailModal.project}
+          onClose={closeDetailModal}
+          onEdit={handleDetailModalEdit}
+          onArchive={handleDetailModalArchive}
+          onDelete={handleDetailModalDelete}
+          onViewFull={handleDetailModalViewFull}
         />
       </div>
     </div>

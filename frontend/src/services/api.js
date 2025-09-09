@@ -179,6 +179,9 @@ export const employeeAPI = {
   delete: (id) => apiService.delete(`/manpower/${id}`),
   getByProject: (projectId) => apiService.get(`/manpower?projectId=${projectId}`),
   getByDepartment: (department) => apiService.get(`/manpower?department=${department}`),
+  getBySubsidiary: (subsidiaryId) => apiService.get(`/manpower?subsidiaryId=${subsidiaryId}`),
+  getStatistics: () => apiService.get('/manpower/statistics'),
+  getStatisticsBySubsidiary: () => apiService.get('/manpower/statistics/by-subsidiary'),
 };
 
 export const projectAPI = {
@@ -247,7 +250,7 @@ export const subsidiaryAPI = {
   create: (data) => apiService.post('/subsidiaries', data),
   update: (id, data) => apiService.put(`/subsidiaries/${id}`, data),
   delete: (id) => apiService.delete(`/subsidiaries/${id}`),
-  getStats: () => apiService.get('/subsidiaries/stats/overview'),
+  getStats: () => apiService.get('/subsidiaries/statistics'),
   getBySpecialization: (specialization) => apiService.get(`/subsidiaries?specialization=${specialization}`),
 };
 

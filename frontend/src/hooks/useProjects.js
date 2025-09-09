@@ -244,18 +244,23 @@ export const useProjects = (options = {}) => {
         page: state.page
       };
 
+      console.log('🚀 FETCHING PROJECTS WITH PARAMS:', params);
+
       // Fetch both filtered projects and all projects for stats
       const [response, allProjectsResponse] = await Promise.all([
         projectAPI.getAll(params),
         projectAPI.getAll({ limit: 1000 }) // Get all projects for stats calculation
       ]);
 
-      const data = response.data || [];
-      const allProjects = allProjectsResponse.data || [];
+      console.log('🎯 REAL API RESPONSE:', response);
+      console.log('📊 ALL PROJECTS RESPONSE:', allProjectsResponse);
+
+      const data = response.data || response || []; // Handle different response structures
+      const allProjects = allProjectsResponse.data || allProjectsResponse || [];
       const pagination = response.pagination || { 
         current: state.page, 
-        total: 1, 
-        count: data.length 
+        total: Math.ceil((data.length || 0) / state.pageSize), 
+        count: data.length || 0
       };
 
       updateState({
@@ -270,74 +275,13 @@ export const useProjects = (options = {}) => {
       });
 
     } catch (error) {
-      console.warn('API failed, using mock data:', error.message);
-      
-      // Filter mock data based on current filters and category
-      let filteredMockData = mockProjects;
-      
-      // Apply category filter
-      if (state.category && state.category !== 'all') {
-        const now = new Date();
-        const oneWeek = 7 * 24 * 60 * 60 * 1000;
-        const oneMonth = 30 * 24 * 60 * 60 * 1000;
-
-        switch (state.category) {
-          case 'critical':
-            filteredMockData = filteredMockData.filter(p => 
-              p.priority === 'high' && 
-              (p.status === 'in_progress' || p.status === 'planning')
-            );
-            break;
-          case 'recent':
-            filteredMockData = filteredMockData.filter(p => {
-              const createdDate = new Date(p.createdAt);
-              return (now - createdDate) <= oneWeek;
-            });
-            break;
-          case 'deadline':
-            filteredMockData = filteredMockData.filter(p => {
-              if (!p.endDate) return false;
-              const endDate = new Date(p.endDate);
-              return (endDate - now) <= oneMonth && endDate > now;
-            });
-            break;
-          case 'in_progress':
-            filteredMockData = filteredMockData.filter(p => p.status === 'in_progress');
-            break;
-          case 'completed':
-            filteredMockData = filteredMockData.filter(p => p.status === 'completed');
-            break;
-          case 'planning':
-            filteredMockData = filteredMockData.filter(p => p.status === 'planning');
-            break;
-          case 'on_hold':
-            filteredMockData = filteredMockData.filter(p => p.status === 'on_hold');
-            break;
-        }
-      }
-      
-      // Apply regular filters
-      if (state.filters.status) {
-        filteredMockData = filteredMockData.filter(p => p.status === state.filters.status);
-      }
-      
-      if (state.filters.priority) {
-        filteredMockData = filteredMockData.filter(p => p.priority === state.filters.priority);
-      }
-
+      console.error('❌ API ERROR:', error);
       updateState({
-        projects: filteredMockData,
-        allProjects: mockProjects, // Store all mock data for stats
-        serverPagination: { 
-          current: 1, 
-          total: 1, 
-          count: filteredMockData.length 
-        },
         loading: false,
-        error: null // Don't show error for mock data fallback
+        error: `Failed to load projects: ${error.message}. Please check your connection and try again.`
       });
     }
-  }, [state.filters, state.category, state.page, state.pageSize, mockProjects, updateState]);
+  }, [state.filters, state.category, state.page, state.pageSize, updateState]);
 
   // Delete project with optimistic updates
   const deleteProject = useCallback(async (projectId) => {

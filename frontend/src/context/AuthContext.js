@@ -4,16 +4,17 @@ import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
-// API Configuration - Use existing Apache/Virtualmin setup
+// API Configuration - Use Apache Proxy
 const getApiUrl = () => {
-  // If accessed from production domain, use same domain for API
-  // This assumes Apache is already configured to proxy /api/ to backend
-  if (window.location.hostname === 'nusantaragroup.co' || window.location.hostname.includes('nusantaragroup')) {
-    // Use relative path so it uses same protocol and domain as frontend
+  const hostname = window.location.hostname;
+  
+  // Use Apache proxy for all environments
+  if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+    // Use Apache proxy - no port needed
     return '/api';
   }
   
-  // For localhost development
+  // For localhost development (direct Docker access)
   return 'http://localhost:5000/api';
 };
 
@@ -81,13 +82,13 @@ export const AuthProvider = ({ children }) => {
       console.log('🔗 Login URL:', loginUrl);
       console.log('🌐 Current hostname:', window.location.hostname);
       
-      // Simple fetch call without complex headers
       const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(credentials)
+        body: JSON.stringify(credentials),
+        credentials: 'include' // Important for CORS with authentication
       });
       
       if (!response.ok) {
@@ -115,7 +116,9 @@ export const AuthProvider = ({ children }) => {
       let message = 'Login gagal';
       
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        message = 'Koneksi ke server bermasalah. Pastikan backend berjalan di port 5000';
+        message = 'Koneksi ke server bermasalah. Periksa koneksi jaringan.';
+      } else if (error.message.includes('401')) {
+        message = 'Username atau password salah';
       } else if (error.message.includes('429')) {
         message = 'Terlalu banyak percobaan login. Coba lagi nanti';
       } else if (error.message) {

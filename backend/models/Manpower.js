@@ -66,6 +66,15 @@ const Manpower = sequelize.define('Manpower', {
     allowNull: true,
     field: 'current_project'
   },
+  subsidiaryId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'subsidiary_id',
+    references: {
+      model: 'subsidiaries',
+      key: 'id'
+    }
+  },
   skills: {
     type: DataTypes.JSONB,
     allowNull: true

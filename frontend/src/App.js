@@ -5,6 +5,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 
+// Import Components
+import ProtectedRoute from './components/ProtectedRoute';
+
 // Import Layout
 import MainLayout from './components/Layout/MainLayout';
 
@@ -16,9 +19,16 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Finance from './pages/Finance';
 import Projects from './pages/Projects';
+import ProjectCreate from './pages/ProjectCreate';
+import ProjectDetail from './pages/ProjectDetail';
+import ProjectEdit from './pages/ProjectEdit';
 import Manpower from './pages/Manpower';
 import Users from './pages/Users';
 import Analytics from './pages/Analytics';
+import Subsidiaries from './pages/Subsidiaries';
+import SubsidiaryCreate from './pages/SubsidiaryCreate';
+import SubsidiaryDetail from './pages/SubsidiaryDetail';
+import SubsidiaryEdit from './pages/SubsidiaryEdit';
 
 // Import routes
 import InventoryRoutes from './routes/InventoryRoutes';
@@ -39,40 +49,123 @@ function App() {
               {/* Landing Page - No Layout */}
               <Route path="/" element={<Landing />} />
               
-              {/* Main Routes - With Layout */}
+              {/* Protected Admin Routes */}
               <Route path="/dashboard" element={
-                <MainLayout>
-                  <Dashboard />
-                </MainLayout>
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Dashboard />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               <Route path="/admin" element={
-                <MainLayout>
-                  <Dashboard />
-                </MainLayout>
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Dashboard />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               <Route path="/finance" element={
-                <MainLayout>
-                  <Finance />
-                </MainLayout>
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Finance />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               <Route path="/projects" element={
-                <MainLayout>
-                  <Projects />
-                </MainLayout>
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Projects />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/create" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectCreate />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:id" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectDetail />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/projects/:id/edit" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectEdit />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/projects" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Projects />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/projects/create" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectCreate />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/projects/:id" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectDetail />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/projects/:id/edit" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectEdit />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               <Route path="/manpower" element={
-                <MainLayout>
-                  <Manpower />
-                </MainLayout>
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Manpower />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               <Route path="/users" element={
-                <MainLayout>
-                  <Users />
-                </MainLayout>
+                <ProtectedRoute roles={['admin']}>
+                  <MainLayout>
+                    <Users />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Analytics />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/subsidiaries" element={
                 <MainLayout>
-                  <Analytics />
+                  <Subsidiaries />
+                </MainLayout>
+              } />
+              <Route path="/subsidiaries/create" element={
+                <MainLayout>
+                  <SubsidiaryCreate />
+                </MainLayout>
+              } />
+              <Route path="/subsidiaries/:id" element={
+                <MainLayout>
+                  <SubsidiaryDetail />
+                </MainLayout>
+              } />
+              <Route path="/subsidiaries/:id/edit" element={
+                <MainLayout>
+                  <SubsidiaryEdit />
                 </MainLayout>
               } />
               

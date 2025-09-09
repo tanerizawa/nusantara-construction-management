@@ -37,6 +37,8 @@ router.get('/', async (req, res) => {
       status,
       position,
       project,
+      subsidiaryId,
+      search,
       sort = 'name',
       order = 'asc',
       limit = 50,
@@ -72,6 +74,16 @@ router.get('/', async (req, res) => {
       replacements.project = project;
     }
 
+    if (subsidiaryId) {
+      conditions.push('subsidiary_id = :subsidiaryId');
+      replacements.subsidiaryId = subsidiaryId;
+    }
+
+    if (search) {
+      conditions.push('(name ILIKE :search OR employee_id ILIKE :search OR email ILIKE :search)');
+      replacements.search = `%${search}%`;
+    }
+
     if (conditions.length > 0) {
       whereClause = 'WHERE ' + conditions.join(' AND ');
     }
@@ -89,8 +101,9 @@ router.get('/', async (req, res) => {
     `;
 
     const dataQuery = `
-      SELECT * 
-      FROM manpower 
+      SELECT m.*, s.name as subsidiary_name, s.code as subsidiary_code
+      FROM manpower m
+      LEFT JOIN subsidiaries s ON m.subsidiary_id = s.id
       ${whereClause}
       ORDER BY ${sortField} ${sortOrder}
       LIMIT :limit OFFSET :offset
@@ -452,6 +465,62 @@ router.get('/stats/overview', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch manpower statistics',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/manpower/statistics/by-subsidiary
+// @desc    Get manpower statistics by subsidiary
+// @access  Private
+router.get('/statistics/by-subsidiary', async (req, res) => {
+  try {
+    const statsQuery = `
+      SELECT 
+        s.id,
+        s.name,
+        s.code,
+        s.specialization,
+        COUNT(m.id) as total_manpower,
+        COUNT(CASE WHEN m.department = 'Direksi' THEN 1 END) as directors,
+        COUNT(CASE WHEN m.department != 'Direksi' AND m.department IS NOT NULL THEN 1 END) as staff,
+        COUNT(CASE WHEN m.status = 'active' THEN 1 END) as active_employees,
+        AVG(m.salary) as average_salary
+      FROM subsidiaries s
+      LEFT JOIN manpower m ON s.id = m.subsidiary_id
+      GROUP BY s.id, s.name, s.code, s.specialization
+      ORDER BY s.id
+    `;
+
+    const subsidiaryStats = await sequelize.query(statsQuery, {
+      type: QueryTypes.SELECT
+    });
+
+    const formatted = subsidiaryStats.map(stat => ({
+      subsidiary: {
+        id: stat.id,
+        name: stat.name,
+        code: stat.code,
+        specialization: stat.specialization
+      },
+      manpower: {
+        total: parseInt(stat.total_manpower) || 0,
+        directors: parseInt(stat.directors) || 0,
+        staff: parseInt(stat.staff) || 0,
+        active: parseInt(stat.active_employees) || 0
+      },
+      averageSalary: stat.average_salary ? parseFloat(stat.average_salary) : 0
+    }));
+
+    res.json({
+      success: true,
+      data: formatted
+    });
+  } catch (error) {
+    console.error('Error fetching subsidiary manpower stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch subsidiary manpower statistics',
       details: error.message
     });
   }

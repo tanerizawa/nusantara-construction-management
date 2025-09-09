@@ -1,0 +1,36 @@
+{
+  "users": [
+    {
+      "id": "USR-ADMIN-001",
+      "username": "admin",
+      "email": "admin@nusantara-group.co.id",
+      "password": "$2a$10$w/v/UDtTN3cQnAFTkkem.erxXswwF4FyEwL20vsZk2u2zRxErehgC",
+      "role": "admin",
+      "profile": {
+        "fullName": "Administrator",
+        "position": "System Administrator",
+        "department": "IT",
+        "subsidiaryId": "NU001"
+      },
+      "isActive": true,
+      "createdAt": "2025-09-09T10:00:00.000Z",
+      "updatedAt": "2025-09-09T10:00:00.000Z"
+    },
+    {
+      "id": "USR-TEST-001",
+      "username": "test",
+      "email": "test@nusantara-group.co.id",
+      "password": "$2a$10$w/v/UDtTN3cQnAFTkkem.erxXswwF4FyEwL20vsZk2u2zRxErehgC",
+      "role": "project_manager",
+      "profile": {
+        "fullName": "Test User",
+        "position": "Project Manager",
+        "department": "Construction",
+        "subsidiaryId": "NU001"
+      },
+      "isActive": true,
+      "createdAt": "2025-09-09T10:00:00.000Z",
+      "updatedAt": "2025-09-09T10:00:00.000Z"
+    }
+  ]
+}

@@ -32,6 +32,7 @@ import SubsidiaryEdit from './pages/SubsidiaryEdit';
 import Approvals from './pages/Approvals';
 import ApprovalTest from './pages/ApprovalTest';
 import ApprovalFixed from './pages/ApprovalFixed';
+import Settings from './pages/Settings';
 import ApprovalDashboard from './components/ApprovalDashboard';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 
@@ -199,6 +200,13 @@ function App() {
                 <MainLayout>
                   <SubsidiaryEdit />
                 </MainLayout>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Settings />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               
               {/* Inventory Sub-routes - With Layout */}

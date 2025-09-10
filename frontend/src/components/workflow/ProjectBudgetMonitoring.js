@@ -16,7 +16,7 @@ import {
   Filter,
   Calendar
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
 const ProjectBudgetMonitoring = ({ projectId, project, onDataChange }) => {
   const [budgetData, setBudgetData] = useState(null);

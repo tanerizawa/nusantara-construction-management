@@ -335,7 +335,12 @@ const CostAllocation = () => {
                         </span>
                       </div>
                       <p className="text-gray-600 mb-1">{project.projectName}</p>
-                      <p className="text-sm text-gray-500">{project.location}</p>
+                      <p className="text-sm text-gray-500">
+                        {typeof project.location === 'object' && project.location ? 
+                          `${project.location.address || ''}, ${project.location.city || ''}, ${project.location.state || ''}`.replace(/^,\s*|,\s*$|,\s*,/g, '').trim() || 'Location not specified'
+                          : project.location || 'Location not specified'
+                        }
+                      </p>
                     </div>
                     <button 
                       onClick={() => setSelectedProject(project)}

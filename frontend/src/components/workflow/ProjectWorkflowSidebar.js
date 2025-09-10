@@ -193,7 +193,12 @@ const ProjectWorkflowSidebar = ({ projectId, project, activeTab, onTabChange, on
           </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-medium text-gray-900 truncate">{project?.name}</h2>
-            <p className="text-xs text-gray-500 truncate">{project?.location}</p>
+            <p className="text-xs text-gray-500 truncate">
+              {typeof project?.location === 'object' && project?.location ? 
+                `${project.location.address || ''}, ${project.location.city || ''}, ${project.location.state || ''}`.replace(/^,\s*|,\s*$|,\s*,/g, '').trim() || 'Location not specified'
+                : project?.location || 'Location not specified'
+              }
+            </p>
           </div>
         </div>
         

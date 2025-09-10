@@ -458,4 +458,73 @@ router.get('/dashboard', verifyToken, async (req, res) => {
   }
 });
 
+// @route   GET /api/approval/debug/pending
+// @desc    Debug endpoint for pending approvals (no auth)
+// @access  Public
+router.get('/debug/pending', async (req, res) => {
+  try {
+    const { userId = 'USR-PM-002' } = req.query; // Default to project manager
+    
+    console.log('🔍 DEBUG: Getting pending approvals for user:', userId);
+    
+    const pendingApprovals = await ApprovalService.getPendingApprovals(userId);
+    
+    console.log('🔍 DEBUG: Found pending approvals:', pendingApprovals.length);
+    
+    res.json({
+      success: true,
+      debug: true,
+      userId,
+      count: pendingApprovals.length,
+      data: pendingApprovals
+    });
+  } catch (error) {
+    console.error('Error in debug endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// @route   GET /api/approval/test/data
+// @desc    Test endpoint untuk cek data tanpa auth
+// @access  Public
+router.get('/test/data', async (req, res) => {
+  try {
+    // Direct database query untuk cek pending approvals
+    const { QueryTypes } = require('sequelize');
+    const { sequelize } = require('../models');
+    
+    const pendingSteps = await sequelize.query(`
+      SELECT 
+        s.id,
+        s.step_name,
+        s.required_role,
+        s.status,
+        i.entity_id,
+        i.entity_type,
+        i.entity_data,
+        i.total_amount
+      FROM approval_steps s
+      JOIN approval_instances i ON s.instance_id = i.id
+      WHERE s.status = 'pending' AND i.overall_status = 'pending'
+      ORDER BY s.created_at ASC
+    `, { type: QueryTypes.SELECT });
+    
+    res.json({
+      success: true,
+      message: 'Direct database query',
+      count: pendingSteps.length,
+      data: pendingSteps
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

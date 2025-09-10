@@ -305,7 +305,12 @@ const SmartEmployeeMatching = () => {
                 </div>
                 <div>
                   <p className="text-gray-600">Location:</p>
-                  <p className="font-medium">{project.location}</p>
+                  <p className="font-medium">
+                    {typeof project.location === 'object' && project.location ? 
+                      `${project.location.address || ''}, ${project.location.city || ''}, ${project.location.state || ''}`.replace(/^,\s*|,\s*$|,\s*,/g, '').trim() || 'Location not specified'
+                      : project.location || 'Location not specified'
+                    }
+                  </p>
                 </div>
               </div>
               

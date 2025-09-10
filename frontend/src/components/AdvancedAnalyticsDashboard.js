@@ -70,16 +70,41 @@ const AdvancedAnalyticsDashboard = () => {
   };
 
   const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined || isNaN(amount)) {
+      return 'Rp 0';
+    }
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount)) {
+      return 'Rp 0';
+    }
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(numAmount);
   };
 
   const formatNumber = (num) => {
-    return new Intl.NumberFormat('id-ID').format(num);
+    if (num === null || num === undefined || isNaN(num)) {
+      return '0';
+    }
+    const numValue = parseFloat(num);
+    if (isNaN(numValue)) {
+      return '0';
+    }
+    return new Intl.NumberFormat('id-ID').format(numValue);
+  };
+
+  const safeToFixed = (value, decimals = 1) => {
+    if (value === null || value === undefined || isNaN(value)) {
+      return '0';
+    }
+    const numValue = parseFloat(value);
+    if (isNaN(numValue)) {
+      return '0';
+    }
+    return numValue.toFixed(decimals);
   };
 
   const getApprovalRateColor = (rate) => {
@@ -116,8 +141,8 @@ const AdvancedAnalyticsDashboard = () => {
   const { financial, efficiency, dashboard } = analyticsData || {};
   const overview = financial?.overview || {};
   const approvalRate = overview.total_approvals > 0 
-    ? (overview.approved_count / overview.total_approvals * 100).toFixed(1)
-    : 0;
+    ? safeToFixed((overview.approved_count / overview.total_approvals) * 100, 1)
+    : '0';
 
   return (
     <Box sx={{ p: 3 }}>
@@ -274,7 +299,7 @@ const AdvancedAnalyticsDashboard = () => {
                 <Grid item xs={12} sm={6}>
                   <Box>
                     <Typography variant="h4">
-                      {(overview.avg_approval_time_hours || 0).toFixed(1)}h
+                      {safeToFixed(overview.avg_approval_time_hours, 1)}h
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       Average Approval Time
@@ -355,11 +380,11 @@ const AdvancedAnalyticsDashboard = () => {
                     </Typography>
                   </Box>
                   <Typography variant="body2" color="success.main" gutterBottom>
-                    {formatCurrency(category.approved_amount)}
+                    {formatCurrency(category.approved_amount || 0)}
                   </Typography>
                   <LinearProgress 
                     variant="determinate" 
-                    value={Math.min((category.approved_amount / 1000000000) * 10, 100)}
+                    value={category.approved_amount ? Math.min((category.approved_amount / 1000000000) * 10, 100) : 0}
                     sx={{ height: 6, borderRadius: 3 }}
                   />
                 </Box>
@@ -392,12 +417,12 @@ const AdvancedAnalyticsDashboard = () => {
                       {step.approved_steps}/{step.total_steps} approved
                     </Typography>
                     <Typography variant="body2" color="primary">
-                      {step.avg_processing_hours ? `${parseFloat(step.avg_processing_hours).toFixed(1)}h avg` : 'N/A'}
+                      {step.avg_processing_hours ? `${safeToFixed(step.avg_processing_hours, 1)}h avg` : 'N/A'}
                     </Typography>
                   </Box>
                   <LinearProgress 
                     variant="determinate" 
-                    value={(step.approved_steps / step.total_steps) * 100}
+                    value={step.total_steps > 0 ? (step.approved_steps / step.total_steps) * 100 : 0}
                     color={step.approved_steps === step.total_steps ? 'success' : 'primary'}
                     sx={{ mt: 1, height: 6, borderRadius: 3 }}
                   />

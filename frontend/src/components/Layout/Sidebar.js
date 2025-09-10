@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -8,17 +8,14 @@ import {
   DollarSign, 
   Settings,
   X,
-  ChevronDown,
   BarChart3,
-  Building,
-  CheckSquare
+  Building
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
-  const [openSubmenus, setOpenSubmenus] = useState(new Set());
 
-  // Simplified menu structure - only essential items
+  // Flat menu structure - no submenus (functionality available through tabs in content pages)
   const menuItems = [
     {
       id: 'dashboard',
@@ -28,26 +25,15 @@ const Sidebar = ({ isOpen, onClose }) => {
     },
     {
       id: 'projects',
-      label: 'Proyek',
+      label: 'Manajemen Proyek',
       icon: FolderOpen,
       path: '/projects'
-    },
-    {
-      id: 'approval',
-      label: 'Persetujuan',
-      icon: CheckSquare,
-      path: '/approval'
     },
     {
       id: 'inventory',
       label: 'Inventory',
       icon: Package,
-      path: '/inventory',
-      submenu: [
-        { label: 'Stok Material', path: '/inventory' },
-        { label: 'Supplier', path: '/inventory/suppliers' },
-        { label: 'Pengadaan', path: '/inventory/procurement' }
-      ]
+      path: '/inventory'
     },
     {
       id: 'manpower',
@@ -81,22 +67,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     }
   ];
 
-  const toggleSubmenu = (itemId) => {
-    const newOpenSubmenus = new Set(openSubmenus);
-    if (newOpenSubmenus.has(itemId)) {
-      newOpenSubmenus.delete(itemId);
-    } else {
-      newOpenSubmenus.add(itemId);
-    }
-    setOpenSubmenus(newOpenSubmenus);
-  };
-
   const isActive = (path) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
-  };
-
-  const isSubmenuActive = (submenu) => {
-    return submenu.some(item => isActive(item.path));
   };
 
   return (
@@ -129,86 +101,36 @@ const Sidebar = ({ isOpen, onClose }) => {
           <ul className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const hasSubmenu = item.submenu && item.submenu.length > 0;
-              const isSubmenuOpen = openSubmenus.has(item.id);
-              const itemActive = isActive(item.path) || (hasSubmenu && isSubmenuActive(item.submenu));
+              const itemActive = isActive(item.path);
 
               return (
                 <li key={item.id}>
-                  {hasSubmenu ? (
-                    <div>
-                      <button
-                        onClick={() => toggleSubmenu(item.id)}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${
-                          itemActive
-                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
-                            : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Icon size={20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
-                          <span className="font-medium">{item.label}</span>
-                        </div>
-                        <ChevronDown 
-                          size={16} 
-                          className={`transition-transform duration-200 ${isSubmenuOpen ? 'rotate-180' : ''}`}
-                        />
-                      </button>
-                      
-                      {/* Submenu */}
-                      {isSubmenuOpen && (
-                        <ul className="mt-2 ml-4 space-y-1 border-l border-slate-600/50 pl-4">
-                          {item.submenu.map((subItem, index) => (
-                            <li key={index}>
-                              <NavLink
-                                to={subItem.path}
-                                onClick={onClose}
-                                className={({ isActive }) =>
-                                  `block px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                                    isActive
-                                      ? 'text-blue-300 bg-blue-500/10'
-                                      : 'text-gray-400 hover:text-white hover:bg-slate-700/30'
-                                  }`
-                                }
-                              >
-                                {subItem.label}
-                              </NavLink>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ) : (
-                    <NavLink
-                      to={item.path}
-                      onClick={onClose}
-                      className={({ isActive }) =>
-                        `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
-                          isActive
-                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
-                            : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
-                        }`
-                      }
-                    >
-                      <Icon size={20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
-                      <span className="font-medium">{item.label}</span>
-                    </NavLink>
-                  )}
+                  <NavLink
+                    to={item.path}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                        isActive
+                          ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
+                          : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
+                      }`
+                    }
+                  >
+                    <Icon size={20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
+                    <span className="font-medium">{item.label}</span>
+                  </NavLink>
                 </li>
               );
             })}
           </ul>
         </nav>
 
-        {/* Footer */}
+        {/* Footer - Version Info */}
         <div className="p-4 border-t border-slate-700/50">
-          <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gradient-to-r from-slate-800/50 to-slate-700/50">
-            <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">NG</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Admin User</p>
-              <p className="text-xs text-gray-400">Administrator</p>
+          <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-slate-800/30 to-slate-700/30">
+            <div className="text-center">
+              <p className="text-xs text-gray-400">Version 2.1.0</p>
+              <p className="text-xs text-gray-500">© 2025 Nusantara Group</p>
             </div>
           </div>
         </div>

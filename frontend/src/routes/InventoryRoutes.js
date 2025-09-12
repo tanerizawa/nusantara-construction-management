@@ -4,7 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 // Existing Inventory Components
 import Inventory from '../pages/Inventory';
 import WarehouseManagement from '../components/WarehouseManagement';
-import PurchaseOrderManagement from '../components/PurchaseOrderManagement';
 import StockOpname from '../components/StockOpname';
 
 // New Priority 1 Enhancement Components
@@ -27,7 +26,6 @@ const InventoryRoutes = () => {
       
       {/* Existing Inventory Features */}
       <Route path="/warehouses" element={<WarehouseManagement />} />
-      <Route path="/purchase-orders" element={<PurchaseOrderManagement />} />
       <Route path="/stock-opname" element={<StockOpname />} />
       
       {/* Priority 1 Construction Enhancements */}

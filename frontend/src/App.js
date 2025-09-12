@@ -39,6 +39,8 @@ import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard'
 // Import routes
 import InventoryRoutes from './routes/InventoryRoutes';
 
+
+
 // Import styles
 import './index.css';
 
@@ -215,6 +217,7 @@ function App() {
                   <InventoryRoutes />
                 </MainLayout>
               } />
+              
             </Routes>
           </div>
         </Router>

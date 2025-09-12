@@ -9,8 +9,8 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost:5000/api
-      - REACT_APP_BACKEND_URL=http://localhost:5000
+      - REACT_APP_API_URL=http://nusantaragroup.co:5000/api
+      - REACT_APP_BACKEND_URL=http://nusantaragroup.co:5000
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     ports:
@@ -42,6 +42,7 @@ services:
       JWT_SECRET: dev_jwt_secret_key
       JWT_EXPIRES_IN: 24h
       PORT: 5000
+      CORS_ORIGIN: http://nusantaragroup.co:3000
     ports:
       - "5000:5000"
       - "9229:9229"

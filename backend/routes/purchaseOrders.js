@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Validation schema
 const purchaseOrderSchema = Joi.object({
+  id: Joi.string().optional(),
   poNumber: Joi.string().required(),
   supplierId: Joi.string().required(),
   supplierName: Joi.string().required(),
@@ -231,10 +232,16 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Generate ID if not provided in poNumber
+    // Generate ID if not provided
+    if (!value.id) {
+      value.id = value.poNumber;
+    }
+
+    // Generate PO Number if needed
     if (!value.poNumber.startsWith('PO')) {
       const orderCount = await PurchaseOrder.count();
       value.poNumber = `PO${String(orderCount + 1).padStart(4, '0')}`;
+      value.id = value.poNumber;
     }
 
     const order = await PurchaseOrder.create(value);

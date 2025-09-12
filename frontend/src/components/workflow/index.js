@@ -1,5 +1,6 @@
 // Workflow Components Index
 export { default as ProjectRABWorkflow } from './ProjectRABWorkflow';
+export { default as ProjectRABManagement } from './ProjectRABManagement';
 export { default as ProjectApprovalStatus } from './ProjectApprovalStatus';
 export { default as ProjectPurchaseOrders } from './ProjectPurchaseOrders';
 export { default as ProjectBudgetMonitoring } from './ProjectBudgetMonitoring';

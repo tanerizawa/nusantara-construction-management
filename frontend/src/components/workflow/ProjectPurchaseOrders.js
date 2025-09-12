@@ -24,14 +24,19 @@ import {
 const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedPO, setSelectedPO] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [currentView, setCurrentView] = useState('rab-selection'); // 'rab-selection', 'create-po', 'po-list'
+  const [selectedRABItems, setSelectedRABItems] = useState([]);
   const [rabItems, setRABItems] = useState([]);
+  const [supplierInfo, setSupplierInfo] = useState({
+    name: '',
+    contact: '',
+    address: '',
+    deliveryDate: ''
+  });
 
   useEffect(() => {
-    fetchPurchaseOrderData();
     fetchRABItems();
+    fetchPurchaseOrderData();
   }, [projectId]);
 
   const fetchPurchaseOrderData = async () => {
@@ -57,15 +62,21 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
 
   const fetchRABItems = async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/rab`, {
+      const response = await fetch(`/api/database/projects/${projectId}/rab-items`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-
+      
       if (response.ok) {
         const data = await response.json();
-        setRABItems(data.data?.filter(item => item.isApproved) || []);
+        // Handle both response formats: {data: []} or direct array  
+        const rabItemsArray = data.data || data || [];
+        // Filter hanya yang approved untuk purchase order
+        const approvedItems = rabItemsArray.filter(item => item.is_approved || item.isApproved);
+        setRABItems(approvedItems);
+      } else {
+        console.error('Failed to fetch RAB items:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching RAB items:', error);
@@ -89,32 +100,14 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
       if (response.ok) {
         await fetchPurchaseOrderData();
         if (onDataChange) onDataChange();
-        setShowCreateForm(false);
+        setCurrentView('rab-selection');
+        setSelectedRABItems([]);
+        setSupplierInfo({ name: '', contact: '', address: '', deliveryDate: '' });
         alert('Purchase Order berhasil dibuat');
       }
     } catch (error) {
       console.error('Error creating purchase order:', error);
       alert('Gagal membuat Purchase Order');
-    }
-  };
-
-  const handleSubmitForApproval = async (poId) => {
-    try {
-      const response = await fetch(`/api/approval/po/${poId}/submit`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        await fetchPurchaseOrderData();
-        if (onDataChange) onDataChange();
-        alert('Purchase Order berhasil disubmit untuk approval');
-      }
-    } catch (error) {
-      console.error('Error submitting PO for approval:', error);
-      alert('Gagal submit PO untuk approval');
     }
   };
 
@@ -144,32 +137,89 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'approved': return CheckCircle;
-      case 'rejected': return XCircle;
-      case 'pending': return Clock;
-      case 'sent': return Send;
-      case 'received': return Package;
-      case 'completed': return CheckCircle;
-      case 'cancelled': return XCircle;
-      default: return FileText;
-    }
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">Purchase Order - Material Procurement</h2>
+          <p className="text-gray-600">Pilih material dari RAB yang sudah disetujui untuk {project.name}</p>
+        </div>
+        <div className="flex items-center space-x-3">
+          {currentView !== 'rab-selection' && (
+            <button
+              onClick={() => setCurrentView('rab-selection')}
+              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Kembali ke Pilih Material
+            </button>
+          )}
+          <button
+            onClick={() => setCurrentView('po-list')}
+            className="flex items-center px-4 py-2 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Riwayat PO ({purchaseOrders.length})
+          </button>
+        </div>
+      </div>
+
+      {/* Different Views */}
+      {currentView === 'rab-selection' && (
+        <RABSelectionView 
+          rabItems={rabItems}
+          selectedRABItems={selectedRABItems}
+          setSelectedRABItems={setSelectedRABItems}
+          onNext={() => setCurrentView('create-po')}
+          loading={loading}
+        />
+      )}
+
+      {currentView === 'create-po' && (
+        <CreatePOFromRABView
+          selectedRABItems={selectedRABItems}
+          rabItems={rabItems}
+          supplierInfo={supplierInfo}
+          setSupplierInfo={setSupplierInfo}
+          onSubmit={handleCreatePO}
+          onBack={() => setCurrentView('rab-selection')}
+          projectId={projectId}
+        />
+      )}
+
+      {currentView === 'po-list' && (
+        <POHistoryView
+          purchaseOrders={purchaseOrders}
+          onBack={() => setCurrentView('rab-selection')}
+        />
+      )}
+    </div>
+  );
+};
+
+// RAB Selection View - Main view for selecting materials
+const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onNext, loading }) => {
+  const toggleRABItem = (itemId) => {
+    // Semua item yang ditampilkan sudah approved, jadi langsung toggle
+    const updatedSelection = selectedRABItems.includes(itemId)
+      ? selectedRABItems.filter(id => id !== itemId)
+      : [...selectedRABItems, itemId];
+    setSelectedRABItems(updatedSelection);
   };
 
-  const filteredPOs = purchaseOrders.filter(po => {
-    if (filter === 'all') return true;
-    return po.status === filter;
-  });
+  const selectedItems = rabItems.filter(item => selectedRABItems.includes(item.id));
+  const approvedItems = rabItems; // Semua item sudah approved
+  const totalValue = selectedItems.reduce((sum, item) => {
+    const unitPrice = item.unitPrice || item.unit_price || 0;
+    return sum + (item.quantity * unitPrice);
+  }, 0);
 
-  const poSummary = {
-    total: purchaseOrders.length,
-    draft: purchaseOrders.filter(po => po.status === 'draft').length,
-    pending: purchaseOrders.filter(po => po.status === 'pending').length,
-    approved: purchaseOrders.filter(po => po.status === 'approved').length,
-    sent: purchaseOrders.filter(po => po.status === 'sent').length,
-    received: purchaseOrders.filter(po => po.status === 'received').length,
-    totalValue: purchaseOrders.reduce((sum, po) => sum + (po.totalAmount || 0), 0)
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
   };
 
   if (loading) {
@@ -181,657 +231,610 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Purchase Orders</h2>
-          <p className="text-gray-600">Manajemen pengadaan untuk {project.name}</p>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Buat PO Baru
-          </button>
-          
-          <button className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
-            <Download className="h-4 w-4 mr-2" />
-            Export PO
-          </button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
+    <>
+      {/* Summary Cards - Compact */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
-            <ShoppingCart className="h-8 w-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-gray-900">{poSummary.total}</p>
-              <p className="text-sm text-gray-600">Total PO</p>
+            <Package className="h-6 w-6 text-blue-600" />
+            <div className="ml-2">
+              <p className="text-lg font-bold text-gray-900">{rabItems.length}</p>
+              <p className="text-xs text-gray-600">Material Approved</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-yellow-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-yellow-600">{poSummary.pending}</p>
-              <p className="text-sm text-gray-600">Pending Approval</p>
+            <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="ml-2">
+              <p className="text-lg font-bold text-green-600">{selectedRABItems.length}</p>
+              <p className="text-xs text-gray-600">Material Dipilih</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-green-600">{poSummary.approved}</p>
-              <p className="text-sm text-gray-600">Approved</p>
+            <DollarSign className="h-6 w-6 text-purple-600" />
+            <div className="ml-2">
+              <p className="text-sm font-bold text-purple-600">{formatCurrency(totalValue)}</p>
+              <p className="text-xs text-gray-600">Total Dipilih</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <DollarSign className="h-8 w-8 text-purple-600" />
-            <div className="ml-3">
-              <p className="text-lg font-bold text-purple-600">{formatCurrency(poSummary.totalValue)}</p>
-              <p className="text-sm text-gray-600">Total Value</p>
-            </div>
+        <div className="bg-white border rounded-lg p-3">
+          <div className="flex items-center justify-center">
+            <button
+              onClick={onNext}
+              disabled={selectedRABItems.length === 0}
+              className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Lanjut ke PO ({selectedRABItems.length})
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Quick Action: Generate PO from RAB */}
-      {rabItems.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      {/* RAB Items List */}
+      <div className="bg-white border rounded-lg">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h3 className="text-base font-medium text-gray-900">Material RAB yang Disetujui</h3>
+          <p className="text-xs text-gray-600">Pilih material untuk Purchase Order</p>
+        </div>
+
+        {rabItems.length === 0 ? (
+          <div className="text-center py-8">
+            <Package className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-base font-medium text-gray-900 mb-1">Belum ada Material Approved</h3>
+            <p className="text-sm text-gray-600">Material yang sudah disetujui akan muncul di sini.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {rabItems.map((item) => {
+              const isSelected = selectedRABItems.includes(item.id);
+              const unitPrice = item.unitPrice || item.unit_price || 0;
+              
+              return (
+                <div
+                  key={item.id}
+                  className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                    isSelected ? 'bg-blue-50 border-l-4 border-blue-600' : ''
+                  }`}
+                  onClick={() => toggleRABItem(item.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleRABItem(item.id)}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-medium text-gray-900 truncate">{item.description || item.item_name || 'Material'}</h4>
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            Approved
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">{item.category}</p>
+                        
+                        <div className="grid grid-cols-4 gap-3 mt-2">
+                          <div>
+                            <p className="text-xs text-gray-500">Quantity</p>
+                            <p className="text-sm font-medium">{item.quantity} {item.unit}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Unit Price</p>
+                            <p className="text-sm font-medium">{formatCurrency(unitPrice)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Total</p>
+                            <p className="text-sm font-medium text-green-600">{formatCurrency(item.quantity * unitPrice)}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500">Action</p>
+                            <p className="text-xs text-blue-600">{isSelected ? 'Selected' : 'Click to select'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Selected Items Summary */}
+      {selectedRABItems.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium text-blue-900">Generate PO dari RAB</h3>
-              <p className="text-blue-700">
-                Ada {rabItems.length} item RAB yang sudah diapprove dan siap untuk dibuat PO
+              <h3 className="text-base font-medium text-blue-900">Material Terpilih</h3>
+              <p className="text-sm text-blue-700">
+                {selectedRABItems.length} material terpilih dengan total estimasi {formatCurrency(totalValue)}
               </p>
             </div>
             <button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              onClick={onNext}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"
             >
-              Generate PO
+              Buat Purchase Order
             </button>
           </div>
         </div>
       )}
-
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {[
-              { key: 'all', label: 'Semua', count: poSummary.total },
-              { key: 'draft', label: 'Draft', count: poSummary.draft },
-              { key: 'pending', label: 'Pending', count: poSummary.pending },
-              { key: 'approved', label: 'Approved', count: poSummary.approved },
-              { key: 'sent', label: 'Sent', count: poSummary.sent },
-              { key: 'received', label: 'Received', count: poSummary.received }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  filter === tab.key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* PO List */}
-        <div className="divide-y divide-gray-200">
-          {filteredPOs.length === 0 ? (
-            <div className="text-center py-12">
-              <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {filter === 'all' ? 'Belum ada Purchase Order' : `Tidak ada PO dengan status ${filter}`}
-              </h3>
-              <p className="text-gray-600 mb-4">
-                {filter === 'all' 
-                  ? 'Mulai dengan membuat Purchase Order pertama dari RAB yang sudah diapprove'
-                  : `Tidak ada Purchase Order dengan status ${filter}`
-                }
-              </p>
-              {filter === 'all' && (
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Buat PO Pertama
-                </button>
-              )}
-            </div>
-          ) : (
-            filteredPOs.map((po) => (
-              <POCard
-                key={po.id}
-                po={po}
-                onView={() => setSelectedPO(po)}
-                onSubmitApproval={() => handleSubmitForApproval(po.id)}
-                onRefresh={fetchPurchaseOrderData}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Create PO Modal */}
-      {showCreateForm && (
-        <CreatePOModal
-          projectId={projectId}
-          rabItems={rabItems}
-          onClose={() => setShowCreateForm(false)}
-          onCreate={handleCreatePO}
-        />
-      )}
-
-      {/* PO Detail Modal */}
-      {selectedPO && (
-        <PODetailModal
-          po={selectedPO}
-          onClose={() => setSelectedPO(null)}
-        />
-      )}
-    </div>
+    </>
   );
 };
 
-// PO Card Component
-const POCard = ({ po, onView, onSubmitApproval, onRefresh }) => {
-  const StatusIcon = getStatusIcon(po.status);
-  
-  return (
-    <div className="p-6 hover:bg-gray-50 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          {/* Header */}
-          <div className="flex items-center space-x-3 mb-2">
-            <StatusIcon className={`h-5 w-5 ${getStatusColor(po.status).split(' ')[0]}`} />
-            <h3 className="text-lg font-medium text-gray-900">{po.poNumber}</h3>
-            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(po.status)}`}>
-              {po.status}
-            </span>
-          </div>
+// Create PO from selected RAB items
+const CreatePOFromRABView = ({ selectedRABItems, rabItems, supplierInfo, setSupplierInfo, onSubmit, onBack, projectId }) => {
+  const selectedItems = rabItems.filter(item => selectedRABItems.includes(item.id));
+  const [itemQuantities, setItemQuantities] = useState({});
 
-          {/* Details */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-sm text-gray-500">Supplier</p>
-              <p className="font-medium">{po.supplierName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Total Amount</p>
-              <p className="font-medium text-green-600">{formatCurrency(po.totalAmount)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Order Date</p>
-              <p className="font-medium">{formatDate(po.orderDate)}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Expected Delivery</p>
-              <p className="font-medium">{po.expectedDeliveryDate ? formatDate(po.expectedDeliveryDate) : '-'}</p>
-            </div>
-          </div>
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
-          {/* Items Preview */}
-          <div className="bg-gray-50 rounded p-3 mb-4">
-            <p className="text-sm text-gray-600 font-medium mb-1">Items ({po.items?.length || 0})</p>
-            {po.items?.slice(0, 2).map((item, index) => (
-              <p key={index} className="text-sm text-gray-600">
-                • {item.description} ({item.quantity} {item.unit})
-              </p>
-            ))}
-            {po.items?.length > 2 && (
-              <p className="text-sm text-gray-500 mt-1">+{po.items.length - 2} items lainnya</p>
-            )}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col items-end space-y-2 ml-4">
-          <button
-            onClick={() => onView(po)}
-            className="flex items-center px-3 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Detail
-          </button>
-          
-          {po.status === 'draft' && (
-            <button
-              onClick={() => onSubmitApproval(po.id)}
-              className="flex items-center px-3 py-1 text-green-600 hover:bg-green-50 rounded transition-colors"
-            >
-              <Send className="h-4 w-4 mr-1" />
-              Submit Approval
-            </button>
-          )}
-
-          {po.status === 'approved' && (
-            <button className="flex items-center px-3 py-1 text-purple-600 hover:bg-purple-50 rounded transition-colors">
-              <Truck className="h-4 w-4 mr-1" />
-              Track Delivery
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Create PO Modal Component
-const CreatePOModal = ({ projectId, rabItems, onClose, onCreate }) => {
-  const [formData, setFormData] = useState({
-    supplierName: '',
-    supplierId: '',
-    orderDate: new Date().toISOString().split('T')[0],
-    expectedDeliveryDate: '',
-    items: [],
-    notes: '',
-    deliveryAddress: ''
-  });
-
-  const [selectedRABItems, setSelectedRABItems] = useState([]);
-
-  const handleAddRABItems = () => {
-    const newItems = selectedRABItems.map(rabId => {
-      const rabItem = rabItems.find(item => item.id === rabId);
-      return {
-        description: rabItem.description,
-        specification: rabItem.description,
-        unit: rabItem.unit,
-        quantity: rabItem.quantity,
-        unitPrice: rabItem.unitPrice,
-        totalPrice: rabItem.quantity * rabItem.unitPrice,
-        rabItemId: rabItem.id
-      };
+  // Initialize quantities with RAB quantities
+  useEffect(() => {
+    const initialQuantities = {};
+    selectedItems.forEach(item => {
+      initialQuantities[item.id] = item.quantity;
     });
+    setItemQuantities(initialQuantities);
+  }, [selectedItems]);
 
-    setFormData(prev => ({
+  const updateQuantity = (itemId, quantity) => {
+    setItemQuantities(prev => ({
       ...prev,
-      items: [...prev.items, ...newItems]
+      [itemId]: quantity
     }));
-    setSelectedRABItems([]);
   };
 
   const calculateTotal = () => {
-    return formData.items.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+    return selectedItems.reduce((sum, item) => {
+      const quantity = itemQuantities[item.id] || item.quantity;
+      const unitPrice = item.unitPrice || item.unit_price || 0;
+      return sum + (quantity * unitPrice);
+    }, 0);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     const poData = {
-      ...formData,
-      subtotal: calculateTotal(),
-      totalAmount: calculateTotal(), // Add tax calculation if needed
-      poNumber: `PO-${projectId}-${Date.now()}`,
-      status: 'draft'
+      projectId,
+      supplierName: supplierInfo.name,
+      supplierContact: supplierInfo.contact,
+      supplierAddress: supplierInfo.address,
+      deliveryDate: supplierInfo.deliveryDate,
+      items: selectedItems.map(item => {
+        const quantity = itemQuantities[item.id] || item.quantity;
+        const unitPrice = item.unitPrice || item.unit_price || 0;
+        return {
+          rabItemId: item.id,
+          description: item.description || item.item_name || 'Material',
+          category: item.category,
+          quantity: quantity,
+          unit: item.unit,
+          unitPrice: unitPrice,
+          totalPrice: quantity * unitPrice
+        };
+      }),
+      totalAmount: calculateTotal(),
+      status: 'draft',
+      poNumber: `PO-${projectId}-${Date.now()}`
     };
 
-    onCreate(poData);
+    onSubmit(poData);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full m-4 max-h-screen overflow-y-auto">
-        <form onSubmit={handleSubmit}>
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Buat Purchase Order Baru</h2>
-              <button
-                type="button"
-                onClick={onClose}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <XCircle className="h-6 w-6" />
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="px-6 py-4 space-y-6">
-            {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Supplier Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.supplierName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, supplierName: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Order Date *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.orderDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, orderDate: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Expected Delivery Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.expectedDeliveryDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, expectedDeliveryDate: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Delivery Address
-                </label>
-                <input
-                  type="text"
-                  value={formData.deliveryAddress}
-                  onChange={(e) => setFormData(prev => ({ ...prev, deliveryAddress: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            {/* Add Items from RAB */}
-            {rabItems.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Add Items dari RAB yang Approved
-                </label>
-                <div className="border border-gray-300 rounded-lg p-4">
-                  <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
-                    {rabItems.map((item) => (
-                      <label key={item.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedRABItems.includes(item.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedRABItems(prev => [...prev, item.id]);
-                            } else {
-                              setSelectedRABItems(prev => prev.filter(id => id !== item.id));
-                            }
-                          }}
-                          className="mr-2"
-                        />
-                        <span className="text-sm">
-                          {item.description} - {item.quantity} {item.unit} @ {formatCurrency(item.unitPrice)}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddRABItems}
-                    disabled={selectedRABItems.length === 0}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    Add Selected Items
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Items List */}
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Supplier Information */}
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="text-base font-medium mb-3">Informasi Supplier</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                PO Items
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nama Supplier *
               </label>
-              {formData.items.length > 0 ? (
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {formData.items.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-3 py-2 text-sm">{item.description}</td>
-                          <td className="px-3 py-2 text-sm">{item.quantity}</td>
-                          <td className="px-3 py-2 text-sm">{item.unit}</td>
-                          <td className="px-3 py-2 text-sm">{formatCurrency(item.unitPrice)}</td>
-                          <td className="px-3 py-2 text-sm font-medium">{formatCurrency(item.totalPrice)}</td>
-                          <td className="px-3 py-2 text-sm">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setFormData(prev => ({
-                                  ...prev,
-                                  items: prev.items.filter((_, i) => i !== index)
-                                }));
-                              }}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className="bg-gray-50 px-3 py-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium">Total PO:</span>
-                      <span className="font-bold text-lg">{formatCurrency(calculateTotal())}</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="border border-gray-300 rounded-lg p-4 text-center text-gray-500">
-                  Belum ada items. Pilih dari RAB atau tambah manual.
-                </div>
-              )}
+              <input
+                type="text"
+                value={supplierInfo.name}
+                onChange={(e) => setSupplierInfo({ ...supplierInfo, name: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
             </div>
-
-            {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notes
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Kontak Supplier
+              </label>
+              <input
+                type="text"
+                value={supplierInfo.contact}
+                onChange={(e) => setSupplierInfo({ ...supplierInfo, contact: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Alamat Supplier
               </label>
               <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                rows={3}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={supplierInfo.address}
+                onChange={(e) => setSupplierInfo({ ...supplierInfo, address: e.target.value })}
+                rows={2}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tanggal Pengiriman
+              </label>
+              <input
+                type="date"
+                value={supplierInfo.deliveryDate}
+                onChange={(e) => setSupplierInfo({ ...supplierInfo, deliveryDate: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
+        </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            
-            <button
-              type="submit"
-              disabled={formData.items.length === 0}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              Create PO
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// PO Detail Modal Component
-const PODetailModal = ({ po, onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full m-4 max-h-screen overflow-y-auto">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Purchase Order Detail</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
+        {/* Selected Items with Quantity Adjustment */}
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="text-base font-medium mb-3">Material yang Dipesan</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Material</th>
+                  <th className="text-left py-2">Kategori</th>
+                  <th className="text-center py-2">Qty RAB</th>
+                  <th className="text-center py-2">Qty Order</th>
+                  <th className="text-left py-2">Unit</th>
+                  <th className="text-right py-2">Harga Satuan</th>
+                  <th className="text-right py-2">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedItems.map((item) => {
+                  const orderQuantity = itemQuantities[item.id] || item.quantity;
+                  const unitPrice = item.unitPrice || item.unit_price || 0;
+                  return (
+                    <tr key={item.id} className="border-b">
+                      <td className="py-2">{item.description || item.item_name || 'Material'}</td>
+                      <td className="py-2 text-xs text-gray-600">{item.category}</td>
+                      <td className="py-2 text-center">{item.quantity}</td>
+                      <td className="py-2 text-center">
+                        <input
+                          type="number"
+                          min="1"
+                          max={item.quantity}
+                          value={orderQuantity}
+                          onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 0)}
+                          className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm"
+                        />
+                      </td>
+                      <td className="py-2">{item.unit}</td>
+                      <td className="py-2 text-right">{formatCurrency(unitPrice)}</td>
+                      <td className="py-2 text-right font-medium">{formatCurrency(orderQuantity * unitPrice)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-gray-300">
+                  <td colSpan="6" className="py-2 text-right font-medium">Total Purchase Order:</td>
+                  <td className="py-2 text-right font-bold text-base">{formatCurrency(calculateTotal())}</td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-4">
-          {/* PO Info */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Submit Buttons */}
+        <div className="flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+          >
+            Kembali
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+          >
+            Buat Purchase Order
+          </button>
+        </div>
+      </form>
+    </>
+  );
+};
+
+// PO History View
+const POHistoryView = ({ purchaseOrders, onBack }) => {
+  const [selectedPO, setSelectedPO] = useState(null);
+  const [showConfirmCancel, setShowConfirmCancel] = useState(null);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('id-ID');
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'approved': return 'text-green-600 bg-green-100';
+      case 'rejected': return 'text-red-600 bg-red-100';
+      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'draft': return 'text-gray-600 bg-gray-100';
+      case 'sent': return 'text-blue-600 bg-blue-100';
+      case 'received': return 'text-purple-600 bg-purple-100';
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'cancelled': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const canEdit = (status) => {
+    return ['draft', 'pending'].includes(status);
+  };
+
+  const canCancel = (status) => {
+    return ['draft', 'pending', 'sent'].includes(status);
+  };
+
+  const handleCancelPO = async (poId) => {
+    try {
+      const response = await fetch(`/api/purchase-orders/${poId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        alert('Purchase Order berhasil dibatalkan');
+        window.location.reload(); // Refresh untuk update data
+      } else {
+        alert('Gagal membatalkan Purchase Order');
+      }
+    } catch (error) {
+      console.error('Error cancelling PO:', error);
+      alert('Gagal membatalkan Purchase Order');
+    }
+    setShowConfirmCancel(null);
+  };
+
+  if (selectedPO) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-gray-900">Detail Purchase Order</h3>
+          <button
+            onClick={() => setSelectedPO(null)}
+            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Kembali ke List
+          </button>
+        </div>
+
+        <div className="bg-white border rounded-lg p-6">
+          <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="text-sm text-gray-500">PO Number</label>
-              <p className="font-medium">{po.poNumber}</p>
+              <h4 className="font-medium text-gray-900 mb-4">Informasi PO</h4>
+              <div className="space-y-2">
+                <p><span className="text-gray-600">No. PO:</span> {selectedPO.poNumber || selectedPO.po_number}</p>
+                <p><span className="text-gray-600">Supplier:</span> {selectedPO.supplierName || selectedPO.supplier_name}</p>
+                <p><span className="text-gray-600">Tanggal:</span> {formatDate(selectedPO.orderDate || selectedPO.order_date || selectedPO.createdAt)}</p>
+                <p><span className="text-gray-600">Status:</span> 
+                  <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedPO.status)}`}>
+                    {selectedPO.status}
+                  </span>
+                </p>
+              </div>
             </div>
             <div>
-              <label className="text-sm text-gray-500">Status</label>
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(po.status)}`}>
-                {po.status}
-              </span>
-            </div>
-            <div>
-              <label className="text-sm text-gray-500">Supplier</label>
-              <p className="font-medium">{po.supplierName}</p>
-            </div>
-            <div>
-              <label className="text-sm text-gray-500">Order Date</label>
-              <p className="font-medium">{formatDate(po.orderDate)}</p>
+              <h4 className="font-medium text-gray-900 mb-4">Pengiriman</h4>
+              <div className="space-y-2">
+                <p><span className="text-gray-600">Tanggal Kirim:</span> {selectedPO.deliveryDate ? formatDate(selectedPO.deliveryDate) : 'Belum ditentukan'}</p>
+                <p><span className="text-gray-600">Alamat:</span> {selectedPO.supplierAddress || 'Sesuai kontrak'}</p>
+              </div>
             </div>
           </div>
 
-          {/* Items */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Items</h3>
-            <div className="border border-gray-300 rounded-lg overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Unit Price</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+          <div className="border-t pt-6">
+            <h4 className="font-medium text-gray-900 mb-4">Items</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">Material</th>
+                    <th className="text-center py-2">Qty</th>
+                    <th className="text-left py-2">Unit</th>
+                    <th className="text-right py-2">Harga</th>
+                    <th className="text-right py-2">Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {po.items?.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 text-sm">{item.description}</td>
-                      <td className="px-4 py-2 text-sm">{item.quantity}</td>
-                      <td className="px-4 py-2 text-sm">{item.unit}</td>
-                      <td className="px-4 py-2 text-sm">{formatCurrency(item.unitPrice)}</td>
-                      <td className="px-4 py-2 text-sm">{formatCurrency(item.totalPrice)}</td>
+                <tbody>
+                  {selectedPO.items?.map((item, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-2">{item.description}</td>
+                      <td className="py-2 text-center">{item.quantity}</td>
+                      <td className="py-2">{item.unit}</td>
+                      <td className="py-2 text-right">{formatCurrency(item.unitPrice)}</td>
+                      <td className="py-2 text-right">{formatCurrency(item.totalPrice)}</td>
                     </tr>
-                  ))}
+                  )) || (
+                    <tr>
+                      <td colSpan="5" className="py-4 text-center text-gray-500">Detail items tidak tersedia</td>
+                    </tr>
+                  )}
                 </tbody>
+                <tfoot>
+                  <tr className="border-t-2">
+                    <td colSpan="4" className="py-2 text-right font-medium">Total:</td>
+                    <td className="py-2 text-right font-bold">{formatCurrency(selectedPO.totalAmount || selectedPO.total_amount || 0)}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
 
-          {/* Total */}
-          <div className="text-right">
-            <p className="text-lg font-bold">Total: {formatCurrency(po.totalAmount)}</p>
+          <div className="border-t pt-6 flex justify-end space-x-3">
+            {canEdit(selectedPO.status) && (
+              <button className="px-4 py-2 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50">
+                <Edit className="h-4 w-4 inline mr-2" />
+                Edit PO
+              </button>
+            )}
+            {canCancel(selectedPO.status) && (
+              <button 
+                onClick={() => setShowConfirmCancel(selectedPO.id)}
+                className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+              >
+                <XCircle className="h-4 w-4 inline mr-2" />
+                Cancel PO
+              </button>
+            )}
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <Download className="h-4 w-4 inline mr-2" />
+              Download PDF
+            </button>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Close
-          </button>
-        </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Confirmation Modal */}
+      {showConfirmCancel && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Konfirmasi Pembatalan</h3>
+            <p className="text-gray-600 mb-6">
+              Apakah Anda yakin ingin membatalkan Purchase Order ini? 
+              Material yang dibatalkan akan dikembalikan ke RAB dan dapat dipilih kembali.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowConfirmCancel(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => handleCancelPO(showConfirmCancel)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Ya, Batalkan PO
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Riwayat Purchase Order</h3>
+          <p className="text-sm text-gray-600">Kelola dan pantau status Purchase Order proyek</p>
+        </div>
+        <button
+          onClick={onBack}
+          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          Kembali
+        </button>
+      </div>
+
+      <div className="bg-white border rounded-lg">
+        {purchaseOrders.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Belum ada Purchase Order</h3>
+            <p className="text-gray-600">Purchase Order yang dibuat akan muncul di sini.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {purchaseOrders.map((po) => (
+              <div key={po.id} className="p-6 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900">{po.poNumber || po.po_number || `PO-${po.id?.slice(-8)}`}</h4>
+                        <p className="text-sm text-gray-600">{po.supplierName || po.supplier_name || 'Supplier tidak tersedia'}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {po.items?.length || 0} items • Dibuat {formatDate(po.createdAt)}
+                        </p>
+                      </div>
+                      <div className="ml-auto text-right">
+                        <p className="font-medium">{formatCurrency(po.totalAmount || po.total_amount || 0)}</p>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(po.status)}`}>
+                          {po.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-6">
+                    <button
+                      onClick={() => setSelectedPO(po)}
+                      className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50"
+                      title="Lihat Detail"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    {canEdit(po.status) && (
+                      <button
+                        className="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50"
+                        title="Edit PO"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    )}
+                    {canCancel(po.status) && (
+                      <button
+                        onClick={() => setShowConfirmCancel(po.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                        title="Cancel PO"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
-};
-
-// Helper functions
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(amount);
-};
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('id-ID');
-};
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'approved': return 'text-green-600 bg-green-100';
-    case 'rejected': return 'text-red-600 bg-red-100';
-    case 'pending': return 'text-yellow-600 bg-yellow-100';
-    case 'draft': return 'text-gray-600 bg-gray-100';
-    case 'sent': return 'text-blue-600 bg-blue-100';
-    case 'received': return 'text-purple-600 bg-purple-100';
-    case 'completed': return 'text-green-600 bg-green-100';
-    case 'cancelled': return 'text-red-600 bg-red-100';
-    default: return 'text-gray-600 bg-gray-100';
-  }
-};
-
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'approved': return CheckCircle;
-    case 'rejected': return XCircle;
-    case 'pending': return Clock;
-    case 'sent': return Send;
-    case 'received': return Package;
-    case 'completed': return CheckCircle;
-    case 'cancelled': return XCircle;
-    default: return FileText;
-  }
 };
 
 export default ProjectPurchaseOrders;

@@ -2,6 +2,7 @@ const express = require('express');
 const Joi = require('joi');
 const { Op } = require('sequelize');
 const PurchaseOrder = require('../models/PurchaseOrder');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -29,7 +30,8 @@ const purchaseOrderSchema = Joi.object({
   totalAmount: Joi.number().min(0).required(),
   notes: Joi.string().allow('').optional(),
   deliveryAddress: Joi.string().allow('').optional(),
-  terms: Joi.string().allow('').optional()
+  terms: Joi.string().allow('').optional(),
+  projectId: Joi.string().optional()
 });
 
 // @route   GET /api/purchase-orders
@@ -40,6 +42,7 @@ router.get('/', async (req, res) => {
     const {
       status,
       supplier,
+      projectId,
       startDate,
       endDate,
       q,
@@ -55,6 +58,10 @@ router.get('/', async (req, res) => {
 
     // Build where clause
     const whereClause = {};
+    
+    if (projectId) {
+      whereClause.projectId = projectId;
+    }
     
     if (status) {
       whereClause.status = status;
@@ -221,7 +228,7 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/purchase-orders
 // @desc    Create new purchase order
 // @access  Private
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const { error, value } = purchaseOrderSchema.validate(req.body);
     if (error) {
@@ -243,6 +250,9 @@ router.post('/', async (req, res) => {
       value.poNumber = `PO${String(orderCount + 1).padStart(4, '0')}`;
       value.id = value.poNumber;
     }
+
+    // Set user who created this PO
+    value.createdBy = req.user.id;
 
     const order = await PurchaseOrder.create(value);
 

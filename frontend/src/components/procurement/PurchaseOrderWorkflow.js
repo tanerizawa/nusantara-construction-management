@@ -705,131 +705,264 @@ const CreatePOView = ({ project, rabItems, onSubmit, onBack, onCancel }) => {
 
 // PO Detail View Component
 const PODetailView = ({ po, onBack }) => {
+  const printPO = () => {
+    window.print();
+  };
+
   return (
-    <>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-6xl mx-auto">
+      {/* Header Actions - Hide on print */}
+      <div className="flex items-center justify-between mb-6 print:hidden">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Detail Purchase Order</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Purchase Order Official</h2>
           <p className="text-gray-600">PO Number: {po.poNumber}</p>
         </div>
-        <button
-          onClick={onBack}
-          className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          Kembali
-        </button>
+        <div className="flex space-x-3">
+          <button
+            onClick={printPO}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Print/Download
+          </button>
+          <button
+            onClick={onBack}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Kembali
+          </button>
+        </div>
       </div>
 
-      {/* PO Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Basic Info */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">Informasi Umum</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Status</p>
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                  po.status === 'approved' ? 'bg-green-100 text-green-800' :
-                  po.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  po.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {po.status}
-                </span>
+      {/* Official PO Document */}
+      <div className="bg-white border rounded-lg shadow-lg print:shadow-none print:border-none">
+        {/* Company Letterhead */}
+        <div className="border-b-2 border-blue-600 p-8">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-blue-600 mb-2">NUSANTARA GROUP</h1>
+              <p className="text-lg font-semibold text-gray-800 mb-1">KONSTRUKSI & DEVELOPMENT</p>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>Jl. Raya Industri No. 123, Karawang, Jawa Barat 41361</p>
+                <p>Telp: (0267) 123-4567 | Fax: (0267) 123-4568</p>
+                <p>Email: procurement@nusantagroup.co.id | Website: www.nusantaragroup.co.id</p>
+                <p>NPWP: 01.234.567.8-901.000</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Tanggal Order</p>
-                <p className="font-medium">{new Date(po.orderDate).toLocaleDateString('id-ID')}</p>
+            </div>
+            <div className="text-right">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h2 className="text-xl font-bold text-blue-600 mb-2">PURCHASE ORDER</h2>
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">No. PO:</span> {po.poNumber}</p>
+                  <p><span className="font-medium">Tanggal:</span> {new Date(po.orderDate).toLocaleDateString('id-ID')}</p>
+                  <p><span className="font-medium">Status:</span> 
+                    <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded ${
+                      po.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      po.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      po.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {po.status?.toUpperCase()}
+                    </span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Supplier</p>
-                <p className="font-medium">{po.supplierName}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Vendor and Project Information */}
+        <div className="p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* Vendor Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                KEPADA SUPPLIER:
+              </h3>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="font-semibold text-lg text-gray-800 mb-2">{po.supplierName}</p>
+                <p className="text-sm text-gray-600">Supplier ID: {po.supplierId}</p>
+                <div className="mt-3 text-sm text-gray-600">
+                  <p>Alamat: [Alamat Supplier]</p>
+                  <p>Telp: [No. Telepon]</p>
+                  <p>Email: [Email Supplier]</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Proyek</p>
-                <p className="font-medium">{po.projectName}</p>
+            </div>
+
+            {/* Project Information */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                INFORMASI PROYEK:
+              </h3>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="font-semibold text-lg text-blue-800 mb-2">{po.projectName || 'Nama Proyek'}</p>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p><span className="font-medium">Kode Proyek:</span> {po.projectId || '-'}</p>
+                  <p><span className="font-medium">Lokasi:</span> {po.deliveryAddress || 'Karawang, Jawa Barat'}</p>
+                  <p><span className="font-medium">Target Pengiriman:</span> {po.expectedDeliveryDate ? 
+                    new Date(po.expectedDeliveryDate).toLocaleDateString('id-ID') : '-'}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Items */}
-          <div className="bg-white border rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">Item yang Dipesan</h3>
+          {/* Items Table */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+              DETAIL ITEM PEMESANAN:
+            </h3>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full border-collapse border border-gray-300">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2">Item</th>
-                    <th className="text-left py-2">Qty</th>
-                    <th className="text-right py-2">Harga Satuan</th>
-                    <th className="text-right py-2">Total</th>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">No</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">Nama Item</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left text-sm font-semibold">Deskripsi</th>
+                    <th className="border border-gray-300 px-4 py-3 text-center text-sm font-semibold">Qty</th>
+                    <th className="border border-gray-300 px-4 py-3 text-center text-sm font-semibold">Satuan</th>
+                    <th className="border border-gray-300 px-4 py-3 text-right text-sm font-semibold">Harga Satuan</th>
+                    <th className="border border-gray-300 px-4 py-3 text-right text-sm font-semibold">Total Harga</th>
                   </tr>
                 </thead>
                 <tbody>
                   {po.items?.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="py-2">{item.itemName}</td>
-                      <td className="py-2">{item.quantity}</td>
-                      <td className="py-2 text-right">
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-4 py-3 text-center">{index + 1}</td>
+                      <td className="border border-gray-300 px-4 py-3 font-medium">{item.itemName}</td>
+                      <td className="border border-gray-300 px-4 py-3 text-sm text-gray-600">
+                        {item.description || '-'}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">
+                        {parseFloat(item.quantity).toLocaleString('id-ID')}
+                      </td>
+                      <td className="border border-gray-300 px-4 py-3 text-center">Unit</td>
+                      <td className="border border-gray-300 px-4 py-3 text-right">
                         {new Intl.NumberFormat('id-ID', {
                           style: 'currency',
-                          currency: 'IDR'
+                          currency: 'IDR',
+                          minimumFractionDigits: 0
                         }).format(item.unitPrice)}
                       </td>
-                      <td className="py-2 text-right">
+                      <td className="border border-gray-300 px-4 py-3 text-right font-medium">
                         {new Intl.NumberFormat('id-ID', {
                           style: 'currency',
-                          currency: 'IDR'
+                          currency: 'IDR',
+                          minimumFractionDigits: 0
                         }).format(item.totalPrice)}
                       </td>
                     </tr>
                   ))}
+                  {/* Summary Row */}
+                  <tr className="bg-gray-50 font-semibold">
+                    <td colSpan="6" className="border border-gray-300 px-4 py-3 text-right">
+                      TOTAL KESELURUHAN:
+                    </td>
+                    <td className="border border-gray-300 px-4 py-3 text-right text-lg text-blue-600">
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                      }).format(po.totalAmount)}
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
 
-        {/* Summary */}
-        <div className="space-y-6">
-          <div className="bg-white border rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">Ringkasan</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Item:</span>
-                <span className="font-medium">{po.items?.length || 0}</span>
-              </div>
-              <div className="flex justify-between border-t pt-3">
-                <span className="text-lg font-medium">Total Nilai:</span>
-                <span className="text-lg font-bold text-green-600">
-                  {new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR'
-                  }).format(po.totalAmount)}
-                </span>
+          {/* Terms and Conditions */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+              SYARAT DAN KETENTUAN:
+            </h3>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="text-sm text-gray-700 space-y-2">
+                <p>• Barang harus dikirim sesuai spesifikasi dan dalam kondisi baik</p>
+                <p>• Pengiriman dilakukan ke lokasi proyek yang telah ditentukan</p>
+                <p>• Pembayaran dilakukan 30 hari setelah penerimaan barang dan invoice</p>
+                <p>• Supplier bertanggung jawab atas kualitas barang yang dikirim</p>
+                <p>• Segala perubahan harus mendapat persetujuan tertulis dari PT Nusantara Group</p>
+                {po.notes && (
+                  <p className="mt-3 font-medium">• Catatan Khusus: {po.notes}</p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="bg-white border rounded-lg p-6">
-            <h3 className="text-lg font-medium mb-4">Aksi</h3>
-            <div className="space-y-2">
-              <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </button>
-              <button className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit PO
-              </button>
+          {/* Approval Signatures */}
+          <div className="border-t-2 border-gray-200 pt-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-6 text-center">
+              PERSETUJUAN PURCHASE ORDER
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Dibuat */}
+              <div className="text-center">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 h-32 flex flex-col justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-800 mb-2">DIBUAT OLEH</p>
+                    <p className="text-sm text-gray-600">Staff Procurement</p>
+                  </div>
+                  <div className="border-t border-gray-300 pt-2">
+                    <p className="text-xs text-gray-500">Tanda Tangan & Nama</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm">
+                  <p className="font-medium">[Nama Staff Procurement]</p>
+                  <p className="text-gray-600">Tanggal: {new Date(po.createdAt || po.orderDate).toLocaleDateString('id-ID')}</p>
+                </div>
+              </div>
+
+              {/* Diperiksa */}
+              <div className="text-center">
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 h-32 flex flex-col justify-between bg-blue-50">
+                  <div>
+                    <p className="font-semibold text-blue-800 mb-2">DIPERIKSA OLEH</p>
+                    <p className="text-sm text-blue-600">Manager Proyek</p>
+                  </div>
+                  <div className="border-t border-blue-300 pt-2">
+                    <p className="text-xs text-blue-500">Tanda Tangan & Nama</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm">
+                  <p className="font-medium">[Nama Manager Proyek]</p>
+                  <p className="text-gray-600">Tanggal: _______________</p>
+                </div>
+              </div>
+
+              {/* Disetujui */}
+              <div className="text-center">
+                <div className="border-2 border-dashed border-green-300 rounded-lg p-6 h-32 flex flex-col justify-between bg-green-50">
+                  <div>
+                    <p className="font-semibold text-green-800 mb-2">DISETUJUI OLEH</p>
+                    <p className="text-sm text-green-600">General Manager</p>
+                  </div>
+                  <div className="border-t border-green-300 pt-2">
+                    <p className="text-xs text-green-500">Tanda Tangan & Nama</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm">
+                  <p className="font-medium">{po.approvedBy || '[Nama General Manager]'}</p>
+                  <p className="text-gray-600">
+                    Tanggal: {po.approvedAt ? 
+                      new Date(po.approvedAt).toLocaleDateString('id-ID') : 
+                      '_______________'
+                    }
+                  </p>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center text-xs text-gray-500 mt-8 pt-4 border-t border-gray-200">
+            <p>Dokumen ini dibuat secara elektronik dan sah tanpa tanda tangan basah</p>
+            <p>PT Nusantara Group - Sistem Manajemen Konstruksi v1.0</p>
+            <p>Dicetak pada: {new Date().toLocaleString('id-ID')}</p>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

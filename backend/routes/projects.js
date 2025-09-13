@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const Joi = require('joi');
 const { Op } = require('sequelize');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const Project = require('../models/Project');
 const ProjectRAB = require('../models/ProjectRAB');
@@ -795,61 +795,65 @@ router.get('/:id/rab/export', async (req, res) => {
     });
 
     if (format === 'excel') {
-      // Create workbook and worksheet
-      const workbook = XLSX.utils.book_new();
+      // Create workbook using ExcelJS
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('RAB Items');
       
-      // Prepare data for Excel
-      const excelData = rabItems.map((item, index) => ({
-        'No': index + 1,
-        'Kategori': item.category || '',
-        'Deskripsi': item.description || '',
-        'Satuan': item.unit || '',
-        'Kuantitas': item.quantity || 0,
-        'Harga Satuan': item.unitPrice || 0,
-        'Total': item.totalPrice || 0,
-        'Status': item.isApproved ? 'Disetujui' : 'Pending',
-        'Dibuat': item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '',
-        'Disetujui': item.approvedAt ? new Date(item.approvedAt).toLocaleDateString('id-ID') : ''
-      }));
+      // Define columns
+      worksheet.columns = [
+        { header: 'No', key: 'no', width: 5 },
+        { header: 'Kategori', key: 'category', width: 15 },
+        { header: 'Deskripsi', key: 'description', width: 30 },
+        { header: 'Satuan', key: 'unit', width: 10 },
+        { header: 'Kuantitas', key: 'quantity', width: 10 },
+        { header: 'Harga Satuan', key: 'unitPrice', width: 15 },
+        { header: 'Total', key: 'total', width: 15 },
+        { header: 'Status', key: 'status', width: 12 },
+        { header: 'Dibuat', key: 'created', width: 12 },
+        { header: 'Disetujui', key: 'approved', width: 12 }
+      ];
+
+      // Add data rows
+      rabItems.forEach((item, index) => {
+        worksheet.addRow({
+          no: index + 1,
+          category: item.category || '',
+          description: item.description || '',
+          unit: item.unit || '',
+          quantity: item.quantity || 0,
+          unitPrice: item.unitPrice || 0,
+          total: item.totalPrice || 0,
+          status: item.isApproved ? 'Disetujui' : 'Pending',
+          created: item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : '',
+          approved: item.approvedAt ? new Date(item.approvedAt).toLocaleDateString('id-ID') : ''
+        });
+      });
 
       // Add summary row
       const totalRAB = rabItems.reduce((sum, item) => sum + (parseFloat(item.totalPrice) || 0), 0);
-      excelData.push({
-        'No': '',
-        'Kategori': '',
-        'Deskripsi': 'TOTAL RAB',
-        'Satuan': '',
-        'Kuantitas': '',
-        'Harga Satuan': '',
-        'Total': totalRAB,
-        'Status': '',
-        'Dibuat': '',
-        'Disetujui': ''
+      worksheet.addRow({
+        no: '',
+        category: '',
+        description: 'TOTAL RAB',
+        unit: '',
+        quantity: '',
+        unitPrice: '',
+        total: totalRAB,
+        status: '',
+        created: '',
+        approved: ''
       });
 
-      // Create worksheet
-      const worksheet = XLSX.utils.json_to_sheet(excelData);
-      
-      // Set column widths
-      const columnWidths = [
-        { wch: 5 },   // No
-        { wch: 15 },  // Kategori
-        { wch: 30 },  // Deskripsi
-        { wch: 10 },  // Satuan
-        { wch: 10 },  // Kuantitas
-        { wch: 15 },  // Harga Satuan
-        { wch: 15 },  // Total
-        { wch: 12 },  // Status
-        { wch: 12 },  // Dibuat
-        { wch: 12 }   // Disetujui
-      ];
-      worksheet['!cols'] = columnWidths;
-
-      // Add worksheet to workbook
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'RAB Items');
+      // Style the header row
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
 
       // Generate buffer
-      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      const buffer = await workbook.xlsx.writeBuffer();
 
       // Set response headers
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

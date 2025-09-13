@@ -28,7 +28,8 @@ const purchaseOrderSchema = Joi.object({
   totalAmount: Joi.number().min(0).required(),
   notes: Joi.string().allow('').optional(),
   deliveryAddress: Joi.string().allow('').optional(),
-  terms: Joi.string().allow('').optional()
+  terms: Joi.string().allow('').optional(),
+  projectId: Joi.string().optional()
 });
 
 // @route   GET /api/purchase-orders
@@ -36,9 +37,11 @@ const purchaseOrderSchema = Joi.object({
 // @access  Private
 router.get('/', async (req, res) => {
   try {
+    console.log('DEBUG: req.query =', req.query);
     const {
       status,
       supplier,
+      projectId,
       startDate,
       endDate,
       q,
@@ -47,6 +50,8 @@ router.get('/', async (req, res) => {
       limit = 50,
       page = 1
     } = req.query;
+    
+    console.log('DEBUG: projectId =', projectId);
 
     const limitNum = Math.max(1, parseInt(limit));
     const pageNum = Math.max(1, parseInt(page));
@@ -54,6 +59,13 @@ router.get('/', async (req, res) => {
 
     // Build where clause
     const whereClause = {};
+    
+    if (projectId) {
+      console.log('DEBUG: Adding projectId filter:', projectId);
+      whereClause.projectId = projectId;
+    }
+    
+    console.log('DEBUG: whereClause =', whereClause);
     
     if (status) {
       whereClause.status = status;

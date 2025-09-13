@@ -87,12 +87,14 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
         body: JSON.stringify({
           query: `
             SELECT 
-              id, project_id, category, item_name, description, unit, 
-              quantity, unit_price, subtotal, notes, is_approved, 
-              approved_by, approved_date, created_at, updated_at
-            FROM project_rab_items 
-            WHERE project_id = $1 
-            ORDER BY category, item_name
+              id, "projectId" as project_id, category, description as item_name, 
+              description, unit, quantity, "unitPrice" as unit_price, 
+              "totalPrice" as subtotal, notes, "isApproved" as is_approved, 
+              "approvedBy" as approved_by, "approvedAt" as approved_date, 
+              "createdAt" as created_at, "updatedAt" as updated_at
+            FROM project_rab 
+            WHERE "projectId" = $1 
+            ORDER BY category, description
           `,
           params: [projectId]
         })
@@ -225,14 +227,14 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
           },
           body: JSON.stringify({
             query: `
-              UPDATE project_rab_items 
-              SET category = $1, item_name = $2, description = $3, unit = $4, 
-                  quantity = $5, unit_price = $6, subtotal = $7, notes = $8, updated_at = NOW()
-              WHERE id = $9 AND project_id = $10
+              UPDATE project_rab 
+              SET category = $1, description = $2, unit = $3, 
+                  quantity = $4, "unitPrice" = $5, "totalPrice" = $6, notes = $7, "updatedAt" = NOW()
+              WHERE id = $8 AND "projectId" = $9
               RETURNING *
             `,
             params: [
-              rabData.category, rabData.item_name, rabData.description, rabData.unit,
+              rabData.category, rabData.description, rabData.unit,
               rabData.quantity, rabData.unit_price, rabData.subtotal, rabData.notes,
               editingItem.id, projectId
             ]
@@ -254,13 +256,13 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
           },
           body: JSON.stringify({
             query: `
-              INSERT INTO project_rab_items 
-              (id, project_id, category, item_name, description, unit, quantity, unit_price, subtotal, notes, created_at, updated_at)
-              VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+              INSERT INTO project_rab 
+              (id, "projectId", category, description, unit, quantity, "unitPrice", "totalPrice", notes, "createdAt", "updatedAt")
+              VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
               RETURNING *
             `,
             params: [
-              projectId, rabData.category, rabData.item_name, rabData.description, 
+              projectId, rabData.category, rabData.description, 
               rabData.unit, rabData.quantity, rabData.unit_price, rabData.subtotal, rabData.notes
             ]
           })
@@ -327,7 +329,7 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          query: 'DELETE FROM project_rab_items WHERE id = $1 AND project_id = $2',
+          query: 'DELETE FROM project_rab WHERE id = $1 AND "projectId" = $2',
           params: [itemId, projectId]
         })
       });
@@ -358,9 +360,9 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
           },
           body: JSON.stringify({
             query: `
-              UPDATE project_rab_items 
-              SET is_approved = true, approved_by = $1, approved_date = NOW(), updated_at = NOW()
-              WHERE id = $2 AND project_id = $3
+              UPDATE project_rab 
+              SET "isApproved" = true, "approvedBy" = $1, "approvedAt" = NOW(), "updatedAt" = NOW()
+              WHERE id = $2 AND "projectId" = $3
             `,
             params: ['current_user', itemId, projectId]
           })
@@ -386,10 +388,10 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
         },
         body: JSON.stringify({
           query: `
-            UPDATE project_rab_items 
-            SET is_approved = false, approved_by = null, approved_date = null, 
-                notes = COALESCE(notes, '') || $1, updated_at = NOW()
-            WHERE id = $2 AND project_id = $3
+            UPDATE project_rab 
+            SET "isApproved" = false, "approvedBy" = null, "approvedAt" = null, 
+                notes = COALESCE(notes, '') || $1, "updatedAt" = NOW()
+            WHERE id = $2 AND "projectId" = $3
           `,
           params: [
             reason ? `\nDitolak: ${reason}` : '\nDitolak tanpa alasan',
@@ -418,9 +420,9 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
         },
         body: JSON.stringify({
           query: `
-            UPDATE project_rab_items 
-            SET notes = COALESCE(notes, '') || $1, updated_at = NOW()
-            WHERE id = $2 AND project_id = $3
+            UPDATE project_rab 
+            SET notes = COALESCE(notes, '') || $1, "updatedAt" = NOW()
+            WHERE id = $2 AND "projectId" = $3
           `,
           params: [`\n[${new Date().toLocaleString()}] ${notes}`, itemId, projectId]
         })

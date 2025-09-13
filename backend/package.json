@@ -15,7 +15,12 @@
     "db:seed": "npx sequelize-cli db:seed:all",
     "db:seed:undo": "npx sequelize-cli db:seed:undo:all",
     "db:reset": "npm run db:migrate:undo:all && npm run db:migrate && npm run db:seed",
-    "db:fresh": "npx sequelize-cli db:drop && npx sequelize-cli db:create && npm run db:migrate && npm run db:seed"
+    "db:fresh": "npx sequelize-cli db:drop && npx sequelize-cli db:create && npm run db:migrate && npm run db:seed",
+    "security:audit": "npm audit",
+    "security:fix": "npm audit fix",
+    "security:check": "npm audit --audit-level moderate",
+    "production:start": "NODE_ENV=production node server.js",
+    "production:build": "echo 'Building for production...' && npm run security:check"
   },
   "keywords": [
     "construction",
@@ -30,6 +35,7 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "express-rate-limit": "^6.8.1",
     "helmet": "^7.0.0",
@@ -45,8 +51,7 @@
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0",
-    "xlsx": "^0.18.5"
+    "swagger-ui-express": "^5.0.0"
   },
   "devDependencies": {
     "jest": "^29.6.2",

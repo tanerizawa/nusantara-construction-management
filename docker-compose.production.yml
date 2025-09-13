@@ -1,27 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: nusantara-postgres-prod
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_DB: nusantara_construction
-    volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - nusantara-network
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
   backend:
     build:
       context: .
@@ -30,21 +9,18 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      DB_HOST: postgres
+      DB_HOST: yk-postgres-dev
       DB_PORT: 5432
       DB_NAME: nusantara_construction
-      DB_USER: postgres
+      DB_USERNAME: admin
       DB_PASSWORD: admin123
       JWT_SECRET: nusantara_jwt_secret_2024_construction_management_system
       PORT: 5000
       CORS_ORIGIN: https://nusantaragroup.co
     ports:
       - "5000:5000"
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
-      - nusantara-network
+      - yk-dev-network
     volumes:
       - ./uploads:/app/uploads
       - ./reports:/app/reports
@@ -57,29 +33,28 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend.prod
+      dockerfile: Dockerfile.frontend.optimized
+      args:
+        - REACT_APP_API_URL=/api
+        - NODE_ENV=production
     container_name: nusantara-frontend-prod
     restart: unless-stopped
     environment:
-      REACT_APP_API_URL: https://nusantaragroup.co/api
+      REACT_APP_API_URL: /api
       REACT_APP_ENV: production
       GENERATE_SOURCEMAP: false
     ports:
-      - "3000:80"
+      - "8080:3000"
     networks:
-      - nusantara-network
+      - yk-dev-network
     depends_on:
       - backend
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   postgres_data_prod:
     driver: local
 
 networks:
-  nusantara-network:
-    driver: bridge
+  yk-dev-network:
+    external: true
+    name: app-yk_yk-dev-network

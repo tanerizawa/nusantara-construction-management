@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Paper,
@@ -17,7 +17,11 @@ import {
   Chip,
   Alert,
   Button,
-  IconButton
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Settings as SettingsIcon,
@@ -32,8 +36,11 @@ import {
   Info as InfoIcon,
   Construction as ConstructionIcon
 } from '@mui/icons-material';
+import DatabaseManagement from '../components/settings/DatabaseManagement';
 
 const Settings = () => {
+  const [selectedSection, setSelectedSection] = useState(null);
+
   const settingSections = [
     {
       title: 'Profil Pengguna',
@@ -66,10 +73,11 @@ const Settings = () => {
       status: 'coming-soon'
     },
     {
-      title: 'Backup & Restore',
+      title: 'Database Management',
       icon: StorageIcon,
-      description: 'Kelola backup data dan pengaturan restore',
-      status: 'coming-soon'
+      description: 'Kelola database, backup, restore, dan testing',
+      status: 'available',
+      component: 'database'
     },
     {
       title: 'Manajemen Tim',
@@ -85,6 +93,12 @@ const Settings = () => {
     }
   ];
 
+  const handleSectionClick = (section) => {
+    if (section.status === 'available' && section.component) {
+      setSelectedSection(section.component);
+    }
+  };
+
   const getStatusChip = (status) => {
     switch (status) {
       case 'coming-soon':
@@ -95,6 +109,35 @@ const Settings = () => {
         return <Chip label="Dalam Pengembangan" color="default" size="small" />;
     }
   };
+
+  // Jika ada section yang dipilih, tampilkan komponennya
+  if (selectedSection === 'database') {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ mb: 4 }}>
+          <Button 
+            onClick={() => setSelectedSection(null)} 
+            sx={{ mb: 2 }}
+            variant="outlined"
+          >
+            ← Kembali ke Pengaturan
+          </Button>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Avatar sx={{ bgcolor: 'primary.main', mr: 2 }}>
+              <StorageIcon />
+            </Avatar>
+            <Typography variant="h4" component="h1" fontWeight="bold">
+              Database Management
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary">
+            Kelola database, backup, restore, dan buat database baru untuk testing
+          </Typography>
+        </Box>
+        <DatabaseManagement />
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -165,6 +208,7 @@ const Settings = () => {
                       size="small"
                       disabled={section.status === 'coming-soon'}
                       fullWidth
+                      onClick={() => handleSectionClick(section)}
                     >
                       {section.status === 'coming-soon' ? 'Segera Hadir' : 'Buka Pengaturan'}
                     </Button>

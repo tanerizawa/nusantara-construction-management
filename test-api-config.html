@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API URL Test</title>
+</head>
+<body>
+    <h1>API URL Configuration Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Simulate different environments
+        function testApiUrl(hostname) {
+            // Mock the hostname for testing
+            const originalHostname = window.location.hostname;
+            
+            // API Configuration - Smart environment detection (copied from AuthContext.js)
+            const getApiUrl = (testHostname) => {
+                const hostname = testHostname || window.location.hostname;
+                
+                // Production mode - ALWAYS use Apache proxy for nusantaragroup.co
+                if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+                    console.log('🌐 Production mode detected - using Apache proxy');
+                    return '/api';
+                }
+                
+                // Development mode - Use environment variable or localhost
+                if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    const devApiUrl = 'http://localhost:5000/api'; // process.env not available in this test
+                    console.log('🔧 Development mode detected - using:', devApiUrl);
+                    return devApiUrl;
+                }
+                
+                // Fallback to localhost for any other case
+                console.log('⚠️ Unknown hostname, falling back to localhost');
+                return 'http://localhost:5000/api';
+            };
+            
+            return getApiUrl(hostname);
+        }
+        
+        // Test different scenarios
+        const tests = [
+            { hostname: 'localhost', expected: 'http://localhost:5000/api' },
+            { hostname: '127.0.0.1', expected: 'http://localhost:5000/api' },
+            { hostname: 'nusantaragroup.co', expected: '/api' },
+            { hostname: 'www.nusantaragroup.co', expected: '/api' },
+            { hostname: 'subdomain.nusantaragroup.co', expected: '/api' }
+        ];
+        
+        let results = '<h2>Test Results:</h2>';
+        
+        tests.forEach(test => {
+            const result = testApiUrl(test.hostname);
+            const passed = result === test.expected;
+            const status = passed ? '✅' : '❌';
+            
+            results += `
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid ${passed ? 'green' : 'red'};">
+                    ${status} <strong>${test.hostname}</strong><br>
+                    Expected: <code>${test.expected}</code><br>
+                    Got: <code>${result}</code>
+                </div>
+            `;
+        });
+        
+        results += `<h3>Current Environment:</h3>`;
+        results += `<div style="background: #f5f5f5; padding: 10px; margin: 10px 0;">`;
+        results += `Hostname: <strong>${window.location.hostname}</strong><br>`;
+        results += `API URL: <strong>${testApiUrl()}</strong>`;
+        results += `</div>`;
+        
+        document.getElementById('results').innerHTML = results;
+    </script>
+</body>
+</html>

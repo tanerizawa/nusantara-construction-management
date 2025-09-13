@@ -1,0 +1,1 @@
+{"success":false,"message":"Failed to backup database","error":"Command failed: docker exec nusantara-postgres pg_dump -U admin -d nusantara_construction --data-only --no-password\n/bin/sh: docker: not found\n"}

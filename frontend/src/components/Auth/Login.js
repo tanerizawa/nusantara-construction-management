@@ -5,7 +5,7 @@ import { Building2, Lock, User, ArrowLeft } from 'lucide-react';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
-    username: 'sariwulandarisemm', // Auto-fill dengan user utama
+    username: 'admin', // Auto-fill dengan user admin
     password: 'admin123'
   });
   const [loading, setLoading] = useState(false);
@@ -39,28 +39,28 @@ const Login = () => {
     });
   };
 
-  // Auto-fill credentials untuk testing - Updated dengan database aktual
+  // Auto-fill credentials untuk testing - Updated 2025-09-13
   const demoCredentials = [
-    { 
-      username: 'sariwulandarisemm', 
-      password: 'admin123', 
-      role: 'Admin Direktur', 
-      info: 'Database User - AKTIF',
-      name: 'Sari Wulandari'
-    },
     { 
       username: 'admin', 
       password: 'admin123', 
-      role: 'Administrator', 
-      info: 'Fallback User - AKTIF',
-      name: 'Admin System'
+      role: 'Super Administrator', 
+      info: 'Production User - AKTIF',
+      name: 'Administrator'
     },
     { 
-      username: 'test', 
+      username: 'lisatanasyassnmdes', 
       password: 'admin123', 
-      role: 'Project Manager', 
-      info: 'Test User - AKTIF',
-      name: 'Test User'
+      role: 'Manager Operasional', 
+      info: 'Production User - AKTIF',
+      name: 'Lisa Tanasya'
+    },
+    { 
+      username: 'sintadewisemm', 
+      password: 'admin123', 
+      role: 'Staff Keuangan', 
+      info: 'Production User - AKTIF',
+      name: 'Sinta Dewi'
     }
   ];
 
@@ -169,10 +169,10 @@ const Login = () => {
           <div className="mt-8 border-t border-gray-200 pt-6">
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-900 mb-1">
-                🚀 Quick Login - Database Users
+                � Credentials Ujicoba - Production Database
               </p>
               <p className="text-xs text-gray-600">
-                Klik untuk login langsung tanpa mengetik
+                Updated: 13 Sep 2025 | Default: admin/admin123
               </p>
             </div>
             

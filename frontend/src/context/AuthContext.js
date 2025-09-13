@@ -1,24 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_URL } from '../utils/config';
 
 const AuthContext = createContext();
-
-// API Configuration - Use Apache Proxy
-const getApiUrl = () => {
-  const hostname = window.location.hostname;
-  
-  // Use Apache proxy for all environments
-  if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
-    // Use Apache proxy - no port needed
-    return '/api';
-  }
-  
-  // For localhost development (direct Docker access)
-  return 'http://localhost:5000/api';
-};
-
-const API_URL = getApiUrl();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

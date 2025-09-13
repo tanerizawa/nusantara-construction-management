@@ -13,524 +13,760 @@ import {
   Eye,
   ThumbsUp,
   ThumbsDown,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  Download,
+  ArrowLeft
 } from 'lucide-react';
 
-const ProjectApprovalStatus = ({ projectId, project, onDataChange }) => {
+const ProjectApprovalStatus = ({ projectId, project, userDetails, onDataChange }) => {
   const [approvals, setApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedApproval, setSelectedApproval] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [currentView, setCurrentView] = useState('approval-list'); // 'approval-list' or 'po-official'
+  const [selectedPOData, setSelectedPOData] = useState(null);
 
-  useEffect(() => {
-    fetchApprovalData();
-  }, [projectId]);
-
-  const fetchApprovalData = async () => {
-    try {
-      setLoading(true);
-      
-      const response = await fetch(`/api/approval/project/${projectId}/status`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+  // Sample data for testing
+  const sampleApprovalData = [
+    {
+      id: 'APR-001',
+      projectName: 'Pembangunan Pabrik Tekstil Karawang',
+      project_name: 'Pembangunan Pabrik Tekstil Karawang',
+      poNumber: 'PO-2024-001',
+      po_number: 'PO-2024-001',
+      supplierName: 'PT Semen Indonesia',
+      supplier_name: 'PT Semen Indonesia',
+      supplierId: 'SUP-001',
+      supplier_id: 'SUP-001',
+      totalAmount: 2850000000,
+      total_amount: 2850000000,
+      status: 'approved',
+      createdAt: '2024-01-15T08:00:00Z',
+      created_at: '2024-01-15T08:00:00Z',
+      approvedAt: '2024-01-16T10:30:00Z',
+      approved_at: '2024-01-16T10:30:00Z',
+      approvedBy: 'USR-DIR-BSR-002',
+      approved_by: 'USR-DIR-BSR-002',
+      createdBy: 'USR-DIR-CUE14-002',
+      created_by: 'USR-DIR-CUE14-002',
+      deliveryAddress: 'Kawasan Industri Karawang, Jawa Barat',
+      delivery_address: 'Kawasan Industri Karawang, Jawa Barat',
+      expectedDeliveryDate: '2024-02-15T00:00:00Z',
+      expected_delivery_date: '2024-02-15T00:00:00Z',
+      projectId: 'PRJ-KRW-001',
+      project_id: 'PRJ-KRW-001',
+      notes: 'Semen berkualitas tinggi untuk pondasi utama',
+      items: [
+        {
+          name: 'Semen Portland Type I',
+          item_name: 'Semen Portland Type I',
+          description: 'Semen berkualitas tinggi untuk konstruksi',
+          quantity: 500,
+          unit: 'Sak',
+          unitPrice: 85000,
+          unit_price: 85000,
+          totalAmount: 42500000,
+          total_amount: 42500000
+        },
+        {
+          name: 'Semen Portland Type II',
+          item_name: 'Semen Portland Type II',
+          description: 'Semen tahan sulfat untuk area khusus',
+          quantity: 300,
+          unit: 'Sak',
+          unitPrice: 90000,
+          unit_price: 90000,
+          totalAmount: 27000000,
+          total_amount: 27000000
         }
-      });
+      ]
+    },
+    {
+      id: 'APR-002',
+      projectName: 'Renovasi Gedung Kantor Pusat',
+      project_name: 'Renovasi Gedung Kantor Pusat',
+      poNumber: 'PO-2024-002',
+      po_number: 'PO-2024-002',
+      supplierName: 'PT Baja Konstruksi Nusantara',
+      supplier_name: 'PT Baja Konstruksi Nusantara',
+      supplierId: 'SUP-002',
+      supplier_id: 'SUP-002',
+      totalAmount: 1850000000,
+      total_amount: 1850000000,
+      status: 'pending',
+      createdAt: '2024-01-18T09:15:00Z',
+      created_at: '2024-01-18T09:15:00Z',
+      createdBy: 'USR-DIR-CUE14-002',
+      created_by: 'USR-DIR-CUE14-002',
+      deliveryAddress: 'Jl. Sudirman No. 123, Jakarta Pusat',
+      delivery_address: 'Jl. Sudirman No. 123, Jakarta Pusat',
+      expectedDeliveryDate: '2024-03-01T00:00:00Z',
+      expected_delivery_date: '2024-03-01T00:00:00Z',
+      projectId: 'PRJ-JKT-002',
+      project_id: 'PRJ-JKT-002',
+      notes: 'Baja berkualitas untuk renovasi struktur',
+      items: [
+        {
+          name: 'Baja Profil WF 300x150',
+          item_name: 'Baja Profil WF 300x150',
+          description: 'Baja profil untuk struktur utama',
+          quantity: 50,
+          unit: 'Batang',
+          unitPrice: 2500000,
+          unit_price: 2500000,
+          totalAmount: 125000000,
+          total_amount: 125000000
+        },
+        {
+          name: 'Baja Profil H-Beam 400x200',
+          item_name: 'Baja Profil H-Beam 400x200',
+          description: 'H-Beam untuk balok utama',
+          quantity: 30,
+          unit: 'Batang',
+          unitPrice: 3200000,
+          unit_price: 3200000,
+          totalAmount: 96000000,
+          total_amount: 96000000
+        }
+      ]
+    },
+    {
+      id: 'APR-003',
+      projectName: 'Pembangunan Jembatan Cikarang',
+      project_name: 'Pembangunan Jembatan Cikarang',
+      poNumber: 'PO-2024-003',
+      po_number: 'PO-2024-003',
+      supplierName: 'PT Ready Mix Concrete',
+      supplier_name: 'PT Ready Mix Concrete',
+      supplierId: 'SUP-003',
+      supplier_id: 'SUP-003',
+      totalAmount: 4200000000,
+      total_amount: 4200000000,
+      status: 'received',
+      createdAt: '2024-01-20T07:30:00Z',
+      created_at: '2024-01-20T07:30:00Z',
+      approvedAt: '2024-01-21T11:45:00Z',
+      approved_at: '2024-01-21T11:45:00Z',
+      approvedBy: 'USR-DIR-BSR-002',
+      approved_by: 'USR-DIR-BSR-002',
+      createdBy: 'USR-DIR-CUE14-002',
+      created_by: 'USR-DIR-CUE14-002',
+      deliveryAddress: 'Lokasi Jembatan Cikarang, Bekasi',
+      delivery_address: 'Lokasi Jembatan Cikarang, Bekasi',
+      expectedDeliveryDate: '2024-02-28T00:00:00Z',
+      expected_delivery_date: '2024-02-28T00:00:00Z',
+      projectId: 'PRJ-BKS-003',
+      project_id: 'PRJ-BKS-003',
+      notes: 'Beton ready mix untuk konstruksi jembatan',
+      items: [
+        {
+          name: 'Beton Ready Mix K-300',
+          item_name: 'Beton Ready Mix K-300',
+          description: 'Beton berkualitas tinggi untuk struktur jembatan',
+          quantity: 800,
+          unit: 'M3',
+          unitPrice: 1200000,
+          unit_price: 1200000,
+          totalAmount: 960000000,
+          total_amount: 960000000
+        },
+        {
+          name: 'Beton Ready Mix K-400',
+          item_name: 'Beton Ready Mix K-400',
+          description: 'Beton mutu tinggi untuk pilar jembatan',
+          quantity: 500,
+          unit: 'M3',
+          unitPrice: 1400000,
+          unit_price: 1400000,
+          totalAmount: 700000000,
+          total_amount: 700000000
+        }
+      ]
+    }
+  ];
 
-      if (response.ok) {
-        const data = await response.json();
-        setApprovals(data.data || []);
+  // Helper functions
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID');
+  };
+
+  const getUserName = (userId) => {
+    const userMap = {
+      'USR-DIR-BSR-002': {
+        name: 'Maya Sari, S.E., Ak., M.M.',
+        position: 'General Manager'
+      },
+      'USR-DIR-CUE14-002': {
+        name: 'Ahmad Sutanto, S.T.',
+        position: 'Project Manager'  
+      },
+      'System': {
+        name: 'System',
+        position: 'Auto Generated'
       }
+    };
+    
+    return userMap[userId] || { name: userId || 'Unknown User', position: 'Staff' };
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'approved':
+        return 'bg-green-100 text-green-800 border border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border border-red-200';
+      case 'received':
+        return 'bg-blue-100 text-blue-800 border border-blue-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
+    }
+  };
+
+  // Purchase Order Official View Component
+  const POOfficialView = ({ selectedPO, onBack, projectName, projectAddress, projectId, userDetails }) => {
+    const handlePrint = () => {
+      // Add print styles
+      const style = document.createElement('style');
+      style.textContent = `
+        @media print {
+          body * { visibility: hidden; }
+          #po-document, #po-document * { visibility: visible; }
+          #po-document { position: absolute; left: 0; top: 0; width: 100%; }
+          .print\\:hidden { display: none !important; }
+          .print\\:block { display: block !important; }
+          .print\\:text-xs { font-size: 0.75rem !important; }
+          .print\\:text-\\[10px\\] { font-size: 10px !important; }
+          .print\\:text-\\[8px\\] { font-size: 8px !important; }
+          .print\\:p-2 { padding: 0.5rem !important; }
+          .print\\:p-3 { padding: 0.75rem !important; }
+          .print\\:px-1 { padding-left: 0.25rem !important; padding-right: 0.25rem !important; }
+          .print\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .print\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        }
+      `;
+      
+      document.head.appendChild(style);
+      window.print();
+      
+      // Remove print styles after printing
+      setTimeout(() => {
+        document.head.removeChild(style);
+      }, 1000);
+    };
+
+    return (
+      <div className="max-w-6xl mx-auto">
+        {/* Header Actions - Hide on print */}
+        <div className="flex items-center justify-between mb-6 print:hidden">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Purchase Order Official</h3>
+            <p className="text-gray-600">PO Number: {selectedPO.poNumber || selectedPO.po_number}</p>
+          </div>
+          <div className="flex space-x-3">
+            <button
+              onClick={handlePrint}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Print/Download
+            </button>
+            <button
+              onClick={onBack}
+              className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Kembali ke Approval Status
+            </button>
+          </div>
+        </div>
+
+        {/* Official PO Document */}
+        <div className="bg-white border rounded-lg shadow-lg print:shadow-none print:border-none print-container" id="po-document">
+          {/* Company Letterhead */}
+          <div className="border-b-2 border-blue-600 p-4 print:p-3">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h1 className="text-xl font-bold text-blue-600 mb-1 print:text-lg print:mb-0">NUSANTARA GROUP</h1>
+                <p className="text-sm font-semibold text-gray-800 mb-1 print:text-xs print:mb-0">KONSTRUKSI & DEVELOPMENT</p>
+                <div className="text-xs text-gray-600 space-y-0 print:text-[10px]">
+                  <p>Jl. Raya Industri No. 123, Karawang, Jawa Barat 41361 | Telp: (0267) 123-4567</p>
+                  <p>Email: procurement@nusantagroup.co.id | NPWP: 01.234.567.8-901.000</p>
+                </div>
+              </div>
+              <div className="text-right ml-4">
+                <div className="bg-blue-50 border border-blue-200 rounded p-3 print:p-2">
+                  <h2 className="text-lg font-bold text-blue-600 mb-1 print:text-base print:mb-0">PURCHASE ORDER</h2>
+                  <div className="text-xs space-y-0 print:text-[10px]">
+                    <p><span className="font-medium">No. PO:</span> {selectedPO.poNumber || selectedPO.po_number}</p>
+                    <p><span className="font-medium">Tanggal:</span> {formatDate(selectedPO.orderDate || selectedPO.order_date || selectedPO.createdAt)}</p>
+                    <p><span className="font-medium">Status:</span> 
+                      <span className={`ml-1 px-1 py-0 text-[10px] font-semibold rounded ${getStatusColor(selectedPO.status)}`}>
+                        {selectedPO.status?.toUpperCase()}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Vendor and Project Information */}
+          <div className="p-4 print:p-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 mb-4 print:gap-3 print:mb-3">
+              {/* Vendor Information */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-1 print:text-xs print:mb-1">
+                  KEPADA SUPPLIER:
+                </h3>
+                <div className="bg-gray-50 p-3 rounded print:p-2 print:bg-gray-100">
+                  <p className="font-semibold text-sm text-gray-800 mb-1 print:text-xs print:mb-0">{selectedPO.supplierName || selectedPO.supplier_name}</p>
+                  <div className="text-xs text-gray-600 space-y-0 print:text-[10px]">
+                    <p>ID: {selectedPO.supplierId || selectedPO.supplier_id || '-'}</p>
+                    <p>Alamat: [Alamat Supplier] | Telp: [No. Telepon]</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Project Information */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-1 print:text-xs print:mb-1">
+                  INFORMASI PROYEK:
+                </h3>
+                <div className="bg-blue-50 p-3 rounded print:p-2 print:bg-blue-100">
+                  <p className="font-semibold text-sm text-blue-800 mb-1 print:text-xs print:mb-0">{projectName || 'Nama Proyek'}</p>
+                  <div className="text-xs text-gray-700 space-y-0 print:text-[10px]">
+                    <p><span className="font-medium">Kode:</span> {projectId} | <span className="font-medium">Lokasi:</span> {selectedPO.deliveryAddress || selectedPO.delivery_address || projectAddress || 'Karawang, Jawa Barat'}</p>
+                    <p><span className="font-medium">Target Kirim:</span> {
+                      selectedPO.expectedDeliveryDate || selectedPO.expected_delivery_date 
+                        ? formatDate(selectedPO.expectedDeliveryDate || selectedPO.expected_delivery_date) 
+                        : 'Belum ditentukan'
+                    }</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Items Table */}
+            <div className="mb-4 print:mb-3">
+              <h3 className="text-sm font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-1 print:text-xs print:mb-1">
+                DETAIL ITEM PEMESANAN:
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300 text-xs print:text-[10px]">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 px-2 py-1 text-left font-semibold print:px-1">No</th>
+                      <th className="border border-gray-300 px-2 py-1 text-left font-semibold print:px-1">Nama Item</th>
+                      <th className="border border-gray-300 px-2 py-1 text-left font-semibold print:px-1">Deskripsi</th>
+                      <th className="border border-gray-300 px-2 py-1 text-center font-semibold print:px-1">Qty</th>
+                      <th className="border border-gray-300 px-2 py-1 text-center font-semibold print:px-1">Satuan</th>
+                      <th className="border border-gray-300 px-2 py-1 text-right font-semibold print:px-1">Harga Satuan</th>
+                      <th className="border border-gray-300 px-2 py-1 text-right font-semibold print:px-1">Total Harga</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectedPO.items || []).map((item, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-2 py-1 text-center print:px-1">{index + 1}</td>
+                        <td className="border border-gray-300 px-2 py-1 font-medium print:px-1">{item.name || item.itemName || item.item_name}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-gray-600 print:px-1">
+                          {item.description || '-'}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-center print:px-1">
+                          {parseFloat(item.quantity).toLocaleString('id-ID')}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-center print:px-1">{item.unit || 'Unit'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-right print:px-1">
+                          {formatCurrency(item.unitPrice || item.unit_price)}
+                        </td>
+                        <td className="border border-gray-300 px-2 py-1 text-right font-medium print:px-1">
+                          {formatCurrency(item.totalAmount || item.totalPrice || item.total_price || (item.quantity * item.unitPrice))}
+                        </td>
+                      </tr>
+                    ))}
+                    {/* Summary Row */}
+                    <tr className="bg-gray-50 font-semibold">
+                      <td colSpan="6" className="border border-gray-300 px-2 py-1 text-right print:px-1">
+                        TOTAL KESELURUHAN:
+                      </td>
+                      <td className="border border-gray-300 px-2 py-1 text-right text-sm text-blue-600 print:px-1 print:text-xs">
+                        {formatCurrency(selectedPO.totalAmount || selectedPO.total_amount)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="mb-4 print:mb-3">
+              <h3 className="text-sm font-semibold text-gray-800 mb-2 border-b border-gray-200 pb-1 print:text-xs print:mb-1">
+                SYARAT DAN KETENTUAN:
+              </h3>
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-3 print:p-2 print:bg-yellow-100">
+                <div className="text-xs text-gray-700 space-y-1 print:text-[10px] print:space-y-0">
+                  <p>• Barang dikirim sesuai spesifikasi dalam kondisi baik • Pengiriman ke lokasi proyek yang ditentukan</p>
+                  <p>• Pembayaran 30 hari setelah penerimaan barang dan invoice • Supplier bertanggung jawab atas kualitas</p>
+                  <p>• Perubahan harus mendapat persetujuan tertulis dari PT Nusantara Group</p>
+                  {selectedPO.notes && (
+                    <p className="mt-1 font-medium print:mt-0">• Catatan Khusus: {selectedPO.notes}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Approval Signatures */}
+            <div className="border-t border-gray-200 pt-4 print:pt-3">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 text-center print:text-xs print:mb-2">
+                PERSETUJUAN PURCHASE ORDER
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-4 print:gap-3">
+                {/* Dibuat */}
+                <div className="text-center">
+                  <div className="border border-dashed border-gray-300 rounded p-3 h-16 flex flex-col justify-between print:h-12 print:p-2">
+                    <div>
+                      <p className="font-semibold text-gray-800 text-xs print:text-[10px]">DIBUAT OLEH</p>
+                      <p className="text-[10px] text-gray-600 print:text-[8px]">Staff Procurement</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs print:mt-1 print:text-[10px]">
+                    <p className="font-medium">
+                      {selectedPO.createdBy ? getUserName(selectedPO.createdBy).name : getUserName(userDetails?.id)?.name || 'Staff Procurement'}
+                    </p>
+                    <p className="text-gray-600">Tgl: {formatDate(selectedPO.createdAt)}</p>
+                  </div>
+                </div>
+
+                {/* Diperiksa */}
+                <div className="text-center">
+                  <div className="border border-dashed border-blue-300 rounded p-3 h-16 flex flex-col justify-between bg-blue-50 print:h-12 print:p-2 print:bg-blue-100">
+                    <div>
+                      <p className="font-semibold text-blue-800 text-xs print:text-[10px]">DIPERIKSA OLEH</p>
+                      <p className="text-[10px] text-blue-600 print:text-[8px]">Manager Proyek</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs print:mt-1 print:text-[10px]">
+                    <p className="font-medium">
+                      {selectedPO.status === 'approved' || selectedPO.status === 'received' ? 
+                        getUserName('USR-DIR-CUE14-002').name : 
+                        '[Menunggu Pemeriksaan]'
+                      }
+                    </p>
+                    <p className="text-gray-600">
+                      Tgl: {selectedPO.status === 'approved' || selectedPO.status === 'received' ? 
+                        formatDate(selectedPO.approvedAt || selectedPO.approved_at || selectedPO.createdAt) : 
+                        '_______'
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {/* Disetujui */}
+                <div className="text-center">
+                  <div className={`border border-dashed rounded p-3 h-16 flex flex-col justify-between print:h-12 print:p-2 ${
+                    selectedPO.status === 'approved' || selectedPO.status === 'received' ? 
+                    'border-green-300 bg-green-50 print:bg-green-100' : 
+                    'border-gray-300'
+                  }`}>
+                    <div>
+                      <p className={`font-semibold text-xs print:text-[10px] ${
+                        selectedPO.status === 'approved' || selectedPO.status === 'received' ? 
+                        'text-green-800' : 
+                        'text-gray-600'
+                      }`}>DISETUJUI OLEH</p>
+                      <p className={`text-[10px] print:text-[8px] ${
+                        selectedPO.status === 'approved' || selectedPO.status === 'received' ? 
+                        'text-green-600' : 
+                        'text-gray-500'
+                      }`}>General Manager</p>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs print:mt-1 print:text-[10px]">
+                    <p className="font-medium">
+                      {selectedPO.status === 'approved' || selectedPO.status === 'received' ? 
+                        getUserName(selectedPO.approvedBy || selectedPO.approved_by || 'USR-DIR-BSR-002').name : 
+                        '[Menunggu Persetujuan]'
+                      }
+                    </p>
+                    <p className="text-gray-600">
+                      Tgl: {selectedPO.approvedAt || selectedPO.approved_at ? 
+                        formatDate(selectedPO.approvedAt || selectedPO.approved_at) : 
+                        '_______'
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center text-[10px] text-gray-500 mt-4 pt-2 border-t border-gray-200 print:mt-2 print:pt-1 print:text-[8px]">
+              <p>Dokumen elektronik sah tanpa tanda tangan basah | PT Nusantara Group v1.0</p>
+              <p>Dicetak: {new Date().toLocaleString('id-ID')}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Filter and search logic
+  const filteredData = sampleApprovalData.filter(item => {
+    const matchesFilter = filter === 'all' || item.status === filter;
+    const matchesSearch = searchTerm === '' || 
+      (item.projectName || item.project_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.poNumber || item.po_number || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.supplierName || item.supplier_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  // Load approval data
+  const loadApprovalData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Simulate API call - replace with real implementation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setApprovals(sampleApprovalData);
     } catch (error) {
-      console.error('Error fetching approval data:', error);
+      console.error('Error loading approval data:', error);
+      setError('Gagal memuat data approval. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprovalAction = async (instanceId, action, comments = '') => {
-    try {
-      const response = await fetch(`/api/approval/instance/${instanceId}/decision`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          decision: action,
-          comments
-        })
-      });
-
-      if (response.ok) {
-        await fetchApprovalData();
-        if (onDataChange) onDataChange();
-        alert(`Approval ${action} berhasil`);
-      }
-    } catch (error) {
-      console.error('Error processing approval:', error);
-      alert('Gagal memproses approval');
-    }
+  // Handle view PO details (switch to PO Official view)
+  const handleViewPODetails = (poData) => {
+    setSelectedPOData(poData);
+    setCurrentView('po-official');
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved': return 'text-green-600 bg-green-100';
-      case 'rejected': return 'text-red-600 bg-red-100';
-      case 'pending': return 'text-yellow-600 bg-yellow-100';
-      case 'conditional': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'approved': return CheckCircle;
-      case 'rejected': return XCircle;
-      case 'pending': return Clock;
-      case 'conditional': return AlertTriangle;
-      default: return AlertCircle;
-    }
-  };
-
-  const filteredApprovals = approvals.filter(approval => {
-    if (filter === 'all') return true;
-    return approval.status === filter;
-  });
-
-  const approvalSummary = {
-    total: approvals.length,
-    pending: approvals.filter(a => a.status === 'pending').length,
-    approved: approvals.filter(a => a.status === 'approved').length,
-    rejected: approvals.filter(a => a.status === 'rejected').length,
-    conditional: approvals.filter(a => a.status === 'conditional').length
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  // Load data on component mount
+  useEffect(() => {
+    loadApprovalData();
+  }, [projectId]);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Status Persetujuan</h2>
-          <p className="text-gray-600">Tracking workflow approval untuk {project.name}</p>
-        </div>
-        
-        <button
-          onClick={fetchApprovalData}
-          className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <ClipboardCheck className="h-8 w-8 text-gray-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-gray-900">{approvalSummary.total}</p>
-              <p className="text-sm text-gray-600">Total</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <Clock className="h-8 w-8 text-yellow-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-yellow-600">{approvalSummary.pending}</p>
-              <p className="text-sm text-gray-600">Pending</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-green-600">{approvalSummary.approved}</p>
-              <p className="text-sm text-gray-600">Approved</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <XCircle className="h-8 w-8 text-red-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-red-600">{approvalSummary.rejected}</p>
-              <p className="text-sm text-gray-600">Rejected</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="flex items-center">
-            <AlertTriangle className="h-8 w-8 text-blue-600" />
-            <div className="ml-3">
-              <p className="text-2xl font-bold text-blue-600">{approvalSummary.conditional}</p>
-              <p className="text-sm text-gray-600">Conditional</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white shadow">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {currentView === 'approval-list' ? 'Approval Status' : 'Purchase Order Official'}
+                </h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  {currentView === 'approval-list' 
+                    ? 'Monitor status persetujuan proyek dan purchase order'
+                    : `PO Number: ${selectedPOData?.poNumber || selectedPOData?.po_number}`
+                  }
+                </p>
+              </div>
+              {currentView === 'po-official' && (
+                <button
+                  onClick={() => {
+                    setCurrentView('approval-list');
+                    setSelectedPOData(null);
+                  }}
+                  className="flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Kembali ke Approval Status
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {[
-              { key: 'all', label: 'Semua', count: approvalSummary.total },
-              { key: 'pending', label: 'Pending', count: approvalSummary.pending },
-              { key: 'approved', label: 'Approved', count: approvalSummary.approved },
-              { key: 'rejected', label: 'Rejected', count: approvalSummary.rejected }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setFilter(tab.key)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  filter === tab.key
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-                {tab.count > 0 && (
-                  <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Approval List */}
-        <div className="divide-y divide-gray-200">
-          {filteredApprovals.length === 0 ? (
-            <div className="text-center py-12">
-              <ClipboardCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {filter === 'all' ? 'Belum ada approval' : `Tidak ada approval ${filter}`}
-              </h3>
-              <p className="text-gray-600">
-                {filter === 'all' 
-                  ? 'Approval akan muncul ketika ada dokumen yang disubmit'
-                  : `Tidak ada dokumen dengan status ${filter}`
-                }
-              </p>
-            </div>
-          ) : (
-            filteredApprovals.map((approval) => (
-              <ApprovalCard
-                key={approval.id}
-                approval={approval}
-                onAction={handleApprovalAction}
-                onView={() => setSelectedApproval(approval)}
-              />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Approval Detail Modal */}
-      {selectedApproval && (
-        <ApprovalDetailModal
-          approval={selectedApproval}
-          onClose={() => setSelectedApproval(null)}
-          onAction={handleApprovalAction}
-        />
-      )}
-    </div>
-  );
-};
-
-// Approval Card Component
-const ApprovalCard = ({ approval, onAction, onView }) => {
-  const StatusIcon = getStatusIcon(approval.status);
-  
-  return (
-    <div className="p-6 hover:bg-gray-50 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          {/* Header */}
-          <div className="flex items-center space-x-3 mb-2">
-            <StatusIcon className={`h-5 w-5 ${getStatusColor(approval.status).split(' ')[0]}`} />
-            <h3 className="text-lg font-medium text-gray-900">{approval.entityType.toUpperCase()}</h3>
-            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(approval.status)}`}>
-              {approval.status}
-            </span>
-          </div>
-
-          {/* Details */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-sm text-gray-500">Document ID</p>
-              <p className="font-medium">{approval.entityId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Submitted By</p>
-              <p className="font-medium">{approval.submittedBy}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Submitted Date</p>
-              <p className="font-medium">{new Date(approval.submittedAt).toLocaleDateString('id-ID')}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Current Step</p>
-              <p className="font-medium">{approval.currentStep} of {approval.totalSteps}</p>
-            </div>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(approval.currentStep / approval.totalSteps) * 100}%` }}
-            ></div>
-          </div>
-
-          {/* Latest Comment */}
-          {approval.latestComment && (
-            <div className="bg-gray-50 rounded p-3 mb-4">
-              <p className="text-sm text-gray-600">{approval.latestComment}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center space-x-2 ml-4">
-          <button
-            onClick={() => onView(approval)}
-            className="flex items-center px-3 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Detail
-          </button>
-          
-          {approval.canApprove && approval.status === 'pending' && (
-            <>
-              <button
-                onClick={() => onAction(approval.id, 'approved')}
-                className="flex items-center px-3 py-1 text-green-600 hover:bg-green-50 rounded transition-colors"
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" />
-                Approve
-              </button>
-              
-              <button
-                onClick={() => onAction(approval.id, 'rejected')}
-                className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-              >
-                <ThumbsDown className="h-4 w-4 mr-1" />
-                Reject
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Approval Detail Modal Component
-const ApprovalDetailModal = ({ approval, onClose, onAction }) => {
-  const [comments, setComments] = useState('');
-  const [actionType, setActionType] = useState('');
-
-  const handleSubmitAction = () => {
-    if (actionType) {
-      onAction(approval.id, actionType, comments);
-      onClose();
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full m-4 max-h-screen overflow-y-auto">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Approval Detail</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <XCircle className="h-6 w-6" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-4 space-y-6">
-          {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-500">Document Type</label>
-              <p className="font-medium">{approval.entityType.toUpperCase()}</p>
-            </div>
-            <div>
-              <label className="text-sm text-gray-500">Document ID</label>
-              <p className="font-medium">{approval.entityId}</p>
-            </div>
-            <div>
-              <label className="text-sm text-gray-500">Status</label>
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(approval.status)}`}>
-                {approval.status}
-              </span>
-            </div>
-            <div>
-              <label className="text-sm text-gray-500">Progress</label>
-              <p className="font-medium">{approval.currentStep} of {approval.totalSteps} steps</p>
-            </div>
-          </div>
-
-          {/* Approval Steps */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Approval Steps</h3>
-            <div className="space-y-4">
-              {approval.steps?.map((step, index) => (
-                <div key={index} className="flex items-start space-x-4">
-                  <div className={`flex-shrink-0 w-4 h-4 rounded-full mt-1 ${
-                    step.status === 'approved' ? 'bg-green-500' :
-                    step.status === 'rejected' ? 'bg-red-500' :
-                    step.status === 'pending' && step.isCurrent ? 'bg-blue-500' :
-                    'bg-gray-300'
-                  }`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900">{step.stepName}</p>
-                      <p className="text-sm text-gray-500">{step.approverRole}</p>
-                    </div>
-                    {step.approver && (
-                      <p className="text-sm text-gray-600">by {step.approver}</p>
-                    )}
-                    {step.approvedAt && (
-                      <p className="text-sm text-gray-500">{new Date(step.approvedAt).toLocaleString('id-ID')}</p>
-                    )}
-                    {step.comments && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-600">
-                        {step.comments}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action Section */}
-          {approval.canApprove && approval.status === 'pending' && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Take Action</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Decision
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        {/* Show current view */}
+        {currentView === 'approval-list' ? (
+          <>
+            {/* Filter bar */}
+            <div className="mb-6 bg-white rounded-lg shadow p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Filter Status
                   </label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="action"
-                        value="approved"
-                        onChange={(e) => setActionType(e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="text-green-600">Approve</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="action"
-                        value="conditional"
-                        onChange={(e) => setActionType(e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="text-blue-600">Conditional Approve</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="action"
-                        value="rejected"
-                        onChange={(e) => setActionType(e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="text-red-600">Reject</span>
-                    </label>
-                  </div>
+                  <select 
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Semua Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Comments
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cari Proyek/PO
                   </label>
-                  <textarea
-                    value={comments}
-                    onChange={(e) => setComments(e.target.value)}
-                    rows={4}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Add your comments..."
+                  <input
+                    type="text"
+                    placeholder="Masukkan nama proyek atau nomor PO..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={loadApprovalData}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </button>
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Close
-          </button>
-          
-          {approval.canApprove && approval.status === 'pending' && actionType && (
-            <button
-              onClick={handleSubmitAction}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Submit Decision
-            </button>
-          )}
-        </div>
+            {/* Loading state */}
+            {loading && (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-600">Loading approval data...</span>
+              </div>
+            )}
+
+            {/* Error state */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center">
+                  <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                  <span className="text-red-700">{error}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Approval data table */}
+            {!loading && !error && (
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Data Approval Status ({filteredData.length} item)
+                  </h3>
+                </div>
+                
+                {filteredData.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">Tidak ada data approval yang ditemukan</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Project & PO Info
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Supplier
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Total Amount
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tanggal
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Aksi
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredData.map((item) => (
+                          <tr key={item.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {item.projectName || item.project_name || 'Nama Proyek'}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  PO: {item.poNumber || item.po_number}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">
+                                {item.supplierName || item.supplier_name}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">
+                                {formatCurrency(item.totalAmount || item.total_amount)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}`}>
+                                {item.status?.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {formatDate(item.createdAt || item.created_at)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                              <button
+                                onClick={() => handleViewPODetails(item)}
+                                className="text-blue-600 hover:text-blue-900 mr-3"
+                                title="Lihat Purchase Order Official"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          /* PO Official View */
+          <POOfficialView
+            selectedPO={selectedPOData}
+            onBack={() => {
+              setCurrentView('approval-list');
+              setSelectedPOData(null);
+            }}
+            projectName={selectedPOData?.projectName || selectedPOData?.project_name || 'Nama Proyek'}
+            projectAddress={selectedPOData?.deliveryAddress || selectedPOData?.delivery_address || 'Karawang, Jawa Barat'}
+            projectId={selectedPOData?.projectId || selectedPOData?.project_id || 'PRJ-001'}
+            userDetails={userDetails}
+          />
+        )}
       </div>
     </div>
   );
-};
-
-// Helper functions (same as in previous component)
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'approved': return 'text-green-600 bg-green-100';
-    case 'rejected': return 'text-red-600 bg-red-100';
-    case 'pending': return 'text-yellow-600 bg-yellow-100';
-    case 'conditional': return 'text-blue-600 bg-blue-100';
-    default: return 'text-gray-600 bg-gray-100';
-  }
-};
-
-const getStatusIcon = (status) => {
-  switch (status) {
-    case 'approved': return CheckCircle;
-    case 'rejected': return XCircle;
-    case 'pending': return Clock;
-    case 'conditional': return AlertTriangle;
-    default: return AlertCircle;
-  }
 };
 
 export default ProjectApprovalStatus;

@@ -26,7 +26,7 @@ import {
   Send,
   Play
 } from 'lucide-react';
-import axios from 'axios';
+import { apiClient } from '../services/api';
 
 const Landing = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -157,8 +157,8 @@ const Landing = () => {
     const fetchData = async () => {
       try {
         const [statsRes, projectsRes] = await Promise.all([
-          axios.get('/projects/stats/overview'),
-          axios.get('/projects', { params: { limit: 3, page: 1 } })
+          apiClient.get('/projects/stats/overview'),
+          apiClient.get('/projects', { params: { limit: 3, page: 1 } })
         ]);
 
         const s = statsRes?.data?.data || null;

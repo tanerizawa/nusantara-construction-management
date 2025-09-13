@@ -67,7 +67,9 @@ services:
       REACT_APP_API_URL: https://nusantaragroup.co/api
       REACT_APP_ENV: production
       CHOKIDAR_USEPOLLING: false
-      FAST_REFRESH: true
+      FAST_REFRESH: false
+      WDS_SOCKET_HOST: false
+      WDS_SOCKET_PORT: 0
     ports:
       - "3000:3000"
     volumes:

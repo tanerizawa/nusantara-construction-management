@@ -95,26 +95,26 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration with environment-based origins
-const allowedOrigins = isProduction 
-  ? [process.env.CORS_ORIGIN].filter(Boolean)
-  : [
-      'http://localhost:3000',
-      'https://nusantaragroup.co',
-      'http://nusantaragroup.co',
-      'https://www.nusantaragroup.co',
-      'http://www.nusantaragroup.co'
-    ]; // Allow specific origins in development
+const corsOptions = isProduction 
+  ? {
+      origin: [process.env.CORS_ORIGIN].filter(Boolean),
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
+      optionsSuccessStatus: 200
+    }
+  : {
+      origin: true, // Allow all origins in development
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
+      optionsSuccessStatus: 200
+    };
 
 // Debug CORS
-console.log('🔧 CORS Configuration:', { isProduction, allowedOrigins });
+console.log('🔧 CORS Configuration:', { isProduction, corsOptions });
 
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
-  optionsSuccessStatus: 200
-}));
+app.use(cors(corsOptions));
 
 // Debug middleware untuk melihat request
 app.use((req, res, next) => {
@@ -233,6 +233,7 @@ app.use('/api/approval', require('./routes/approval'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/database', require('./routes/database'));
+app.use('/api/rab-tracking', require('./routes/rabPurchaseTracking'));
 console.log('Loading purchase-orders route...');
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 console.log('Purchase-orders route loaded successfully');

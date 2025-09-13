@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compact A4 Print Test - Purchase Order</title>
+    <style>
+        /* Normal view styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .page-header {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .navigation {
+            background-color: #666;
+            color: white;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .print-container {
+            background-color: white;
+            padding: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Compact A4 Print styles */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0.4in 0.3in;
+            }
+            
+            body * {
+                visibility: hidden;
+            }
+            
+            .print-container,
+            .print-container * {
+                visibility: visible;
+            }
+            
+            .print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                font-size: 10px !important;
+                line-height: 1.2 !important;
+                background: white;
+                padding: 12px !important;
+                margin: 0 !important;
+            }
+            
+            .print-container h1 {
+                font-size: 14px !important;
+                margin: 0 !important;
+                line-height: 1.1 !important;
+            }
+            
+            .print-container h2 {
+                font-size: 12px !important;
+                margin: 0 !important;
+                line-height: 1.1 !important;
+            }
+            
+            .print-container h3 {
+                font-size: 10px !important;
+                margin: 0 0 4px 0 !important;
+                line-height: 1.1 !important;
+            }
+            
+            .print-container p {
+                font-size: 8px !important;
+                margin: 0 !important;
+                line-height: 1.1 !important;
+            }
+            
+            .print-container table {
+                font-size: 8px !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
+                margin: 4px 0 !important;
+            }
+            
+            .print-container th,
+            .print-container td {
+                padding: 2px 4px !important;
+                border: 0.5px solid #000 !important;
+                font-size: 8px !important;
+                line-height: 1.1 !important;
+            }
+            
+            nav, header, aside, .sidebar, .navigation, .navbar, .menu, .breadcrumb,
+            .page-header, button {
+                display: none !important;
+            }
+            
+            .compact-section {
+                margin-bottom: 6px !important;
+            }
+            
+            .compact-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px !important;
+            }
+            
+            .compact-approval {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 4px !important;
+            }
+
+            /* Print-specific grid column overrides */
+            .print\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            .print\:grid-cols-3 {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            }
+        }
+        
+        /* Normal view styling */
+        .header-section {
+            border-bottom: 2px solid #007bff;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+        
+        .company-info h1 {
+            color: #007bff;
+            font-size: 24px;
+            margin: 0 0 8px 0;
+        }
+        
+        .company-info p {
+            margin: 4px 0;
+            font-size: 14px;
+        }
+        
+        .po-info {
+            background-color: #f0f8ff;
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: right;
+        }
+        
+        .compact-section {
+            margin-bottom: 16px;
+        }
+        
+        .compact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .info-box.blue {
+            background-color: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .info-box.yellow {
+            background-color: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .compact-approval {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 16px;
+        }
+        
+        .approval-box {
+            text-align: center;
+            border: 2px dashed #dee2e6;
+            padding: 12px;
+            border-radius: 6px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .approval-box.blue {
+            border-color: #2196f3;
+            background-color: #e3f2fd;
+        }
+        
+        .approval-box.green {
+            border-color: #4caf50;
+            background-color: #e8f5e8;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+        }
+        
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .total-row {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1>Website Header - Should not print</h1>
+    </div>
+    
+    <div class="navigation">
+        <p>Navigation Menu - Should not print</p>
+    </div>
+    
+    <button onclick="handlePrint()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 20px;">
+        Print Compact A4 Purchase Order
+    </button>
+    
+    <div class="print-container" id="po-document">
+        <!-- Compact Header Section -->
+        <div class="header-section">
+            <div class="company-info">
+                <h1>PT NUSANTARA GROUP</h1>
+                <p style="font-weight: bold;">KONSTRUKSI & DEVELOPMENT</p>
+                <p style="font-size: 12px;">Jl. Raya Industri No. 123, Karawang, Jawa Barat 41361 | Telp: (0267) 123-4567</p>
+                <p style="font-size: 12px;">Email: procurement@nusantagroup.co.id | NPWP: 01.234.567.8-901.000</p>
+            </div>
+            <div class="po-info">
+                <h2>PURCHASE ORDER</h2>
+                <p><strong>No. PO:</strong> PO-2024-001</p>
+                <p><strong>Tanggal:</strong> 2024-01-15</p>
+                <p><strong>Status:</strong> APPROVED</p>
+            </div>
+        </div>
+        
+        <!-- Compact Vendor & Project Info -->
+        <div class="compact-section">
+            <div class="compact-grid grid grid-cols-1 md:grid-cols-2 print:grid-cols-2">
+                <div class="info-box">
+                    <h3>KEPADA SUPPLIER:</h3>
+                    <p style="font-weight: bold;">CV. Mitra Bangunan Jaya</p>
+                    <p style="font-size: 12px;">ID: SUP-001 | Alamat: Jl. Industri No. 45, Karawang</p>
+                </div>
+                <div class="info-box blue">
+                    <h3>INFORMASI PROYEK:</h3>
+                    <p style="font-weight: bold;">Pembangunan Pabrik Tekstil</p>
+                    <p style="font-size: 12px;">Kode: PRJ-2024-001 | Lokasi: Karawang Industrial Estate</p>
+                    <p style="font-size: 12px;">Target Kirim: 2024-01-25</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Compact Items Table -->
+        <div class="compact-section">
+            <h3>DETAIL ITEM PEMESANAN:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">No</th>
+                        <th style="width: 25%;">Nama Item</th>
+                        <th style="width: 20%;">Deskripsi</th>
+                        <th style="width: 10%;">Qty</th>
+                        <th style="width: 10%;">Satuan</th>
+                        <th style="width: 15%;">Harga Satuan</th>
+                        <th style="width: 15%;">Total Harga</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Semen Portland</td>
+                        <td>Semen berkualitas tinggi</td>
+                        <td>100</td>
+                        <td>Zak</td>
+                        <td>Rp 85,000</td>
+                        <td>Rp 8,500,000</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Besi Beton 12mm</td>
+                        <td>Besi tulangan diameter 12mm</td>
+                        <td>50</td>
+                        <td>Batang</td>
+                        <td>Rp 120,000</td>
+                        <td>Rp 6,000,000</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Pasir Cor</td>
+                        <td>Pasir halus untuk pengecoran</td>
+                        <td>10</td>
+                        <td>m³</td>
+                        <td>Rp 350,000</td>
+                        <td>Rp 3,500,000</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Keramik Lantai 40x40</td>
+                        <td>Keramik motif granit abu-abu</td>
+                        <td>200</td>
+                        <td>Dus</td>
+                        <td>Rp 125,000</td>
+                        <td>Rp 25,000,000</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="6" style="text-align: right;"><strong>TOTAL KESELURUHAN:</strong></td>
+                        <td style="color: #007bff;"><strong>Rp 43,000,000</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Compact Terms -->
+        <div class="compact-section">
+            <h3>SYARAT DAN KETENTUAN:</h3>
+            <div class="info-box yellow">
+                <p style="font-size: 12px;">• Barang dikirim sesuai spesifikasi dalam kondisi baik • Pengiriman ke lokasi proyek yang ditentukan • Pembayaran 30 hari setelah penerimaan barang dan invoice • Supplier bertanggung jawab atas kualitas • Perubahan harus mendapat persetujuan tertulis dari PT Nusantara Group</p>
+            </div>
+        </div>
+        
+        <!-- Compact Approval Section -->
+        <div class="compact-section">
+            <h3 style="text-align: center;">PERSETUJUAN PURCHASE ORDER</h3>
+            <div class="compact-approval grid grid-cols-1 md:grid-cols-3 print:grid-cols-3">
+                <div class="approval-box">
+                    <div>
+                        <p style="font-weight: bold; font-size: 12px;">DIBUAT OLEH</p>
+                        <p style="font-size: 10px;">Staff Procurement</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 10px;">[Nama Staff]</p>
+                        <p style="font-size: 10px;">Tgl: 15/01/2024</p>
+                    </div>
+                </div>
+                <div class="approval-box blue">
+                    <div>
+                        <p style="font-weight: bold; font-size: 12px; color: #1976d2;">DIPERIKSA OLEH</p>
+                        <p style="font-size: 10px; color: #1976d2;">Manager Proyek</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 10px;">[Nama Manager]</p>
+                        <p style="font-size: 10px;">Tgl: _______</p>
+                    </div>
+                </div>
+                <div class="approval-box green">
+                    <div>
+                        <p style="font-weight: bold; font-size: 12px; color: #388e3c;">DISETUJUI OLEH</p>
+                        <p style="font-size: 10px; color: #388e3c;">General Manager</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 10px;">[Nama GM]</p>
+                        <p style="font-size: 10px;">Tgl: 15/01/2024</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Compact Footer -->
+        <div style="text-align: center; font-size: 10px; color: #666; margin-top: 16px; padding-top: 8px; border-top: 1px solid #dee2e6;">
+            <p>Dokumen elektronik sah tanpa tanda tangan basah | PT Nusantara Group v1.0</p>
+            <p>Dicetak: 12 September 2025, 14:30 WIB</p>
+        </div>
+    </div>
+    
+    <script>
+        function handlePrint() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

@@ -15,7 +15,7 @@ const RABPurchaseTracking = sequelize.define('RABPurchaseTracking', {
     allowNull: false
   },
   rabItemId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING, // Changed to STRING to support UUID from RAB items
     allowNull: false
   },
   poNumber: {
@@ -66,7 +66,7 @@ router.get('/projects/:projectId/rab-items/:rabItemId/purchase-summary', async (
     const purchaseRecords = await RABPurchaseTracking.findAll({
       where: {
         projectId,
-        rabItemId: parseInt(rabItemId)
+        rabItemId: rabItemId // No parseInt needed, support UUID
       },
       order: [['purchaseDate', 'DESC']]
     });
@@ -150,7 +150,7 @@ router.post('/projects/:projectId/rab-items/:rabItemId/purchase-tracking', async
     // Create new tracking record
     const newRecord = await RABPurchaseTracking.create({
       projectId,
-      rabItemId: parseInt(rabItemId),
+      rabItemId: rabItemId, // Support UUID without parseInt
       poNumber: poReference,
       quantity: parseFloat(quantity),
       unitPrice: parseFloat(unitPrice),
@@ -246,7 +246,7 @@ router.get('/projects/:projectId/purchase-summary', async (req, res) => {
       const activePOCount = records.filter(record => ['pending', 'approved'].includes(record.status)).length;
 
       return {
-        rabItemId: parseInt(rabItemId),
+        rabItemId: rabItemId, // Keep as string (UUID)
         totalPurchased,
         totalAmount,
         activePOCount,

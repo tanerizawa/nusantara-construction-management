@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { projectAPI, financeAPI, employeeAPI, inventoryAPI, dashboardAPI } from '../services/api';
 import { Link } from 'react-router-dom';
+import FinancialWorkspaceDashboard from '../components/workspace/FinancialWorkspaceDashboard';
 
 // Professional CSS Chart Components
 const BarChart = ({ data, height = 200, className = "" }) => {
@@ -432,6 +433,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -758,6 +760,32 @@ const Dashboard = () => {
               Update: {lastUpdated.toLocaleString('id-ID')}
             </p>
           </div>
+          
+          {/* Tab Navigation */}
+          <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'overview'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 mr-2 inline" />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('financial')}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeTab === 'financial'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <DollarSign className="w-4 h-4 mr-2 inline" />
+              Financial Workspace
+            </button>
+          </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <button 
               onClick={fetchDashboardData}
@@ -770,13 +798,16 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Alerts */}
-        {dashboardData?.alerts && dashboardData.alerts.length > 0 && (
-          <AlertCard alerts={dashboardData.alerts} />
-        )}
+        {/* Tab Content */}
+        {activeTab === 'overview' ? (
+          <>
+            {/* Alerts */}
+            {dashboardData?.alerts && dashboardData.alerts.length > 0 && (
+              <AlertCard alerts={dashboardData.alerts} />
+            )}
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           <StatCard
             title="Total Proyek"
             value={formatNumber(dashboardData?.projects?.total || 0)}
@@ -921,8 +952,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recent Activities */}
-        <ActivityCard activities={recentActivities} />
+            {/* Recent Activities */}
+            <ActivityCard activities={recentActivities} />
+          </>
+        ) : activeTab === 'financial' ? (
+          <FinancialWorkspaceDashboard userDetails={dashboardData?.user} />
+        ) : null}
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button } from './DataStates';
-import { Card, DataCard } from './DataStates';
+import Button from './ui/Button';
+import Card from './ui/Card';
+import DataCard from './ui/DataCard';
 
 function SafetyComplianceManagement() {
   const [safetyIncidents, setSafetyIncidents] = useState([]);
@@ -30,7 +31,7 @@ function SafetyComplianceManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5001/api/manpower/safety-incidents', {
+      const response = await axios.get('http://localhost:5000/api/manpower/safety-incidents', {
         headers: { Authorization: `Bearer ${token}` },
         params: {
           status: statusFilter !== 'all' ? statusFilter : undefined,
@@ -62,7 +63,7 @@ function SafetyComplianceManagement() {
         reportDate: new Date().toISOString()
       };
 
-      await axios.post('http://localhost:5001/api/manpower/safety-incidents', incidentData, {
+      await axios.post('http://localhost:5000/api/manpower/safety-incidents', incidentData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

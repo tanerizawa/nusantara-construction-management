@@ -55,6 +55,14 @@ module.exports = {
     liveReload: false,
     client: {
       webSocketURL: 'auto://0.0.0.0:0/ws'
+    },
+    // Proxy API calls to backend container
+    proxy: {
+      '/api': {
+        target: 'http://backend:5000',
+        changeOrigin: true,
+        secure: false
+      }
     }
   },
 };

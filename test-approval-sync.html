@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Approval Sync</title>
+</head>
+<body>
+    <h1>Test Approval Status Sync</h1>
+    <button onclick="testApprovalSync()">Test Approval PO-2025CUE001-1757933710341</button>
+    <button onclick="checkLocalStorage()">Check localStorage</button>
+    <button onclick="clearCache()">Clear Cache</button>
+    <div id="output"></div>
+
+    <script>
+        function testApprovalSync() {
+            const projectId = '2025CUE001';
+            const poId = 'PO-2025CUE001-1757933710341';
+            
+            // Simulate approval status save
+            const cacheKey = `approval_status_${projectId}`;
+            const itemKey = `po_${poId}`;
+            
+            let approvalStatuses = {};
+            const existingCache = localStorage.getItem(cacheKey);
+            if (existingCache) {
+                approvalStatuses = JSON.parse(existingCache);
+            }
+            
+            approvalStatuses[itemKey] = {
+                status: 'approved',
+                approved_at: new Date().toISOString(),
+                approved_by: 'USR-DIR-BSR-002'
+            };
+            
+            localStorage.setItem(cacheKey, JSON.stringify(approvalStatuses));
+            
+            // Dispatch event
+            const statusChangeEvent = new CustomEvent('approvalStatusChanged', {
+                detail: {
+                    projectId: projectId,
+                    itemId: poId,
+                    itemType: 'purchaseOrders',
+                    newStatus: 'approved',
+                    timestamp: new Date().toISOString()
+                }
+            });
+            window.dispatchEvent(statusChangeEvent);
+            
+            document.getElementById('output').innerHTML = '<p style="color: green;">Approval status saved and event dispatched!</p>';
+        }
+        
+        function checkLocalStorage() {
+            const projectId = '2025CUE001';
+            const cacheKey = `approval_status_${projectId}`;
+            const cache = localStorage.getItem(cacheKey);
+            
+            document.getElementById('output').innerHTML = `
+                <h3>localStorage Content:</h3>
+                <pre>${cache ? JSON.stringify(JSON.parse(cache), null, 2) : 'No cache found'}</pre>
+            `;
+        }
+        
+        function clearCache() {
+            const projectId = '2025CUE001';
+            const cacheKey = `approval_status_${projectId}`;
+            localStorage.removeItem(cacheKey);
+            document.getElementById('output').innerHTML = '<p style="color: red;">Cache cleared!</p>';
+        }
+        
+        // Listen for approval changes
+        window.addEventListener('approvalStatusChanged', function(event) {
+            console.log('Approval status changed event received:', event.detail);
+        });
+    </script>
+</body>
+</html>

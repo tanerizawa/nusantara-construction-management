@@ -1,31 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, 
-  Plus, 
-  UserCheck, 
-  Search,
-  Calendar,
-  Award,
-  Clock,
-  BarChart3,
-  TrendingUp,
-  Phone,
-  Mail,
-  Eye,
-  MoreVertical,
-  CheckCircle,
-  X,
-  BookOpen,
-  Shield,
-  Target,
-  Bell,
-  FileText,
-  Settings,
-  Brain,
-  MessageCircle,
-  UserPlus,
-  LayoutDashboard,
-  AlertTriangle
+import {
+  Search, Filter, Calendar, Download, Plus, Edit3, Trash2, Eye,
+  Users, Award, Clock, TrendingUp, BarChart3, Grid, List, 
+  CheckCircle, AlertCircle, User, Mail, Phone, MapPin, UserPlus,
+  UserCheck, LayoutDashboard, BookOpen, Settings, FileText, 
+  MoreVertical, Shield, X
 } from 'lucide-react';
 import { employeeAPI } from '../services/api';
 import TrainingManagement from '../components/TrainingManagement';
@@ -42,6 +21,25 @@ import HRPredictiveAnalytics from '../components/AI/HRPredictiveAnalytics';
 import HRChatbot from '../components/AI/HRChatbot';
 import SmartEmployeeMatching from '../components/AI/SmartEmployeeMatching';
 
+// Department and position options based on existing data
+const DEPARTMENTS = [
+  'Construction', 'Cost Engineering', 'Design', 'Direksi', 'Engineering',
+  'HSE', 'Human Resources', 'Information Technology', 'MEP Engineering', 'Project Management'
+];
+
+const POSITIONS = [
+  'Architect', 'Civil Engineer', 'Construction Foreman', 'Direktur Keuangan',
+  'Direktur Operasional', 'Direktur Teknik', 'Direktur Utama', 'HR Manager',
+  'Interior Designer', 'IT Manager', 'Project Manager', 'Quantity Surveyor',
+  'Safety Officer', 'Senior Architect', 'Senior Civil Engineer', 'Senior Electrical Engineer',
+  'Senior Mechanical Engineer', 'Senior Project Manager', 'Senior Quantity Surveyor',
+  'Senior Safety Officer', 'Senior Site Supervisor', 'Site Supervisor'
+];
+
+const EMPLOYMENT_TYPES = ['permanent', 'contract', 'intern', 'freelance'];
+const STATUS_OPTIONS = ['active', 'inactive', 'terminated'];
+const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
+
 const Manpower = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,9 +47,102 @@ const Manpower = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [error, setError] = useState(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  
+  // Form data state
+  const [formData, setFormData] = useState({
+    employeeId: '',
+    name: '',
+    position: '',
+    department: '',
+    email: '',
+    phone: '',
+    birthDate: '',
+    joinDate: '',
+    address: '',
+    employmentType: '',
+    status: '',
+    salary: '',
+    currentProject: ''
+  });
+
+  // Reset form data
+  const resetForm = () => {
+    setFormData({
+      employeeId: '',
+      name: '',
+      position: '',
+      department: '',
+      email: '',
+      phone: '',
+      joinDate: new Date().toISOString().split('T')[0],
+      birthDate: '',
+      address: '',
+      status: 'active',
+      employmentType: 'permanent',
+      salary: '',
+      currentProject: '',
+      skills: []
+    });
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmitEmployee = async (e) => {
+    e.preventDefault();
+    setSubmitLoading(true);
+    
+    try {
+      const payload = {
+        ...formData,
+        salary: formData.salary ? parseFloat(formData.salary) : undefined,
+        joinDate: formData.joinDate || undefined,
+        birthDate: formData.birthDate || undefined
+      };
+
+      const response = await fetch('http://localhost:5000/api/manpower', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Refresh employee list
+        const updatedResponse = await employeeAPI.getAll();
+        const employeeData = updatedResponse.data || updatedResponse;
+        setEmployees(Array.isArray(employeeData) ? employeeData : []);
+        
+        // Reset and hide form
+        resetForm();
+        setShowAddForm(false);
+        
+        // Show success message (you can implement a toast notification here)
+        alert('Employee added successfully!');
+      } else {
+        throw new Error(result.error || 'Failed to create employee');
+      }
+    } catch (error) {
+      console.error('Error creating employee:', error);
+      alert('Error: ' + error.message);
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -134,7 +225,7 @@ const Manpower = () => {
             Reports
           </button>
           <button 
-            onClick={() => setShowAddModal(true)}
+            onClick={() => setShowAddForm(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="h-4 w-4" />
@@ -142,6 +233,272 @@ const Manpower = () => {
           </button>
         </div>
       </div>
+
+      {/* Add Employee Form */}
+      {showAddForm && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">Add New Employee</h3>
+              <button 
+                onClick={() => {
+                  setShowAddForm(false);
+                  resetForm();
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <p className="text-gray-600 mt-1">Fill in the employee information below</p>
+          </div>
+
+          <div className="p-6">
+            <form onSubmit={handleSubmitEmployee} className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Employee ID *
+                  </label>
+                  <input
+                    type="text"
+                    name="employeeId"
+                    value={formData.employeeId}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="e.g., EMP-001"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="e.g., Ahmad Fauzi"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Position *
+                  </label>
+                  <select
+                    name="position"
+                    value={formData.position}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Position</option>
+                    {POSITIONS.map(pos => (
+                      <option key={pos} value={pos}>{pos}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Department *
+                  </label>
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="e.g., ahmad.fauzi@company.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="e.g., +62 812-3456-7890"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Employment Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Join Date
+                  </label>
+                  <input
+                    type="date"
+                    name="joinDate"
+                    value={formData.joinDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Birth Date
+                  </label>
+                  <input
+                    type="date"
+                    name="birthDate"
+                    value={formData.birthDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Employment Type
+                  </label>
+                  <select
+                    name="employmentType"
+                    value={formData.employmentType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {EMPLOYMENT_TYPES.map(type => (
+                      <option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {STATUS_OPTIONS.map(status => (
+                      <option key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Salary (Rp)
+                  </label>
+                  <input
+                    type="number"
+                    name="salary"
+                    value={formData.salary}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 15000000"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Current Project
+                  </label>
+                  <input
+                    type="text"
+                    name="currentProject"
+                    value={formData.currentProject}
+                    onChange={handleInputChange}
+                    placeholder="e.g., Mall Karawang"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Address
+                </label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="e.g., Jl. Construction No. 1, Karawang"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex gap-3 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    resetForm();
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {submitLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-4 w-4" />
+                      Add Employee
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
@@ -792,33 +1149,6 @@ const Manpower = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Employee Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-900">Add New Employee</h3>
-                <button 
-                  onClick={() => setShowAddModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Add Employee Form</h3>
-                <p className="text-gray-600">Employee registration form akan ditampilkan di sini</p>
               </div>
             </div>
           </div>

@@ -32,7 +32,7 @@ const TrainingManagement = () => {
       if (statusFilter !== 'all') params.status = statusFilter;
       if (categoryFilter !== 'all') params.category = categoryFilter;
 
-      const response = await axios.get('http://localhost:5001/api/manpower/training', {
+      const response = await axios.get('http://localhost:5000/api/manpower/training', {
         headers: { Authorization: `Bearer ${token}` },
         params
       });

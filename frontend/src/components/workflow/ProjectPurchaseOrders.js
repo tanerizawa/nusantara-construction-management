@@ -39,6 +39,52 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
     deliveryDate: ''
   });
 
+  // Function to sync PO status with approval dashboard status
+  const syncPOApprovalStatus = (poData) => {
+    try {
+      const cacheKey = `approval_status_${projectId}`;
+      const approvalStatusCache = localStorage.getItem(cacheKey);
+      let approvalStatuses = {};
+      
+      if (approvalStatusCache) {
+        approvalStatuses = JSON.parse(approvalStatusCache);
+      }
+
+      // Update PO status berdasarkan approval status
+      const syncedData = poData.map(po => {
+        const poApprovalKey = `po_${po.id}`;
+        const cachedStatus = approvalStatuses[poApprovalKey];
+        
+        console.log(`[WORKFLOW PO SYNC] Checking PO ${po.poNumber}:`, {
+          po_id: po.id,
+          poApprovalKey,
+          current_status: po.status,
+          cached_status: cachedStatus?.status || 'none',
+          has_cache: !!cachedStatus,
+          projectId
+        });
+        
+        if (cachedStatus && cachedStatus.status !== po.status) {
+          console.log(`[WORKFLOW PO SYNC] Updating PO ${po.poNumber} status from ${po.status} to ${cachedStatus.status}`);
+          return {
+            ...po,
+            status: cachedStatus.status,
+            approved_at: cachedStatus.approved_at,
+            approved_by: cachedStatus.approved_by,
+            last_sync: new Date().toISOString()
+          };
+        }
+        
+        return po;
+      });
+
+      return syncedData;
+    } catch (error) {
+      console.error('Error syncing PO approval status:', error);
+      return poData;
+    }
+  };
+
   const fetchPurchaseOrderData = async () => {
     try {
       setLoading(true);
@@ -51,12 +97,61 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setPurchaseOrders(data.data || []);
+        const poData = data.data || [];
+        
+        // Sync PO status dengan approval status dari localStorage
+        const syncedPOData = syncPOApprovalStatus(poData);
+        setPurchaseOrders(syncedPOData);
       }
     } catch (error) {
       console.error('Error fetching purchase orders:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+
+
+  // Function to sync RAB approval status with localStorage cache
+  const syncRABApprovalStatus = (rabItems) => {
+    try {
+      const cacheKey = `approval_status_${projectId}`;
+      const approvalStatusCache = localStorage.getItem(cacheKey);
+      
+      if (!approvalStatusCache) {
+        console.log('[RAB SYNC] No approval cache found');
+        return rabItems;
+      }
+      
+      const approvalStatuses = JSON.parse(approvalStatusCache);
+      console.log('[RAB SYNC] Found approval cache:', approvalStatuses);
+      
+      // Update RAB items with cached approval status
+      const syncedItems = rabItems.map(item => {
+        const rabApprovalKey = `rab_${item.id}`;
+        const cachedStatus = approvalStatuses[rabApprovalKey];
+        
+        if (cachedStatus) {
+          console.log(`[RAB SYNC] Updating ${item.description} status from ${item.isApproved} to ${cachedStatus.status === 'approved'}`);
+          return {
+            ...item,
+            isApproved: cachedStatus.status === 'approved',
+            is_approved: cachedStatus.status === 'approved',
+            approved_at: cachedStatus.approved_at,
+            approved_by: cachedStatus.approved_by,
+            approval_status: cachedStatus.status,
+            last_sync: new Date().toISOString()
+          };
+        }
+        
+        return item;
+      });
+      
+      console.log(`[RAB SYNC] Synced ${syncedItems.filter(item => item.isApproved).length} approved items out of ${rabItems.length}`);
+      return syncedItems;
+    } catch (error) {
+      console.error('[RAB SYNC] Error syncing approval status:', error);
+      return rabItems;
     }
   };
 
@@ -76,50 +171,82 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
         const rabItems = result.data;
         
         // Then get purchase summary for all RAB items in this project
-        const summaryResponse = await fetch(`/api/rab-tracking/projects/${projectId}/purchase-summary`);
+        const summaryUrl = `/api/rab-tracking/projects/${projectId}/purchase-summary`;
+        console.log('[DEBUG] Fetching purchase summary from:', summaryUrl);
+        
+        const summaryResponse = await fetch(summaryUrl);
         let purchaseSummary = {};
         
         if (summaryResponse.ok) {
           const summaryResult = await summaryResponse.json();
+          console.log('[DEBUG] Purchase summary response:', summaryResult);
+          
           if (summaryResult.success && summaryResult.data) {
-            // Convert array to object with rabItemId as key
-            purchaseSummary = summaryResult.data.reduce((acc, item) => {
-              acc[item.rabItemId] = item;
+            // Convert array to object with rabItemId as string key (defensive)
+            purchaseSummary = summaryResult.data.reduce((acc, s) => {
+              const key = String(s.rabItemId ?? s.rab_item_id ?? s.id);
+              acc[key] = s;
               return acc;
             }, {});
+            console.log('[DEBUG] Processed purchase summary:', purchaseSummary);
           }
+        } else {
+          console.error('[DEBUG] Purchase summary fetch failed:', summaryResponse.status, await summaryResponse.text());
         }
         
         // Combine RAB items with purchase tracking data
         const enhancedRABItems = rabItems.map(item => {
-          const purchaseData = purchaseSummary[item.id] || {
-            totalPurchased: 0,
-            totalAmount: 0,
-            activePOCount: 0,
-            lastPurchaseDate: null,
-            recordCount: 0
-          };
-          
-          return {
+          const key = String(item.id); // Use UUID as key
+          const purchaseData = purchaseSummary[key] || {};
+
+          // Support alternate field names from backend
+          const totalPurchased = parseFloat(purchaseData.totalPurchased ?? purchaseData.total_purchased ?? purchaseData.total_purchased_quantity ?? 0) || 0;
+          const totalAmount = parseFloat(purchaseData.totalAmount ?? purchaseData.total_amount ?? 0) || 0;
+          const activePOCount = parseInt(purchaseData.activePOCount ?? purchaseData.active_po_count ?? 0) || 0;
+          const lastPurchaseDate = purchaseData.lastPurchaseDate ?? purchaseData.last_purchase_date ?? null;
+          const recordCount = parseInt(purchaseData.recordCount ?? purchaseData.record_count ?? 0) || 0;
+
+          const totalQty = parseFloat(item.quantity) || 0;
+          const remainingQuantity = Math.max(0, totalQty - totalPurchased);
+          const availableQuantity = remainingQuantity;
+
+          // Calculate remaining values (in Rupiah)
+          const unitPrice = parseFloat(item.unitPrice ?? item.unit_price ?? 0) || 0;
+          const totalRABValue = totalQty * unitPrice;
+          const totalPurchasedValue = totalPurchased * unitPrice;
+          const remainingValue = remainingQuantity * unitPrice;
+
+          const enhanced = {
             ...item,
-            // Calculate remaining quantity
-            remainingQuantity: (parseFloat(item.quantity) || 0) - (parseFloat(purchaseData.totalPurchased) || 0),
-            // Ensure non-negative remaining quantity
-            availableQuantity: Math.max(0, (parseFloat(item.quantity) || 0) - (parseFloat(purchaseData.totalPurchased) || 0)),
+            // Calculate remaining and available quantities
+            remainingQuantity,
+            availableQuantity,
             // Add purchase tracking data
-            totalPurchased: parseFloat(purchaseData.totalPurchased) || 0,
-            totalPurchaseAmount: parseFloat(purchaseData.totalAmount) || 0,
-            activePOCount: parseInt(purchaseData.activePOCount) || 0,
-            lastPurchaseDate: purchaseData.lastPurchaseDate,
-            purchaseRecordCount: parseInt(purchaseData.recordCount) || 0,
+            totalPurchased,
+            totalPurchaseAmount: totalAmount,
+            activePOCount,
+            lastPurchaseDate,
+            purchaseRecordCount: recordCount,
             // Calculate purchase progress percentage
-            purchaseProgress: parseFloat(item.quantity) > 0 ? 
-              ((parseFloat(purchaseData.totalPurchased) || 0) / parseFloat(item.quantity)) * 100 : 0
+            purchaseProgress: totalQty > 0 ? (totalPurchased / totalQty) * 100 : 0,
+            // Add value calculations for real-time budget tracking
+            totalRABValue,
+            totalPurchasedValue,
+            remainingValue,
+            unitPrice
           };
+
+          // Debug: log mapping for easier tracing when UI doesn't update
+          console.debug('[RAB Purchase] itemId=', key, 'totalQty=', totalQty, 'totalPurchased=', totalPurchased, 'available=', availableQuantity, 'remainingValue=', remainingValue);
+
+          return enhanced;
         });
         
-        setRABItems(enhancedRABItems);
-        setFilteredRABItems(enhancedRABItems.filter(item => item.is_approved || item.isApproved));
+        // Sync RAB approval status with localStorage cache
+        const syncedRABItems = syncRABApprovalStatus(enhancedRABItems);
+        
+        setRABItems(syncedRABItems);
+        setFilteredRABItems(syncedRABItems.filter(item => item.is_approved || item.isApproved));
       } else {
         setErrorMessage('Failed to load RAB items');
       }
@@ -167,43 +294,69 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
 
       if (response.ok) {
         const result = await response.json();
-        
-        // Create tracking data for partial purchase
+
+        // Create tracking data for partial purchase, include created PO number
+        const createdPONumber = result?.data?.poNumber || finalAPIData.poNumber;
         const trackingItems = finalAPIData.items.map(item => {
           const rabItem = rabItems.find(rab => rab.id.toString() === item.inventoryId);
           return {
-            rabItemId: item.inventoryId,
+            rabItemId: item.inventoryId, // Use UUID from RAB item, not integer
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalAmount: item.totalPrice,
+            poReference: createdPONumber,
+            status: 'pending',
             totalRABQuantity: rabItem?.quantity || 0,
             previouslyPurchased: rabItem?.totalPurchased || 0,
             availableBeforePO: rabItem?.availableQuantity || 0,
-            remainingAfterPO: (rabItem?.availableQuantity || 0) - item.quantity
+            remainingAfterPO: (rabItem?.availableQuantity || 0) - item.quantity,
+            // Debug info
+            rabItemUUID: item.inventoryId,
+            itemName: item.itemName
           };
         });
-        
+
         // Update RAB item purchase tracking
         await updateRABPurchaseTracking(trackingItems);
         
-        // Refresh data
-        await fetchPurchaseOrderData();
-        await fetchRABItems(); // Refresh RAB items to show updated quantities
+        // Small delay to ensure backend processing is complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Refresh data to show updated quantities and amounts immediately
+        console.log('[DEBUG] Refreshing data after PO creation...');
+        await Promise.all([
+          fetchPurchaseOrderData(),
+          fetchRABItems() // This will fetch updated purchase summary and recalculate available amounts
+        ]);
         
         if (onDataChange) onDataChange();
+        
+        console.log('[DEBUG] Data refresh completed after PO creation');
         
         // Reset form
         setCurrentView('rab-selection');
         setSelectedRABItems([]);
         setSupplierInfo({ name: '', contact: '', address: '', deliveryDate: '' });
         
-        // Success notification with partial purchase details
+        // Success notification with detailed purchase tracking
         const totalItems = finalAPIData.items.length;
+        const totalPOValue = finalAPIData.totalAmount || 0;
         const hasRemainingItems = trackingItems.some(item => item.remainingAfterPO > 0);
         
-        let message = `Purchase Order berhasil dibuat dengan ${totalItems} item.`;
+        const currencyFormat = (amount) => {
+          return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+          }).format(amount);
+        };
+        
+        let message = `✅ Purchase Order ${createdPONumber} berhasil dibuat!\n\n`;
+        message += `📦 ${totalItems} item senilai ${currencyFormat(totalPOValue)}\n`;
+        message += `📊 Data quantity dan budget telah diperbarui secara realtime\n`;
+        
         if (hasRemainingItems) {
-          message += ' Beberapa item masih memiliki sisa quantity yang dapat dipesan di PO berikutnya.';
+          message += `\n⚠️ Beberapa item masih memiliki sisa quantity yang dapat dipesan di PO berikutnya.`;
         }
         
         alert(message);
@@ -222,35 +375,48 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
 
   const updateRABPurchaseTracking = async (poItems) => {
     try {
+      console.log('[DEBUG] updateRABPurchaseTracking called with items:', poItems);
+      
       // Update each RAB item's purchase tracking
       const updatePromises = poItems.map(async (item) => {
-        const response = await fetch(
-          `/api/database/projects/${projectId}/rab-items/${item.rabItemId}/purchase-tracking`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify({
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              totalAmount: item.totalAmount,
-              poReference: 'PENDING', // Will be updated with actual PO number
-              purchaseDate: new Date().toISOString(),
-              status: 'pending'
-            })
-          }
-        );
-        
+        const body = {
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalAmount: item.totalAmount,
+          poReference: item.poReference || item.poNumber || 'PENDING', // Use provided PO ref when available
+          purchaseDate: new Date().toISOString(),
+          status: item.status || 'pending',
+          notes: item.notes || null
+        };
+
+        const url = `/api/rab-tracking/projects/${projectId}/rab-items/${item.rabItemId}/purchase-tracking`;
+        console.log('[DEBUG] POST tracking to:', url, 'body:', body);
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(body)
+        });
+
         if (!response.ok) {
-          console.error(`Failed to update purchase tracking for RAB item ${item.rabItemId}`);
+          const err = await response.text().catch(() => '');
+          console.error(`Failed to update purchase tracking for RAB item ${item.rabItemId}:`, response.status, err);
+          throw new Error(`Failed to update purchase tracking for RAB item ${item.rabItemId}`);
         }
+
+        const result = await response.json();
+        console.log('[DEBUG] Tracking POST success for item', item.rabItemId, ':', result);
+        return result;
       });
       
-      await Promise.all(updatePromises);
+      const results = await Promise.all(updatePromises);
+      console.log('[DEBUG] All tracking updates completed:', results);
     } catch (error) {
       console.error('Error updating RAB purchase tracking:', error);
+      throw error; // Re-throw to surface the error to user
     }
   };
 
@@ -306,6 +472,57 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
     fetchPurchaseOrderData();
     fetchUserDetails();
   }, [projectId, fetchRABItems]);
+
+  // Auto-refresh data every 30 seconds to keep it up-to-date
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('[AUTO-REFRESH] Refreshing RAB and PO data...');
+      fetchRABItems();
+      fetchPurchaseOrderData();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [projectId, fetchRABItems]);
+
+  // Listen for approval status changes from Approval Dashboard
+  useEffect(() => {
+    const handleApprovalStatusChange = () => {
+      console.log('[WORKFLOW PO SYNC] Approval status change detected, refreshing PO data...');
+      fetchPurchaseOrderData();
+    };
+
+    // Listen for storage changes (cross-tab sync)
+    window.addEventListener('storage', handleApprovalStatusChange);
+    
+    // Listen for same-tab approval changes
+    const handleManualStatusChange = (event) => {
+      if (event.detail && event.detail.projectId === projectId) {
+        console.log('[WORKFLOW PO SYNC] Manual approval status change detected, refreshing data...');
+        
+        // Check if it's RAB approval change
+        if (event.detail.itemType === 'rab') {
+          console.log('[RAB SYNC] RAB approval detected, refreshing RAB data...');
+          fetchRABItems();
+        } else if (event.detail.itemType === 'purchaseOrders') {
+          console.log('[PO SYNC] PO approval detected, refreshing PO data...');
+          fetchPurchaseOrderData();
+        } else {
+          // Refresh both for safety
+          fetchRABItems();
+          fetchPurchaseOrderData();
+        }
+      }
+    };
+    
+    window.addEventListener('approvalStatusChanged', handleManualStatusChange);
+
+    return () => {
+      window.removeEventListener('storage', handleApprovalStatusChange);
+      window.removeEventListener('approvalStatusChanged', handleManualStatusChange);
+    };
+  }, [projectId]);
+
+
 
   return (
     <div className="space-y-6">
@@ -382,9 +599,25 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
 
   const selectedItems = rabItems.filter(item => selectedRABItems.includes(item.id));
   const approvedItems = rabItems; // Semua item sudah approved
-  const totalValue = selectedItems.reduce((sum, item) => {
+  
+  // Calculate total values for budget tracking
+  const totalRABBudget = rabItems.reduce((sum, item) => {
     const unitPrice = item.unitPrice || item.unit_price || 0;
     return sum + (item.quantity * unitPrice);
+  }, 0);
+  
+  const totalPurchasedBudget = rabItems.reduce((sum, item) => {
+    return sum + (item.totalPurchasedValue || 0);
+  }, 0);
+  
+  const totalAvailableBudget = rabItems.reduce((sum, item) => {
+    return sum + (item.remainingValue || ((item.quantity || 0) * (item.unitPrice || item.unit_price || 0)));
+  }, 0);
+  
+  const selectedValue = selectedItems.reduce((sum, item) => {
+    const availableQty = item.availableQuantity || item.quantity || 0;
+    const unitPrice = item.unitPrice || item.unit_price || 0;
+    return sum + (availableQty * unitPrice);
   }, 0);
 
   const formatCurrency = (amount) => {
@@ -405,8 +638,8 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
 
   return (
     <>
-      {/* Summary Cards - Compact */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      {/* Summary Cards - Realtime Budget Tracking */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
             <Package className="h-6 w-6 text-blue-600" />
@@ -429,10 +662,20 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
         
         <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
+            <DollarSign className="h-6 w-6 text-orange-600" />
+            <div className="ml-2">
+              <p className="text-sm font-bold text-orange-600">{formatCurrency(totalPurchasedBudget)}</p>
+              <p className="text-xs text-gray-600">Total Sudah Dibeli</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white border rounded-lg p-3">
+          <div className="flex items-center">
             <DollarSign className="h-6 w-6 text-purple-600" />
             <div className="ml-2">
-              <p className="text-sm font-bold text-purple-600">{formatCurrency(totalValue)}</p>
-              <p className="text-xs text-gray-600">Total Dipilih</p>
+              <p className="text-sm font-bold text-purple-600">{formatCurrency(totalAvailableBudget)}</p>
+              <p className="text-xs text-gray-600">Budget Tersedia</p>
             </div>
           </div>
         </div>
@@ -479,20 +722,24 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
                   key={item.id}
                   className={`p-4 transition-colors ${
                     isFullyPurchased 
-                      ? 'bg-gray-50 opacity-75' 
+                      ? 'bg-gray-50 opacity-75 border-l-4 border-l-gray-400' 
+                      : !(item.isApproved || item.is_approved)
+                        ? 'bg-gray-50 opacity-50 border-l-4 border-l-gray-300'
+                      : purchasedQuantity > 0 
+                        ? 'bg-blue-50 border-l-4 border-l-blue-400'
                       : isSelected 
                         ? 'bg-blue-50 border-l-4 border-blue-600' 
                         : 'hover:bg-gray-50 cursor-pointer'
                   }`}
-                  onClick={() => !isFullyPurchased && toggleRABItem(item.id)}
+                  onClick={() => (item.isApproved || item.is_approved) && !isFullyPurchased && toggleRABItem(item.id)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3 flex-1">
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        disabled={isFullyPurchased}
-                        onChange={() => !isFullyPurchased && toggleRABItem(item.id)}
+                        disabled={isFullyPurchased || !(item.isApproved || item.is_approved)}
+                        onChange={() => (item.isApproved || item.is_approved) && !isFullyPurchased && toggleRABItem(item.id)}
                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
                       />
                       <div className="flex-1 min-w-0">
@@ -500,8 +747,8 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
                           <h4 className="text-sm font-medium text-gray-900 truncate">
                             {item.description || item.item_name || 'Material'}
                           </h4>
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            Approved
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.isApproved || item.is_approved ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                            {item.isApproved || item.is_approved ? 'Approved' : 'Draft'}
                           </span>
                           {isFullyPurchased && (
                             <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
@@ -597,7 +844,7 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
             <div>
               <h3 className="text-base font-medium text-blue-900">Material Terpilih</h3>
               <p className="text-sm text-blue-700">
-                {selectedRABItems.length} material terpilih dengan total estimasi {formatCurrency(totalValue)}
+                {selectedRABItems.length} material terpilih dengan total estimasi {formatCurrency(selectedValue)}
               </p>
             </div>
             <button
@@ -1037,6 +1284,7 @@ const POHistoryView = ({ purchaseOrders, onBack, projectName, projectAddress, pr
   const getStatusColor = (status) => {
     switch (status) {
       case 'approved': return 'text-green-600 bg-green-100';
+      case 'under_review': return 'text-blue-600 bg-blue-100';
       case 'rejected': return 'text-red-600 bg-red-100';
       case 'pending': return 'text-yellow-600 bg-yellow-100';
       case 'draft': return 'text-gray-600 bg-gray-100';
@@ -1045,6 +1293,21 @@ const POHistoryView = ({ purchaseOrders, onBack, projectName, projectAddress, pr
       case 'completed': return 'text-green-600 bg-green-100';
       case 'cancelled': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'approved': return 'Disetujui';
+      case 'under_review': return 'Diperiksa';
+      case 'rejected': return 'Ditolak';
+      case 'pending': return 'Menunggu';
+      case 'draft': return 'Draft';
+      case 'sent': return 'Dikirim';
+      case 'received': return 'Diterima';
+      case 'completed': return 'Selesai';
+      case 'cancelled': return 'Dibatalkan';
+      default: return status || 'Unknown';
     }
   };
 
@@ -1158,7 +1421,7 @@ const POHistoryView = ({ purchaseOrders, onBack, projectName, projectAddress, pr
                     <p><span className="font-medium">Tanggal:</span> {formatDate(selectedPO.orderDate || selectedPO.order_date || selectedPO.createdAt)}</p>
                     <p><span className="font-medium">Status:</span> 
                       <span className={`ml-1 px-1 py-0 text-[10px] font-semibold rounded ${getStatusColor(selectedPO.status)}`}>
-                        {selectedPO.status?.toUpperCase()}
+                        {getStatusLabel(selectedPO.status)?.toUpperCase()}
                       </span>
                     </p>
                   </div>
@@ -1433,7 +1696,7 @@ const POHistoryView = ({ purchaseOrders, onBack, projectName, projectAddress, pr
                       <div className="ml-auto text-right">
                         <p className="font-medium">{formatCurrency(po.totalAmount || po.total_amount || 0)}</p>
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(po.status)}`}>
-                          {po.status}
+                          {getStatusLabel(po.status)}
                         </span>
                       </div>
                     </div>

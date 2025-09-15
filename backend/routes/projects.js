@@ -713,6 +713,32 @@ router.put('/:id/rab/:rabId', async (req, res) => {
   }
 });
 
+// @route   PUT /api/projects/:id/rab/:rabId/approve
+// @desc    Approve a single RAB item
+// @access  Private
+router.put('/:id/rab/:rabId/approve', async (req, res) => {
+  try {
+    const { id, rabId } = req.params;
+    const { approvedBy } = req.body;
+
+    const rabItem = await ProjectRAB.findOne({ where: { id: rabId, projectId: id } });
+    if (!rabItem) {
+      return res.status(404).json({ success: false, error: 'RAB item not found' });
+    }
+
+    await rabItem.update({
+      isApproved: true,
+      approvedBy: approvedBy || 'system',
+      approvedAt: new Date()
+    });
+
+    res.json({ success: true, data: rabItem, message: 'RAB item approved successfully' });
+  } catch (error) {
+    console.error('Error approving RAB item:', error);
+    res.status(500).json({ success: false, error: 'Failed to approve RAB item', details: error.message });
+  }
+});
+
 // @route   DELETE /api/projects/:id/rab/:rabId
 // @desc    Delete RAB item
 // @access  Private

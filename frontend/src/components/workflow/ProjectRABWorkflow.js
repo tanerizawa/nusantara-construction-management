@@ -18,6 +18,53 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   console.log('Received projectId:', projectId);
   console.log('Received project:', project);
   console.log('onDataChange function:', typeof onDataChange);
+
+  // Function to sync RAB approval status with localStorage cache
+  const syncRABApprovalStatus = (rabItems) => {
+    try {
+      const cacheKey = `approval_status_${projectId}`;
+      const approvalStatusCache = localStorage.getItem(cacheKey);
+      
+      if (!approvalStatusCache) {
+        console.log('[RAB WORKFLOW SYNC] No approval cache found for project:', projectId);
+        return rabItems;
+      }
+      
+      const approvalStatuses = JSON.parse(approvalStatusCache);
+      console.log('[RAB WORKFLOW SYNC] Found approval cache:', approvalStatuses);
+      
+      // Update RAB items with cached approval status
+      const syncedItems = rabItems.map(item => {
+        const rabApprovalKey = `rab_${item.id}`;
+        const cachedStatus = approvalStatuses[rabApprovalKey];
+        
+        if (cachedStatus) {
+          const isApproved = cachedStatus.status === 'approved';
+          console.log(`[RAB WORKFLOW SYNC] Updating ${item.description}: ${item.isApproved} → ${isApproved}`);
+          
+          return {
+            ...item,
+            isApproved: isApproved,
+            status: isApproved ? 'approved' : 'draft',
+            approved_at: cachedStatus.approved_at,
+            approved_by: cachedStatus.approved_by,
+            approval_status: cachedStatus.status,
+            last_sync: new Date().toISOString()
+          };
+        }
+        
+        return item;
+      });
+      
+      const approvedCount = syncedItems.filter(item => item.isApproved).length;
+      console.log(`[RAB WORKFLOW SYNC] Synced ${approvedCount} approved items out of ${rabItems.length} total`);
+      
+      return syncedItems;
+    } catch (error) {
+      console.error('[RAB WORKFLOW SYNC] Error syncing approval status:', error);
+      return rabItems;
+    }
+  };
   
   const [rabItems, setRABItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +86,23 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
 
   useEffect(() => {
     fetchRABData();
+  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Listen for approval status changes from Approval Dashboard
+  useEffect(() => {
+    const handleApprovalStatusChange = (event) => {
+      if (event.detail && event.detail.projectId === projectId && event.detail.itemType === 'rab') {
+        console.log('[RAB WORKFLOW] RAB approval status changed, refreshing data...');
+        fetchRABData();
+      }
+    };
+
+    // Listen for same-tab approval changes
+    window.addEventListener('approvalStatusChanged', handleApprovalStatusChange);
+
+    return () => {
+      window.removeEventListener('approvalStatusChanged', handleApprovalStatusChange);
+    };
   }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchRABData = async () => {
@@ -124,7 +188,10 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       console.log('🎯 Final transformed items count:', transformedItems.length);
       console.log('🎯 Setting state with items:', transformedItems);
       
-      setRABItems(transformedItems);
+      // Sync with localStorage approval status
+      const syncedRABItems = syncRABApprovalStatus(transformedItems);
+      
+      setRABItems(syncedRABItems);
       
       // Force re-render check
       setTimeout(() => {
@@ -132,11 +199,11 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       }, 100);
       
       // Simplified approval status - only 'draft' or 'approved'
-      const totalItems = transformedItems.length;
+      const totalItems = syncedRABItems.length;
+      const approvedItems = syncedRABItems.filter(item => item.isApproved).length;
       
-      // Check if RAB is approved from project data or first item status
-      const isRabApproved = project?.rab_approved || 
-                           (transformedItems.length > 0 && transformedItems[0].rab_approved);
+      // Check if all RAB items are approved
+      const isRabApproved = totalItems > 0 && approvedItems === totalItems;
       
       setApprovalStatus({
         status: isRabApproved ? 'approved' : 'draft',
@@ -316,7 +383,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     setIsSubmitting(false);
   };
 
-  // Simplified approval function
+  // Simplified approval function - use backend endpoint that approves all RAB items for a project
   const handleApproveRAB = async () => {
     if (rabItems.length === 0) {
       alert('Tidak ada item RAB untuk diapprove');
@@ -325,30 +392,36 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
 
     try {
       setIsSubmitting(true);
-      
-      const response = await fetch(`/api/rab/${projectId}/approve`, {
-        method: 'PUT',
+
+      const token = localStorage.getItem('token');
+      const approvedBy = localStorage.getItem('userId') || localStorage.getItem('username') || 'system';
+
+      const response = await fetch(`/api/projects/${projectId}/rab/approve`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          approved: true,
-          approved_at: new Date().toISOString(),
-          approved_by: 'current_user' // This should be actual user data
-        })
+        body: JSON.stringify({ approvedBy })
       });
 
       if (response.ok) {
+        const result = await response.json().catch(() => null);
+        console.log('Approve RAB response:', result);
         await fetchRABData();
         if (onDataChange) onDataChange();
-        alert('RAB berhasil diapprove!');
+        showNotification('RAB berhasil diapprove!', 'success');
+      } else if (response.status === 404) {
+        console.error('Approve endpoint not found (404)');
+        showNotification('Endpoint approve tidak ditemukan. Hubungi admin.', 'error');
       } else {
-        throw new Error('Failed to approve RAB');
+        const err = await response.json().catch(() => ({}));
+        console.error('Failed to approve RAB:', err);
+        showNotification('Gagal approve RAB. Silakan coba lagi.', 'error');
       }
     } catch (error) {
       console.error('Error approving RAB:', error);
-      alert('Gagal approve RAB. Silakan coba lagi.');
+      showNotification('Gagal approve RAB. Silakan coba lagi.', 'error');
     } finally {
       setIsSubmitting(false);
     }

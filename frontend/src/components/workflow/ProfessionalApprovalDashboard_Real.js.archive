@@ -19,10 +19,7 @@ import {
   FileBarChart,
   DollarSign,
   Package,
-  Search,
-  Check,
-  X,
-  FileCheck
+  Search
 } from 'lucide-react';
 
 const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onDataChange }) => {
@@ -56,123 +53,31 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
     }
   ];
 
-  // Status Configuration with Approval Workflow
+  // Status Configuration
   const statusConfig = {
     'draft': { 
       label: 'Draft', 
       color: 'bg-gray-100 text-gray-800', 
       icon: FileText,
-      description: 'Dokumen belum submit',
-      canReview: true,
-      canApprove: false
-    },
-    'under_review': { 
-      label: 'Diperiksa', 
-      color: 'bg-blue-100 text-blue-800', 
-      icon: Eye,
-      description: 'Sedang dalam pemeriksaan',
-      canReview: false,
-      canApprove: true
+      description: 'Dokumen belum submit'
     },
     'pending': { 
       label: 'Menunggu Approval', 
       color: 'bg-yellow-100 text-yellow-800', 
       icon: Clock,
-      description: 'Menunggu persetujuan',
-      canReview: false,
-      canApprove: true
+      description: 'Menunggu persetujuan'
     },
     'approved': { 
       label: 'Disetujui', 
       color: 'bg-green-100 text-green-800', 
       icon: CheckCircle,
-      description: 'Telah disetujui',
-      canReview: false,
-      canApprove: false
+      description: 'Telah disetujui'
     },
     'rejected': { 
       label: 'Ditolak', 
       color: 'bg-red-100 text-red-800', 
       icon: XCircle,
-      description: 'Ditolak',
-      canReview: true,
-      canApprove: false
-    }
-  };
-
-  // Function to update PO status in database
-  const updatePOStatusInDatabase = async (poId, status, approvedBy = null) => {
-    try {
-      // Map frontend status to backend-compatible status
-      const statusMapping = {
-        'under_review': 'pending',
-        'approved': 'approved',
-        'rejected': 'cancelled',
-        'draft': 'draft'
-      };
-      
-      const backendStatus = statusMapping[status] || status;
-      console.log(`[API UPDATE] Updating PO ${poId} status from ${status} to backend status ${backendStatus}`);
-      
-      const updateData = {
-        status: backendStatus,
-        approved_by: approvedBy
-      };
-      
-      const response = await fetch(`/api/purchase-orders/${poId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update PO status: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log(`[API UPDATE] Successfully updated PO ${poId} status:`, result);
-      
-      return result;
-    } catch (error) {
-      console.error('[API UPDATE] Error updating PO status:', error);
-      throw error;
-    }
-  };
-
-  // Function to update RAB approval status in database
-  const updateRABStatusInDatabase = async (rabId, isApproved, approvedBy = null) => {
-    try {
-      console.log(`[API UPDATE] Updating RAB ${rabId} approval status to ${isApproved}`);
-      
-      const updateData = {
-        isApproved: isApproved,
-        approvedBy: approvedBy,
-        approvedAt: isApproved ? new Date().toISOString() : null
-      };
-      
-      const response = await fetch(`/api/projects/${projectId}/rab/${rabId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updateData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update RAB status: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log(`[API UPDATE] Successfully updated RAB ${rabId} status:`, result);
-      
-      return result;
-    } catch (error) {
-      console.error('[API UPDATE] Error updating RAB status:', error);
-      throw error;
+      description: 'Ditolak'
     }
   };
 
@@ -193,56 +98,25 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
           const result = await response.json();
           const rabData = result.data || [];
           
-          // Map RAB data dan sync dengan localStorage cache untuk status intermediate
-          return rabData.map(item => {
-            // Get cached status from localStorage
-            const cacheKey = `approval_status_${projectId}`;
-            const approvalStatusCache = localStorage.getItem(cacheKey);
-            let cachedStatus = null;
-            
-            if (approvalStatusCache) {
-              try {
-                const cache = JSON.parse(approvalStatusCache);
-                const itemKey = `rab_${item.id}`;
-                cachedStatus = cache[itemKey];
-              } catch (error) {
-                console.error('Error parsing approval cache:', error);
-              }
-            }
-            
-            // Determine final status: use localStorage cache as source of truth for approval status
-            // since backend API doesn't update RAB approval fields correctly
-            let finalStatus = 'draft';
-            if (cachedStatus && cachedStatus.status) {
-              finalStatus = cachedStatus.status;
-              console.log(`[RAB STATUS] Using cached status for ${item.id}: ${finalStatus}`);
-            } else if (item.isApproved) {
-              finalStatus = 'approved';
-              console.log(`[RAB STATUS] Using database status for ${item.id}: approved`);
-            } else {
-              console.log(`[RAB STATUS] Using default status for ${item.id}: draft`);
-            }
-            
-            return {
-              id: item.id,
-              approval_id: `RAB-${item.id.slice(0, 8)}`,
-              approval_type: 'rab',
-              type: 'rab',
-              category: item.category || 'General',
-              description: item.description,
-              quantity: parseFloat(item.quantity) || 1,
-              unit: item.unit || 'ls',
-              unit_price: parseFloat(item.unitPrice) || 0,
-              total_price: parseFloat(item.totalPrice) || 0,
-              status: finalStatus,
-              created_at: item.createdAt,
-              updated_at: item.updatedAt,
-              approved_at: item.approvedAt,
-              approved_by: item.approvedBy,
-              notes: item.notes || '',
-              document_number: `RAB-${item.category?.replace(/\s+/g, '')}-${item.id.slice(-3)}`
-            };
-          });
+          return rabData.map(item => ({
+            id: item.id,
+            approval_id: `RAB-${item.id.slice(0, 8)}`,
+            approval_type: 'rab',
+            type: 'rab',
+            category: item.category || 'General',
+            description: item.description,
+            quantity: parseFloat(item.quantity) || 1,
+            unit: item.unit || 'ls',
+            unit_price: parseFloat(item.unitPrice) || 0,
+            total_price: parseFloat(item.totalPrice) || 0,
+            status: item.isApproved ? 'approved' : 'draft',
+            created_at: item.createdAt,
+            updated_at: item.updatedAt,
+            approved_at: item.approvedAt,
+            approved_by: item.approvedBy,
+            notes: item.notes || '',
+            document_number: `RAB-${item.category?.replace(/\s+/g, '')}-${item.id.slice(-3)}`
+          }));
         } catch (error) {
           console.error('[RAB] Load error:', error);
           return [];
@@ -312,190 +186,6 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
       setLoading(false);
     }
   }, [projectId]);
-
-  // Save approval status to localStorage for realtime sync
-  const saveApprovalStatusToCache = (item, newStatus, approvedBy = null) => {
-    try {
-      const cacheKey = `approval_status_${projectId}`;
-      const existingCache = localStorage.getItem(cacheKey);
-      let approvalStatuses = existingCache ? JSON.parse(existingCache) : {};
-      
-      const itemKey = item.approval_type === 'purchaseOrders' ? `po_${item.id}` : `rab_${item.id}`;
-      
-      console.log(`[APPROVAL DASHBOARD] Saving approval status:`, {
-        cacheKey,
-        itemKey,
-        item_id: item.id,
-        item_type: item.approval_type,
-        newStatus,
-        approvedBy
-      });
-      
-      approvalStatuses[itemKey] = {
-        status: newStatus,
-        approved_at: newStatus === 'approved' ? new Date().toISOString() : null,
-        approved_by: approvedBy,
-        updated_at: new Date().toISOString(),
-        item_id: item.id,
-        item_type: item.approval_type
-      };
-      
-      localStorage.setItem(cacheKey, JSON.stringify(approvalStatuses));
-      console.log(`[APPROVAL CACHE] Saved status for ${itemKey}: ${newStatus}`);
-      
-      // Verify localStorage save
-      const verifyCache = localStorage.getItem(cacheKey);
-      const verifyParsed = JSON.parse(verifyCache);
-      console.log(`[APPROVAL VERIFY] localStorage content after save:`, verifyParsed);
-      
-      // Trigger event to notify other components about status change
-      const statusChangeEvent = new CustomEvent('approvalStatusChanged', {
-        detail: {
-          projectId,
-          itemId: item.id,
-          itemType: item.approval_type,
-          newStatus,
-          timestamp: new Date().toISOString()
-        }
-      });
-      console.log(`[APPROVAL EVENT] Dispatching event:`, statusChangeEvent.detail);
-      window.dispatchEvent(statusChangeEvent);
-      
-    } catch (error) {
-      console.error('Error saving approval status to cache:', error);
-    }
-  };
-
-  // Handle approval actions - Mark as "Under Review"
-  const handleMarkAsReviewed = async (item) => {
-    console.log(`[APPROVAL] Starting handleMarkAsReviewed for:`, item);
-    
-    try {
-      // Update item status to under_review
-      const updatedItem = { ...item, status: 'under_review' };
-      
-      console.log(`[APPROVAL] Updating local state for item ${item.id} to under_review`);
-      
-      // Update local state immediately for better UX
-      setApprovalData(prevData => ({
-        ...prevData,
-        [activeCategory]: prevData[activeCategory].map(dataItem =>
-          dataItem.id === item.id ? updatedItem : dataItem
-        )
-      }));
-
-      // Save to localStorage for realtime sync
-      console.log(`[APPROVAL DEBUG] Calling saveApprovalStatusToCache for under_review:`, {
-        item_id: item.id,
-        approval_id: item.approval_id,
-        approval_type: item.approval_type
-      });
-      saveApprovalStatusToCache(item, 'under_review');
-
-      // Update status in backend database
-      if (item.approval_type === 'purchaseOrders') {
-        console.log(`[APPROVAL] Updating PO in database...`);
-        await updatePOStatusInDatabase(item.id, 'under_review');
-        console.log(`[APPROVAL] PO database update completed`);
-      } else if (item.approval_type === 'rab') {
-        console.log(`[APPROVAL] RAB approval status saved to localStorage cache only (backend API not working for RAB approval)`);
-      }
-      
-      console.log(`[APPROVAL] Successfully marked as reviewed:`, item.approval_id);
-      
-    } catch (error) {
-      console.error('❌ [APPROVAL] Error marking as reviewed:', error);
-      alert(`Error marking as reviewed: ${error.message}`);
-      // Revert state on error
-      loadRealApprovalData();
-    }
-  };
-
-  // Handle final approval - Mark as "Approved"
-  const handleApprove = async (item) => {
-    console.log(`[APPROVAL] Starting handleApprove for:`, item);
-    
-    try {
-      const approvedBy = userDetails?.name || 'Current User';
-      
-      // Update item status to approved
-      const updatedItem = { 
-        ...item, 
-        status: 'approved',
-        approved_at: new Date().toISOString(),
-        approved_by: approvedBy
-      };
-      
-      console.log(`[APPROVAL] Updating local state for item ${item.id} to approved`);
-      
-      // Update local state immediately for better UX
-      setApprovalData(prevData => ({
-        ...prevData,
-        [activeCategory]: prevData[activeCategory].map(dataItem =>
-          dataItem.id === item.id ? updatedItem : dataItem
-        )
-      }));
-
-      // Save to localStorage for realtime sync
-      console.log(`[APPROVAL DEBUG] Calling saveApprovalStatusToCache for approved:`, {
-        item_id: item.id,
-        approval_id: item.approval_id,
-        approval_type: item.approval_type,
-        approvedBy
-      });
-      saveApprovalStatusToCache(item, 'approved', approvedBy);
-
-      // Update status in backend database
-      if (item.approval_type === 'purchaseOrders') {
-        console.log(`[APPROVAL] Updating PO in database...`);
-        await updatePOStatusInDatabase(item.id, 'approved', approvedBy);
-        console.log(`[APPROVAL] PO database update completed`);
-      } else if (item.approval_type === 'rab') {
-        console.log(`[APPROVAL] RAB approval status saved to localStorage cache only (backend API not working for RAB approval)`);
-      }
-      
-      console.log(`[APPROVAL] Successfully approved:`, item.approval_id);
-      
-    } catch (error) {
-      console.error('❌ [APPROVAL] Error approving item:', error);
-      alert(`Error approving item: ${error.message}`);
-      // Revert state on error
-      loadRealApprovalData();
-    }
-  };
-
-  // Handle rejection
-  const handleReject = async (item) => {
-    try {
-      // Update item status to rejected
-      const updatedItem = { ...item, status: 'rejected' };
-      
-      // Update local state immediately for better UX
-      setApprovalData(prevData => ({
-        ...prevData,
-        [activeCategory]: prevData[activeCategory].map(dataItem =>
-          dataItem.id === item.id ? updatedItem : dataItem
-        )
-      }));
-
-      // Save to localStorage for realtime sync
-      saveApprovalStatusToCache(item, 'rejected');
-
-      // Update status in backend database
-      if (item.approval_type === 'purchaseOrders') {
-        await updatePOStatusInDatabase(item.id, 'rejected');
-      } else if (item.approval_type === 'rab') {
-        console.log(`[APPROVAL] RAB rejection status saved to localStorage cache only (backend API not working for RAB approval)`);
-      }
-      
-      console.log(`[APPROVAL] Rejected:`, item.approval_id);
-      
-    } catch (error) {
-      console.error('Error rejecting item:', error);
-      // Revert state on error
-      loadRealApprovalData();
-    }
-  };
 
   useEffect(() => {
     if (projectId) {
@@ -741,7 +431,6 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
         >
           <option value="all">All Status</option>
           <option value="draft">Draft</option>
-          <option value="under_review">Diperiksa</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
@@ -806,9 +495,6 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -845,7 +531,7 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
                       </>
                     )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatCurrency(item.total_price || item.total_amount)}
+                      {formatCurrency(item.total_amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -856,53 +542,6 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(item.created_at)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center space-x-2">
-                        {/* Tombol "Diperiksa" - hanya tampil jika status draft atau rejected */}
-                        {statusConfig[item.status]?.canReview && (
-                          <button
-                            onClick={() => handleMarkAsReviewed(item)}
-                            className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors"
-                            title="Mark as Reviewed"
-                          >
-                            <FileCheck className="h-3 w-3 mr-1" />
-                            Diperiksa
-                          </button>
-                        )}
-                        
-                        {/* Tombol "Disetujui" - hanya tampil jika status under_review atau pending */}
-                        {statusConfig[item.status]?.canApprove && (
-                          <button
-                            onClick={() => handleApprove(item)}
-                            className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-800 rounded-md hover:bg-green-200 transition-colors"
-                            title="Approve"
-                          >
-                            <Check className="h-3 w-3 mr-1" />
-                            Disetujui
-                          </button>
-                        )}
-                        
-                        {/* Tombol "Tolak" - tampil jika bukan status approved */}
-                        {item.status !== 'approved' && (
-                          <button
-                            onClick={() => handleReject(item)}
-                            className="inline-flex items-center px-2 py-1 text-xs bg-red-100 text-red-800 rounded-md hover:bg-red-200 transition-colors"
-                            title="Reject"
-                          >
-                            <X className="h-3 w-3 mr-1" />
-                            Tolak
-                          </button>
-                        )}
-                        
-                        {/* Status indicator untuk approved items */}
-                        {item.status === 'approved' && (
-                          <span className="inline-flex items-center px-2 py-1 text-xs text-green-600">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Selesai
-                          </span>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}
@@ -921,7 +560,7 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
             </span>
             <span>
               Total Value: {formatCurrency(
-                filteredData.reduce((sum, item) => sum + (item.total_price || item.total_amount || 0), 0)
+                filteredData.reduce((sum, item) => sum + (item.total_amount || 0), 0)
               )}
             </span>
           </div>

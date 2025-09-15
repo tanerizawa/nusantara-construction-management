@@ -164,6 +164,339 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route   GET /api/manpower/training
+// @desc    Get all training records
+// @access  Private
+router.get('/training', async (req, res) => {
+  try {
+    const { status, category, employeeId } = req.query;
+    
+    // Mock training data for now - replace with actual database query
+    const mockTrainings = [
+      {
+        id: 1,
+        title: 'Keselamatan Konstruksi Tingkat Lanjut',
+        category: 'safety',
+        description: 'Pelatihan keselamatan kerja untuk konstruksi gedung tinggi',
+        instructor: 'Ahmad Suryadi, M.Eng',
+        startDate: '2024-02-15',
+        endDate: '2024-02-17',
+        duration: '3 hari',
+        location: 'Training Center Jakarta',
+        maxParticipants: 25,
+        registeredParticipants: 18,
+        status: 'scheduled',
+        participants: [
+          { employeeId: 'EMP001', name: 'Ahmad Fauzi', department: 'Construction' },
+          { employeeId: 'EMP002', name: 'Siti Nurhaliza', department: 'Construction' }
+        ]
+      },
+      {
+        id: 2,
+        title: 'Manajemen Proyek dengan MS Project',
+        category: 'technical',
+        description: 'Pelatihan penggunaan Microsoft Project untuk manajemen proyek konstruksi',
+        instructor: 'Budi Santoso, PMP',
+        startDate: '2024-02-20',
+        endDate: '2024-02-22',
+        duration: '3 hari',
+        location: 'Online Training',
+        maxParticipants: 30,
+        registeredParticipants: 24,
+        status: 'ongoing',
+        participants: [
+          { employeeId: 'EMP003', name: 'Dewi Sartika', department: 'Engineering' }
+        ]
+      },
+      {
+        id: 3,
+        title: 'Sertifikasi K3 Konstruksi',
+        category: 'certification',
+        description: 'Program sertifikasi Keselamatan dan Kesehatan Kerja bidang konstruksi',
+        instructor: 'Dr. Hendra Wijaya',
+        startDate: '2024-01-10',
+        endDate: '2024-01-15',
+        duration: '5 hari',
+        location: 'Training Center Bandung',
+        maxParticipants: 20,
+        registeredParticipants: 20,
+        status: 'completed',
+        participants: [
+          { employeeId: 'EMP001', name: 'Ahmad Fauzi', department: 'Construction', completed: true }
+        ]
+      }
+    ];
+
+    let filteredTrainings = mockTrainings;
+
+    if (status && status !== 'all') {
+      filteredTrainings = filteredTrainings.filter(t => t.status === status);
+    }
+
+    if (category && category !== 'all') {
+      filteredTrainings = filteredTrainings.filter(t => t.category === category);
+    }
+
+    if (employeeId) {
+      filteredTrainings = filteredTrainings.filter(t => 
+        t.participants.some(p => p.employeeId === employeeId)
+      );
+    }
+
+    res.json({
+      success: true,
+      data: filteredTrainings,
+      count: filteredTrainings.length
+    });
+  } catch (error) {
+    console.error('Error fetching training records:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch training records',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/manpower/safety-incidents
+// @desc    Get all safety incident records
+// @access  Private
+router.get('/safety-incidents', async (req, res) => {
+  try {
+    const { status, severity, dateFrom, dateTo } = req.query;
+    
+    // Mock safety incident data for now - replace with actual database query
+    const mockIncidents = [
+      {
+        id: 1,
+        incidentNumber: 'SI-2024-001',
+        date: '2024-01-15',
+        reportedBy: 'Ahmad Fauzi',
+        reporterId: 'EMP001',
+        involvedEmployees: [
+          { id: 'EMP002', name: 'Siti Nurhaliza', injury: 'Minor cut on hand' }
+        ],
+        incidentType: 'workplace_injury',
+        severity: 'low',
+        location: 'Proyek Mall Karawang - Lantai 3',
+        description: 'Pekerja terluka akibat pecahan kaca saat pemasangan jendela',
+        immediateActions: 'Pertolongan pertama dilakukan, korban dibawa ke klinik terdekat',
+        preventiveActions: 'Pemasangan safety barrier tambahan, briefing keselamatan',
+        status: 'closed',
+        investigationReport: 'Kurangnya perhatian terhadap area kerja yang licin',
+        closureDate: '2024-01-20',
+        rootCause: 'Prosedur keselamatan tidak diikuti dengan baik'
+      },
+      {
+        id: 2,
+        incidentNumber: 'SI-2024-002',
+        date: '2024-01-22',
+        reportedBy: 'Budi Santoso',
+        reporterId: 'EMP003',
+        involvedEmployees: [],
+        incidentType: 'near_miss',
+        severity: 'medium',
+        location: 'Proyek Apartemen Bekasi - Area Crane',
+        description: 'Crane hampir mengenai pekerja yang sedang berjalan di area restricted',
+        immediateActions: 'Crane dihentikan, area dikosongkan, briefing darurat',
+        preventiveActions: 'Pemasangan alarm suara pada crane, marking area lebih jelas',
+        status: 'under_investigation',
+        investigationReport: '',
+        closureDate: '',
+        rootCause: ''
+      },
+      {
+        id: 3,
+        incidentNumber: 'SI-2024-003',
+        date: '2024-02-01',
+        reportedBy: 'Dewi Sartika',
+        reporterId: 'EMP004',
+        involvedEmployees: [
+          { id: 'EMP005', name: 'Andi Prasetyo', injury: 'Sprain ankle' }
+        ],
+        incidentType: 'slip_fall',
+        severity: 'medium',
+        location: 'Proyek Office Building - Basement',
+        description: 'Pekerja terpeleset di area basement yang basah',
+        immediateActions: 'Korban dilarikan ke rumah sakit, area ditutup sementara',
+        preventiveActions: 'Pemasangan warning signs, pembersihan rutin area basah',
+        status: 'in_progress',
+        investigationReport: 'Investigasi dalam progress',
+        closureDate: '',
+        rootCause: 'Sistem drainase basement kurang optimal'
+      }
+    ];
+
+    let filteredIncidents = mockIncidents;
+
+    if (status && status !== 'all') {
+      filteredIncidents = filteredIncidents.filter(i => i.status === status);
+    }
+
+    if (severity && severity !== 'all') {
+      filteredIncidents = filteredIncidents.filter(i => i.severity === severity);
+    }
+
+    if (dateFrom) {
+      filteredIncidents = filteredIncidents.filter(i => i.date >= dateFrom);
+    }
+
+    if (dateTo) {
+      filteredIncidents = filteredIncidents.filter(i => i.date <= dateTo);
+    }
+
+    res.json({
+      success: true,
+      data: filteredIncidents,
+      count: filteredIncidents.length
+    });
+  } catch (error) {
+    console.error('Error fetching safety incidents:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch safety incidents',
+      details: error.message
+    });
+  }
+});
+
+// @route   POST /api/manpower/safety-incidents
+// @desc    Create new safety incident
+// @access  Private
+router.post('/safety-incidents', async (req, res) => {
+  try {
+    const incidentData = req.body;
+    
+    // Mock creation response - replace with actual database insert
+    const newIncident = {
+      id: Date.now(),
+      incidentNumber: `SI-2024-${String(Date.now()).slice(-3)}`,
+      ...incidentData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      data: newIncident,
+      message: 'Safety incident created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating safety incident:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create safety incident',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/manpower/reports
+// @desc    Get HR reports and analytics
+// @access  Private
+router.get('/reports', async (req, res) => {
+  try {
+    const { type = 'all' } = req.query;
+    
+    // Mock reports data - replace with actual calculations
+    const reports = {
+      demographic: {
+        totalEmployees: 45,
+        byDepartment: {
+          construction: 18,
+          engineering: 12,
+          management: 8,
+          administration: 7
+        },
+        byPosition: {
+          'Site Manager': 3,
+          'Project Engineer': 8,
+          'Construction Worker': 15,
+          'Safety Officer': 4,
+          'Administrative Staff': 7,
+          'Director': 2,
+          'Other': 6
+        },
+        byEmploymentType: {
+          permanent: 32,
+          contract: 10,
+          intern: 3
+        }
+      },
+      performance: {
+        averageRating: 4.2,
+        topPerformers: [
+          { name: 'Ahmad Fauzi', rating: 4.8, department: 'Construction' },
+          { name: 'Dewi Sartika', rating: 4.7, department: 'Engineering' },
+          { name: 'Budi Santoso', rating: 4.6, department: 'Management' }
+        ],
+        performanceDistribution: {
+          excellent: 12,
+          good: 20,
+          satisfactory: 10,
+          needsImprovement: 3
+        }
+      },
+      training: {
+        totalTrainings: 15,
+        completedTrainings: 8,
+        ongoingTrainings: 3,
+        scheduledTrainings: 4,
+        trainingParticipation: {
+          safety: 35,
+          technical: 28,
+          management: 15,
+          certification: 22
+        },
+        certificationStatus: {
+          certified: 32,
+          expired: 8,
+          pending: 5
+        }
+      },
+      attendance: {
+        averageAttendance: 94.5,
+        totalWorkdays: 22,
+        presentDays: 20.79,
+        absentDays: 1.21,
+        attendanceTrend: [
+          { month: 'Jan', rate: 95.2 },
+          { month: 'Feb', rate: 93.8 }
+        ]
+      },
+      compliance: {
+        safetyIncidents: 3,
+        openIncidents: 2,
+        closedIncidents: 1,
+        incidentsByType: {
+          workplace_injury: 1,
+          near_miss: 1,
+          slip_fall: 1
+        },
+        complianceScore: 87.5
+      }
+    };
+
+    let responseData = reports;
+    if (type !== 'all' && reports[type]) {
+      responseData = { [type]: reports[type] };
+    }
+
+    res.json({
+      success: true,
+      data: responseData,
+      generatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch reports',
+      details: error.message
+    });
+  }
+});
+
 // @route   GET /api/manpower/:id
 // @desc    Get single employee by ID
 // @access  Private
@@ -247,15 +580,16 @@ router.post('/', async (req, res) => {
     const newEmployeeId = `EMP-${String(employeeCount + 1).padStart(3, '0')}`;
 
     // Create employee
+    const currentTime = new Date();
     await sequelize.query(`
       INSERT INTO manpower (
         id, employee_id, name, position, department, email, phone,
         join_date, birth_date, address, status, employment_type,
-        salary, current_project, skills, metadata
+        salary, current_project, skills, metadata, created_at, updated_at
       ) VALUES (
         :id, :employee_id, :name, :position, :department, :email, :phone,
         :join_date, :birth_date, :address, :status, :employment_type,
-        :salary, :current_project, :skills, :metadata
+        :salary, :current_project, :skills, :metadata, :created_at, :updated_at
       )
     `, {
       replacements: {
@@ -264,20 +598,22 @@ router.post('/', async (req, res) => {
         name: value.name,
         position: value.position,
         department: value.department,
-        email: value.email,
-        phone: value.phone,
-        join_date: value.joinDate,
-        birth_date: value.birthDate,
-        address: value.address,
+        email: value.email || null,
+        phone: value.phone || null,
+        join_date: value.joinDate || null,
+        birth_date: value.birthDate || null,
+        address: value.address || null,
         status: value.status,
         employment_type: value.employmentType,
-        salary: value.salary,
-        current_project: value.currentProject,
+        salary: value.salary || null,
+        current_project: value.currentProject || null,
         skills: JSON.stringify(value.skills || []),
         metadata: JSON.stringify({
           source: 'api_created',
-          createdAt: new Date().toISOString()
-        })
+          createdAt: currentTime.toISOString()
+        }),
+        created_at: currentTime,
+        updated_at: currentTime
       }
     });
 

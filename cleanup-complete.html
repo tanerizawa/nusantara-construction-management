@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Database & Cache Cleanup Complete</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .success { color: green; background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .info { color: blue; background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .warning { color: orange; background: #fff8f0; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧹 Database & Cache Cleanup Complete</h1>
+    
+    <div class="success">
+        <h3>✅ Database Cleanup Berhasil:</h3>
+        <ul>
+            <li>❌ Projects: Semua terhapus (0 items)</li>
+            <li>❌ Purchase Orders: Semua terhapus (0 items)</li>
+            <li>❌ RAB Data: Semua terhapus (0 items)</li>
+            <li>❌ Inventory: Kosong (0 items)</li>
+        </ul>
+    </div>
+
+    <div class="warning">
+        <h3>⚠️ Cache Browser Masih Perlu Dibersihkan:</h3>
+        <p>LocalStorage mungkin masih menyimpan approval status cache.</p>
+        <button onclick="clearCache()">Clear localStorage Cache</button>
+        <button onclick="clearAllStorage()">Clear All Browser Storage</button>
+    </div>
+
+    <div class="info">
+        <h3>📋 Status Sistem:</h3>
+        <p>Database sekarang benar-benar bersih dan siap untuk:</p>
+        <ul>
+            <li>✅ Testing approval system yang baru</li>
+            <li>✅ Membuat project baru dari awal</li>
+            <li>✅ Testing workflow tanpa data lama</li>
+        </ul>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        function clearCache() {
+            try {
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Clear approval status specifically
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('approval_status_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ localStorage cleared successfully!</div>';
+                console.log('localStorage cleared');
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ Error clearing localStorage: ' + error.message + '</div>';
+            }
+        }
+
+        function clearAllStorage() {
+            try {
+                // Clear localStorage
+                localStorage.clear();
+                
+                // Clear sessionStorage
+                sessionStorage.clear();
+                
+                // Clear IndexedDB (if supported)
+                if ('indexedDB' in window) {
+                    indexedDB.databases().then(databases => {
+                        databases.forEach(db => {
+                            indexedDB.deleteDatabase(db.name);
+                        });
+                    });
+                }
+                
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ All browser storage cleared successfully!</div>';
+                console.log('All storage cleared');
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    '<div style="color: red;">❌ Error clearing storage: ' + error.message + '</div>';
+            }
+        }
+
+        // Auto check for existing cache on page load
+        window.onload = function() {
+            const cacheCount = Object.keys(localStorage).filter(key => 
+                key.startsWith('approval_status_')
+            ).length;
+            
+            if (cacheCount > 0) {
+                document.getElementById('result').innerHTML = 
+                    '<div class="warning">⚠️ Found ' + cacheCount + ' approval cache entries in localStorage</div>';
+            } else {
+                document.getElementById('result').innerHTML = 
+                    '<div class="success">✅ No approval cache found in localStorage</div>';
+            }
+        };
+    </script>
+</body>
+</html>

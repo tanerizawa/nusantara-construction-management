@@ -98,6 +98,56 @@ const RABManagementEnhanced = ({ selectedCompany, dateRange, onRefresh }) => {
     return typeof location === 'string' ? location : 'Location not specified';
   };
 
+  // Function to sync RAB approval status with localStorage cache
+  const syncRABApprovalStatus = (rabItems) => {
+    try {
+      const syncedItems = rabItems.map(item => {
+        // Get cached status from localStorage for this project
+        const cacheKey = `approval_status_${item.projectId}`;
+        const approvalStatusCache = localStorage.getItem(cacheKey);
+        
+        if (!approvalStatusCache) {
+          return item;
+        }
+        
+        let cachedStatus = null;
+        try {
+          const cache = JSON.parse(approvalStatusCache);
+          const itemKey = `rab_${item.id}`;
+          cachedStatus = cache[itemKey];
+        } catch (error) {
+          console.error('Error parsing approval cache for project:', item.projectId, error);
+          return item;
+        }
+        
+        if (cachedStatus) {
+          const isApproved = cachedStatus.status === 'approved';
+          console.log(`[RAB MGMT SYNC] Updating ${item.projectName} - ${item.description}: ${item.isApproved} → ${isApproved}`);
+          
+          return {
+            ...item,
+            isApproved: isApproved,
+            is_approved: isApproved,
+            approved_at: cachedStatus.approved_at,
+            approved_by: cachedStatus.approved_by,
+            approval_status: cachedStatus.status,
+            last_sync: new Date().toISOString()
+          };
+        }
+        
+        return item;
+      });
+      
+      const approvedCount = syncedItems.filter(item => item.isApproved).length;
+      console.log(`[RAB MGMT SYNC] Synced ${approvedCount} approved items out of ${rabItems.length} total`);
+      
+      return syncedItems;
+    } catch (error) {
+      console.error('[RAB MGMT SYNC] Error syncing approval status:', error);
+      return rabItems;
+    }
+  };
+
   const fetchRABData = useCallback(async () => {
     try {
       setLoading(true);
@@ -124,7 +174,7 @@ const RABManagementEnhanced = ({ selectedCompany, dateRange, onRefresh }) => {
           const rabResponse = await apiService.get(`/projects/${project.id}/rab`);
           
           if (rabResponse.success && rabResponse.data) {
-            const projectRABItems = rabResponse.data.map(item => ({
+            let projectRABItems = rabResponse.data.map(item => ({
               ...item,
               projectName: project.name,
               projectId: project.id,
@@ -134,9 +184,12 @@ const RABManagementEnhanced = ({ selectedCompany, dateRange, onRefresh }) => {
                           'Unknown Company'
             }));
             
+            // Sync approval status for this project's RAB items
+            projectRABItems = syncRABApprovalStatus(projectRABItems);
+            
             allRABItems.push(...projectRABItems);
 
-            // Create project RAB summary
+            // Create project RAB summary (now with synced approval data)
             const totalRABValue = projectRABItems.reduce((sum, item) => sum + parseFloat(item.totalPrice || 0), 0);
             const approvedItems = projectRABItems.filter(item => item.isApproved);
             const pendingItems = projectRABItems.filter(item => !item.isApproved);
@@ -174,7 +227,10 @@ const RABManagementEnhanced = ({ selectedCompany, dateRange, onRefresh }) => {
         return itemDate >= dateRange.start && itemDate <= dateRange.end;
       });
 
-      setRABData(filteredRABItems);
+      // Sync with localStorage approval status
+      const syncedRABItems = syncRABApprovalStatus(filteredRABItems);
+
+      setRABData(syncedRABItems);
       setProjectRABSummaries(projectRABSummaries);
       
       console.log('📋 Enhanced RAB Data Loaded:', {
@@ -215,6 +271,23 @@ const RABManagementEnhanced = ({ selectedCompany, dateRange, onRefresh }) => {
 
   useEffect(() => {
     fetchRABData();
+  }, [fetchRABData]);
+
+  // Listen for approval status changes from Approval Dashboard
+  useEffect(() => {
+    const handleApprovalStatusChange = (event) => {
+      if (event.detail && event.detail.itemType === 'rab') {
+        console.log('[RAB MGMT] RAB approval status changed, refreshing data...');
+        fetchRABData();
+      }
+    };
+
+    // Listen for same-tab approval changes
+    window.addEventListener('approvalStatusChanged', handleApprovalStatusChange);
+
+    return () => {
+      window.removeEventListener('approvalStatusChanged', handleApprovalStatusChange);
+    };
   }, [fetchRABData]);
 
   // Handler functions for project RAB detail view

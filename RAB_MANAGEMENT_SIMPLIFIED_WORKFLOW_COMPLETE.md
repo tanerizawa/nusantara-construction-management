@@ -194,32 +194,35 @@ const handleApproveRAB = async () => {
 
 ## API Integration
 
-### **Backend Endpoint Expected:**
+### **Backend Endpoints Used:**
+
+- Project-level approve (approves all RAB items for a project):
+
 ```
-PUT /api/rab/{projectId}/approve
+POST /api/projects/{projectId}/rab/approve
 ```
 
-**Request Body:**
+Request body example:
 ```json
 {
-  "approved": true,
-  "approved_at": "2025-09-15T00:16:14.243Z",
-  "approved_by": "current_user"
+  "approvedBy": "current_user"
 }
 ```
 
-**Expected Response:**
+- Per-item approve (approves a single RAB item):
+
+```
+PUT /api/projects/{projectId}/rab/{rabId}/approve
+```
+
+Request body example:
 ```json
 {
-  "success": true,
-  "message": "RAB approved successfully",
-  "data": {
-    "rab_approved": true,
-    "approved_at": "2025-09-15T00:16:14.243Z",
-    "approved_by": "current_user"
-  }
+  "approvedBy": "current_user"
 }
 ```
+
+These endpoints update `isApproved`, `approvedBy`, and `approvedAt` on the RAB items. The frontend `ProjectRABWorkflow` component now calls the project-level endpoint when approving the whole RAB, and the `ProfessionalApprovalDashboard` uses per-item approve where appropriate.
 
 ## Benefits of Simplified Approach
 

@@ -28,9 +28,89 @@ const PurchaseOrderManagement = ({ onCreateNew, refreshTrigger = 0 }) => {
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
 
+  // Function to sync PO status with approval dashboard status
+  const syncPOApprovalStatus = (poData) => {
+    try {
+      // Get all project approval status caches
+      const allCacheKeys = Object.keys(localStorage).filter(key => 
+        key.startsWith('approval_status_')
+      );
+      
+      let allApprovalStatuses = {};
+      
+      // Combine all project approval statuses
+      allCacheKeys.forEach(cacheKey => {
+        try {
+          const cacheData = JSON.parse(localStorage.getItem(cacheKey));
+          allApprovalStatuses = { ...allApprovalStatuses, ...cacheData };
+        } catch (error) {
+          console.error('Error parsing cache:', cacheKey, error);
+        }
+      });
+
+      // Update PO status berdasarkan approval status
+      const syncedData = poData.map(po => {
+        const poApprovalKey = `po_${po.id}`;
+        const cachedStatus = allApprovalStatuses[poApprovalKey];
+        
+        console.log(`[PO OFFICIAL SYNC] Checking PO ${po.poNumber || po.po_number}:`, {
+          po_id: po.id,
+          poApprovalKey,
+          current_status: po.status,
+          cached_status: cachedStatus?.status || 'none',
+          has_cache: !!cachedStatus
+        });
+        
+        if (cachedStatus && cachedStatus.status !== po.status) {
+          console.log(`[PO OFFICIAL SYNC] Updating PO ${po.poNumber || po.po_number} status from ${po.status} to ${cachedStatus.status}`);
+          return {
+            ...po,
+            status: cachedStatus.status,
+            approved_at: cachedStatus.approved_at,
+            approved_by: cachedStatus.approved_by,
+            last_sync: new Date().toISOString()
+          };
+        }
+        
+        return po;
+      });
+
+      return syncedData;
+    } catch (error) {
+      console.error('Error syncing PO approval status:', error);
+      return poData;
+    }
+  };
+
   useEffect(() => {
     fetchPurchaseOrders();
   }, [refreshTrigger, currentPage, statusFilter, dateFilter]);
+
+  // Listen for approval status changes from Approval Dashboard
+  useEffect(() => {
+    const handleApprovalStatusChange = () => {
+      console.log('[PO OFFICIAL SYNC] Approval status change detected, refreshing PO data...');
+      fetchPurchaseOrders();
+    };
+
+    // Listen for storage changes (cross-tab sync)
+    window.addEventListener('storage', handleApprovalStatusChange);
+    
+    // Listen for same-tab approval changes
+    const handleManualStatusChange = (event) => {
+      if (event.detail) {
+        console.log('[PO OFFICIAL SYNC] Manual approval status change detected, refreshing PO data...');
+        fetchPurchaseOrders();
+      }
+    };
+    
+    window.addEventListener('approvalStatusChanged', handleManualStatusChange);
+
+    return () => {
+      window.removeEventListener('storage', handleApprovalStatusChange);
+      window.removeEventListener('approvalStatusChanged', handleManualStatusChange);
+    };
+  }, []);
 
   const fetchPurchaseOrders = async () => {
     try {
@@ -51,7 +131,11 @@ const PurchaseOrderManagement = ({ onCreateNew, refreshTrigger = 0 }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setPurchaseOrders(data.orders || data.purchaseOrders || data || []);
+        const poData = data.orders || data.purchaseOrders || data.data || [];
+        
+        // Sync PO status with approval status from cache
+        const syncedPOData = syncPOApprovalStatus(poData);
+        setPurchaseOrders(syncedPOData);
         setTotalPages(data.totalPages || 1);
       } else {
         console.error('Failed to fetch purchase orders');
@@ -92,18 +176,23 @@ const PurchaseOrderManagement = ({ onCreateNew, refreshTrigger = 0 }) => {
         color: 'bg-gray-100 text-gray-800',
         icon: FileText
       },
+      'under_review': { 
+        label: 'Diperiksa', 
+        color: 'bg-blue-100 text-blue-800',
+        icon: Eye
+      },
       'pending': { 
-        label: 'Pending', 
+        label: 'Menunggu', 
         color: 'bg-yellow-100 text-yellow-800',
         icon: Clock
       },
       'approved': { 
-        label: 'Approved', 
+        label: 'Disetujui', 
         color: 'bg-green-100 text-green-800',
         icon: CheckCircle
       },
       'rejected': { 
-        label: 'Rejected', 
+        label: 'Ditolak', 
         color: 'bg-red-100 text-red-800',
         icon: XCircle
       },
@@ -111,10 +200,30 @@ const PurchaseOrderManagement = ({ onCreateNew, refreshTrigger = 0 }) => {
         label: 'Delivered', 
         color: 'bg-blue-100 text-blue-800',
         icon: CheckCircle
+      },
+      'sent': { 
+        label: 'Dikirim', 
+        color: 'bg-purple-100 text-purple-800',
+        icon: FileText
+      },
+      'received': { 
+        label: 'Diterima', 
+        color: 'bg-indigo-100 text-indigo-800',
+        icon: CheckCircle
+      },
+      'completed': { 
+        label: 'Selesai', 
+        color: 'bg-green-100 text-green-800',
+        icon: CheckCircle
+      },
+      'cancelled': { 
+        label: 'Dibatalkan', 
+        color: 'bg-red-100 text-red-800',
+        icon: XCircle
       }
     };
     return statusMap[status] || { 
-      label: status, 
+      label: status || 'Unknown', 
       color: 'bg-gray-100 text-gray-800',
       icon: AlertTriangle
     };

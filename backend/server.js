@@ -20,7 +20,7 @@ if (fs.existsSync(envFile)) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
 // Logging setup
@@ -97,7 +97,11 @@ app.use(limiter);
 // CORS configuration with environment-based origins
 const corsOptions = isProduction 
   ? {
-      origin: [process.env.CORS_ORIGIN].filter(Boolean),
+      origin: [
+        'https://nusantaragroup.co',
+        'https://www.nusantaragroup.co',
+        'http://localhost:3000'
+      ].filter(Boolean),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
@@ -230,6 +234,7 @@ app.use('/api/reports', require('./routes/financialReports'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));
+app.use('/api/approval', require('./routes/enhancedApproval'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/database', require('./routes/database'));

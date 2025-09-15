@@ -23,7 +23,7 @@ const getApiUrl = () => {
   }
 
   // PRIORITAS 3: Development fallback
-  console.log('🏠 Development fallback - using localhost');
+  console.log('🏠 Development fallback - using localhost:5000');
   return 'http://localhost:5000/api';
 };
 

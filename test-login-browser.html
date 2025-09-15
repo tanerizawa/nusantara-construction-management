@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login Frontend API</title>
+</head>
+<body>
+    <h1>Test Login dari Browser</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.text();
+                result.innerHTML = `<h3>Status: ${response.status}</h3><pre>${data}</pre>`;
+                
+                console.log('Response:', response);
+                console.log('Data:', data);
+            } catch (error) {
+                result.innerHTML = `<h3>Error:</h3><pre>${error.message}</pre>`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

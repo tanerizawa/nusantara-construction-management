@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RAB Debug Test</title>
+</head>
+<body>
+    <h1>RAB Debug Test Page</h1>
+    <p>Buka browser console dan navigasi ke:</p>
+    <ul>
+        <li><a href="https://nusantaragroup.co/login" target="_blank">Login Page</a></li>
+        <li><a href="https://nusantaragroup.co/projects/PRJ-2025-001" target="_blank">Project Detail - PRJ-2025-001</a></li>
+    </ul>
+    
+    <h2>Expected Console Logs:</h2>
+    <pre>
+=== PROJECT DETAIL RAB TAB RENDERED ===
+Project ID: PRJ-2025-001
+Project Object: {id: "PRJ-2025-001", name: "...", ...}
+=== ProjectRABWorkflow COMPONENT LOADED ===
+Received projectId: PRJ-2025-001
+📡 Making API call to get RAB items...
+🚀 RAB Workflow Response status: 200
+🚀 RAB Workflow Result data: [...]
+    </pre>
+    
+    <h2>Test Steps:</h2>
+    <ol>
+        <li>Login dengan admin/admin123</li>
+        <li>Navigate ke project detail</li>
+        <li>Klik tab "RAB & BOQ"</li>
+        <li>Cek console untuk debug logs</li>
+        <li>Cek apakah button "Tambah Item RAB" muncul</li>
+        <li>Cek apakah data RAB existing muncul di tabel</li>
+    </ol>
+    
+    <script>
+        console.log('Debug page loaded. Ready for testing...');
+    </script>
+</body>
+</html>

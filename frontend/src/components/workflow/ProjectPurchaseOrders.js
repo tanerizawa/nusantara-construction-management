@@ -313,7 +313,7 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">Purchase Order - Material Procurement</h2>
-          <p className="text-gray-600">Pilih material dari RAB yang sudah disetujui untuk {project.name}</p>
+          <p className="text-gray-600">Pilih material dari RAB yang sudah disetujui untuk {projectName || 'proyek ini'}</p>
         </div>
         <div className="flex items-center space-x-3">
           {currentView !== 'rab-selection' && (

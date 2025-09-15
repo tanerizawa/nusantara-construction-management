@@ -7,7 +7,7 @@ const getApiUrl = () => {
     return '/api';
   }
   
-  // For localhost development
+  // For localhost development - use port 5000 for development backend
   return 'http://localhost:5000/api';
 };
 

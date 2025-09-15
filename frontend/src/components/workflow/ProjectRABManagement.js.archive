@@ -19,6 +19,7 @@ import {
   Hash,
   MessageCircle
 } from 'lucide-react';
+import apiService from '../../services/api';
 
 const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
   const [rabItems, setRABItems] = useState([]);
@@ -28,6 +29,8 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   console.log('=== COMPONENT RENDER ===');
   console.log('Current showAddForm state:', showAddForm);
+  console.log('ProjectRABManagement received projectId:', projectId);
+  console.log('ProjectRABManagement received project:', project);
   const [editingItem, setEditingItem] = useState(null);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -77,65 +80,106 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
   const fetchRABItems = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('=== FETCHING RAB ITEMS ===');
+      console.log('ProjectId:', projectId);
       
-      // Direct database query untuk development
-      const response = await fetch(`/api/database/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query: `
-            SELECT 
-              id, "projectId" as project_id, category, description as item_name, 
-              description, unit, quantity, "unitPrice" as unit_price, 
-              "totalPrice" as subtotal, notes, "isApproved" as is_approved, 
-              "approvedBy" as approved_by, "approvedAt" as approved_date, 
-              "createdAt" as created_at, "updatedAt" as updated_at
-            FROM project_rab 
-            WHERE "projectId" = $1 
-            ORDER BY category, description
-          `,
-          params: [projectId]
-        })
-      });
+      // Check authentication
+      const token = localStorage.getItem('token');
+      console.log('🔐 Auth token available:', !!token);
+      console.log('🔐 Token preview:', token ? token.substring(0, 30) + '...' : 'No token');
+      
+      if (!token) {
+        console.error('❌ No authentication token found!');
+        alert('Authentication required. Please login again.');
+        return;
+      }
+      
+      if (!projectId) {
+        console.error('No projectId provided!');
+        setRABItems([]);
+        setFilteredItems([]);
+        return;
+      }
+      
+      console.log('🌐 API Base URL:', apiService.defaults?.baseURL || 'Not set');
+      
+      // Use correct RAB endpoint
+      const response = await apiService.get(`/projects/${projectId}/rab`);
 
-      if (response.ok) {
-        const result = await response.json();
-        const items = result.data || [];
-        
-        // Transform data to match frontend expectations
-        const transformedItems = items.map(item => ({
-          ...item,
-          totalPrice: item.subtotal,
-          isApproved: item.is_approved,
-          approvedBy: item.approved_by,
-          approvedDate: item.approved_date,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-          status: item.is_approved ? 'approved' : 'pending'
-        }));
+      console.log('🚀 API Response:', response);
+      console.log('🚀 Response status:', response.status);
+      console.log('🚀 Response data:', response.data);
+      const result = response.data;
+      console.log('Result data:', result);
+      const items = result.data || result || [];
+      console.log('RAB Items found:', items.length, items);
+      
+      // Transform data to match frontend expectations
+      const transformedItems = items.map(item => ({
+        id: item.id,
+        projectId: item.projectId,
+        category: item.category,
+        item_name: item.description,
+        description: item.description,
+        unit: item.unit,
+        quantity: parseFloat(item.quantity),
+        unit_price: parseFloat(item.unitPrice),
+        totalPrice: parseFloat(item.totalPrice),
+        subtotal: parseFloat(item.totalPrice),
+        notes: item.notes || '',
+        isApproved: item.isApproved,
+        is_approved: item.isApproved,
+        approvedBy: item.approvedBy,
+        approved_by: item.approvedBy,
+        approvedDate: item.approvedAt,
+        approved_date: item.approvedAt,
+        createdAt: item.createdAt,
+        created_at: item.createdAt,
+        updatedAt: item.updatedAt,
+        updated_at: item.updatedAt,
+        status: item.isApproved ? 'approved' : 'pending'
+      }));
 
-        setRABItems(transformedItems);
-        setFilteredItems(transformedItems);
+      console.log('🎯 Transformed items:', transformedItems);
+      console.log('🎯 Setting rabItems with', transformedItems.length, 'items');
+      
+      setRABItems(transformedItems);
+      setFilteredItems(transformedItems);
+      
+      // Show alert for debugging
+      if (transformedItems.length > 0) {
+        console.log('✅ SUCCESS: RAB items loaded!', transformedItems);
       } else {
-        throw new Error('Failed to fetch RAB items');
+        console.log('⚠️ WARNING: No RAB items found for project', projectId);
       }
     } catch (error) {
-      console.error('Error fetching RAB items:', error);
+      console.error('❌ ERROR FETCHING RAB ITEMS:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       showNotification('Gagal memuat data RAB: ' + error.message, 'error');
       
       // Fallback: use empty array
       setRABItems([]);
       setFilteredItems([]);
     } finally {
+      console.log('=== FETCH RAB ITEMS COMPLETED ===');
+      console.log('Setting loading to false');
       setLoading(false);
     }
   }, [projectId]);
 
   useEffect(() => {
+    console.log('=== USE EFFECT TRIGGERED ===');
+    console.log('ProjectId in useEffect:', projectId);
     if (projectId) {
+      console.log('Calling fetchRABItems...');
       fetchRABItems();
+    } else {
+      console.log('No projectId provided, skipping fetch');
     }
   }, [projectId, fetchRABItems]);
 
@@ -147,33 +191,53 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
 
   // Filter and search RAB items
   useEffect(() => {
+    console.log('🔍 FILTERING EFFECT TRIGGERED');
+    console.log('rabItems:', rabItems);
+    console.log('rabItems.length:', rabItems.length);
+    
     let filtered = rabItems;
 
     // Filter by category
     if (categoryFilter !== 'all') {
+      console.log('Filtering by category:', categoryFilter);
       filtered = filtered.filter(item => item.category === categoryFilter);
+      console.log('After category filter:', filtered.length);
     }
 
     // Filter by status
     if (statusFilter !== 'all') {
+      console.log('Filtering by status:', statusFilter);
       filtered = filtered.filter(item => {
         if (statusFilter === 'approved') return item.isApproved;
         if (statusFilter === 'pending') return !item.isApproved;
         return true;
       });
+      console.log('After status filter:', filtered.length);
     }
 
     // Search filter
     if (searchTerm) {
+      console.log('Filtering by search term:', searchTerm);
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(item => 
         item.item_name?.toLowerCase().includes(searchLower) ||
         item.description?.toLowerCase().includes(searchLower) ||
         item.category?.toLowerCase().includes(searchLower)
       );
+      console.log('After search filter:', filtered.length);
     }
 
+    console.log('🎯 FINAL FILTERED ITEMS:', filtered);
     setFilteredItems(filtered);
+    
+    // Debug filtered results
+    console.log('=== FILTERING RESULTS ===');
+    console.log('rabItems count:', rabItems.length);
+    console.log('filteredItems count:', filtered.length);
+    console.log('categoryFilter:', categoryFilter);
+    console.log('statusFilter:', statusFilter);
+    console.log('searchTerm:', searchTerm);
+    console.log('filtered data:', filtered);
   }, [rabItems, categoryFilter, statusFilter, searchTerm]);
 
   // Form validation
@@ -198,10 +262,18 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('=== FORM SUBMIT TRIGGERED ===');
+    console.log('Form data:', formData);
+    console.log('Project ID:', projectId);
+    
+    if (!validateForm()) {
+      console.log('Form validation failed');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
+      console.log('Starting form submission...');
 
       const quantity = parseFloat(formData.quantity);
       const unit_price = parseFloat(formData.unit_price);
@@ -209,71 +281,24 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
 
       const rabData = {
         category: formData.category,
-        item_name: formData.item_name,
-        description: formData.description || '',
+        description: formData.item_name || formData.description,
         unit: formData.unit,
         quantity: quantity,
-        unit_price: unit_price,
-        subtotal: subtotal,
+        unitPrice: unit_price,
+        totalPrice: subtotal,
         notes: formData.notes || ''
       };
 
       if (editingItem) {
         // Update existing item
-        const response = await fetch(`/api/database/query`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            query: `
-              UPDATE project_rab 
-              SET category = $1, description = $2, unit = $3, 
-                  quantity = $4, "unitPrice" = $5, "totalPrice" = $6, notes = $7, "updatedAt" = NOW()
-              WHERE id = $8 AND "projectId" = $9
-              RETURNING *
-            `,
-            params: [
-              rabData.category, rabData.description, rabData.unit,
-              rabData.quantity, rabData.unit_price, rabData.subtotal, rabData.notes,
-              editingItem.id, projectId
-            ]
-          })
-        });
-
-        if (response.ok) {
-          showNotification('Item RAB berhasil diperbarui!');
-          await fetchRABItems();
-        } else {
-          throw new Error('Gagal memperbarui item RAB');
-        }
+        const response = await apiService.put(`/projects/${projectId}/rab/${editingItem.id}`, rabData);
+        showNotification('Item RAB berhasil diperbarui!');
+        await fetchRABItems();
       } else {
         // Create new item
-        const response = await fetch(`/api/database/query`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            query: `
-              INSERT INTO project_rab 
-              (id, "projectId", category, description, unit, quantity, "unitPrice", "totalPrice", notes, "createdAt", "updatedAt")
-              VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
-              RETURNING *
-            `,
-            params: [
-              projectId, rabData.category, rabData.description, 
-              rabData.unit, rabData.quantity, rabData.unit_price, rabData.subtotal, rabData.notes
-            ]
-          })
-        });
-
-        if (response.ok) {
-          showNotification('Item RAB berhasil ditambahkan!');
-          await fetchRABItems();
-        } else {
-          throw new Error('Gagal menambahkan item RAB');
-        }
+        const response = await apiService.post(`/projects/${projectId}/rab`, rabData);
+        showNotification('Item RAB berhasil ditambahkan!');
+        await fetchRABItems();
       }
 
       resetForm();
@@ -323,24 +348,14 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
     if (!confirm('Apakah Anda yakin ingin menghapus item RAB ini?')) return;
 
     try {
-      const response = await fetch(`/api/database/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query: 'DELETE FROM project_rab WHERE id = $1 AND "projectId" = $2',
-          params: [itemId, projectId]
-        })
+      const response = await apiService.post('/database/query', {
+        query: 'DELETE FROM project_rab WHERE id = $1 AND "projectId" = $2',
+        params: [itemId, projectId]
       });
 
-      if (response.ok) {
-        showNotification('Item RAB berhasil dihapus!');
-        await fetchRABItems();
-        if (onDataChange) onDataChange();
-      } else {
-        throw new Error('Gagal menghapus item RAB');
-      }
+      showNotification('Item RAB berhasil dihapus!');
+      await fetchRABItems();
+      if (onDataChange) onDataChange();
     } catch (error) {
       console.error('Error deleting RAB item:', error);
       showNotification('Error: ' + error.message, 'error');
@@ -353,19 +368,13 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
       const ids = Array.isArray(itemIds) ? itemIds : [itemIds];
       
       for (const itemId of ids) {
-        await fetch(`/api/database/query`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            query: `
-              UPDATE project_rab 
-              SET "isApproved" = true, "approvedBy" = $1, "approvedAt" = NOW(), "updatedAt" = NOW()
-              WHERE id = $2 AND "projectId" = $3
-            `,
-            params: ['current_user', itemId, projectId]
-          })
+        await apiService.post('/database/query', {
+          query: `
+            UPDATE project_rab 
+            SET "isApproved" = true, "approvedBy" = $1, "approvedAt" = NOW(), "updatedAt" = NOW()
+            WHERE id = $2 AND "projectId" = $3
+          `,
+          params: ['current_user', itemId, projectId]
         });
       }
 
@@ -381,24 +390,18 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
 
   const handleReject = async (itemId, reason = '') => {
     try {
-      await fetch(`/api/database/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query: `
-            UPDATE project_rab 
-            SET "isApproved" = false, "approvedBy" = null, "approvedAt" = null, 
-                notes = COALESCE(notes, '') || $1, "updatedAt" = NOW()
-            WHERE id = $2 AND "projectId" = $3
-          `,
-          params: [
-            reason ? `\nDitolak: ${reason}` : '\nDitolak tanpa alasan',
-            itemId, 
-            projectId
-          ]
-        })
+      await apiService.post('/database/query', {
+        query: `
+          UPDATE project_rab 
+          SET "isApproved" = false, "approvedBy" = null, "approvedAt" = null, 
+              notes = COALESCE(notes, '') || $1, "updatedAt" = NOW()
+          WHERE id = $2 AND "projectId" = $3
+        `,
+        params: [
+          reason ? `\nDitolak: ${reason}` : '\nDitolak tanpa alasan',
+          itemId, 
+          projectId
+        ]
       });
 
       showNotification('Item RAB berhasil ditolak!');
@@ -413,19 +416,13 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
   // Add notes to item
   const handleAddNotes = async (itemId, notes) => {
     try {
-      await fetch(`/api/database/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          query: `
-            UPDATE project_rab 
-            SET notes = COALESCE(notes, '') || $1, "updatedAt" = NOW()
-            WHERE id = $2 AND "projectId" = $3
-          `,
-          params: [`\n[${new Date().toLocaleString()}] ${notes}`, itemId, projectId]
-        })
+      await apiService.post('/database/query', {
+        query: `
+          UPDATE project_rab 
+          SET notes = COALESCE(notes, '') || $1, "updatedAt" = NOW()
+          WHERE id = $2 AND "projectId" = $3
+        `,
+        params: [`\n[${new Date().toLocaleString()}] ${notes}`, itemId, projectId]
       });
 
       showNotification('Catatan berhasil ditambahkan!');
@@ -910,17 +907,42 @@ const ProjectRABManagement = ({ projectId, project, onDataChange }) => {
           )}
         </div>
 
-        {filteredItems.length === 0 ? (
+        {/* Debug information */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h4 className="text-sm font-medium text-blue-800 mb-2">RAB Debug Info:</h4>
+          <div className="text-sm text-blue-700">
+            <p>Project ID: {projectId}</p>
+            <p>RAB Items: {rabItems.length}</p>
+            <p>Filtered Items: {filteredItems.length}</p>
+            <p>Loading: {loading ? 'Yes' : 'No'}</p>
+            <p>Category Filter: {categoryFilter}</p>
+            <p>Status Filter: {statusFilter}</p>
+            <p>Search Term: "{searchTerm}"</p>
+            {rabItems.length > 0 && (
+              <p>Sample Item: {JSON.stringify(rabItems[0], null, 2)}</p>
+            )}
+          </div>
+        </div>
+
+        {filteredItems.length === 0 && !loading ? (
           <div className="text-center py-12">
             <Calculator className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Belum Ada Item RAB</h3>
-            <p className="text-gray-600 mb-4">Mulai dengan menambahkan item RAB pertama</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Data RAB sedang dimuat...</h3>
+            <p className="text-gray-600 mb-4">Silakan tunggu atau refresh halaman</p>
             <button
-              onClick={() => setShowAddForm(true)}
+              onClick={() => {
+                console.log('Manual refresh triggered');
+                fetchRABItems();
+              }}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
-              Tambah Item RAB
+              Refresh Data
             </button>
+          </div>
+        ) : filteredItems.length === 0 && loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Memuat data RAB...</h3>
           </div>
         ) : (
           <div className="overflow-x-auto">

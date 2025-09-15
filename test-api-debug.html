@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API URL Debug Test</title>
+</head>
+<body>
+    <h1>API URL Configuration Test</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        console.log('🔍 Debug Information:');
+        console.log('Current hostname:', window.location.hostname);
+        console.log('Current href:', window.location.href);
+        console.log('Environment check for nusantaragroup:', window.location.hostname.includes('nusantaragroup'));
+        
+        // Simulate the same logic as config.js
+        const getApiUrl = () => {
+          const hostname = window.location.hostname;
+          if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+            console.log('🌐 Production mode detected - using Apache proxy');
+            return '/api';
+          }
+          console.log('🏠 Development fallback - using localhost:5000');
+          return 'http://localhost:5000/api';
+        };
+        
+        const apiUrl = getApiUrl();
+        console.log('Computed API URL:', apiUrl);
+        
+        // Test API endpoint
+        async function testApi() {
+            const loginUrl = `${apiUrl}/auth/login`;
+            console.log('🔗 Testing login URL:', loginUrl);
+            
+            try {
+                const response = await fetch(loginUrl, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                console.log('✅ OPTIONS request successful:', response.status);
+            } catch (error) {
+                console.error('❌ OPTIONS request failed:', error);
+            }
+        }
+        
+        document.getElementById('debug-info').innerHTML = `
+            <p><strong>Hostname:</strong> ${window.location.hostname}</p>
+            <p><strong>API URL:</strong> ${apiUrl}</p>
+            <p><strong>Full Login URL:</strong> ${apiUrl}/auth/login</p>
+            <p><strong>Production Detection:</strong> ${window.location.hostname.includes('nusantaragroup')}</p>
+        `;
+        
+        // Test API after 1 second
+        setTimeout(testApi, 1000);
+    </script>
+</body>
+</html>

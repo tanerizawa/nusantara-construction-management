@@ -18,6 +18,7 @@ import {
   Download,
   ArrowLeft
 } from 'lucide-react';
+import apiService from '../../services/api';
 
 const ProjectApprovalStatus = ({ projectId, project, userDetails, onDataChange }) => {
   const [approvals, setApprovals] = useState([]);
@@ -31,7 +32,12 @@ const ProjectApprovalStatus = ({ projectId, project, userDetails, onDataChange }
   const [currentView, setCurrentView] = useState('approval-list'); // 'approval-list' or 'po-official'
   const [selectedPOData, setSelectedPOData] = useState(null);
 
-  // Sample data for testing
+  console.log('=== ProjectApprovalStatus Component ===');
+  console.log('ProjectId received:', projectId);
+  console.log('Project received:', project);
+
+  // Sample data for testing - DISABLED: now using real data from database
+  /*
   const sampleApprovalData = [
     {
       id: 'APR-001',
@@ -189,6 +195,7 @@ const ProjectApprovalStatus = ({ projectId, project, userDetails, onDataChange }
       ]
     }
   ];
+  */
 
   // Helper functions
   const formatCurrency = (amount) => {
@@ -527,7 +534,7 @@ const ProjectApprovalStatus = ({ projectId, project, userDetails, onDataChange }
   };
 
   // Filter and search logic
-  const filteredData = sampleApprovalData.filter(item => {
+  const filteredData = approvals.filter(item => {
     const matchesFilter = filter === 'all' || item.status === filter;
     const matchesSearch = searchTerm === '' || 
       (item.projectName || item.project_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -542,12 +549,140 @@ const ProjectApprovalStatus = ({ projectId, project, userDetails, onDataChange }
     setError(null);
     
     try {
-      // Simulate API call - replace with real implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setApprovals(sampleApprovalData);
+      console.log('=== LOADING APPROVAL DATA ===');
+      console.log('ProjectId:', projectId);
+      
+      // Debug: Check API service configuration
+      console.log('API Service base URL:', apiService.defaults?.baseURL);
+      console.log('Token available:', !!localStorage.getItem('token'));
+      
+      // Fetch purchase orders for this specific project
+      const response = await apiService.post('/database/query', {
+        query: `
+          SELECT 
+            po.id,
+            po.po_number,
+            po.supplier_name,
+            po.supplier_id,
+            po.status,
+            po.total_amount,
+            po.order_date,
+            po.expected_delivery_date,
+            po.approved_by,
+            po.approved_at,
+            po.created_by,
+            po.delivery_address,
+            po.notes,
+            po.items,
+            p.name as project_name
+          FROM purchase_orders po
+          LEFT JOIN projects p ON po.project_id = p.id
+          WHERE po.project_id = $1
+          ORDER BY po.order_date DESC
+        `,
+        params: [projectId]
+      });
+
+      console.log('API Response:', response);
+      
+      const result = response.data;
+      const purchaseOrders = result.data || [];
+      
+      console.log('Purchase Orders found:', purchaseOrders.length, purchaseOrders);
+      
+      // Transform data to match component expectations
+      const transformedApprovals = purchaseOrders.map(po => ({
+        id: `APR-${po.id}`,
+        projectName: po.project_name,
+        project_name: po.project_name,
+        poNumber: po.po_number,
+        po_number: po.po_number,
+        supplierName: po.supplier_name,
+        supplier_name: po.supplier_name,
+        supplierId: po.supplier_id,
+        supplier_id: po.supplier_id,
+        totalAmount: parseFloat(po.total_amount),
+        total_amount: parseFloat(po.total_amount),
+        status: po.status,
+        createdAt: po.order_date,
+        created_at: po.order_date,
+        approvedAt: po.approved_at,
+        approved_at: po.approved_at,
+        approvedBy: po.approved_by,
+        approved_by: po.approved_by,
+        createdBy: po.created_by,
+        created_by: po.created_by,
+        deliveryAddress: po.delivery_address,
+        delivery_address: po.delivery_address,
+        expectedDeliveryDate: po.expected_delivery_date,
+        expected_delivery_date: po.expected_delivery_date,
+        projectId: projectId,
+        project_id: projectId,
+        notes: po.notes,
+        items: Array.isArray(po.items) ? po.items : []
+      }));
+
+      console.log('Transformed approvals:', transformedApprovals);
+      setApprovals(transformedApprovals);
     } catch (error) {
       console.error('Error loading approval data:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       setError('Gagal memuat data approval. Silakan coba lagi.');
+      
+      // FOR DEBUGGING: Set some sample data if API fails
+      if (projectId === 'PRJ-2025-001') {
+        console.log('Setting sample data for debugging...');
+        setApprovals([
+          {
+            id: 'APR-DEBUG-001',
+            projectName: 'Pembangunan Pabrik Otomotif Karawang',
+            project_name: 'Pembangunan Pabrik Otomotif Karawang',
+            poNumber: 'PO-2025-001-BETON',
+            po_number: 'PO-2025-001-BETON',
+            supplierName: 'PT. Holcim Beton',
+            supplier_name: 'PT. Holcim Beton',
+            supplierId: 'SUP-001',
+            supplier_id: 'SUP-001',
+            totalAmount: 666000000,
+            total_amount: 666000000,
+            status: 'draft',
+            createdAt: '2025-09-14T00:00:00.000Z',
+            created_at: '2025-09-14T00:00:00.000Z',
+            approvedAt: null,
+            approved_at: null,
+            approvedBy: null,
+            approved_by: null,
+            createdBy: null,
+            created_by: null,
+            deliveryAddress: 'Kawasan Industri Karawang, Blok A-15',
+            delivery_address: 'Kawasan Industri Karawang, Blok A-15',
+            expectedDeliveryDate: '2025-10-15T00:00:00.000Z',
+            expected_delivery_date: '2025-10-15T00:00:00.000Z',
+            projectId: projectId,
+            project_id: projectId,
+            notes: 'Untuk fase pondasi tahap 1',
+            items: [
+              {
+                name: 'Beton Ready Mix K-350',
+                item_name: 'Beton Ready Mix K-350',
+                description: 'Beton untuk pondasi',
+                quantity: 500,
+                unit: 'M3',
+                unitPrice: 1200000,
+                unit_price: 1200000,
+                totalAmount: 600000000,
+                total_amount: 600000000
+              }
+            ]
+          }
+        ]);
+      } else {
+        setApprovals([]);
+      }
     } finally {
       setLoading(false);
     }

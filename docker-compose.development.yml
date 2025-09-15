@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Frontend Development - Full hot reload
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    container_name: nusantara-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      REACT_APP_API_URL: http://localhost:5001/api
+      REACT_APP_ENV: development
+      GENERATE_SOURCEMAP: true
+      FAST_REFRESH: true
+      WDS_SOCKET_HOST: localhost
+      WDS_SOCKET_PORT: 3001
+    ports:
+      - "127.0.0.1:3001:3000"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - /app/node_modules
+    networks:
+      - dev-net
+      - yk-dev-network
+
+  # Backend Development - Hot reload dengan nodemon
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    container_name: nusantara-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DB_HOST: yk-postgres-dev
+      DB_PORT: 5432
+      DB_NAME: nusantara_construction
+      DB_USERNAME: admin
+      DB_PASSWORD: admin123
+      JWT_SECRET: nusantara_jwt_secret_2024_construction_management_system
+      PORT: 5000
+      CORS_ORIGIN: http://localhost:3001
+      # Full development features
+      DEBUG: "*"
+      LOG_LEVEL: debug
+      ENABLE_LOGGING: true
+    ports:
+      - "127.0.0.1:5001:5000"
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+      - ./reports:/app/reports
+      - /app/node_modules
+    networks:
+      - dev-net
+      - yk-dev-network
+
+networks:
+  dev-net:
+    driver: bridge
+  yk-dev-network:
+    external: true
+    name: app-yk_yk-dev-network

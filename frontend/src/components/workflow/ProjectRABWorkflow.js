@@ -6,7 +6,6 @@ import {
   CheckCircle, 
   Clock, 
   AlertTriangle,
-  Send,
   Edit,
   Trash2,
   Download,
@@ -15,6 +14,11 @@ import {
 } from 'lucide-react';
 
 const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
+  console.log('=== ProjectRABWorkflow COMPONENT LOADED ===');
+  console.log('Received projectId:', projectId);
+  console.log('Received project:', project);
+  console.log('onDataChange function:', typeof onDataChange);
+  
   const [rabItems, setRABItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -41,67 +45,112 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     try {
       setLoading(true);
       
-      // Fetch RAB items and approval status
-      const [rabResponse, approvalResponse] = await Promise.allSettled([
-        fetch(`/api/projects/${projectId}/rab`),
-        fetch(`/api/approval/rab/${projectId}/status`)
-      ]);
-
-      if (rabResponse.status === 'fulfilled') {
-        const rabData = await rabResponse.value.json();
-        setRABItems(rabData.data || []);
-      } else {
-        // Demo data if API not available
-        setRABItems([
-          {
-            id: 1,
-            category: 'Material',
-            description: 'Semen Portland Type I',
-            unit: 'zak',
-            quantity: 100,
-            unitPrice: 75000,
-            total: 7500000,
-            specifications: 'Semen Portland Type I, merk Tiga Roda atau setara',
-            status: 'draft',
-            isApproved: false,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: 2,
-            category: 'Material',
-            description: 'Besi Beton Ulir 12mm',
-            unit: 'kg',
-            quantity: 500,
-            unitPrice: 15000,
-            total: 7500000,
-            specifications: 'Besi beton ulir SNI, diameter 12mm',
-            status: 'draft',
-            isApproved: false,
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: 3,
-            category: 'Tenaga Kerja',
-            description: 'Mandor',
-            unit: 'hari',
-            quantity: 30,
-            unitPrice: 150000,
-            total: 4500000,
-            specifications: 'Mandor berpengalaman min. 5 tahun',
-            status: 'draft',
-            isApproved: true,
-            createdAt: new Date().toISOString()
-          }
-        ]);
+      if (!projectId) {
+        setRABItems([]);
+        return;
       }
 
-      if (approvalResponse.status === 'fulfilled') {
-        const approvalData = await approvalResponse.value.json();
-        setApprovalStatus(approvalData.data);
+      // Check authentication token
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        setRABItems([]);
+        return;
       }
+
+      // Use correct RAB endpoint
+      console.log('📡 Making API call to get RAB items...');
+      console.log('📡 Project ID:', projectId);
+      
+      const response = await fetch(`/api/projects/${projectId}/rab`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('� RAB Workflow Response status:', response.status);
+      console.log('🚀 RAB Workflow Response ok:', response.ok);
+      
+      const result = await response.json();
+      console.log('🚀 RAB Workflow Full result:', result);
+      console.log('🚀 RAB Workflow Result data:', result.data);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${result.message || 'API Error'}`);
+      }
+      
+      if (!result.success) {
+        throw new Error(`Database Error: ${result.message}`);
+      }
+      
+      const items = result.data || [];
+      console.log('RAB Workflow Items found:', items.length, items);
+      
+      if (items.length === 0) {
+        console.log('⚠️ No RAB items found for project:', projectId);
+        setRABItems([]);
+        setApprovalStatus(null);
+        return;
+      }
+      
+      // Transform data to match component expectations
+      const transformedItems = items.map((item, index) => {
+        console.log(`🔄 Transforming item ${index + 1}:`, item);
+        
+        const transformed = {
+          id: item.id,
+          category: item.category || 'Unknown',
+          description: item.description || 'No description',
+          unit: item.unit || 'Unit',
+          quantity: parseFloat(item.quantity) || 0,
+          unitPrice: parseFloat(item.unitPrice) || 0,
+          total: parseFloat(item.totalPrice) || 0,
+          totalPrice: parseFloat(item.totalPrice) || 0,
+          specifications: item.notes || '',
+          status: item.isApproved ? 'approved' : 'draft',
+          isApproved: item.isApproved || false,
+          approvedBy: item.approvedBy,
+          approvedAt: item.approvedAt,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt
+        };
+        
+        console.log(`✅ Transformed item ${index + 1}:`, transformed);
+        return transformed;
+      });
+
+      console.log('🎯 Final transformed items count:', transformedItems.length);
+      console.log('🎯 Setting state with items:', transformedItems);
+      
+      setRABItems(transformedItems);
+      
+      // Force re-render check
+      setTimeout(() => {
+        console.log('🔍 State check after update - rabItems.length:', transformedItems.length);
+      }, 100);
+      
+      // Simplified approval status - only 'draft' or 'approved'
+      const totalItems = transformedItems.length;
+      
+      // Check if RAB is approved from project data or first item status
+      const isRabApproved = project?.rab_approved || 
+                           (transformedItems.length > 0 && transformedItems[0].rab_approved);
+      
+      setApprovalStatus({
+        status: isRabApproved ? 'approved' : 'draft',
+        totalItems: totalItems,
+        canAddItems: !isRabApproved && totalItems >= 0
+      });
 
     } catch (error) {
-      console.error('Error fetching RAB data:', error);
+      console.error('❌ RAB Workflow Error:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+      setRABItems([]);
+      setApprovalStatus(null);
     } finally {
       setLoading(false);
     }
@@ -147,17 +196,16 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     
     try {
       const newItem = {
-        ...formData,
+        category: formData.category,
+        description: formData.description,
+        unit: formData.unit,
         quantity: parseFloat(formData.quantity),
         unitPrice: parseFloat(formData.unitPrice),
-        total: parseFloat(formData.quantity) * parseFloat(formData.unitPrice),
-        projectId: projectId,
-        status: 'draft',
-        isApproved: false,
-        createdAt: new Date().toISOString()
+        totalPrice: parseFloat(formData.quantity) * parseFloat(formData.unitPrice),
+        notes: formData.specifications || ''
       };
 
-      // In a real app, this would be an API call
+      // API call to backend
       const response = await fetch(`/api/projects/${projectId}/rab`, {
         method: editingItem ? 'PUT' : 'POST',
         headers: {
@@ -168,23 +216,24 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ RAB item saved successfully:', result);
+        
+        // Refresh data from server
+        await fetchRABData();
+        
+        // Show success notification
         if (editingItem) {
-          // Update existing item
-          setRABItems(rabItems.map(item => 
-            item.id === editingItem.id ? { ...newItem, id: editingItem.id } : item
-          ));
-          // Show success notification
           showNotification('Item RAB berhasil diperbarui!', 'success');
         } else {
-          // Add new item
-          setRABItems([...rabItems, { ...newItem, id: Date.now() }]);
-          // Show success notification
           showNotification('Item RAB berhasil ditambahkan!', 'success');
         }
+        
         resetForm();
         if (onDataChange) onDataChange();
       } else {
-        throw new Error('Failed to save RAB item');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to save RAB item');
       }
     } catch (error) {
       console.error('Error saving RAB item:', error);
@@ -267,24 +316,41 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     setIsSubmitting(false);
   };
 
-  const handleSubmitForApproval = async () => {
+  // Simplified approval function
+  const handleApproveRAB = async () => {
+    if (rabItems.length === 0) {
+      alert('Tidak ada item RAB untuk diapprove');
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/approval/rab/${projectId}/submit`, {
-        method: 'POST',
+      setIsSubmitting(true);
+      
+      const response = await fetch(`/api/rab/${projectId}/approve`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        body: JSON.stringify({
+          approved: true,
+          approved_at: new Date().toISOString(),
+          approved_by: 'current_user' // This should be actual user data
+        })
       });
 
       if (response.ok) {
         await fetchRABData();
         if (onDataChange) onDataChange();
-        alert('RAB berhasil disubmit untuk approval');
+        alert('RAB berhasil diapprove!');
+      } else {
+        throw new Error('Failed to approve RAB');
       }
     } catch (error) {
-      console.error('Error submitting RAB:', error);
-      alert('Gagal submit RAB untuk approval');
+      console.error('Error approving RAB:', error);
+      alert('Gagal approve RAB. Silakan coba lagi.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -310,6 +376,16 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
 
   return (
     <div className="space-y-6">
+      {/* DEBUG INDICATOR */}
+      <div className="bg-yellow-100 border border-yellow-400 p-4 rounded">
+        <h3 className="font-bold text-yellow-800">🔧 DEBUG INFO</h3>
+        <p>Component: ProjectRABWorkflow LOADED ✅</p>
+        <p>Project ID: {projectId || 'NOT PROVIDED'}</p>
+        <p>Project Name: {project?.name || 'NOT LOADED'}</p>
+        <p>RAB Items Count: {rabItems.length}</p>
+        <p>Loading State: {loading ? 'TRUE' : 'FALSE'}</p>
+        <p>Show Add Form: {showAddForm ? 'TRUE' : 'FALSE'}</p>
+      </div>
       {/* Notification */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
@@ -340,26 +416,31 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
           {approvalStatus && (
             <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${
               approvalStatus.status === 'approved' ? 'bg-green-100 text-green-800' :
-              approvalStatus.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-              approvalStatus.status === 'rejected' ? 'bg-red-100 text-red-800' :
               'bg-gray-100 text-gray-800'
             }`}>
               {approvalStatus.status === 'approved' && <CheckCircle className="h-4 w-4 mr-1" />}
-              {approvalStatus.status === 'pending' && <Clock className="h-4 w-4 mr-1" />}
-              {approvalStatus.status === 'rejected' && <AlertTriangle className="h-4 w-4 mr-1" />}
-              {approvalStatus.status === 'approved' ? 'Disetujui' :
-               approvalStatus.status === 'pending' ? 'Menunggu Approval' :
-               approvalStatus.status === 'rejected' ? 'Ditolak' : 'Draft'}
+              {approvalStatus.status === 'draft' && <Clock className="h-4 w-4 mr-1" />}
+              {approvalStatus.status === 'approved' ? 'Disetujui' : 'Draft'}
             </div>
           )}
 
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Item RAB
-          </button>
+          {/* Add Item Button - Only show if not approved */}
+          {approvalStatus?.canAddItems && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Item RAB
+            </button>
+          )}
+          
+          {/* Show message when RAB is approved */}
+          {approvalStatus?.status === 'approved' && (
+            <div className="text-sm text-gray-500 italic">
+              RAB telah disetujui - tidak dapat menambah item baru
+            </div>
+          )}
         </div>
       </div>
 
@@ -394,6 +475,146 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">Daftar Item RAB</h3>
         </div>
+        
+        {/* Inline Add Form - Show above table when showAddForm is true */}
+        {showAddForm && (
+          <div className="px-6 py-4 bg-blue-50 border-b border-blue-200">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-md font-medium text-blue-900">Tambah Item RAB Baru</h4>
+              <button
+                onClick={() => {
+                  setShowAddForm(false);
+                  setEditingItem(null);
+                  setFormData({
+                    category: '',
+                    description: '',
+                    unit: '',
+                    quantity: 0,
+                    unitPrice: 0,
+                    specifications: ''
+                  });
+                  setFormErrors({});
+                }}
+                className="text-blue-600 hover:text-blue-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              {/* Kategori */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Pilih Kategori</option>
+                  <option value="Pekerjaan Persiapan">Pekerjaan Persiapan</option>
+                  <option value="Pekerjaan Tanah">Pekerjaan Tanah</option>
+                  <option value="Pekerjaan Pondasi">Pekerjaan Pondasi</option>
+                  <option value="Pekerjaan Struktur">Pekerjaan Struktur</option>
+                  <option value="Pekerjaan Arsitektur">Pekerjaan Arsitektur</option>
+                  <option value="Pekerjaan Atap">Pekerjaan Atap</option>
+                  <option value="Pekerjaan MEP">Pekerjaan MEP</option>
+                  <option value="Pekerjaan Finishing">Pekerjaan Finishing</option>
+                </select>
+                {formErrors.category && <p className="text-red-500 text-xs mt-1">{formErrors.category}</p>}
+              </div>
+
+              {/* Deskripsi */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Deskripsi item"
+                  required
+                />
+                {formErrors.description && <p className="text-red-500 text-xs mt-1">{formErrors.description}</p>}
+              </div>
+
+              {/* Satuan */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                <input
+                  type="text"
+                  value={formData.unit}
+                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="m², kg, unit"
+                  required
+                />
+                {formErrors.unit && <p className="text-red-500 text-xs mt-1">{formErrors.unit}</p>}
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0"
+                  required
+                />
+                {formErrors.quantity && <p className="text-red-500 text-xs mt-1">{formErrors.quantity}</p>}
+              </div>
+
+              {/* Harga Satuan */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Harga Satuan</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.unitPrice}
+                  onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0"
+                  required
+                />
+                {formErrors.unitPrice && <p className="text-red-500 text-xs mt-1">{formErrors.unitPrice}</p>}
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Menyimpan...
+                    </div>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2 inline" />
+                      {editingItem ? 'Update' : 'Simpan'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+            
+            {/* Total Preview */}
+            {formData.quantity && formData.unitPrice && (
+              <div className="mt-3 p-3 bg-white rounded border">
+                <span className="text-sm text-gray-600">Total: </span>
+                <span className="font-medium text-lg text-green-600">
+                  {formatCurrency(parseFloat(formData.quantity || 0) * parseFloat(formData.unitPrice || 0))}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
         
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -489,15 +710,16 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
           </table>
         </div>
 
-        {rabItems.length === 0 && (
+        {rabItems.length === 0 && !loading && (
           <div className="text-center py-12">
             <Calculator className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Belum ada item RAB</h3>
-            <p className="text-gray-600 mb-4">Mulai dengan menambahkan item RAB pertama</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Belum Ada Item RAB</h3>
+            <p className="text-gray-600 mb-4">Silakan tambahkan item RAB untuk memulai</p>
             <button
               onClick={() => setShowAddForm(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
+              <Plus className="h-4 w-4 inline mr-2" />
               Tambah Item RAB
             </button>
           </div>
@@ -544,24 +766,16 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         {/* RAB Statistics */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Statistik RAB</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {rabItems.filter(item => item.isApproved).length}
-              </div>
-              <div className="text-sm text-gray-600">Item Approved</div>
-            </div>
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <div className="text-2xl font-bold text-yellow-600">
-                {rabItems.filter(item => !item.isApproved).length}
-              </div>
-              <div className="text-sm text-gray-600">Item Pending</div>
+              <div className="text-2xl font-bold text-blue-600">{rabItems.length}</div>
+              <div className="text-sm text-gray-600">Total Item</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {((rabItems.filter(item => item.isApproved).length / rabItems.length) * 100 || 0).toFixed(0)}%
+                {approvalStatus?.status === 'approved' ? 'Disetujui' : 'Draft'}
               </div>
-              <div className="text-sm text-gray-600">Approval Rate</div>
+              <div className="text-sm text-gray-600">Status RAB</div>
             </div>
             <div className="text-center p-3 bg-purple-50 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
@@ -578,14 +792,25 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Workflow Actions</h3>
           <div className="flex items-center space-x-4">
-            {!approvalStatus?.submitted && (
+            
+            {/* Simple Approve Button - Only show if not approved */}
+            {approvalStatus?.status === 'draft' && (
               <button
-                onClick={handleSubmitForApproval}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                onClick={handleApproveRAB}
+                disabled={isSubmitting}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
-                <Send className="h-4 w-4 mr-2" />
-                Submit untuk Approval
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {isSubmitting ? 'Mengapprove...' : 'Approve RAB'}
               </button>
+            )}
+            
+            {/* Show approval status if already approved */}
+            {approvalStatus?.status === 'approved' && (
+              <div className="flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                RAB Sudah Disetujui
+              </div>
             )}
             
             <button className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
@@ -630,223 +855,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         </div>
       )}
 
-      {/* Add/Edit RAB Item Form Modal */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-900">
-                {editingItem ? 'Edit Item RAB' : 'Tambah Item RAB'}
-              </h3>
-              <button
-                onClick={resetForm}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddItem} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => {
-                      setFormData({...formData, category: e.target.value});
-                      if (formErrors.category) {
-                        setFormErrors({...formErrors, category: ''});
-                      }
-                    }}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.category ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Pilih Kategori</option>
-                    <option value="Material">Material</option>
-                    <option value="Tenaga Kerja">Tenaga Kerja</option>
-                    <option value="Peralatan">Peralatan</option>
-                    <option value="Subkontraktor">Subkontraktor</option>
-                    <option value="Overhead">Overhead</option>
-                  </select>
-                  {formErrors.category && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Satuan *
-                  </label>
-                  <select
-                    value={formData.unit}
-                    onChange={(e) => {
-                      setFormData({...formData, unit: e.target.value});
-                      if (formErrors.unit) {
-                        setFormErrors({...formErrors, unit: ''});
-                      }
-                    }}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.unit ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Pilih Satuan</option>
-                    <option value="m3">m³ (Meter Kubik)</option>
-                    <option value="m2">m² (Meter Persegi)</option>
-                    <option value="m">m (Meter)</option>
-                    <option value="unit">Unit</option>
-                    <option value="kg">Kg (Kilogram)</option>
-                    <option value="ton">Ton</option>
-                    <option value="ls">LS (Lump Sum)</option>
-                    <option value="hari">Hari</option>
-                    <option value="minggu">Minggu</option>
-                    <option value="bulan">Bulan</option>
-                  </select>
-                  {formErrors.unit && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.unit}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Deskripsi Pekerjaan *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => {
-                    setFormData({...formData, description: e.target.value});
-                    if (formErrors.description) {
-                      setFormErrors({...formErrors, description: ''});
-                    }
-                  }}
-                  rows={3}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    formErrors.description ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Masukkan deskripsi detail pekerjaan (minimal 10 karakter)..."
-                />
-                {formErrors.description && (
-                  <p className="mt-1 text-sm text-red-600">{formErrors.description}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  {formData.description.length}/10 karakter minimum
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Spesifikasi (Opsional)
-                </label>
-                <textarea
-                  value={formData.specifications}
-                  onChange={(e) => setFormData({...formData, specifications: e.target.value})}
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Spesifikasi teknis, merek, kualitas, dll..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quantity *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.quantity}
-                    onChange={(e) => {
-                      setFormData({...formData, quantity: e.target.value});
-                      if (formErrors.quantity) {
-                        setFormErrors({...formErrors, quantity: ''});
-                      }
-                    }}
-                    min="0"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.quantity ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="0.00"
-                  />
-                  {formErrors.quantity && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.quantity}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Harga Satuan (Rp) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.unitPrice}
-                    onChange={(e) => {
-                      setFormData({...formData, unitPrice: e.target.value});
-                      if (formErrors.unitPrice) {
-                        setFormErrors({...formErrors, unitPrice: ''});
-                      }
-                    }}
-                    min="0"
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      formErrors.unitPrice ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="0.00"
-                  />
-                  {formErrors.unitPrice && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.unitPrice}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Total
-                  </label>
-                  <input
-                    type="text"
-                    value={formatCurrency((parseFloat(formData.quantity) || 0) * (parseFloat(formData.unitPrice) || 0))}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 font-medium"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Otomatis dihitung dari quantity × harga satuan
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  disabled={isSubmitting}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {editingItem ? 'Memperbarui...' : 'Menyimpan...'}
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      {editingItem ? 'Update' : 'Simpan'}
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Form is now inline above the table */}
     </div>
   );
 };

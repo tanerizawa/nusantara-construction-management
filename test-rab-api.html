@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test RAB API Fetch</title>
+</head>
+<body>
+    <h1>Test RAB API dari Browser</h1>
+    <button onclick="testRABFetch()">Test Fetch RAB PRJ-2025-010</button>
+    <div id="result"></div>
+
+    <script>
+        async function testRABFetch() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/database/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        query: `SELECT id, "projectId" as project_id, category, description as item_name, description, unit, quantity, "unitPrice" as unit_price, "totalPrice" as subtotal, notes, "isApproved" as is_approved, "approvedBy" as approved_by, "approvedAt" as approved_date, "createdAt" as created_at, "updatedAt" as updated_at FROM project_rab WHERE "projectId" = $1 ORDER BY category, description`,
+                        params: ["PRJ-2025-010"]
+                    })
+                });
+                
+                const data = await response.json();
+                result.innerHTML = `
+                    <h3>Status: ${response.status}</h3>
+                    <h4>Response:</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                console.log('Response:', response);
+                console.log('Data:', data);
+            } catch (error) {
+                result.innerHTML = `<h3>Error:</h3><pre>${error.message}</pre>`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

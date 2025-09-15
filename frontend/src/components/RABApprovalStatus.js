@@ -59,16 +59,29 @@ const RABApprovalStatus = ({ rabId, open, onClose, onSubmitForApproval }) => {
 
   const fetchApprovalStatus = async () => {
     try {
-      const response = await api.get(`/approval/rab/${rabId}/status`);
-      if (response.data.success) {
-        setApprovalStatus(response.data.data);
-      }
-    } catch (error) {
-      if (error.response?.status !== 404) {
-        console.error('Error fetching approval status:', error);
-        setError('Failed to load approval status');
+      // Use enhanced approval status endpoint
+      const response = await fetch(`http://localhost:5000/api/approval/rab/${rabId}/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setApprovalStatus(data.data);
+        }
+      } else if (response.status !== 404) {
+        throw new Error('Failed to load approval status');
       }
       // 404 means no approval process exists yet, which is fine
+      if (response.status === 404) {
+        setApprovalStatus(null);
+      }
+    } catch (error) {
+      console.error('Error fetching approval status:', error);
+      setError('Failed to load approval status');
       setApprovalStatus(null);
     } finally {
       setLoading(false);
@@ -89,19 +102,36 @@ const RABApprovalStatus = ({ rabId, open, onClose, onSubmitForApproval }) => {
   const handleSubmitForApproval = async () => {
     try {
       setSubmitting(true);
-      const response = await api.post(`/approval/rab/${rabId}/submit`);
       
-      if (response.data.success) {
-        setApprovalStatus(response.data.data);
+      // Submit to enhanced approval system
+      const response = await fetch(`http://localhost:5000/api/approval/rab/${rabId}/submit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          workflow_type: 'RAB Construction Standard',
+          priority: 'normal',
+          requested_by: localStorage.getItem('username') || 'system'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setApprovalStatus(data.data);
         if (onSubmitForApproval) {
-          onSubmitForApproval(response.data.data);
+          onSubmitForApproval(data.data);
         }
         // Refresh the status
         await fetchApprovalStatus();
+      } else {
+        throw new Error(data.error || 'Failed to submit for approval');
       }
     } catch (error) {
       console.error('Error submitting for approval:', error);
-      setError(error.response?.data?.error || 'Failed to submit for approval');
+      setError(error.message || 'Failed to submit for approval');
     } finally {
       setSubmitting(false);
     }
@@ -148,8 +178,13 @@ const RABApprovalStatus = ({ rabId, open, onClose, onSubmitForApproval }) => {
         return <Person />;
       case 'site_manager':
         return <Business />;
+      case 'site_engineer':
+        return <Business />;
+      case 'procurement_officer':
+        return <Business />;
       case 'operations_director':
       case 'finance_director':
+      case 'board_member':
       case 'ceo':
         return <AccountBalance />;
       default:
@@ -178,13 +213,29 @@ const RABApprovalStatus = ({ rabId, open, onClose, onSubmitForApproval }) => {
     );
   }
 
-  // Get workflow steps from approval status or default workflow
+  // Get workflow steps from approval status or enhanced construction workflow
   const workflowSteps = approvalStatus?.ApprovalWorkflow?.workflow_steps || [
-    { step: 1, name: "Project Manager Review", role: "project_manager" },
-    { step: 2, name: "Site Manager Approval", role: "site_manager" },
-    { step: 3, name: "Operations Director Approval", role: "operations_director" },
-    { step: 4, name: "Finance Director Approval", role: "finance_director" },
-    { step: 5, name: "CEO Final Approval", role: "ceo" }
+    { 
+      step: 1, 
+      name: "Project Manager Review", 
+      role: "project_manager",
+      conditions: { max_amount: 500000000, technical_validation: true },
+      sla_hours: 24
+    },
+    { 
+      step: 2, 
+      name: "Site Manager Validation", 
+      role: "site_manager",
+      conditions: { max_amount: 1000000000, field_feasibility: true },
+      sla_hours: 48
+    },
+    { 
+      step: 3, 
+      name: "Operations Director Approval", 
+      role: "operations_director",
+      conditions: { max_amount: 2000000000, strategic_alignment: true },
+      sla_hours: 72
+    }
   ];
 
   return (

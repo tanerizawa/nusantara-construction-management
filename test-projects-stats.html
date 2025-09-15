@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Projects API Stats</title>
+</head>
+<body>
+    <h1>Test Data Stats dari Projects API</h1>
+    <button onclick="testProjectsAPI()">Test Projects API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testProjectsAPI() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing...';
+            
+            try {
+                // Test get all projects
+                const response = await fetch('http://localhost:5000/api/projects', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                console.log('Projects API Response:', data);
+                
+                if (data.success && data.data) {
+                    const projects = data.data;
+                    
+                    // Calculate stats like frontend does
+                    const stats = {
+                        total: projects.length,
+                        active: projects.filter(p => p.status === 'active').length,
+                        completed: projects.filter(p => p.status === 'completed').length,
+                        planning: projects.filter(p => p.status === 'planning').length,
+                        onHold: projects.filter(p => p.status === 'on_hold').length,
+                        cancelled: projects.filter(p => p.status === 'cancelled').length,
+                        archived: projects.filter(p => p.status === 'archived').length,
+                        overdue: projects.filter(p => {
+                            if (p.status === 'completed') return false;
+                            const endDate = new Date(p.endDate);
+                            return endDate < new Date();
+                        }).length
+                    };
+                    
+                    result.innerHTML = `
+                        <h3>✅ SUCCESS - Data Real dari Database!</h3>
+                        <h4>Statistics Cards akan menampilkan:</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0;">
+                            <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                                <strong>Total Proyek:</strong> ${stats.total}
+                            </div>
+                            <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                                <strong>Proyek Aktif:</strong> ${stats.active}
+                            </div>
+                            <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                                <strong>Selesai:</strong> ${stats.completed}
+                            </div>
+                            <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                                <strong>Terlambat:</strong> ${stats.overdue}
+                            </div>
+                        </div>
+                        <h4>Sample Projects dari Database:</h4>
+                        <ul>
+                            ${projects.slice(0, 5).map(p => `
+                                <li><strong>${p.id}</strong>: ${p.name} (Status: ${p.status})</li>
+                            `).join('')}
+                        </ul>
+                        <p><strong>Total ${projects.length} proyek</strong> ditemukan di database</p>
+                    `;
+                } else {
+                    result.innerHTML = `<h3>❌ Error: ${data.error || 'Unknown error'}</h3>`;
+                }
+                
+            } catch (error) {
+                result.innerHTML = `<h3>❌ Network Error:</h3><pre>${error.message}</pre>`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

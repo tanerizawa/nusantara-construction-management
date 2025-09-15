@@ -64,7 +64,7 @@ services:
     container_name: nusantara-frontend
     restart: unless-stopped
     environment:
-      REACT_APP_API_URL: https://nusantaragroup.co/api
+      REACT_APP_API_URL: /api
       REACT_APP_ENV: production
       CHOKIDAR_USEPOLLING: false
       FAST_REFRESH: false

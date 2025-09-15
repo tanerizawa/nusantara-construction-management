@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Frontend Development dengan akses domain
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.dev
+    container_name: nusantara-frontend-dev-cloud
+    restart: unless-stopped
+    environment:
+      # PENTING: Gunakan /api untuk domain access
+      - NODE_ENV=development
+      - REACT_APP_API_URL=/api
+      - REACT_APP_BACKEND_URL=/api
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      # Enable debug features
+      - REACT_APP_DEBUG=true
+      - GENERATE_SOURCEMAP=true
+    ports:
+      - "127.0.0.1:8080:3000"  # Apache proxy ke port ini
+    volumes:
+      # Volume mounting untuk hot reload
+      - ./frontend/src:/app/src:delegated
+      - ./frontend/public:/app/public:delegated
+      - /app/node_modules  # Preserve node_modules
+    networks:
+      - dev-cloud-net
+    stdin_open: true
+    tty: true
+    command: ["npm", "start"]  # Development server
+
+  # Backend Development dengan debug enabled
+  backend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    container_name: nusantara-backend-dev-cloud
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development  # Development mode untuk debug
+      DB_HOST: yk-postgres-dev  # Gunakan database development
+      DB_PORT: 5432
+      DB_NAME: nusantara_construction
+      DB_USERNAME: admin
+      DB_PASSWORD: admin123
+      JWT_SECRET: nusantara-jwt-secret-2025
+      JWT_EXPIRES_IN: 24h
+      PORT: 5000
+      # CORS untuk development
+      CORS_ORIGIN: https://nusantaragroup.co
+      # Debug features
+      DEBUG: "*"
+      LOG_LEVEL: debug
+    ports:
+      - "127.0.0.1:5000:5000"  # Apache proxy ke port ini
+      - "127.0.0.1:9229:9229"  # Node.js debugger port
+    volumes:
+      # Volume mounting untuk hot reload backend
+      - ./backend:/app:delegated
+      - /app/node_modules
+    networks:
+      - dev-cloud-net
+      - yk-dev-network  # Akses ke database development
+    depends_on:
+      - frontend-dev
+
+networks:
+  dev-cloud-net:
+    driver: bridge
+  # Reference ke network development yang sudah ada
+  yk-dev-network:
+    external: true
+    name: app-yk_yk-dev-network

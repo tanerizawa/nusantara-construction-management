@@ -1,0 +1,29 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Copy package files
+COPY backend/package*.json ./
+
+# Install production dependencies
+RUN npm ci --omit=dev
+
+# Copy application source
+COPY backend/ .
+
+# Ensure required directories exist
+RUN mkdir -p uploads logs
+
+# Environment
+ENV NODE_ENV=production
+
+# Expose API port
+EXPOSE 5000
+
+# Start the server
+CMD ["npm", "run", "start"]
+

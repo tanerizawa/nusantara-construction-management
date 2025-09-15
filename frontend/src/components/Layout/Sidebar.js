@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Home, 
@@ -9,13 +9,22 @@ import {
   Settings,
   X,
   BarChart3,
-  Building
+  Building,
+  ChevronDown,
+  ChevronRight,
+  Calculator,
+  CheckCircle,
+  ShoppingCart,
+  Calendar,
+  FileText,
+  Activity
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const [expandedMenus, setExpandedMenus] = useState(['projects']); // Expand projects by default
 
-  // Flat menu structure - no submenus (functionality available through tabs in content pages)
+  // Enhanced menu structure with submenus for Manajemen Proyek
   const menuItems = [
     {
       id: 'dashboard',
@@ -71,6 +80,79 @@ const Sidebar = ({ isOpen, onClose }) => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  const toggleSubmenu = (menuId) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuId) 
+        ? prev.filter(id => id !== menuId)
+        : [...prev, menuId]
+    );
+  };
+
+  const isSubmenuExpanded = (menuId) => {
+    return expandedMenus.includes(menuId);
+  };
+
+  const renderMenuItem = (item, level = 0) => {
+    const Icon = item.icon;
+    const itemActive = isActive(item.path);
+    const hasSubmenu = item.hasSubmenu && item.submenu;
+    const isExpanded = isSubmenuExpanded(item.id);
+    const indentClass = level > 0 ? 'ml-6' : '';
+
+    return (
+      <li key={item.id} className={indentClass}>
+        {hasSubmenu ? (
+          <>
+            {/* Parent menu with toggle */}
+            <button
+              onClick={() => toggleSubmenu(item.id)}
+              className={`w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                itemActive || item.submenu?.some(sub => isActive(sub.path))
+                  ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
+                  : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Icon size={20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
+                <span className="font-medium">{item.label}</span>
+              </div>
+              {isExpanded ? (
+                <ChevronDown size={16} className="text-gray-400" />
+              ) : (
+                <ChevronRight size={16} className="text-gray-400" />
+              )}
+            </button>
+            
+            {/* Submenu items */}
+            {isExpanded && (
+              <ul className="mt-2 space-y-1">
+                {item.submenu.map(subItem => renderMenuItem(subItem, level + 1))}
+              </ul>
+            )}
+          </>
+        ) : (
+          /* Regular menu item */
+          <NavLink
+            to={item.path}
+            onClick={onClose}
+            className={({ isActive }) =>
+              `flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all duration-200 group ${
+                level > 0 ? 'text-sm' : ''
+              } ${
+                isActive
+                  ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
+                  : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
+              }`
+            }
+          >
+            <Icon size={level > 0 ? 16 : 20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
+            <span className="font-medium">{item.label}</span>
+          </NavLink>
+        )}
+      </li>
+    );
+  };
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -99,29 +181,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const itemActive = isActive(item.path);
-
-              return (
-                <li key={item.id}>
-                  <NavLink
-                    to={item.path}
-                    onClick={onClose}
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
-                        isActive
-                          ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
-                          : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
-                      }`
-                    }
-                  >
-                    <Icon size={20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
-                    <span className="font-medium">{item.label}</span>
-                  </NavLink>
-                </li>
-              );
-            })}
+            {menuItems.map((item) => renderMenuItem(item))}
           </ul>
         </nav>
 

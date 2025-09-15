@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend API URL Test</title>
+</head>
+<body>
+    <h1>Frontend API URL Test for Production</h1>
+    <div id="results"></div>
+    
+    <script>
+        console.log('=== Frontend API URL Test ===');
+        
+        // Test hostname detection
+        console.log('Current hostname:', window.location.hostname);
+        console.log('Current href:', window.location.href);
+        
+        // Simulate config.js logic with environment variable
+        const getApiUrl = () => {
+          // PRIORITAS 1: Environment Variable dari Docker/Build
+          const envApiUrl = '/api'; // This is what should be set
+          if (envApiUrl) {
+            console.log('🔧 Using ENV API URL:', envApiUrl);
+            return envApiUrl;
+          }
+
+          // PRIORITAS 2: Production hostname detection  
+          const hostname = window.location.hostname;
+          if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+            console.log('🌐 Production mode detected - using Apache proxy');
+            return '/api';
+          }
+
+          // PRIORITAS 3: Development fallback
+          console.log('🏠 Development fallback - using localhost:5000');
+          return 'http://localhost:5000/api';
+        };
+        
+        const apiUrl = getApiUrl();
+        console.log('Final API URL:', apiUrl);
+        
+        // Test login endpoint
+        const loginUrl = `${apiUrl}/auth/login`;
+        console.log('Login URL:', loginUrl);
+        
+        // Test API call
+        async function testLogin() {
+            try {
+                console.log('Testing OPTIONS request to:', loginUrl);
+                
+                const response = await fetch(loginUrl, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('✅ OPTIONS Response Status:', response.status);
+                console.log('✅ OPTIONS Response Headers:', [...response.headers.entries()]);
+                
+                // Now test actual POST request
+                console.log('Testing POST request to:', loginUrl);
+                
+                const postResponse = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'test',
+                        password: 'password123'
+                    })
+                });
+                
+                console.log('✅ POST Response Status:', postResponse.status);
+                const data = await postResponse.json();
+                console.log('✅ POST Response Data:', data);
+                
+                document.getElementById('results').innerHTML = `
+                    <p><strong>API URL:</strong> ${apiUrl}</p>
+                    <p><strong>Login URL:</strong> ${loginUrl}</p>
+                    <p><strong>OPTIONS Status:</strong> ${response.status}</p>
+                    <p><strong>POST Status:</strong> ${postResponse.status}</p>
+                    <p><strong>Response:</strong> <pre>${JSON.stringify(data, null, 2)}</pre></p>
+                `;
+                
+            } catch (error) {
+                console.error('❌ API Test Failed:', error);
+                document.getElementById('results').innerHTML = `
+                    <p style="color: red;"><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>API URL:</strong> ${apiUrl}</p>
+                    <p><strong>Login URL:</strong> ${loginUrl}</p>
+                `;
+            }
+        }
+        
+        // Run test after 1 second
+        setTimeout(testLogin, 1000);
+    </script>
+</body>
+</html>

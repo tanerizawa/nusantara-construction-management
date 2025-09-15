@@ -7,11 +7,11 @@ import ProjectDocuments from '../components/ProjectDocuments';
 
 // Import integrated workflow components
 import {
-  ProjectRABManagement,
-  ProjectApprovalStatus,
+  ProjectRABWorkflow,
   ProjectBudgetMonitoring,
   ProjectWorkflowSidebar,
-  ProjectPurchaseOrders
+  ProjectPurchaseOrders,
+  ProfessionalApprovalDashboard
 } from '../components/workflow';import { 
   Building, 
   Users, 
@@ -168,9 +168,14 @@ const ProjectDetail = () => {
       setLoading(true);
       setError(null);
 
+      console.log('=== FETCH PROJECT ===');
+      console.log('Project ID from params:', id);
+
       // Fetch project data using correct method name
       const projectResponse = await projectAPI.getById(id);
+      console.log('Project API Response:', projectResponse);
       const projectData = projectResponse.data;
+      console.log('Project Data:', projectData);
       setProject(projectData);
 
       // Enhanced workflow data integration - replace with actual API calls when backend is ready
@@ -304,11 +309,19 @@ const ProjectDetail = () => {
           )}
           
           {activeTab === 'rab-workflow' && project && (
-            <ProjectRABManagement projectId={id} project={project} onDataChange={fetchProject} />
+            <>
+              {console.log('=== PROJECT DETAIL RAB TAB RENDERED ===')}
+              {console.log('Project ID:', id)}
+              {console.log('Project Object:', project)}
+              {console.log('Project ID from object:', project?.id)}
+              {console.log('Project name:', project?.name)}
+              {console.log('RAB Items:', project?.rabItems)}
+              <ProjectRABWorkflow projectId={id} project={project} onDataChange={fetchProject} />
+            </>
           )}
           
           {activeTab === 'approval-status' && project && (
-            <ProjectApprovalStatus projectId={id} project={project} onDataChange={fetchProject} />
+            <ProfessionalApprovalDashboard projectId={id} project={project} onDataChange={fetchProject} />
           )}
           
           {activeTab === 'purchase-orders' && project && (

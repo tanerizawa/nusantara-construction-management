@@ -324,4 +324,41 @@ router.get('/alerts', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/dashboard/statistics
+ * Get financial dashboard statistics
+ */
+router.get('/statistics', async (req, res) => {
+  try {
+    // Mock statistics data - replace with actual database queries
+    const statistics = {
+      success: true,
+      data: {
+        totalRevenue: 15750000000, // 15.75 Billion
+        totalExpenses: 12600000000, // 12.6 Billion
+        netProfit: 3150000000, // 3.15 Billion
+        totalProjects: 28,
+        activeProjects: 18,
+        completedProjects: 10,
+        totalEmployees: 342,
+        cashFlow: 2850000000, // 2.85 Billion
+        assets: 45000000000, // 45 Billion
+        liabilities: 18500000000, // 18.5 Billion
+        equity: 26500000000, // 26.5 Billion
+        profitMargin: 20.0,
+        growthRate: 12.5
+      }
+    };
+    
+    res.json(statistics);
+  } catch (error) {
+    console.error('Error fetching dashboard statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching dashboard statistics',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

@@ -63,6 +63,12 @@ const FinanceTransaction = sequelize.define('FinanceTransaction', {
     allowNull: true,
     field: 'reference_number'
   },
+  purchaseOrderId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'purchase_order_id',
+    comment: 'References PurchaseOrder.id for PO-related transactions'
+  },
   status: {
     type: DataTypes.ENUM,
     values: ['pending', 'completed', 'cancelled', 'failed'],

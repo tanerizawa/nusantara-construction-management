@@ -3,6 +3,7 @@ const Joi = require('joi');
 const { Op } = require('sequelize');
 const PurchaseOrder = require('../models/PurchaseOrder');
 const { verifyToken } = require('../middleware/auth');
+const POFinanceSyncService = require('../services/poFinanceSync');
 
 const router = express.Router();
 
@@ -300,7 +301,21 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    // Store previous status for sync logic
+    const previousStatus = order.status;
+    
     await order.update(value);
+
+    // Auto-sync to finance if status changed
+    if (value.status && value.status !== previousStatus) {
+      try {
+        console.log(`🔄 Status changed from ${previousStatus} to ${value.status} - syncing to finance...`);
+        await POFinanceSyncService.syncPOToFinance(order.toJSON(), previousStatus);
+      } catch (syncError) {
+        console.error('⚠️ Finance sync warning:', syncError.message);
+        // Don't fail the main operation, just log the warning
+      }
+    }
 
     res.json({
       success: true,
@@ -374,6 +389,14 @@ router.put('/:id/status', async (req, res) => {
 
     await order.update({ status });
 
+    // Auto-sync to finance when status changes
+    try {
+      console.log(`🔄 Status updated to ${status} - syncing to finance...`);
+      await POFinanceSyncService.syncPOToFinance(order.toJSON());
+    } catch (syncError) {
+      console.error('⚠️ Finance sync warning:', syncError.message);
+    }
+
     res.json({
       success: true,
       data: order,
@@ -384,6 +407,68 @@ router.put('/:id/status', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update purchase order status',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/purchase-orders/project/:projectId/financial-summary
+// @desc    Get financial summary for POs in a project
+// @access  Private
+router.get('/project/:projectId/financial-summary', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    
+    const summary = await POFinanceSyncService.getPOFinancialSummary(projectId);
+    
+    res.json({
+      success: true,
+      data: summary,
+      message: 'PO financial summary retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error getting PO financial summary:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get PO financial summary',
+      details: error.message
+    });
+  }
+});
+
+// @route   POST /api/purchase-orders/sync-finance
+// @desc    Manual sync PO to finance (for bulk operations)
+// @access  Private
+router.post('/sync-finance', async (req, res) => {
+  try {
+    const { purchaseOrderIds } = req.body;
+    
+    if (!purchaseOrderIds || !Array.isArray(purchaseOrderIds)) {
+      return res.status(400).json({
+        success: false,
+        error: 'purchaseOrderIds array is required'
+      });
+    }
+    
+    const results = await POFinanceSyncService.syncMultiplePOs(purchaseOrderIds);
+    
+    const summary = {
+      total: results.length,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      results
+    };
+    
+    res.json({
+      success: true,
+      data: summary,
+      message: 'Bulk PO finance sync completed'
+    });
+  } catch (error) {
+    console.error('Error syncing POs to finance:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to sync POs to finance',
       details: error.message
     });
   }

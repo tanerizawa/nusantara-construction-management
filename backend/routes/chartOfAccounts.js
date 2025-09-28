@@ -40,9 +40,9 @@ router.get('/', async (req, res) => {
       whereClause.is_active = is_active === 'true';
     }
     
-    // Filter by parent code
+    // Filter by parent account ID
     if (parent_code) {
-      whereClause.parent_code = parent_code;
+      whereClause.parentAccountId = parent_code;
     }
     
     // Search in account name or code
@@ -80,29 +80,73 @@ router.get('/', async (req, res) => {
  */
 router.get('/hierarchy', async (req, res) => {
   try {
+    const { include_balances } = req.query;
+    
     const accounts = await ChartOfAccounts.findAll({
       where: { is_active: true },
       order: [['account_code', 'ASC']]
     });
 
+    // Get account balances if requested
+    let accountBalances = {};
+    if (include_balances === 'true') {
+      try {
+        const { JournalEntryLine, JournalEntry } = models;
+        
+        const balanceResults = await JournalEntryLine.findAll({
+          attributes: [
+            'accountId',
+            [models.sequelize.fn('SUM', models.sequelize.col('debit_amount')), 'totalDebit'],
+            [models.sequelize.fn('SUM', models.sequelize.col('credit_amount')), 'totalCredit']
+          ],
+          include: [{
+            model: JournalEntry,
+            attributes: [],
+            where: { status: 'posted' }
+          }],
+          group: ['accountId'],
+          raw: true
+        });
+
+        balanceResults.forEach(result => {
+          const debit = parseFloat(result.totalDebit) || 0;
+          const credit = parseFloat(result.totalCredit) || 0;
+          accountBalances[result.accountId] = {
+            debit,
+            credit,
+            balance: debit - credit
+          };
+        });
+      } catch (balanceError) {
+        console.warn('Could not fetch balances:', balanceError.message);
+      }
+    }
+
     // Build hierarchy
     const accountMap = {};
     const rootAccounts = [];
 
-    // First pass: create map
+    // First pass: create map with balances
     accounts.forEach(account => {
-      accountMap[account.account_code] = {
+      const balance = accountBalances[account.id] || { debit: 0, credit: 0, balance: 0 };
+      accountMap[account.accountCode] = {
         ...account.toJSON(),
+        ...balance,
         children: []
       };
     });
 
     // Second pass: build hierarchy
     accounts.forEach(account => {
-      if (account.parent_code && accountMap[account.parent_code]) {
-        accountMap[account.parent_code].children.push(accountMap[account.account_code]);
+      const parentId = account.parentAccountId;
+      if (parentId) {
+        // Find parent by ID
+        const parent = accounts.find(acc => acc.id === parentId);
+        if (parent && accountMap[parent.accountCode]) {
+          accountMap[parent.accountCode].children.push(accountMap[account.accountCode]);
+        }
       } else {
-        rootAccounts.push(accountMap[account.account_code]);
+        rootAccounts.push(accountMap[account.accountCode]);
       }
     });
 

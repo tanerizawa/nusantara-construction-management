@@ -46,6 +46,10 @@ const ProjectRAB = sequelize.define('ProjectRAB', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  status: {
+    type: DataTypes.ENUM('draft', 'under_review', 'approved', 'rejected'),
+    defaultValue: 'draft'
+  },
   isApproved: {
     type: DataTypes.BOOLEAN,
     defaultValue: false

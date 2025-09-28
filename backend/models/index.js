@@ -20,6 +20,10 @@ const ApprovalWorkflow = require('./ApprovalWorkflow');
 const ApprovalInstance = require('./ApprovalInstance');
 const ApprovalStep = require('./ApprovalStep');
 const ApprovalNotification = require('./ApprovalNotification');
+const FixedAsset = require('./FixedAsset')(sequelize);
+const BeritaAcara = require('./BeritaAcara');
+const ProgressPayment = require('./ProgressPayment');
+const DeliveryReceipt = require('./DeliveryReceipt');
 
 // Define relationships
 const setupAssociations = () => {
@@ -110,6 +114,17 @@ const setupAssociations = () => {
     as: 'approver'
   });
 
+  // PurchaseOrder - FinanceTransaction relationships
+  PurchaseOrder.hasMany(FinanceTransaction, {
+    foreignKey: 'purchaseOrderId',
+    as: 'financeTransactions'
+  });
+
+  FinanceTransaction.belongsTo(PurchaseOrder, {
+    foreignKey: 'purchaseOrderId',
+    as: 'purchaseOrder'
+  });
+
   // TaxRecord - Project relationships
   TaxRecord.belongsTo(Project, {
     foreignKey: 'projectId',
@@ -160,6 +175,17 @@ const setupAssociations = () => {
     as: 'project'
   });
 
+  // ProjectTeamMember - User relationships
+  ProjectTeamMember.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user'
+  });
+  
+  User.hasMany(ProjectTeamMember, {
+    foreignKey: 'userId',
+    as: 'projectMemberships'
+  });
+
   // Project - ProjectDocument relationships
   Project.hasMany(ProjectDocument, {
     foreignKey: 'projectId',
@@ -169,6 +195,112 @@ const setupAssociations = () => {
   ProjectDocument.belongsTo(Project, {
     foreignKey: 'projectId',
     as: 'project'
+  });
+
+  // Project - BeritaAcara relationships
+  Project.hasMany(BeritaAcara, {
+    foreignKey: 'projectId',
+    as: 'beritaAcaraList'
+  });
+  
+  BeritaAcara.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // BeritaAcara - ProjectMilestone relationships
+  BeritaAcara.belongsTo(ProjectMilestone, {
+    foreignKey: 'milestoneId',
+    as: 'milestone'
+  });
+  
+  ProjectMilestone.hasMany(BeritaAcara, {
+    foreignKey: 'milestoneId',
+    as: 'beritaAcaraList'
+  });
+
+  // Project - ProgressPayment relationships
+  Project.hasMany(ProgressPayment, {
+    foreignKey: 'projectId',
+    as: 'progressPayments'
+  });
+  
+  ProgressPayment.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // BeritaAcara - ProgressPayment relationships
+  BeritaAcara.hasMany(ProgressPayment, {
+    foreignKey: 'beritaAcaraId',
+    as: 'progressPayments'
+  });
+  
+  ProgressPayment.belongsTo(BeritaAcara, {
+    foreignKey: 'beritaAcaraId',
+    as: 'beritaAcara'
+  });
+
+  // DeliveryReceipt associations
+  DeliveryReceipt.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  DeliveryReceipt.belongsTo(PurchaseOrder, {
+    foreignKey: 'purchaseOrderId',
+    as: 'purchaseOrder'
+  });
+
+  DeliveryReceipt.belongsTo(User, {
+    foreignKey: 'receivedBy',
+    as: 'receiver'
+  });
+
+  DeliveryReceipt.belongsTo(User, {
+    foreignKey: 'inspectedBy',
+    as: 'inspector'
+  });
+
+  DeliveryReceipt.belongsTo(User, {
+    foreignKey: 'approvedBy',
+    as: 'approver'
+  });
+
+  DeliveryReceipt.belongsTo(User, {
+    foreignKey: 'createdBy',
+    as: 'creator'
+  });
+
+  // Reverse associations
+  Project.hasMany(DeliveryReceipt, {
+    foreignKey: 'projectId',
+    as: 'deliveryReceipts'
+  });
+
+  PurchaseOrder.hasMany(DeliveryReceipt, {
+    foreignKey: 'purchaseOrderId',
+    as: 'deliveryReceipts'
+  });
+
+  User.hasMany(DeliveryReceipt, {
+    foreignKey: 'receivedBy',
+    as: 'receivedReceipts'
+  });
+
+  User.hasMany(DeliveryReceipt, {
+    foreignKey: 'inspectedBy',
+    as: 'inspectedReceipts'
+  });
+
+  User.hasMany(DeliveryReceipt, {
+    foreignKey: 'approvedBy',
+    as: 'approvedReceipts'
+  });
+
+  User.hasMany(DeliveryReceipt, {
+    foreignKey: 'createdBy',
+    as: 'createdReceipts'
   });
 
   // Journal Entry associations
@@ -302,7 +434,11 @@ module.exports = {
     ApprovalWorkflow,
     ApprovalInstance,
     ApprovalStep,
-    ApprovalNotification
+    ApprovalNotification,
+    FixedAsset,
+    BeritaAcara,
+    ProgressPayment,
+    DeliveryReceipt
   },
   setupAssociations,
   syncDatabase,

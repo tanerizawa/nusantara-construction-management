@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import FinancialAPIService from '../../services/FinancialAPIService';
+import ProjectFinanceIntegrationService from '../../services/ProjectFinanceIntegrationService';
 
 const FinancialWorkspaceDashboard = ({ userDetails }) => {
   const [financialData, setFinancialData] = useState({});
@@ -52,20 +53,47 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
 
       console.log('📊 [FINANCIAL WORKSPACE] Fetching data with params:', params);
 
-      const result = await FinancialAPIService.getFinancialDashboardData(params);
+      // Fetch both original dashboard data and integrated project data
+      const [originalResult, integratedResult] = await Promise.all([
+        FinancialAPIService.getFinancialDashboardData(params),
+        ProjectFinanceIntegrationService.getIntegratedFinancialData(params)
+      ]);
       
-      if (result && result.success) {
+      if (originalResult && originalResult.success) {
         console.log('✅ [FINANCIAL WORKSPACE] API data loaded successfully');
-        setFinancialData({
-          incomeStatement: result.incomeStatement?.data || {},
-          balanceSheet: result.balanceSheet?.data || {},
-          cashFlow: result.cashFlow?.data || {},
-          dashboard: result.dashboard?.data || {},
-          compliance: result.compliance?.data || {},
-          monthlyTrends: result.monthlyTrends?.data || [],
-          categoryBreakdown: result.expenseBreakdown?.data || [],
-          lastUpdated: result.lastUpdated
-        });
+        
+        // Merge with real-time integrated data if available
+        let dashboardData = {
+          incomeStatement: originalResult.incomeStatement?.data || {},
+          balanceSheet: originalResult.balanceSheet?.data || {},
+          cashFlow: originalResult.cashFlow?.data || {},
+          dashboard: originalResult.dashboard?.data || {},
+          compliance: originalResult.compliance?.data || {},
+          monthlyTrends: originalResult.monthlyTrends?.data || [],
+          categoryBreakdown: originalResult.expenseBreakdown?.data || [],
+          lastUpdated: originalResult.lastUpdated
+        };
+
+        // Enhance with real-time project data if available
+        if (integratedResult && integratedResult.success) {
+          const metrics = integratedResult.data.metrics;
+          
+          // Update dashboard overview with real-time metrics
+          dashboardData.dashboard = {
+            ...dashboardData.dashboard,
+            totalRevenue: metrics.overview.totalIncome || dashboardData.dashboard.totalRevenue,
+            totalExpenses: metrics.overview.totalExpense || dashboardData.dashboard.totalExpenses,
+            netProfit: metrics.overview.netIncome || dashboardData.dashboard.netProfit,
+            activeProjects: metrics.overview.activeProjects || dashboardData.dashboard.activeProjects,
+            poTransactions: metrics.overview.poTransactions,
+            totalPOAmount: metrics.overview.totalPOAmount,
+            realTimeData: true // Flag to indicate real-time data
+          };
+
+          console.log('✅ [FINANCIAL WORKSPACE] Enhanced with real-time project data');
+        }
+        
+        setFinancialData(dashboardData);
       } else {
         throw new Error('API returned unsuccessful result');
       }

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PO Finance Sync Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🔄 PO Finance Sync Testing Dashboard</h1>
+    
+    <div class="container">
+        <h3>📋 Test Overview</h3>
+        <p>This tool tests the integration between Purchase Orders and Finance Transactions.</p>
+        <ul>
+            <li><strong>Auto-sync:</strong> When PO status changes to "approved", finance transaction is created</li>
+            <li><strong>Status sync:</strong> When PO status changes to "received", finance transaction is marked completed</li>
+            <li><strong>Data integrity:</strong> All PO financial data appears in finance section</li>
+        </ul>
+    </div>
+
+    <div class="container test-section">
+        <h3>📊 1. Check Existing POs</h3>
+        <button class="test-button" onclick="checkExistingPOs()">Get All POs</button>
+        <div id="existing-pos-result" class="results" style="display: none;"></div>
+    </div>
+
+    <div class="container test-section">
+        <h3>💰 2. Check Finance Transactions</h3>
+        <button class="test-button" onclick="checkFinanceTransactions()">Get Finance Data</button>
+        <button class="test-button" onclick="checkPOLinkedTransactions()">Get PO-Linked Transactions</button>
+        <div id="finance-result" class="results" style="display: none;"></div>
+    </div>
+
+    <div class="container test-section">
+        <h3>🔗 3. Test PO Status Change Sync</h3>
+        <input type="text" id="test-po-id" placeholder="Enter PO ID" style="padding: 8px; margin-right: 10px;">
+        <select id="test-status" style="padding: 8px; margin-right: 10px;">
+            <option value="approved">Approved</option>
+            <option value="received">Received</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="test-button" onclick="testStatusSync()">Update Status & Sync</button>
+        <div id="sync-result" class="results" style="display: none;"></div>
+    </div>
+
+    <div class="container test-section">
+        <h3>📈 4. Financial Summary</h3>
+        <input type="text" id="project-id" placeholder="Enter Project ID" style="padding: 8px; margin-right: 10px;">
+        <button class="test-button" onclick="getFinancialSummary()">Get PO Financial Summary</button>
+        <div id="summary-result" class="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `results ${isError ? 'error' : 'success'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function checkExistingPOs() {
+            try {
+                const response = await fetch(`${API_BASE}/purchase-orders`);
+                const data = await response.json();
+                showResult('existing-pos-result', data);
+            } catch (error) {
+                showResult('existing-pos-result', { error: error.message }, true);
+            }
+        }
+
+        async function checkFinanceTransactions() {
+            try {
+                const response = await fetch(`${API_BASE}/finance`);
+                const data = await response.json();
+                showResult('finance-result', data);
+            } catch (error) {
+                showResult('finance-result', { error: error.message }, true);
+            }
+        }
+
+        async function checkPOLinkedTransactions() {
+            try {
+                const response = await fetch(`${API_BASE}/finance?category=Material Purchase`);
+                const data = await response.json();
+                
+                // Filter for PO-linked transactions
+                const poLinked = data.data?.filter(t => t.subcategory === 'Purchase Order') || [];
+                
+                showResult('finance-result', {
+                    message: `Found ${poLinked.length} PO-linked finance transactions`,
+                    data: poLinked
+                });
+            } catch (error) {
+                showResult('finance-result', { error: error.message }, true);
+            }
+        }
+
+        async function testStatusSync() {
+            const poId = document.getElementById('test-po-id').value;
+            const status = document.getElementById('test-status').value;
+            
+            if (!poId) {
+                showResult('sync-result', { error: 'Please enter a PO ID' }, true);
+                return;
+            }
+
+            try {
+                // Update PO status
+                const response = await fetch(`${API_BASE}/purchase-orders/${poId}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const result = await response.json();
+                
+                // Check if finance transaction was created/updated
+                setTimeout(async () => {
+                    const financeResponse = await fetch(`${API_BASE}/finance?category=Material Purchase`);
+                    const financeData = await financeResponse.json();
+                    
+                    const relatedTransaction = financeData.data?.find(t => 
+                        t.description && t.description.includes(poId)
+                    );
+
+                    showResult('sync-result', {
+                        poUpdate: result,
+                        financeTransaction: relatedTransaction || 'No related transaction found',
+                        syncStatus: relatedTransaction ? 'SUCCESS - Transaction found' : 'PENDING - Check manually'
+                    });
+                }, 1000); // Wait 1 second for sync
+                
+            } catch (error) {
+                showResult('sync-result', { error: error.message }, true);
+            }
+        }
+
+        async function getFinancialSummary() {
+            const projectId = document.getElementById('project-id').value;
+            
+            if (!projectId) {
+                showResult('summary-result', { error: 'Please enter a Project ID' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/purchase-orders/project/${projectId}/financial-summary`);
+                const data = await response.json();
+                showResult('summary-result', data);
+            } catch (error) {
+                showResult('summary-result', { error: error.message }, true);
+            }
+        }
+    </script>
+</body>
+</html>

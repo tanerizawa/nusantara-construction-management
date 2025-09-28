@@ -1,25 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Search, Filter, Calendar, Download, Plus, Edit3, Trash2, Eye,
-  Users, Award, Clock, TrendingUp, BarChart3, Grid, List, 
-  CheckCircle, AlertCircle, User, Mail, Phone, MapPin, UserPlus,
-  UserCheck, LayoutDashboard, BookOpen, Settings, FileText, 
-  MoreVertical, Shield, X
+  Search, Calendar, Plus, Eye,
+  Users, Award, Clock, TrendingUp, BarChart3, 
+  CheckCircle, Mail, Phone, UserPlus,
+  UserCheck, LayoutDashboard, BookOpen, Settings, 
+  MoreVertical, Shield, X, FileText
 } from 'lucide-react';
 import { employeeAPI } from '../services/api';
-import TrainingManagement from '../components/TrainingManagement';
-import SafetyComplianceManagement from '../components/SafetyComplianceManagement';
-import PerformanceEvaluationManagement from '../components/PerformanceEvaluationManagement';
-import CertificationAlertsManagement from '../components/CertificationAlertsManagement';
-import EmployeeQuickActions from '../components/EmployeeQuickActions';
-import EmployeeDashboard from '../components/EmployeeDashboard';
-import HRReports from '../components/HR/HRReports';
-import HRWorkflow from '../components/HR/HRWorkflow';
-import EmployeeSelfService from '../components/HR/EmployeeSelfService';
-import HRNotifications from '../components/HR/HRNotifications';
-import HRPredictiveAnalytics from '../components/AI/HRPredictiveAnalytics';
-import HRChatbot from '../components/AI/HRChatbot';
-import SmartEmployeeMatching from '../components/AI/SmartEmployeeMatching';
+// Removed unused imports to clean up eslint warnings
 
 // Department and position options based on existing data
 const DEPARTMENTS = [
@@ -38,10 +26,11 @@ const POSITIONS = [
 
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'intern', 'freelance'];
 const STATUS_OPTIONS = ['active', 'inactive', 'terminated'];
-const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
+// const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert']; // Commented out to avoid unused variable warning
 
 const Manpower = () => {
   const [employees, setEmployees] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -63,8 +52,8 @@ const Manpower = () => {
     birthDate: '',
     joinDate: '',
     address: '',
-    employmentType: '',
-    status: '',
+    employmentType: 'permanent',
+    status: 'active',
     salary: '',
     currentProject: ''
   });
@@ -108,18 +97,11 @@ const Manpower = () => {
         ...formData,
         salary: formData.salary ? parseFloat(formData.salary) : undefined,
         joinDate: formData.joinDate || undefined,
-        birthDate: formData.birthDate || undefined
+        birthDate: formData.birthDate || undefined,
+        currentProject: formData.currentProject || undefined // Set to undefined if empty
       };
 
-      const response = await fetch('http://localhost:5000/api/manpower', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
+      const result = await employeeAPI.create(payload);
 
       if (result.success) {
         // Refresh employee list
@@ -145,26 +127,38 @@ const Manpower = () => {
   };
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await employeeAPI.getAll();
-        console.log('Manpower API Response:', response);
         
-        // Backend returns data array directly or with data property
-        const employeeData = response.data || response;
+        // Fetch employees
+        const employeeResponse = await employeeAPI.getAll();
+        console.log('Manpower API Response:', employeeResponse);
+        const employeeData = employeeResponse.data || employeeResponse;
         setEmployees(Array.isArray(employeeData) ? employeeData : []);
+        
+        // Fetch projects for current project dropdown
+        try {
+          const { projectAPI } = await import('../services/api');
+          const projectResponse = await projectAPI.getAll();
+          const projectData = projectResponse.data || projectResponse;
+          setProjects(Array.isArray(projectData) ? projectData : []);
+        } catch (projectError) {
+          console.log('Projects not available:', projectError.message);
+          setProjects([]);
+        }
+        
       } catch (error) {
-        console.error('Error fetching employees:', error);
-        setError(error.message || 'Failed to fetch employee data');
+        console.error('Error fetching data:', error);
+        setError(error.message || 'Failed to fetch data');
         setEmployees([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEmployees();
+    fetchData();
   }, []);
 
   const getStatusColor = (status) => {
@@ -213,6 +207,13 @@ const Manpower = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+      
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -440,14 +441,19 @@ const Manpower = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Current Project
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="currentProject"
                     value={formData.currentProject}
                     onChange={handleInputChange}
-                    placeholder="e.g., Mall Karawang"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+                  >
+                    <option value="">Select Project (Optional)</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.name || project.project_name || `Project ${project.id}`}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

@@ -590,7 +590,30 @@ const ProjectPurchaseOrders = ({ projectId, project, onDataChange }) => {
 // RAB Selection View - Main view for selecting materials
 const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onNext, loading }) => {
   const toggleRABItem = (itemId) => {
-    // Semua item yang ditampilkan sudah approved, jadi langsung toggle
+    // Find the item to check its status
+    const item = rabItems.find(rabItem => rabItem.id === itemId);
+    
+    // Cek apakah RAB sudah disetujui dan apakah item sudah 100% dibuat PO
+    if (!item) return;
+    
+    const isApproved = item.isApproved || item.is_approved;
+    const totalQuantity = item.quantity || 0;
+    const purchasedQuantity = item.totalPurchased || item.po_quantity || 0;
+    const availableQuantity = totalQuantity - purchasedQuantity;
+    const isFullyPurchased = availableQuantity <= 0;
+    
+    // LOGIKA BARU: Cek apakah RAB sudah approved dan 100% dibuat PO
+    if (!isApproved) {
+      console.warn('Item RAB belum disetujui, tidak bisa dibuat PO');
+      return;
+    }
+    
+    if (isFullyPurchased) {
+      console.warn('Item sudah 100% dibuat PO, tidak bisa dibuat PO lagi');
+      return;
+    }
+    
+    // Hanya toggle jika RAB approved dan belum 100% PO
     const updatedSelection = selectedRABItems.includes(itemId)
       ? selectedRABItems.filter(id => id !== itemId)
       : [...selectedRABItems, itemId];
@@ -599,6 +622,29 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
 
   const selectedItems = rabItems.filter(item => selectedRABItems.includes(item.id));
   const approvedItems = rabItems; // Semua item sudah approved
+  
+  // Calculate statistics untuk berbagai status
+  const fullyPurchasedItems = rabItems.filter(item => {
+    const totalQuantity = item.quantity || 0;
+    const purchasedQuantity = item.totalPurchased || item.po_quantity || 0;
+    return totalQuantity > 0 && purchasedQuantity >= totalQuantity;
+  });
+  
+  const partiallyPurchasedItems = rabItems.filter(item => {
+    const totalQuantity = item.quantity || 0;
+    const purchasedQuantity = item.totalPurchased || item.po_quantity || 0;
+    return purchasedQuantity > 0 && purchasedQuantity < totalQuantity;
+  });
+  
+  const availableForPOItems = rabItems.filter(item => {
+    const isApproved = item.isApproved || item.is_approved;
+    const totalQuantity = item.quantity || 0;
+    const purchasedQuantity = item.totalPurchased || item.po_quantity || 0;
+    const availableQuantity = totalQuantity - purchasedQuantity;
+    return isApproved && availableQuantity > 0;
+  });
+  
+  const unapprovedItems = rabItems.filter(item => !(item.isApproved || item.is_approved));
   
   // Calculate total values for budget tracking
   const totalRABBudget = rabItems.reduce((sum, item) => {
@@ -639,13 +685,13 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
   return (
     <>
       {/* Summary Cards - Realtime Budget Tracking */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
         <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
             <Package className="h-6 w-6 text-blue-600" />
             <div className="ml-2">
               <p className="text-lg font-bold text-gray-900">{rabItems.length}</p>
-              <p className="text-xs text-gray-600">Material Approved</p>
+              <p className="text-xs text-gray-600">Total Material</p>
             </div>
           </div>
         </div>
@@ -654,44 +700,93 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
           <div className="flex items-center">
             <CheckCircle className="h-6 w-6 text-green-600" />
             <div className="ml-2">
-              <p className="text-lg font-bold text-green-600">{selectedRABItems.length}</p>
-              <p className="text-xs text-gray-600">Material Dipilih</p>
+              <p className="text-lg font-bold text-green-600">{availableForPOItems.length}</p>
+              <p className="text-xs text-gray-600">Dapat Buat PO</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
-            <DollarSign className="h-6 w-6 text-orange-600" />
+            <XCircle className="h-6 w-6 text-gray-600" />
             <div className="ml-2">
-              <p className="text-sm font-bold text-orange-600">{formatCurrency(totalPurchasedBudget)}</p>
-              <p className="text-xs text-gray-600">Total Sudah Dibeli</p>
+              <p className="text-lg font-bold text-gray-600">{fullyPurchasedItems.length}</p>
+              <p className="text-xs text-gray-600">100% Dibeli</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white border rounded-lg p-3">
           <div className="flex items-center">
-            <DollarSign className="h-6 w-6 text-purple-600" />
+            <Clock className="h-6 w-6 text-yellow-600" />
             <div className="ml-2">
-              <p className="text-sm font-bold text-purple-600">{formatCurrency(totalAvailableBudget)}</p>
-              <p className="text-xs text-gray-600">Budget Tersedia</p>
+              <p className="text-lg font-bold text-yellow-600">{partiallyPurchasedItems.length}</p>
+              <p className="text-xs text-gray-600">Partial PO</p>
             </div>
           </div>
         </div>
         
         <div className="bg-white border rounded-lg p-3">
-          <div className="flex items-center justify-center">
-            <button
-              onClick={onNext}
-              disabled={selectedRABItems.length === 0}
-              className="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Lanjut ke PO ({selectedRABItems.length})
-            </button>
+          <div className="flex items-center">
+            <AlertTriangle className="h-6 w-6 text-red-600" />
+            <div className="ml-2">
+              <p className="text-lg font-bold text-red-600">{unapprovedItems.length}</p>
+              <p className="text-xs text-gray-600">Belum Approved</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white border rounded-lg p-3">
+          <div className="flex items-center">
+            <DollarSign className="h-6 w-6 text-blue-600" />
+            <div className="ml-2">
+              <p className="text-sm font-bold text-blue-600">{formatCurrency(selectedValue)}</p>
+              <p className="text-xs text-gray-600">Nilai Terpilih ({selectedRABItems.length})</p>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Action Button */}
+      <div className="bg-white border rounded-lg p-3">
+        <div className="flex items-center justify-center">
+          <button
+            onClick={onNext}
+            disabled={selectedRABItems.length === 0}
+            className={`w-full px-3 py-2 text-sm rounded-lg transition-colors ${
+              selectedRABItems.length === 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            {selectedRABItems.length === 0 
+              ? 'Pilih Material untuk Lanjut' 
+              : `Lanjut ke PO (${selectedRABItems.length} Material)`
+            }
+          </button>
+        </div>
+      </div>
+
+      {/* Status Info Panel */}
+      {(fullyPurchasedItems.length > 0 || unapprovedItems.length > 0) && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-medium text-yellow-800 mb-2">Informasi Status Material</h4>
+              <ul className="text-xs text-yellow-700 space-y-1">
+                {fullyPurchasedItems.length > 0 && (
+                  <li>• {fullyPurchasedItems.length} material sudah 100% dibeli dan terkunci dari PO baru</li>
+                )}
+                {unapprovedItems.length > 0 && (
+                  <li>• {unapprovedItems.length} material belum disetujui dan perlu approval RAB terlebih dahulu</li>
+                )}
+        <li>• Hanya material dengan status "Approved" dan belum 100% dibeli yang dapat dipilih untuk PO</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* RAB Items List */}
       <div className="bg-white border rounded-lg">
@@ -712,47 +807,67 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
               const isSelected = selectedRABItems.includes(item.id);
               const unitPrice = item.unitPrice || item.unit_price || 0;
               const totalQuantity = item.quantity || 0;
-              const purchasedQuantity = item.totalPurchased || 0;
-              const availableQuantity = item.availableQuantity || totalQuantity;
+              const purchasedQuantity = item.totalPurchased || item.po_quantity || 0;
+              const availableQuantity = totalQuantity - purchasedQuantity;
               const purchaseProgress = totalQuantity > 0 ? (purchasedQuantity / totalQuantity) * 100 : 0;
               const isFullyPurchased = availableQuantity <= 0;
+              
+              // Logika approval dan dapat dibuat PO
+              const isApproved = item.isApproved || item.is_approved;
+              const canCreatePO = isApproved && !isFullyPurchased;
               
               return (
                 <div
                   key={item.id}
                   className={`p-4 transition-colors ${
                     isFullyPurchased 
-                      ? 'bg-gray-50 opacity-75 border-l-4 border-l-gray-400' 
-                      : !(item.isApproved || item.is_approved)
-                        ? 'bg-gray-50 opacity-50 border-l-4 border-l-gray-300'
+                      ? 'bg-gray-100 opacity-60 border-l-4 border-l-gray-400' 
+                      : !isApproved
+                        ? 'bg-red-50 opacity-60 border-l-4 border-l-red-300'
                       : purchasedQuantity > 0 
-                        ? 'bg-blue-50 border-l-4 border-l-blue-400'
+                        ? 'bg-yellow-50 border-l-4 border-l-yellow-400'
                       : isSelected 
                         ? 'bg-blue-50 border-l-4 border-blue-600' 
-                        : 'hover:bg-gray-50 cursor-pointer'
+                        : canCreatePO
+                          ? 'hover:bg-gray-50 cursor-pointer'
+                          : 'bg-gray-50 cursor-not-allowed'
                   }`}
-                  onClick={() => (item.isApproved || item.is_approved) && !isFullyPurchased && toggleRABItem(item.id)}
+                  onClick={() => canCreatePO && toggleRABItem(item.id)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-3 flex-1">
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        disabled={isFullyPurchased || !(item.isApproved || item.is_approved)}
-                        onChange={() => (item.isApproved || item.is_approved) && !isFullyPurchased && toggleRABItem(item.id)}
-                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                        disabled={!canCreatePO}
+                        onChange={() => canCreatePO && toggleRABItem(item.id)}
+                        className={`mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded ${
+                          !canCreatePO ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        title={
+                          !isApproved 
+                            ? 'RAB belum disetujui' 
+                            : isFullyPurchased 
+                              ? 'Material sudah 100% dibeli - tidak dapat dibuat PO lagi'
+                              : 'Klik untuk pilih material ini'
+                        }
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <h4 className="text-sm font-medium text-gray-900 truncate">
                             {item.description || item.item_name || 'Material'}
                           </h4>
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.isApproved || item.is_approved ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                            {item.isApproved || item.is_approved ? 'Approved' : 'Draft'}
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.isApproved || item.is_approved ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                            {item.isApproved || item.is_approved ? 'Approved' : 'Belum Approved'}
                           </span>
                           {isFullyPurchased && (
                             <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                              Fully Purchased
+                              100% Dibeli - PO Locked
+                            </span>
+                          )}
+                          {!canCreatePO && !isFullyPurchased && !isApproved && (
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                              Perlu Approval RAB
                             </span>
                           )}
                         </div>
@@ -784,14 +899,20 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Sudah Dibeli</p>
-                            <p className="text-sm font-medium text-blue-600">{purchasedQuantity} {item.unit}</p>
+                            <p className={`text-sm font-medium ${
+                              purchaseProgress >= 100 ? 'text-green-600 font-bold' : 'text-blue-600'
+                            }`}>
+                              {purchasedQuantity} {item.unit}
+                              {purchaseProgress >= 100 && <span className="ml-1">✓</span>}
+                            </p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Tersedia</p>
                             <p className={`text-sm font-medium ${
-                              availableQuantity > 0 ? 'text-green-600' : 'text-gray-500'
+                              availableQuantity > 0 ? 'text-green-600' : 'text-gray-500 font-bold'
                             }`}>
                               {availableQuantity} {item.unit}
+                              {availableQuantity === 0 && <span className="ml-1">🔒</span>}
                             </p>
                           </div>
                           <div>
@@ -800,11 +921,40 @@ const RABSelectionView = ({ rabItems, selectedRABItems, setSelectedRABItems, onN
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">Total Tersedia</p>
-                            <p className="text-sm font-medium text-green-600">
+                            <p className={`text-sm font-medium ${
+                              availableQuantity > 0 ? 'text-green-600' : 'text-gray-500'
+                            }`}>
                               {formatCurrency(availableQuantity * unitPrice)}
                             </p>
                           </div>
                         </div>
+                        
+                        {/* Status Information Box */}
+                        {!canCreatePO && (
+                          <div className={`mt-3 p-2 rounded-lg ${
+                            !isApproved 
+                              ? 'bg-red-50 border border-red-200' 
+                              : 'bg-gray-50 border border-gray-200'
+                          }`}>
+                            <div className="flex items-center">
+                              {!isApproved ? (
+                                <>
+                                  <XCircle className="h-4 w-4 text-red-500 mr-2" />
+                                  <span className="text-xs text-red-700 font-medium">
+                                    RAB belum disetujui. Tidak dapat membuat PO.
+                                  </span>
+                                </>
+                              ) : isFullyPurchased ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 text-gray-500 mr-2" />
+                                  <span className="text-xs text-gray-700 font-medium">
+                                    Material sudah 100% dibeli. PO terkunci.
+                                  </span>
+                                </>
+                              ) : null}
+                            </div>
+                          </div>
+                        )}
                         
                         {/* Purchase History Summary */}
                         {item.purchaseHistory && item.purchaseHistory.length > 0 && (

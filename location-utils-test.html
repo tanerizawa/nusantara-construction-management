@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Utils Test</title>
+</head>
+<body>
+    <h2>Test Location Utils</h2>
+    <div id="test-results"></div>
+
+    <script type="module">
+        // Simple test for location formatting
+        const formatLocation = (location, fallback = 'Lokasi belum ditentukan') => {
+            if (!location || typeof location !== 'object') {
+                return fallback;
+            }
+
+            const city = location.city?.trim();
+            const address = location.address?.trim();
+            const province = location.province?.trim();
+            const state = location.state?.trim();
+
+            if (city || address || province || state) {
+                const parts = [];
+                if (city) parts.push(city);
+                if (state || province) parts.push(state || province);
+                
+                return parts.join(', ') || address || fallback;
+            }
+
+            return fallback;
+        };
+
+        // Test cases
+        const testCases = [
+            {
+                name: 'Empty location object',
+                input: {"city":"","address":"","province":""},
+                expected: 'Lokasi belum ditentukan'
+            },
+            {
+                name: 'Location with city only',
+                input: {"city":"Jakarta","address":"","province":""},
+                expected: 'Jakarta'
+            },
+            {
+                name: 'Location with city and province',
+                input: {"city":"Jakarta","address":"Jl. Sudirman","province":"DKI Jakarta"},
+                expected: 'Jakarta, DKI Jakarta'
+            },
+            {
+                name: 'Location with address only',
+                input: {"city":"","address":"Jl. Sudirman No. 123","province":""},
+                expected: 'Jl. Sudirman No. 123'
+            },
+            {
+                name: 'Null location',
+                input: null,
+                expected: 'Lokasi belum ditentukan'
+            },
+            {
+                name: 'Undefined location',
+                input: undefined,
+                expected: 'Lokasi belum ditentukan'
+            }
+        ];
+
+        const results = testCases.map(test => {
+            const result = formatLocation(test.input);
+            const passed = result === test.expected;
+            return {
+                ...test,
+                result,
+                passed
+            };
+        });
+
+        // Display results
+        const resultsContainer = document.getElementById('test-results');
+        resultsContainer.innerHTML = results.map(test => `
+            <div style="margin: 10px 0; padding: 10px; background: ${test.passed ? '#e8f5e8' : '#ffeaea'}; border-radius: 5px;">
+                <strong>${test.name}</strong><br>
+                Input: ${JSON.stringify(test.input)}<br>
+                Expected: "${test.expected}"<br>
+                Result: "${test.result}"<br>
+                Status: ${test.passed ? '✅ PASSED' : '❌ FAILED'}
+            </div>
+        `).join('');
+
+        console.log('Test Results:', results);
+    </script>
+</body>
+</html>

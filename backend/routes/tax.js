@@ -11,7 +11,7 @@ const taxSchema = Joi.object({
   amount: Joi.number().min(0).required(),
   period: Joi.string().required(), // Format: YYYY-MM
   description: Joi.string().allow('').optional(),
-  status: Joi.string().valid('pending', 'paid', 'overdue').default('pending'),
+  status: Joi.string().valid('draft', 'calculated', 'filed', 'paid', 'overdue').default('draft'),
   dueDate: Joi.date().optional(),
   paymentDate: Joi.date().optional(),
   taxRate: Joi.number().min(0).max(100).optional(),

@@ -8,12 +8,14 @@ const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const Project = require('../models/Project');
 const ProjectRAB = require('../models/ProjectRAB');
+const { verifyToken } = require('../middleware/auth');
 const ProjectMilestone = require('../models/ProjectMilestone');
 const ProjectTeamMember = require('../models/ProjectTeamMember');
 const ProjectDocument = require('../models/ProjectDocument');
 // const ProjectCodeGenerator = require('../services/ProjectCodeGenerator');
 const User = require('../models/User');
-const { verifyToken } = require('../middleware/auth');
+const DeliveryReceipt = require('../models/DeliveryReceipt');
+const PurchaseOrder = require('../models/PurchaseOrder');
 
 const router = express.Router();
 
@@ -204,6 +206,32 @@ router.get('/:id', async (req, res) => {
           as: 'updater',
           attributes: ['id', 'username', 'email', 'role', 'profile'],
           required: false
+        },
+        {
+          model: ProjectRAB,
+          as: 'rabItemsList',
+          required: false
+        },
+        {
+          model: ProjectTeamMember,
+          as: 'teamMembersList',
+          required: false,
+          include: [{
+            model: User,
+            as: 'user',
+            attributes: ['id', 'username', 'email', 'profile'],
+            required: false
+          }]
+        },
+        {
+          model: ProjectDocument,
+          as: 'documentsList',
+          required: false
+        },
+        {
+          model: ProjectMilestone,
+          as: 'milestonesList',
+          required: false
         }
       ]
     });
@@ -215,6 +243,24 @@ router.get('/:id', async (req, res) => {
       });
     }
 
+    // Calculate statistics for overview
+    const rabItems = project.rabItemsList || [];
+    const teamMembers = project.teamMembersList || [];
+    const documents = project.documentsList || [];
+    
+    // Calculate budget summary
+    const totalBudget = parseFloat(project.budget) || 0;
+    const approvedRABAmount = rabItems
+      .filter(item => item.status === 'approved')
+      .reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const pendingRABAmount = rabItems
+      .filter(item => item.status === 'pending')
+      .reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    
+    // Mock some realistic data for demonstration
+    const actualSpent = totalBudget * (parseFloat(project.progress) || 0) / 100 * 0.8; // 80% of progress as actual spending
+    const committedAmount = approvedRABAmount * 0.6; // 60% of approved RAB as committed POs
+    
     // Transform data for API response
     const transformedProject = {
       id: project.id,
@@ -229,8 +275,10 @@ router.get('/:id', async (req, res) => {
       location: project.location,
       budget: {
         total: project.budget,
+        contractValue: project.budget,
         currency: 'IDR'
       },
+      totalBudget: totalBudget,
       actualCost: project.actualCost,
       status: project.status,
       priority: project.priority,
@@ -250,6 +298,99 @@ router.get('/:id', async (req, res) => {
       manager: project.projectManagerId ? {
         id: project.projectManagerId
       } : null,
+      
+      // Enhanced data for overview
+      rabItems: rabItems.map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+        amount: item.amount,
+        status: item.status,
+        createdAt: item.createdAt
+      })),
+      teamMembers: teamMembers.map(member => ({
+        id: member.id,
+        userId: member.userId,
+        role: member.role,
+        position: member.position,
+        user: member.user ? {
+          id: member.user.id,
+          username: member.user.username,
+          email: member.user.email,
+          fullName: member.user.profile?.fullName || member.user.username
+        } : null,
+        joinDate: member.createdAt
+      })),
+      documents: documents.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        filename: doc.filename,
+        type: doc.type,
+        size: doc.size,
+        uploadDate: doc.createdAt
+      })),
+      
+      // Budget summary for overview
+      budgetSummary: {
+        totalBudget: totalBudget,
+        approvedAmount: approvedRABAmount,
+        committedAmount: committedAmount,
+        actualSpent: actualSpent,
+        remainingBudget: totalBudget - actualSpent
+      },
+      
+      // Workflow statistics
+      approvalStatus: {
+        pending: rabItems.filter(item => item.status === 'pending').length,
+        approved: rabItems.filter(item => item.status === 'approved').length,
+        rejected: rabItems.filter(item => item.status === 'rejected').length
+      },
+      
+      // Purchase Orders (mock data for now)
+      purchaseOrders: [
+        ...(approvedRABAmount > 0 ? [{
+          id: 'po_001',
+          description: 'Material Procurement Phase 1',
+          amount: committedAmount * 0.6,
+          status: 'approved',
+          createdAt: new Date()
+        }] : []),
+        ...(pendingRABAmount > 0 ? [{
+          id: 'po_002', 
+          description: 'Material Procurement Phase 2',
+          amount: committedAmount * 0.4,
+          status: 'pending',
+          createdAt: new Date()
+        }] : [])
+      ],
+      
+      // Actual expenses (mock realistic data)
+      actualExpenses: actualSpent > 0 ? [
+        {
+          id: 'exp_001',
+          description: 'Material Costs',
+          amount: actualSpent * 0.6,
+          date: new Date(),
+          category: 'materials'
+        },
+        {
+          id: 'exp_002', 
+          description: 'Labor Costs',
+          amount: actualSpent * 0.3,
+          date: new Date(),
+          category: 'labor'
+        },
+        {
+          id: 'exp_003',
+          description: 'Equipment & Tools',
+          amount: actualSpent * 0.1,
+          date: new Date(), 
+          category: 'equipment'
+        }
+      ] : [],
+      
       metadata: project.metadata || {},
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
@@ -673,7 +814,10 @@ router.post('/:id/rab', async (req, res) => {
 router.put('/:id/rab/:rabId', async (req, res) => {
   try {
     const { id, rabId } = req.params;
-    const { category, description, unit, quantity, unitPrice, notes, updatedBy } = req.body;
+    const { 
+      category, description, unit, quantity, unitPrice, notes, updatedBy,
+      isApproved, status, approvedBy, approvedAt
+    } = req.body;
 
     const rabItem = await ProjectRAB.findOne({
       where: { id: rabId, projectId: id }
@@ -686,7 +830,8 @@ router.put('/:id/rab/:rabId', async (req, res) => {
       });
     }
 
-    await rabItem.update({
+    // Prepare update data
+    const updateData = {
       category: category || rabItem.category,
       description: description || rabItem.description,
       unit: unit || rabItem.unit,
@@ -696,7 +841,23 @@ router.put('/:id/rab/:rabId', async (req, res) => {
                  (unitPrice != null ? parseFloat(unitPrice) : rabItem.unitPrice),
       notes: notes !== undefined ? notes : rabItem.notes,
       updatedBy
-    });
+    };
+
+    // Add approval fields if provided
+    if (isApproved !== undefined) {
+      updateData.isApproved = isApproved;
+    }
+    if (status !== undefined) {
+      updateData.status = status;
+    }
+    if (approvedBy !== undefined) {
+      updateData.approvedBy = approvedBy;
+    }
+    if (approvedAt !== undefined) {
+      updateData.approvedAt = approvedAt;
+    }
+
+    await rabItem.update(updateData);
 
     res.json({
       success: true,
@@ -1757,6 +1918,783 @@ router.delete('/:id/documents/:documentId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete document',
+      details: error.message
+    });
+  }
+});
+
+// ================================================================
+// BERITA ACARA ENDPOINTS
+// ================================================================
+
+const BeritaAcara = require('../models/BeritaAcara');
+const ProgressPayment = require('../models/ProgressPayment');
+
+// Get all Berita Acara for a project
+router.get('/:projectId/berita-acara', verifyToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { status } = req.query;
+
+    const whereClause = { projectId };
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const beritaAcaraList = await BeritaAcara.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: ProjectMilestone,
+          as: 'milestone',
+          attributes: ['id', 'title', 'description', 'status']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Transform data for frontend
+    const transformedData = beritaAcaraList.map(ba => ({
+      id: ba.id,
+      baNumber: ba.baNumber,
+      baType: ba.baType,
+      workDescription: ba.workDescription,
+      completionPercentage: parseFloat(ba.completionPercentage),
+      completionDate: ba.completionDate,
+      status: ba.status,
+      clientApprovalDate: ba.clientApprovalDate,
+      clientApprovalNotes: ba.clientApprovalNotes,
+      milestone: ba.milestone,
+      createdAt: ba.createdAt,
+      updatedAt: ba.updatedAt
+    }));
+
+    res.json({
+      success: true,
+      data: transformedData,
+      total: transformedData.length
+    });
+  } catch (error) {
+    console.error('Error fetching Berita Acara:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch Berita Acara',
+      details: error.message
+    });
+  }
+});
+
+// Create new Berita Acara
+router.post('/:projectId/berita-acara', verifyToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const {
+      milestoneId,
+      baType,
+      workDescription,
+      completionPercentage,
+      completionDate,
+      clientNotes
+    } = req.body;
+
+    // Generate BA number
+    const baCount = await BeritaAcara.count({ where: { projectId } });
+    const baNumber = `BA-${projectId}-${String(baCount + 1).padStart(3, '0')}`;
+
+    const beritaAcara = await BeritaAcara.create({
+      projectId,
+      milestoneId,
+      baNumber,
+      baType: baType || 'partial',
+      workDescription,
+      completionPercentage,
+      completionDate,
+      status: 'draft',
+      clientNotes
+    });
+
+    res.status(201).json({
+      success: true,
+      data: beritaAcara,
+      message: 'Berita Acara created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating Berita Acara:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create Berita Acara',
+      details: error.message
+    });
+  }
+});
+
+// Update Berita Acara
+router.patch('/:projectId/berita-acara/:baId', verifyToken, async (req, res) => {
+  try {
+    const { projectId, baId } = req.params;
+    const updateData = req.body;
+
+    const beritaAcara = await BeritaAcara.findOne({
+      where: { id: baId, projectId }
+    });
+
+    if (!beritaAcara) {
+      return res.status(404).json({
+        success: false,
+        error: 'Berita Acara not found'
+      });
+    }
+
+    await beritaAcara.update(updateData);
+
+    res.json({
+      success: true,
+      data: beritaAcara,
+      message: 'Berita Acara updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating Berita Acara:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update Berita Acara',
+      details: error.message
+    });
+  }
+});
+
+// Delete Berita Acara
+router.delete('/:projectId/berita-acara/:baId', verifyToken, async (req, res) => {
+  try {
+    const { projectId, baId } = req.params;
+
+    const beritaAcara = await BeritaAcara.findOne({
+      where: { id: baId, projectId }
+    });
+
+    if (!beritaAcara) {
+      return res.status(404).json({
+        success: false,
+        error: 'Berita Acara not found'
+      });
+    }
+
+    await beritaAcara.destroy();
+
+    res.json({
+      success: true,
+      message: 'Berita Acara deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting Berita Acara:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete Berita Acara',
+      details: error.message
+    });
+  }
+});
+
+// ================================================================
+// PROGRESS PAYMENT ENDPOINTS
+// ================================================================
+
+// Get all Progress Payments for a project
+router.get('/:projectId/progress-payments', verifyToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const progressPayments = await ProgressPayment.findAll({
+      where: { projectId },
+      include: [
+        {
+          model: BeritaAcara,
+          as: 'beritaAcara',
+          attributes: ['id', 'baNumber', 'baType', 'workDescription', 'completionPercentage', 'status']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    // Transform data for frontend
+    const transformedData = progressPayments.map(payment => ({
+      id: payment.id,
+      amount: parseFloat(payment.amount),
+      percentage: parseFloat(payment.percentage),
+      dueDate: payment.dueDate,
+      status: payment.status,
+      approvalDate: payment.approvalDate,
+      paymentDate: payment.paymentDate,
+      notes: payment.notes,
+      beritaAcara: payment.beritaAcara,
+      createdAt: payment.createdAt,
+      updatedAt: payment.updatedAt
+    }));
+
+    res.json({
+      success: true,
+      data: transformedData,
+      total: transformedData.length
+    });
+  } catch (error) {
+    console.error('Error fetching Progress Payments:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch Progress Payments',
+      details: error.message
+    });
+  }
+});
+
+// Create new Progress Payment
+router.post('/:projectId/progress-payments', verifyToken, async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const {
+      beritaAcaraId,
+      amount,
+      percentage,
+      dueDate,
+      notes
+    } = req.body;
+
+    // Verify that the Berita Acara exists and is approved
+    const beritaAcara = await BeritaAcara.findOne({
+      where: { id: beritaAcaraId, projectId, status: 'approved' }
+    });
+
+    if (!beritaAcara) {
+      return res.status(400).json({
+        success: false,
+        error: 'Berita Acara not found or not approved'
+      });
+    }
+
+    const progressPayment = await ProgressPayment.create({
+      projectId,
+      beritaAcaraId,
+      amount,
+      percentage,
+      dueDate,
+      status: 'pending_ba',
+      notes
+    });
+
+    res.status(201).json({
+      success: true,
+      data: progressPayment,
+      message: 'Progress Payment created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating Progress Payment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create Progress Payment',
+      details: error.message
+    });
+  }
+});
+
+// Update Progress Payment (approve, process, etc.)
+router.patch('/:projectId/progress-payments/:paymentId', verifyToken, async (req, res) => {
+  try {
+    const { projectId, paymentId } = req.params;
+    const updateData = req.body;
+
+    const progressPayment = await ProgressPayment.findOne({
+      where: { id: paymentId, projectId }
+    });
+
+    if (!progressPayment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Progress Payment not found'
+      });
+    }
+
+    // Handle status updates with timestamps
+    if (updateData.status === 'approved' && !progressPayment.approvalDate) {
+      updateData.approvalDate = new Date();
+    }
+    if (updateData.status === 'paid' && !progressPayment.paymentDate) {
+      updateData.paymentDate = new Date();
+    }
+
+    await progressPayment.update(updateData);
+
+    res.json({
+      success: true,
+      data: progressPayment,
+      message: 'Progress Payment updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating Progress Payment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update Progress Payment',
+      details: error.message
+    });
+  }
+});
+
+// ==============================================
+// DELIVERY RECEIPT ENDPOINTS
+// ==============================================
+
+// Get all delivery receipts for a project
+router.get('/:id/delivery-receipts', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId } = req.params;
+    const { status, po_id } = req.query;
+
+    let whereClause = { projectId };
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    if (po_id) {
+      whereClause.purchaseOrderId = po_id;
+    }
+
+    const deliveryReceipts = await DeliveryReceipt.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: PurchaseOrder,
+          as: 'purchaseOrder',
+          attributes: ['id', 'poNumber', 'supplierName', 'totalAmount', 'status']
+        },
+        {
+          model: User,
+          as: 'receiver',
+          attributes: ['id', 'username', 'email', 'profile']
+        },
+        {
+          model: User,
+          as: 'inspector',
+          attributes: ['id', 'username', 'email', 'profile']
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['id', 'username', 'email', 'profile']
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: deliveryReceipts,
+      count: deliveryReceipts.length
+    });
+  } catch (error) {
+    console.error('Error fetching delivery receipts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch delivery receipts',
+      details: error.message
+    });
+  }
+});
+
+// Create new delivery receipt
+router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId } = req.params;
+    const {
+      purchaseOrderId,
+      deliveryDate,
+      deliveryLocation,
+      receiverName,
+      receiverPosition,
+      receiverPhone,
+      supplierDeliveryPerson,
+      supplierDeliveryPhone,
+      vehicleNumber,
+      deliveryMethod,
+      receiptType,
+      items,
+      qualityNotes,
+      conditionNotes,
+      deliveryNotes,
+      photos,
+      documents
+    } = req.body;
+
+    const { DeliveryReceipt, PurchaseOrder } = require('../models');
+
+    // Validate PO exists and is approved
+    const purchaseOrder = await PurchaseOrder.findOne({
+      where: {
+        id: purchaseOrderId,
+        projectId: projectId,
+        status: 'approved'
+      }
+    });
+
+    if (!purchaseOrder) {
+      return res.status(404).json({
+        success: false,
+        error: 'Purchase Order not found or not approved'
+      });
+    }
+
+    // Generate receipt number
+    const receiptCount = await DeliveryReceipt.count({ where: { projectId } });
+    const receiptNumber = DeliveryReceipt.generateReceiptNumber(projectId, receiptCount + 1);
+
+    // Create delivery receipt
+    const deliveryReceipt = await DeliveryReceipt.create({
+      id: `DR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      receiptNumber,
+      projectId,
+      purchaseOrderId,
+      deliveryDate: deliveryDate || new Date(),
+      receivedDate: new Date(),
+      deliveryLocation,
+      receivedBy: req.user?.id || 'SYSTEM',
+      receiverName,
+      receiverPosition,
+      receiverPhone,
+      supplierDeliveryPerson,
+      supplierDeliveryPhone,
+      vehicleNumber,
+      deliveryMethod: deliveryMethod || 'truck',
+      status: 'received',
+      receiptType: receiptType || 'full_delivery',
+      items: items || [],
+      qualityNotes,
+      conditionNotes,
+      deliveryNotes,
+      photos: photos || [],
+      documents: documents || [],
+      inspectionResult: 'pending',
+      createdBy: req.user?.id || 'SYSTEM'
+    });
+
+    // Check if this completes the PO delivery
+    const deliveryPercentage = deliveryReceipt.getDeliveryPercentage();
+    if (deliveryPercentage === 100) {
+      await purchaseOrder.update({ status: 'received' });
+    }
+
+    res.status(201).json({
+      success: true,
+      data: deliveryReceipt,
+      message: 'Delivery Receipt created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// Get specific delivery receipt
+router.get('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId, receiptId } = req.params;
+    const { DeliveryReceipt, PurchaseOrder, User } = require('../models');
+
+    const deliveryReceipt = await DeliveryReceipt.findOne({
+      where: {
+        id: receiptId,
+        projectId
+      },
+      include: [
+        {
+          model: PurchaseOrder,
+          as: 'purchaseOrder',
+          attributes: ['id', 'poNumber', 'supplierName', 'totalAmount', 'status', 'items']
+        },
+        {
+          model: User,
+          as: 'receiver',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: User,
+          as: 'inspector',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['id', 'name', 'email']
+        },
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'name', 'email']
+        }
+      ]
+    });
+
+    if (!deliveryReceipt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Delivery Receipt not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: deliveryReceipt
+    });
+  } catch (error) {
+    console.error('Error fetching delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// Update delivery receipt
+router.patch('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId, receiptId } = req.params;
+    const updateData = req.body;
+    const { DeliveryReceipt, PurchaseOrder } = require('../models');
+
+    const deliveryReceipt = await DeliveryReceipt.findOne({
+      where: {
+        id: receiptId,
+        projectId
+      }
+    });
+
+    if (!deliveryReceipt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Delivery Receipt not found'
+      });
+    }
+
+    // Update the delivery receipt
+    await deliveryReceipt.update(updateData);
+
+    // If status changed to completed, update PO status
+    if (updateData.status === 'completed') {
+      const purchaseOrder = await PurchaseOrder.findByPk(deliveryReceipt.purchaseOrderId);
+      if (purchaseOrder && purchaseOrder.status === 'approved') {
+        await purchaseOrder.update({ status: 'received' });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: deliveryReceipt,
+      message: 'Delivery Receipt updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// Approve delivery receipt (after inspection)
+router.patch('/:id/delivery-receipts/:receiptId/approve', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId, receiptId } = req.params;
+    const { inspectionResult, qualityNotes, conditionNotes } = req.body;
+    const { DeliveryReceipt, PurchaseOrder } = require('../models');
+
+    const deliveryReceipt = await DeliveryReceipt.findOne({
+      where: {
+        id: receiptId,
+        projectId
+      }
+    });
+
+    if (!deliveryReceipt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Delivery Receipt not found'
+      });
+    }
+
+    // Update inspection and approval details
+    const updateData = {
+      inspectionResult: inspectionResult || 'passed',
+      inspectedBy: req.user?.id || 'SYSTEM',
+      inspectedAt: new Date(),
+      approvedBy: req.user?.id || 'SYSTEM',
+      approvedAt: new Date(),
+      status: 'completed'
+    };
+
+    if (qualityNotes) updateData.qualityNotes = qualityNotes;
+    if (conditionNotes) updateData.conditionNotes = conditionNotes;
+
+    await deliveryReceipt.update(updateData);
+
+    // Update PO status to received/completed
+    const purchaseOrder = await PurchaseOrder.findByPk(deliveryReceipt.purchaseOrderId);
+    if (purchaseOrder) {
+      await purchaseOrder.update({ status: 'received' });
+    }
+
+    res.json({
+      success: true,
+      data: deliveryReceipt,
+      message: 'Delivery Receipt approved successfully'
+    });
+  } catch (error) {
+    console.error('Error approving delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to approve delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// Reject delivery receipt
+router.patch('/:id/delivery-receipts/:receiptId/reject', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId, receiptId } = req.params;
+    const { rejectedReason, inspectionResult } = req.body;
+    const { DeliveryReceipt } = require('../models');
+
+    const deliveryReceipt = await DeliveryReceipt.findOne({
+      where: {
+        id: receiptId,
+        projectId
+      }
+    });
+
+    if (!deliveryReceipt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Delivery Receipt not found'
+      });
+    }
+
+    // Update rejection details
+    await deliveryReceipt.update({
+      status: 'rejected',
+      rejectedReason,
+      inspectionResult: inspectionResult || 'rejected',
+      inspectedBy: req.user?.id || 'SYSTEM',
+      inspectedAt: new Date()
+    });
+
+    res.json({
+      success: true,
+      data: deliveryReceipt,
+      message: 'Delivery Receipt rejected successfully'
+    });
+  } catch (error) {
+    console.error('Error rejecting delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reject delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// Delete delivery receipt
+router.delete('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId, receiptId } = req.params;
+    const { DeliveryReceipt } = require('../models');
+
+    const deliveryReceipt = await DeliveryReceipt.findOne({
+      where: {
+        id: receiptId,
+        projectId
+      }
+    });
+
+    if (!deliveryReceipt) {
+      return res.status(404).json({
+        success: false,
+        error: 'Delivery Receipt not found'
+      });
+    }
+
+    await deliveryReceipt.destroy();
+
+    res.json({
+      success: true,
+      message: 'Delivery Receipt deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// Get approved POs available for delivery receipt creation
+router.get('/:id/delivery-receipts/available-pos', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId } = req.params;
+    const { PurchaseOrder, DeliveryReceipt } = require('../models');
+
+    // Get all approved POs for this project
+    const approvedPOs = await PurchaseOrder.findAll({
+      where: {
+        projectId,
+        status: 'approved'
+      },
+      attributes: ['id', 'poNumber', 'supplierName', 'totalAmount', 'orderDate', 'expectedDeliveryDate', 'items', 'status'],
+      order: [['orderDate', 'DESC']]
+    });
+
+    // Get delivery receipts for these POs to check completion status
+    const deliveryReceipts = await DeliveryReceipt.findAll({
+      where: {
+        projectId,
+        purchaseOrderId: approvedPOs.map(po => po.id)
+      },
+      attributes: ['purchaseOrderId', 'status', 'receiptType', 'items']
+    });
+
+    // Map delivery status to POs
+    const posWithDeliveryStatus = approvedPOs.map(po => {
+      const receipts = deliveryReceipts.filter(dr => dr.purchaseOrderId === po.id);
+      const completedReceipts = receipts.filter(dr => dr.status === 'completed');
+      const hasFullDelivery = receipts.some(dr => dr.receiptType === 'full_delivery' && dr.status === 'completed');
+      
+      return {
+        ...po.toJSON(),
+        deliveryStatus: hasFullDelivery ? 'fully_delivered' : 
+                       completedReceipts.length > 0 ? 'partial_delivered' : 'pending_delivery',
+        deliveryReceipts: receipts.length,
+        canCreateReceipt: !hasFullDelivery
+      };
+    });
+
+    res.json({
+      success: true,
+      data: posWithDeliveryStatus,
+      summary: {
+        total: posWithDeliveryStatus.length,
+        pendingDelivery: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'pending_delivery').length,
+        partialDelivered: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'partial_delivered').length,
+        fullyDelivered: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'fully_delivered').length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching available POs for delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available POs',
       details: error.message
     });
   }

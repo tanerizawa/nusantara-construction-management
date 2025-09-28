@@ -12,7 +12,11 @@ import {
   ProjectWorkflowSidebar,
   ProjectPurchaseOrders,
   ProfessionalApprovalDashboard
-} from '../components/workflow';import { 
+} from '../components/workflow';
+
+// Import Berita Acara components
+import BeritaAcaraManager from '../components/berita-acara/BeritaAcaraManager';
+import ProgressPaymentManager from '../components/progress-payment/ProgressPaymentManager';import { 
   Building, 
   Users, 
   FileText, 
@@ -158,7 +162,22 @@ const ProjectDetail = () => {
       id: 'milestones',
       label: 'Milestone',
       icon: Calendar,
-      description: 'Timeline dan pencapaian proyek'
+      description: 'Project milestones dan timeline',
+      badge: workflowData.milestones?.pending || 0
+    },
+    {
+      id: 'berita-acara',
+      label: 'Berita Acara',
+      icon: FileText,
+      description: 'Manajemen Berita Acara dan handover',
+      badge: workflowData.beritaAcara?.pending || 0
+    },
+    {
+      id: 'progress-payments',
+      label: 'Progress Payments',
+      icon: DollarSign,
+      description: 'Pembayaran bertahap berdasarkan BA',
+      badge: workflowData.progressPayments?.pending || 0
     }
   ], [workflowData]);
 
@@ -333,7 +352,47 @@ const ProjectDetail = () => {
           )}
           
           {activeTab === 'milestones' && project && (
-            <ProjectMilestones projectId={id} project={project} onUpdate={fetchProject} />
+            <ProjectMilestones 
+              projectId={id} 
+              project={project} 
+              onUpdate={fetchProject}
+              onMilestoneComplete={(milestone) => {
+                // When milestone is completed, suggest BA creation
+                if (milestone.status === 'completed') {
+                  const shouldCreateBA = window.confirm(
+                    `Milestone "${milestone.title}" telah selesai. Apakah Anda ingin membuat Berita Acara untuk milestone ini?`
+                  );
+                  if (shouldCreateBA) {
+                    setActiveTab('berita-acara');
+                  }
+                }
+              }}
+            />
+          )}
+          
+          {activeTab === 'berita-acara' && project && (
+            <BeritaAcaraManager
+              projectId={id}
+              project={project}
+              onBAChange={() => {
+                // Refresh workflow data when BA changes
+                // This would trigger payment workflow if BA is approved
+                console.log('BA changed, refreshing workflow data');
+                fetchProject(); // Refresh project data
+              }}
+            />
+          )}
+
+          {activeTab === 'progress-payments' && project && (
+            <ProgressPaymentManager
+              projectId={id}
+              project={project}
+              onPaymentChange={() => {
+                // Refresh project data when payment changes
+                console.log('Payment changed, refreshing project data');
+                fetchProject();
+              }}
+            />
           )}
           
           {activeTab === 'team' && project && (

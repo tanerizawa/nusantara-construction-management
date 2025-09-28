@@ -1,17 +1,8 @@
 import axios from 'axios';
+import { API_URL } from '../utils/config';
 
-// API Configuration - Consistent with AuthContext
-const getApiUrl = () => {
-  // If accessed from production domain, use relative path for Apache proxy
-  if (window.location.hostname === 'nusantaragroup.co' || window.location.hostname.includes('nusantaragroup')) {
-    return '/api';
-  }
-  
-  // For localhost development - use port 5000 for development backend
-  return 'http://localhost:5000/api';
-};
-
-const API_BASE_URL = getApiUrl();
+// Use centralized API configuration
+const API_BASE_URL = API_URL;
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -30,7 +21,8 @@ apiClient.interceptors.request.use(
       url: config.url,
       method: config.method,
       hasToken: !!token,
-      tokenPreview: token ? token.substring(0, 20) + '...' : 'No token'
+      tokenPreview: token ? token.substring(0, 20) + '...' : 'No token',
+      data: config.method?.toLowerCase() === 'post' ? config.data : 'N/A (GET request)'
     });
     
     if (token) {
@@ -75,14 +67,12 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.log('❌ AXIOS RESPONSE ERROR:', {
+    console.error('API Error:', {
       url: error.config?.url,
       status: error.response?.status,
       message: error.message,
       responseData: error.response?.data
-    });
-    
-    if (error.response?.status === 401) {
+    });    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
@@ -105,10 +95,25 @@ const apiService = {
   // POST request
   post: async (endpoint, data = {}) => {
     try {
+      console.log('📤 POST REQUEST DATA:', data);
       const response = await apiClient.post(endpoint, data);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to create data');
+      console.log('🚫 POST ERROR DETAILS:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        details: error.response?.data?.details
+      });
+      
+      // Enhanced error handling for validation errors
+      if (error.response?.data?.details && Array.isArray(error.response.data.details)) {
+        const errorDetails = error.response.data.details.map(err => 
+          typeof err === 'object' ? `${err.path?.join('.')}: ${err.message}` : err
+        ).join(', ');
+        throw new Error(`Validation Error: ${errorDetails}`);
+      }
+      
+      throw new Error(error.response?.data?.error || error.response?.data?.message || 'Failed to create data');
     }
   },
 
@@ -256,12 +261,24 @@ export const subsidiaryAPI = {
 
 export const financeAPI = {
   getAll: (params) => apiService.get('/finance', params),
+  getTransactions: (page = 1, limit = 10, params = {}) => {
+    // Combine page/limit with other params
+    const allParams = { 
+      page, 
+      limit, 
+      ...params 
+    };
+    return apiService.get('/finance', allParams);
+  },
   getById: (id) => apiService.get(`/finance/${id}`),
   create: (data) => apiService.post('/finance', data),
   update: (id, data) => apiService.put(`/finance/${id}`, data),
   delete: (id) => apiService.delete(`/finance/${id}`),
+  deleteTransaction: (id) => apiService.delete(`/finance/${id}`),
   getByProject: (projectId) => apiService.get(`/finance?projectId=${projectId}`),
   getStatistics: () => apiService.get('/finance/statistics'),
+  getFinancialReports: (params) => apiService.get('/finance/reports', params),
+  getIncomeStatement: (params) => apiService.get('/finance/reports/income-statement', params),
 };
 
 export const taxAPI = {
@@ -311,6 +328,22 @@ export const authAPI = {
   refresh: () => apiService.post('/auth/refresh'),
   getProfile: () => apiService.get('/auth/profile'),
   updateProfile: (data) => apiService.put('/auth/profile', data),
+};
+
+export const subsidiariesAPI = {
+  getAll: (params) => apiService.get('/subsidiaries', params),
+  getById: (id) => apiService.get(`/subsidiaries/${id}`),
+  create: (data) => apiService.post('/subsidiaries', data),
+  update: (id, data) => apiService.put(`/subsidiaries/${id}`, data),
+  delete: (id) => apiService.delete(`/subsidiaries/${id}`),
+};
+
+export const projectsAPI = {
+  getAll: (params) => apiService.get('/projects', params),
+  getById: (id) => apiService.get(`/projects/${id}`),
+  create: (data) => apiService.post('/projects', data),
+  update: (id, data) => apiService.put(`/projects/${id}`, data),
+  delete: (id) => apiService.delete(`/projects/${id}`),
 };
 
 export const dashboardAPI = {

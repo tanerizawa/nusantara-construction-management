@@ -22,9 +22,9 @@ const getApiUrl = () => {
     return '/api';
   }
 
-  // PRIORITAS 3: Development fallback
-  console.log('🏠 Development fallback - using localhost:5000');
-  return 'http://localhost:5000/api';
+  // PRIORITAS 3: Development - use setupProxy configuration
+  console.log('🏠 Development mode - using setupProxy /api');
+  return '/api';
 };
 
 // Export konstanta yang akan digunakan oleh semua komponen

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Button from './Button';
 import Card from './Card';
+import { formatLocation, formatAddress } from '../../utils/locationUtils';
 
 /**
  * PROFESSIONAL PROJECT DETAIL MODAL
@@ -162,7 +163,7 @@ const ProjectDetailModal = ({
                 {project.name}
               </h2>
               <p className="text-blue-100 text-sm">
-                {project.clientName} • {project.location?.city}
+                {project.clientName} • {formatLocation(project.location, 'Lokasi belum ditentukan')}
               </p>
             </div>
             <div className="flex items-center gap-2 ml-4">
@@ -278,9 +279,8 @@ const ProjectDetailModal = ({
                     Lokasi
                   </h3>
                   <div className="space-y-2 text-gray-600 dark:text-gray-300">
-                    <p>{project.location?.address}</p>
-                    <p>{project.location?.city}, {project.location?.state}</p>
-                    {project.location?.postalCode && (
+                    <p>{formatAddress(project.location, 'Alamat belum ditentukan')}</p>
+                    {project.location?.postalCode?.trim() && (
                       <p>{project.location.postalCode}</p>
                     )}
                   </div>

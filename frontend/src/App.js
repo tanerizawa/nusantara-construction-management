@@ -38,6 +38,7 @@ import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard'
 
 // Import routes
 import InventoryRoutes from './routes/InventoryRoutes';
+import AssetRoutes from './routes/AssetRoutes';
 
 
 
@@ -216,6 +217,15 @@ function App() {
                 <MainLayout>
                   <InventoryRoutes />
                 </MainLayout>
+              } />
+              
+              {/* Asset Management Sub-routes - With Layout */}
+              <Route path="/assets/*" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <AssetRoutes />
+                  </MainLayout>
+                </ProtectedRoute>
               } />
               
             </Routes>

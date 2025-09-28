@@ -17,7 +17,11 @@ import {
   ShoppingCart,
   Calendar,
   FileText,
-  Activity
+  Activity,
+  HardHat,
+  TrendingDown,
+  Wrench,
+  PieChart
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -49,6 +53,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'SDM',
       icon: Users,
       path: '/manpower'
+    },
+    {
+      id: 'assets',
+      label: 'Asset Management',
+      icon: HardHat,
+      path: '/assets'
     },
     {
       id: 'finance',

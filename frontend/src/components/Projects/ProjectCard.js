@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { safeRender, formatLocation } from '../../utils/locationUtils';
 
 /**
  * PROFESSIONAL PROJECT CARD 
@@ -116,49 +117,54 @@ const ProjectCard = memo(({
     return priorityMap[priority] || priorityMap.medium;
   };
 
-  // Ultra-Compact Currency Formatter
+  // Full Currency Formatter - Show complete amount without abbreviation
   const formatCurrency = (amount) => {
     if (!amount || amount === 0) return 'Rp 0';
     
-    // Ultra compact format for card display
-    if (amount >= 1000000000) {
-      return `Rp ${(amount / 1000000000).toFixed(1)}B`;
-    } else if (amount >= 1000000) {
-      return `Rp ${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `Rp ${(amount / 1000).toFixed(0)}K`;
-    }
-    
-    return `Rp ${amount.toLocaleString('id-ID')}`;
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   };
 
-  // Ultra-Compact Date Formatter  
+  // Enhanced Date Formatter - Clear start and end dates
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     
     try {
       const date = new Date(dateString);
-      const now = new Date();
-      const diffTime = date - now;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      // Ultra compact format for cards
-      const month = date.toLocaleDateString('id-ID', { month: 'short' });
-      const day = date.getDate();
-      const year = date.getFullYear().toString().slice(-2);
-      
-      // Show relative time for near dates
-      if (diffDays < 0) {
-        return `${day} ${month} (${Math.abs(diffDays)}d ago)`;
-      } else if (diffDays <= 30) {
-        return `${day} ${month} (${diffDays}d)`;
-      }
-      
-      return `${day} ${month} '${year}`;
+      return date.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
     } catch (error) {
+      console.error('Date formatting error:', error);
       return dateString.slice(0, 10);
     }
   };
+
+  // Format date range for project timeline
+  const formatDateRange = (startDate, endDate) => {
+    if (!startDate && !endDate) return '-';
+    
+    const start = startDate ? formatDate(startDate) : '-';
+    const end = endDate ? formatDate(endDate) : '-';
+    
+    if (startDate && endDate) {
+      return `${start} - ${end}`;
+    } else if (startDate) {
+      return `Mulai: ${start}`;
+    } else if (endDate) {
+      return `Berakhir: ${end}`;
+    }
+    
+    return '-';
+  };
+
+  // Note: safeRender and formatLocation functions are now imported from utils
 
   // Enterprise Progress Analytics
   const getProgressAnalytics = (percentage) => {
@@ -261,49 +267,67 @@ const ProjectCard = memo(({
       {/* Status Indicator */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600" />
       
-      {/* Ultra-Compact Content Layout */}
-      <div className="p-3">
-        {/* Header Row - Multi-line Layout for Long Project Names */}
-        <div className="mb-2">
+      {/* Optimized Content Layout - Compact but readable */}
+      <div className="p-4">
+        {/* Header Row - Enhanced layout for better readability */}
+        <div className="mb-3">
           {/* Status Badge - Top Right */}
-          <div className="flex justify-end mb-1">
-            <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full 
-                            text-xs font-medium border ${statusConfig.color} shrink-0`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${statusConfig.badge}`} />
-              <span className="text-xs">{statusConfig.text}</span>
+          <div className="flex justify-end mb-2">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full 
+                            text-xs font-medium border ${statusConfig.color} shrink-0 shadow-sm`}>
+              <div className={`w-2 h-2 rounded-full ${statusConfig.badge}`} />
+              <span className="text-xs font-medium">{statusConfig.text}</span>
             </div>
           </div>
           
-          {/* Project Name - Full Width with Multi-line Support */}
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white 
-                         leading-relaxed group-hover:text-blue-600 
+          {/* Project Name - Enhanced typography */}
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white 
+                         leading-snug group-hover:text-blue-600 
                          dark:group-hover:text-blue-400 transition-colors duration-200
-                         cursor-pointer break-words hyphens-auto"
+                         cursor-pointer break-words hyphens-auto line-clamp-2"
               onClick={handleViewClick}
-              title={project.name || 'Unnamed Project'}>
-            {project.name || 'Unnamed Project'}
+              title={safeRender(project.name, 'Unnamed Project')}>
+            {safeRender(project.name, 'Unnamed Project')}
           </h3>
         </div>
 
-        {/* Metadata Row - Enhanced with Subsidiary Info */}
-        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
-          <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">
-            {project.projectCode || project.id || 'NO-CODE'}
+        {/* Metadata Row - Enhanced with better spacing */}
+        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+          <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-medium">
+            {safeRender(project.projectCode || project.id, 'NO-CODE')}
           </span>
           {project.client?.company && (
-            <span className="truncate max-w-20 flex-shrink-0" title={project.client.company}>
-              {project.client.company}
+            <span className="truncate max-w-24 flex-shrink-0 text-xs" title={safeRender(project.client.company)}>
+              {safeRender(project.client.company)}
             </span>
           )}
           {(project.subsidiary?.code || project.subsidiaryInfo?.code) && (
             <span 
-              className="text-blue-600 dark:text-blue-400 font-medium text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-md" 
+              className="text-blue-600 dark:text-blue-400 font-medium text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-md border border-blue-200" 
               title={`Anak Perusahaan: ${project.subsidiary?.name || project.subsidiaryInfo?.name || ''}\nSpesialisasi: ${project.subsidiary?.specialization || project.subsidiaryInfo?.specialization || 'N/A'}`}
             >
-              {project.subsidiary?.code || project.subsidiaryInfo?.code}
+                            <span className="text-xs font-medium">
+                {safeRender(project.subsidiary?.code || project.subsidiaryInfo?.code)}
+              </span>
             </span>
           )}
         </div>
+
+        {/* Budget Section - Moved above subsidiary for better space utilization */}
+        {(project.budget?.contractValue || project.budget?.total || project.budget) && (
+          <div className="mb-3 p-2.5 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-100 dark:border-green-800">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-600 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium">Nilai Proyek</div>
+                <div className="font-bold text-green-700 dark:text-green-300 text-sm truncate" 
+                     title={formatCurrency(project.budget?.contractValue || project.budget?.total || project.budget)}>
+                  {formatCurrency(project.budget?.contractValue || project.budget?.total || project.budget)}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Subsidiary Information */}
         {(project.subsidiary || project.subsidiaryInfo) && (
@@ -312,120 +336,118 @@ const ProjectCard = memo(({
               <Building2 className="w-3 h-3 text-blue-500" />
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">
-                  {project.subsidiary?.name || project.subsidiaryInfo?.name || 'Unknown Subsidiary'}
+                  {safeRender(project.subsidiary?.name || project.subsidiaryInfo?.name, 'Unknown Subsidiary')}
                 </div>
                 <div className="text-xs text-blue-600 dark:text-blue-400 capitalize">
-                  {project.subsidiary?.specialization || project.subsidiaryInfo?.specialization || 'General'}
+                  {safeRender(project.subsidiary?.specialization || project.subsidiaryInfo?.specialization, 'General')}
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Dense Information Grid - 2 Rows Maximum */}
-        <div className="space-y-1.5 mb-2">
-          {/* Row 1: Location, Priority, Budget */}
-          <div className="flex items-center justify-between gap-2 text-xs">
-            {/* Location - Compact */}
+        {/* Information Grid - Enhanced spacing and readability */}
+        <div className="space-y-2.5 mb-3">
+          {/* Row 1: Location Only (Budget moved above) */}
+          <div className="flex items-center gap-3 text-sm">
+            {/* Location - Enhanced display with proper object handling */}
             {project.location && (
-              <div className="flex items-center gap-1 flex-1 min-w-0">
-                <MapPin className="w-3 h-3 text-gray-500 shrink-0" />
-                <span className="text-gray-600 dark:text-gray-300 truncate text-xs">
-                  {project.location.city}
-                </span>
-              </div>
-            )}
-            
-            {/* Budget - Always visible, right aligned */}
-            {(project.budget?.contractValue || project.budget?.total || project.budget) && (
-              <div className="flex items-center gap-1 shrink-0">
-                <DollarSign className="w-3 h-3 text-green-500" />
-                <span className="font-semibold text-green-600 text-xs">
-                  {formatCurrency(project.budget?.contractValue || project.budget?.total || project.budget)}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <MapPin className="w-4 h-4 text-gray-500 shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300 truncate text-sm font-medium">
+                  {formatLocation(project.location, 'Lokasi belum ditentukan')}
                 </span>
               </div>
             )}
           </div>
           
-          {/* Row 2: Timeline, Priority */}
-          <div className="flex items-center justify-between gap-2 text-xs">
-            {/* Timeline - Compact */}
-            {(project.timeline || project.startDate) && (
-              <div className="flex items-center gap-1 flex-1 min-w-0">
-                <CalendarDays className="w-3 h-3 text-blue-500 shrink-0" />
-                <span className="text-gray-600 dark:text-gray-300 truncate text-xs">
-                  {formatDate(project.timeline?.endDate || project.endDate)}
+          {/* Row 2: Timeline and Priority */}
+          <div className="flex items-center justify-between gap-3 text-sm">
+            {/* Timeline - Enhanced date range display */}
+            {(project.timeline || project.startDate || project.endDate) && (
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <CalendarDays className="w-4 h-4 text-blue-600 shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300 truncate text-sm font-medium" 
+                      title={formatDateRange(project.timeline?.startDate || project.startDate, project.timeline?.endDate || project.endDate)}>
+                  {formatDateRange(project.timeline?.startDate || project.startDate, project.timeline?.endDate || project.endDate)}
                 </span>
               </div>
             )}
             
-            {/* Priority - Compact Badge */}
+            {/* Priority - Enhanced Badge */}
             {project.priority && (
-              <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs 
-                              ${priorityConfig.bg} ${priorityConfig.color} shrink-0`}>
-                <priorityConfig.icon className="w-3 h-3" />
-                <span className="text-xs">{priorityConfig.label}</span>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium border
+                              ${priorityConfig.bg} ${priorityConfig.color} shrink-0 shadow-sm`}>
+                <priorityConfig.icon className="w-3.5 h-3.5" />
+                <span className="text-xs font-semibold">{priorityConfig.label}</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Ultra-Compact Progress - Single Line */}
-        <div className="mb-2">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-gray-600 dark:text-gray-300">Progress</span>
-            <div className="flex items-center gap-1.5">
-              <span className={`text-xs px-1 py-0.5 rounded ${progressAnalytics.bgColor} ${progressAnalytics.textColor}`}>
+        {/* Enhanced Progress Section */}
+        <div className="mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs px-2 py-1 rounded-md font-medium ${progressAnalytics.bgColor} ${progressAnalytics.textColor}`}>
                 {progressAnalytics.trend}
               </span>
-              <span className="text-sm font-bold text-gray-900 dark:text-white">
-                {project.progress?.percentage || project.progress || 0}%
+              <span className="text-base font-bold text-gray-900 dark:text-white">
+                {Math.round(project.progress?.percentage || project.progress || 0)}%
               </span>
             </div>
           </div>
           
-          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
             <div
-              className={`h-1.5 rounded-full transition-all duration-500 ${progressAnalytics.color}`}
-              style={{ width: `${Math.min(project.progress?.percentage || project.progress || 0, 100)}%` }}
+              className={`h-2 rounded-full transition-all duration-500 ${progressAnalytics.color} shadow-sm`}
+              style={{ width: `${Math.min(Number(project.progress?.percentage || project.progress || 0), 100)}%` }}
             />
           </div>
         </div>
 
-        {/* Ultra-Compact Action Row */}
+        {/* Enhanced Action Row with Prominent Detail Button */}
         {showActions && (
-          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-600 gap-1">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600 gap-2">
             {/* Progress Status Text - Left */}
             <span className={`text-xs font-medium ${progressAnalytics.textColor} flex-1 truncate`}>
               {progressAnalytics.status}
             </span>
             
-            {/* Action Icons - Right, Icon Only */}
-            <div className="flex items-center gap-0.5 shrink-0">
+            {/* Enhanced Actions with Prominent Detail Button */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Prominent Detail Button with Glow Effect */}
               <Button
                 onClick={handleViewClick}
-                variant="ghost"
+                variant="default"
                 size="sm"
-                className="w-6 h-6 p-0 text-blue-600 dark:text-blue-400 
-                         hover:text-blue-700 dark:hover:text-blue-300 
-                         hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                         transition-all duration-200 rounded"
-                title="Lihat Detail"
+                className="h-7 px-4 bg-blue-600 hover:bg-blue-700 text-white 
+                         shadow-lg hover:shadow-xl hover:shadow-blue-500/50 
+                         transition-all duration-300 ease-out
+                         text-xs font-semibold rounded-md border-0 
+                         focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
+                         hover:scale-105 active:scale-95
+                         bg-gradient-to-r from-blue-600 to-blue-700
+                         hover:from-blue-700 hover:to-blue-800"
+                title="Lihat Detail Proyek"
               >
-                <Eye className="w-3 h-3" />
+                <span>Detail</span>
               </Button>
               
+              {/* Secondary Action Buttons - Smaller */}
               <Button
                 onClick={handleEditClick}
                 variant="ghost"
                 size="sm"
-                className="w-6 h-6 p-0 text-gray-600 dark:text-gray-400 
+                className="w-7 h-7 p-0 text-gray-500 dark:text-gray-400 
                          hover:text-blue-600 dark:hover:text-blue-400 
                          hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                         transition-all duration-200 rounded"
-                title="Edit"
+                         transition-all duration-200 rounded-md border border-gray-200
+                         hover:border-blue-300 hover:shadow-sm"
+                title="Edit Proyek"
               >
-                <Edit3 className="w-3 h-3" />
+                <Edit3 className="w-3.5 h-3.5" />
               </Button>
               
               {project.status !== 'archived' && (
@@ -433,13 +455,14 @@ const ProjectCard = memo(({
                   onClick={handleArchiveClick}
                   variant="ghost"
                   size="sm"
-                  className="w-6 h-6 p-0 text-gray-600 dark:text-gray-400 
+                  className="w-7 h-7 p-0 text-gray-500 dark:text-gray-400 
                            hover:text-amber-600 dark:hover:text-amber-400 
                            hover:bg-amber-50 dark:hover:bg-amber-900/20 
-                           transition-all duration-200 rounded"
-                  title="Archive"
+                           transition-all duration-200 rounded-md border border-gray-200
+                           hover:border-amber-300 hover:shadow-sm"
+                  title="Arsipkan Proyek"
                 >
-                  <Archive className="w-3 h-3" />
+                  <Archive className="w-3.5 h-3.5" />
                 </Button>
               )}
               
@@ -447,13 +470,14 @@ const ProjectCard = memo(({
                 onClick={handleDeleteClick}
                 variant="ghost"
                 size="sm"
-                className="w-6 h-6 p-0 text-gray-600 dark:text-gray-400 
+                className="w-7 h-7 p-0 text-gray-500 dark:text-gray-400 
                          hover:text-red-600 dark:hover:text-red-400 
                          hover:bg-red-50 dark:hover:bg-red-900/20 
-                         transition-all duration-200 rounded"
-                title="Delete"
+                         transition-all duration-200 rounded-md border border-gray-200
+                         hover:border-red-300 hover:shadow-sm"
+                title="Hapus Proyek"
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>

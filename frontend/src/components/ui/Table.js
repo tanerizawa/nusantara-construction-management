@@ -6,6 +6,7 @@ import { Dropdown, DropdownItem, DropdownSeparator } from './Dropdown';
 import { Input } from './Form';
 import { EmptyTable } from './EmptyState';
 import { TableSkeleton } from './Loading';
+import { formatLocation } from '../../utils/locationUtils';
 
 /**
  * Enhanced Table Components - Apple HIG Compliant
@@ -609,10 +610,7 @@ export const ProjectTable = ({ projects = [], onEdit, onDelete, onArchive, ...pr
         <div>
           <div className="font-medium">{value}</div>
           <div className="text-sm text-gray-500">
-            {row.location && typeof row.location === 'object' 
-              ? `${row.location.city || ''}, ${row.location.province || ''}`
-              : row.location || ''
-            }
+            {formatLocation(row.location, 'Lokasi belum ditentukan')}
           </div>
         </div>
       )

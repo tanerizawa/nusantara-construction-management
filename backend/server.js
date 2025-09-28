@@ -95,34 +95,60 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration with environment-based origins
-const corsOptions = isProduction 
-  ? {
-      origin: [
-        'https://nusantaragroup.co',
-        'https://www.nusantaragroup.co',
-        'http://localhost:3000'
-      ].filter(Boolean),
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
-      optionsSuccessStatus: 200
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allowed origins
+    const allowedOrigins = [
+      'https://nusantaragroup.co',
+      'https://www.nusantaragroup.co',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001'
+    ];
+    
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    // In development, allow all origins
+    if (!isProduction) return callback(null, true);
+    
+    // In production, check against allowed origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.warn(`🚫 CORS blocked request from origin: ${origin}`);
+      return callback(new Error('Not allowed by CORS'));
     }
-  : {
-      origin: true, // Allow all origins in development
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'x-api-key', 'Accept'],
-      optionsSuccessStatus: 200
-    };
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'x-auth-token', 
+    'x-api-key', 
+    'Accept',
+    'Origin',
+    'X-Requested-With'
+  ],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
+};
 
 // Debug CORS
 console.log('🔧 CORS Configuration:', { isProduction, corsOptions });
 
 app.use(cors(corsOptions));
 
+// Additional explicit OPTIONS handling for problematic routes
+app.options('*', cors(corsOptions));
+
 // Debug middleware untuk melihat request
 app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'no-origin'}`);
+  console.log(`🔧 Headers: ${JSON.stringify(req.headers, null, 2)}`);
   next();
 });
 
@@ -228,7 +254,9 @@ app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/manpower', require('./routes/manpower'));
 app.use('/api/finance', require('./routes/finance'));
 app.use('/api/tax', require('./routes/tax'));
-app.use('/api/chart-of-accounts', require('./routes/chartOfAccounts'));
+app.use('/api/coa', require('./routes/coa'));
+app.use('/api/chart-of-accounts', require('./routes/coa')); // Alias for backward compatibility
+app.use('/api/entities', require('./routes/entities'));
 app.use('/api/journal-entries', require('./routes/journalEntries'));
 app.use('/api/reports', require('./routes/financialReports'));
 app.use('/api/users', require('./routes/users'));

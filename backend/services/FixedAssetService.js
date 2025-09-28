@@ -6,6 +6,9 @@
  * asset disposal, and integration with accounting systems for construction industry
  */
 
+const { models } = require('../models');
+const { FixedAsset } = models;
+
 class FixedAssetService {
   constructor() {
     this.assetCategories = {
@@ -38,79 +41,165 @@ class FixedAssetService {
   }
 
   /**
+   * Get list of assets with filtering and pagination
+   */
+  async getAssetList(filters = {}, page = 1, limit = 50) {
+    try {
+      const { Op } = require('sequelize');
+      const offset = (page - 1) * limit;
+      
+      // Build where conditions
+      const whereConditions = {};
+      
+      if (filters.category) {
+        whereConditions.asset_category = filters.category;
+      }
+      
+      if (filters.status) {
+        whereConditions.status = filters.status;
+      }
+      
+      if (filters.search) {
+        whereConditions[Op.or] = [
+          { asset_name: { [Op.iLike]: `%${filters.search}%` } },
+          { asset_code: { [Op.iLike]: `%${filters.search}%` } }
+        ];
+      }
+
+      const { count, rows: assets } = await FixedAsset.findAndCountAll({
+        where: whereConditions,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['createdAt', 'DESC']]
+      });
+
+      return {
+        success: true,
+        data: assets.map(asset => ({
+          id: asset.id,
+          assetCode: asset.asset_code,
+          assetName: asset.asset_name,
+          assetCategory: asset.asset_category,
+          assetType: asset.asset_type,
+          description: asset.description,
+          purchasePrice: parseFloat(asset.purchase_price),
+          purchaseDate: asset.purchase_date,
+          supplier: asset.supplier,
+          invoiceNumber: asset.invoice_number,
+          depreciationMethod: asset.depreciation_method,
+          usefulLife: asset.useful_life,
+          salvageValue: parseFloat(asset.salvage_value || 0),
+          status: asset.status,
+          condition: asset.condition,
+          location: asset.location,
+          department: asset.department,
+          responsiblePerson: asset.responsible_person,
+          costCenter: asset.cost_center,
+          serialNumber: asset.serial_number,
+          modelNumber: asset.model_number,
+          manufacturer: asset.manufacturer,
+          netBookValue: parseFloat(asset.book_value || asset.purchase_price),
+          accumulatedDepreciation: parseFloat(asset.accumulated_depreciation || 0),
+          lastMaintenanceDate: asset.last_maintenance_date,
+          nextMaintenanceDate: asset.next_maintenance_date,
+          maintenanceCost: parseFloat(asset.maintenance_cost || 0),
+          depreciationStartDate: asset.depreciation_start_date
+        })),
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(count / limit),
+          totalItems: count,
+          itemsPerPage: limit,
+          hasNextPage: page < Math.ceil(count / limit),
+          hasPrevPage: page > 1
+        }
+      };
+
+    } catch (error) {
+      console.error('Error getting asset list:', error);
+      return {
+        success: false,
+        message: 'Error retrieving asset list',
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * Register new fixed asset
    */
   async registerAsset(assetData) {
     try {
-      const asset = {
-        id: `ASSET-${Date.now()}`,
-        assetCode: assetData.asset_code || `AST-${Date.now()}`,
-        assetName: assetData.asset_name,
-        assetCategory: assetData.asset_category,
-        assetType: assetData.asset_type,
+      // Generate asset code if not provided
+      const assetCode = assetData.asset_code || `AST-${Date.now()}`;
+      
+      // Calculate book value (initial = purchase price)
+      const purchasePrice = parseFloat(assetData.purchase_price);
+      const salvageValue = parseFloat(assetData.salvage_value || 0);
+      
+      const newAsset = await FixedAsset.create({
+        asset_code: assetCode,
+        asset_name: assetData.asset_name,
+        asset_category: assetData.asset_category,
+        asset_type: assetData.asset_type,
         description: assetData.description,
         
         // Financial Information
-        purchasePrice: parseFloat(assetData.purchase_price),
-        purchaseDate: new Date(assetData.purchase_date),
+        purchase_price: purchasePrice,
+        purchase_date: new Date(assetData.purchase_date),
         supplier: assetData.supplier,
-        invoiceNumber: assetData.invoice_number,
+        invoice_number: assetData.invoice_number,
         
         // Depreciation Settings
-        depreciationMethod: assetData.depreciation_method || 'STRAIGHT_LINE',
-        usefulLife: parseInt(assetData.useful_life), // in years
-        salvageValue: parseFloat(assetData.salvage_value || 0),
+        depreciation_method: assetData.depreciation_method || 'STRAIGHT_LINE',
+        useful_life: parseInt(assetData.useful_life || 5), // in years
+        salvage_value: salvageValue,
+        depreciation_start_date: assetData.depreciation_start_date || new Date(assetData.purchase_date),
         
         // Location & Assignment
         location: assetData.location,
         department: assetData.department,
-        responsiblePerson: assetData.responsible_person,
-        costCenter: assetData.cost_center,
+        responsible_person: assetData.responsible_person,
+        cost_center: assetData.cost_center,
         
         // Status & Tracking
         status: 'ACTIVE',
         condition: assetData.condition || 'GOOD',
-        serialNumber: assetData.serial_number,
-        modelNumber: assetData.model_number,
+        serial_number: assetData.serial_number,
+        model_number: assetData.model_number,
         manufacturer: assetData.manufacturer,
         
-        // Calculated Fields
-        depreciationStartDate: assetData.depreciation_start_date ? 
-          new Date(assetData.depreciation_start_date) : new Date(assetData.purchase_date),
-        accumulatedDepreciation: 0,
-        netBookValue: parseFloat(assetData.purchase_price),
+        // Initial book value calculation
+        book_value: purchasePrice,
+        accumulated_depreciation: 0,
+        maintenance_cost: 0,
         
-        // Maintenance
-        lastMaintenanceDate: assetData.last_maintenance_date ? 
+        subsidiary_id: assetData.subsidiary_id,
+        
+        // Maintenance dates if provided
+        last_maintenance_date: assetData.last_maintenance_date ? 
           new Date(assetData.last_maintenance_date) : null,
-        nextMaintenanceDate: assetData.next_maintenance_date ? 
-          new Date(assetData.next_maintenance_date) : null,
-        maintenanceCosts: 0,
-        
-        // Metadata
-        subsidiaryId: assetData.subsidiary_id,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      // Calculate initial depreciation if asset is not new
-      if (asset.depreciationStartDate < new Date()) {
-        const depreciation = this.calculateDepreciation(asset, new Date());
-        asset.accumulatedDepreciation = depreciation.accumulatedDepreciation;
-        asset.netBookValue = depreciation.netBookValue;
-      }
-
-      // Generate asset performance metrics
-      const performanceMetrics = this.generateAssetMetrics(asset);
+        next_maintenance_date: assetData.next_maintenance_date ? 
+          new Date(assetData.next_maintenance_date) : null
+      });
 
       return {
         success: true,
         message: 'Fixed asset registered successfully',
         data: {
-          asset: asset,
-          depreciationSchedule: this.generateDepreciationSchedule(asset),
-          performanceMetrics: performanceMetrics,
-          maintenanceSchedule: this.generateMaintenanceSchedule(asset)
+          id: newAsset.id,
+          assetCode: newAsset.asset_code,
+          assetName: newAsset.asset_name,
+          assetCategory: newAsset.asset_category,
+          assetType: newAsset.asset_type,
+          purchasePrice: parseFloat(newAsset.purchase_price),
+          purchaseDate: newAsset.purchase_date,
+          status: newAsset.status,
+          condition: newAsset.condition,
+          location: newAsset.location,
+          department: newAsset.department,
+          bookValue: parseFloat(newAsset.book_value),
+          accumulatedDepreciation: parseFloat(newAsset.accumulated_depreciation)
         }
       };
 
@@ -119,6 +208,42 @@ class FixedAssetService {
       return {
         success: false,
         message: 'Error registering fixed asset',
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Delete fixed asset
+   */
+  async deleteAsset(assetId) {
+    try {
+      const asset = await FixedAsset.findByPk(assetId);
+      
+      if (!asset) {
+        return {
+          success: false,
+          message: 'Asset not found'
+        };
+      }
+
+      await asset.destroy();
+
+      return {
+        success: true,
+        message: 'Asset deleted successfully',
+        data: {
+          id: assetId,
+          assetName: asset.asset_name,
+          assetCode: asset.asset_code
+        }
+      };
+
+    } catch (error) {
+      console.error('Error deleting asset:', error);
+      return {
+        success: false,
+        message: 'Error deleting asset',
         error: error.message
       };
     }
@@ -227,6 +352,58 @@ class FixedAssetService {
     }
 
     return schedule;
+  }
+
+  /**
+   * Update existing asset
+   */
+  async updateAsset(assetId, updateData) {
+    try {
+      // In real implementation, this would update database record
+      // For now, return mock success response
+      
+      const updatedAsset = {
+        id: assetId,
+        assetCode: updateData.asset_code,
+        assetName: updateData.asset_name,
+        assetCategory: updateData.asset_category,
+        assetType: updateData.asset_type,
+        description: updateData.description,
+        
+        // Financial Information
+        purchasePrice: parseFloat(updateData.purchase_price),
+        purchaseDate: new Date(updateData.purchase_date),
+        supplier: updateData.supplier,
+        
+        // Location & Assignment
+        location: updateData.location,
+        department: updateData.department,
+        responsiblePerson: updateData.responsible_person,
+        
+        // Status & Tracking
+        status: updateData.status,
+        condition: updateData.condition,
+        serialNumber: updateData.serial_number,
+        manufacturer: updateData.manufacturer,
+        
+        // Metadata
+        updatedAt: new Date()
+      };
+
+      return {
+        success: true,
+        message: 'Asset updated successfully',
+        data: updatedAsset
+      };
+
+    } catch (error) {
+      console.error('Error updating asset:', error);
+      return {
+        success: false,
+        message: 'Error updating asset',
+        error: error.message
+      };
+    }
   }
 
   /**

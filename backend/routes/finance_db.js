@@ -2,6 +2,7 @@ const express = require('express');
 const Joi = require('joi');
 const { Op } = require('sequelize');
 const FinanceTransaction = require('../models/FinanceTransaction');
+const Project = require('../models/Project');
 
 const router = express.Router();
 
@@ -32,11 +33,14 @@ router.get('/', async (req, res) => {
       startDate,
       endDate,
       projectId,
+      subsidiaryId,
       sort = 'date',
       order = 'desc',
       limit = 50,
       page = 1
     } = req.query;
+
+    console.log('DEBUG - Query params:', { type, category, startDate, endDate, projectId, subsidiaryId, sort, order, limit, page });
 
     const limitNum = Math.max(1, parseInt(limit));
     const pageNum = Math.max(1, parseInt(page));
@@ -44,6 +48,7 @@ router.get('/', async (req, res) => {
 
     // Build where clause
     const whereClause = {};
+    const includeOptions = [];
     
     if (type) {
       whereClause.type = type;
@@ -67,6 +72,31 @@ router.get('/', async (req, res) => {
       }
     }
 
+    // Handle subsidiary filter through project relationship
+    if (subsidiaryId) {
+      console.log('DEBUG - Adding subsidiary filter for:', subsidiaryId);
+      includeOptions.push({
+        model: Project,
+        as: 'project',
+        where: {
+          subsidiaryId: subsidiaryId
+        },
+        required: true, // Only transactions with projects from this subsidiary
+        attributes: ['id', 'name', 'subsidiaryId']
+      });
+    } else {
+      console.log('DEBUG - No subsidiary filter, including project info');
+      // Include project info for response when no subsidiary filter
+      includeOptions.push({
+        model: Project,
+        as: 'project',
+        required: false,
+        attributes: ['id', 'name', 'subsidiaryId']
+      });
+    }
+    
+    console.log('DEBUG - Include options:', includeOptions);
+
     // Build order clause
     const validSortFields = ['date', 'amount', 'type', 'category'];
     const sortField = validSortFields.includes(sort) ? sort : 'date';
@@ -75,14 +105,23 @@ router.get('/', async (req, res) => {
     // Get transactions from database
     const { count, rows: transactions } = await FinanceTransaction.findAndCountAll({
       where: whereClause,
+      include: includeOptions,
       order: [[sortField, sortOrder]],
       limit: limitNum,
       offset: offset
     });
 
-    // Calculate totals
+    // Calculate totals with same filters
     const totals = await FinanceTransaction.findAll({
       where: whereClause,
+      include: subsidiaryId ? [{
+        model: Project,
+        as: 'project',
+        where: {
+          subsidiaryId: subsidiaryId
+        },
+        attributes: []
+      }] : [],
       attributes: [
         'type',
         [FinanceTransaction.sequelize.fn('SUM', FinanceTransaction.sequelize.col('amount')), 'total']

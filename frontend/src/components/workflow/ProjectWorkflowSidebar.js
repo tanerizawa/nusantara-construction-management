@@ -13,7 +13,9 @@ import {
   FolderOpen,
   ChevronLeft,
   ChevronRight,
-  Menu
+  Menu,
+  CreditCard,
+  ClipboardCheck
 } from 'lucide-react';
 
 const ProjectWorkflowSidebar = ({ projectId, project, activeTab, onTabChange, onActionTrigger }) => {
@@ -80,6 +82,24 @@ const ProjectWorkflowSidebar = ({ projectId, project, activeTab, onTabChange, on
       label: 'Budget Monitoring',
       icon: BarChart3,
       description: 'Financial Tracking'
+    },
+    {
+      id: 'milestones',
+      label: 'Milestones',
+      icon: Calendar,
+      description: 'Project Timeline & Deliverables'
+    },
+    {
+      id: 'berita-acara',
+      label: 'Berita Acara',
+      icon: ClipboardCheck,
+      description: 'Handover Documentation & Approval'
+    },
+    {
+      id: 'progress-payments',
+      label: 'Progress Payments',
+      icon: CreditCard,
+      description: 'Payment Management Based on BA'
     },
     {
       id: 'team',

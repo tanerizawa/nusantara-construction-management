@@ -24,11 +24,13 @@ import {
   X,
   FileCheck
 } from 'lucide-react';
+import TandaTerimaManager from '../tanda-terima/TandaTerimaManager';
 
 const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onDataChange }) => {
   const [approvalData, setApprovalData] = useState({
     rab: [],
-    purchaseOrders: []
+    purchaseOrders: [],
+    tandaTerima: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -53,6 +55,14 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
       icon: ShoppingCart,
       color: 'bg-green-100 text-green-800',
       description: 'Pemesanan material dan equipment'
+    },
+    {
+      id: 'tandaTerima',
+      name: 'Tanda Terima',
+      fullName: 'Tanda Terima',
+      icon: Package,
+      color: 'bg-purple-100 text-purple-800',
+      description: 'Konfirmasi penerimaan barang dari PO yang sudah approved'
     }
   ];
 
@@ -147,29 +157,53 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
     try {
       console.log(`[API UPDATE] Updating RAB ${rabId} approval status to ${isApproved}`);
       
-      const updateData = {
-        isApproved: isApproved,
-        approvedBy: approvedBy,
-        approvedAt: isApproved ? new Date().toISOString() : null
-      };
-      
-      const response = await fetch(`/api/projects/${projectId}/rab/${rabId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(updateData)
-      });
+      if (isApproved) {
+        // Use the approve endpoint for approval
+        const response = await fetch(`/api/projects/${projectId}/rab/${rabId}/approve`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            approvedBy: approvedBy || 'Current User'
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error(`Failed to update RAB status: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`Failed to approve RAB: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(`[API UPDATE] Successfully approved RAB ${rabId}:`, result);
+        return result;
+        
+      } else {
+        // Use the general update endpoint for other status changes
+        const updateData = {
+          isApproved: false,
+          status: 'under_review', // Set appropriate status for reviewed state
+          approvedBy: null,
+          approvedAt: null
+        };
+        
+        const response = await fetch(`/api/projects/${projectId}/rab/${rabId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(updateData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update RAB status: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log(`[API UPDATE] Successfully updated RAB ${rabId} status:`, result);
+        return result;
       }
-
-      const result = await response.json();
-      console.log(`[API UPDATE] Successfully updated RAB ${rabId} status:`, result);
-      
-      return result;
     } catch (error) {
       console.error('[API UPDATE] Error updating RAB status:', error);
       throw error;
@@ -289,20 +323,72 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
         }
       };
 
-      // Load both data types
-      const [rabData, poData] = await Promise.all([
+      // Load Delivery Receipts (Tanda Terima) from real API
+      const loadTandaTerima = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          
+          const response = await fetch(`/api/projects/${projectId}/delivery-receipts`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch Delivery Receipts: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          const receiptData = result.data || [];
+          
+          return receiptData.map(item => ({
+            id: item.id,
+            approval_id: item.receiptNumber || `TR-${item.id.slice(-8)}`,
+            approval_type: 'tandaTerima',
+            type: 'delivery_receipt',
+            receipt_number: item.receiptNumber,
+            po_number: item.purchaseOrder?.poNumber || 'N/A',
+            supplier_name: item.purchaseOrder?.supplierName || 'N/A',
+            description: `Tanda Terima - ${item.purchaseOrder?.supplierName || 'N/A'}`,
+            receiver_name: item.receiverName,
+            delivery_location: item.deliveryLocation,
+            status: item.status || 'pending_delivery',
+            created_at: item.createdAt,
+            received_date: item.receivedDate,
+            delivery_date: item.deliveryDate,
+            inspection_result: item.inspectionResult || 'pending',
+            created_by: item.createdBy || 'System',
+            approved_by: item.approvedBy,
+            approved_at: item.approvedAt,
+            document_number: item.receiptNumber,
+            total_items: item.items?.length || 0,
+            delivery_percentage: item.receiptType === 'full_delivery' ? 100 : 
+              (item.items ? Math.round((item.items.reduce((sum, i) => sum + (i.deliveredQuantity || 0), 0) / 
+                item.items.reduce((sum, i) => sum + (i.orderedQuantity || 0), 0)) * 100) : 0)
+          }));
+        } catch (error) {
+          console.error('[TANDA TERIMA] Load error:', error);
+          return [];
+        }
+      };
+
+      // Load all data types
+      const [rabData, poData, receiptData] = await Promise.all([
         loadRAB(),
-        loadPO()
+        loadPO(),
+        loadTandaTerima()
       ]);
 
       console.log('[REAL APPROVAL DASH] Data loaded:', {
         rab: rabData.length,
-        po: poData.length
+        po: poData.length,
+        tandaTerima: receiptData.length
       });
 
       setApprovalData({
         rab: rabData,
-        purchaseOrders: poData
+        purchaseOrders: poData,
+        tandaTerima: receiptData
       });
 
     } catch (error) {
@@ -398,7 +484,9 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
         await updatePOStatusInDatabase(item.id, 'under_review');
         console.log(`[APPROVAL] PO database update completed`);
       } else if (item.approval_type === 'rab') {
-        console.log(`[APPROVAL] RAB approval status saved to localStorage cache only (backend API not working for RAB approval)`);
+        console.log(`[APPROVAL] Updating RAB in database...`);
+        await updateRABStatusInDatabase(item.id, false); // false = under_review
+        console.log(`[APPROVAL] RAB database update completed`);
       }
       
       console.log(`[APPROVAL] Successfully marked as reviewed:`, item.approval_id);
@@ -451,7 +539,9 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
         await updatePOStatusInDatabase(item.id, 'approved', approvedBy);
         console.log(`[APPROVAL] PO database update completed`);
       } else if (item.approval_type === 'rab') {
-        console.log(`[APPROVAL] RAB approval status saved to localStorage cache only (backend API not working for RAB approval)`);
+        console.log(`[APPROVAL] Updating RAB in database...`);
+        await updateRABStatusInDatabase(item.id, true, approvedBy); // true = approved
+        console.log(`[APPROVAL] RAB database update completed`);
       }
       
       console.log(`[APPROVAL] Successfully approved:`, item.approval_id);
@@ -485,7 +575,26 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
       if (item.approval_type === 'purchaseOrders') {
         await updatePOStatusInDatabase(item.id, 'rejected');
       } else if (item.approval_type === 'rab') {
-        console.log(`[APPROVAL] RAB rejection status saved to localStorage cache only (backend API not working for RAB approval)`);
+        console.log(`[APPROVAL] Updating RAB rejection in database...`);
+        // For rejection, we need a general update since there's no specific reject endpoint
+        const response = await fetch(`/api/projects/${projectId}/rab/${item.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            isApproved: false,
+            status: 'rejected',
+            approvedBy: null,
+            approvedAt: null
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to reject RAB: ${response.statusText}`);
+        }
+        console.log(`[APPROVAL] RAB rejection database update completed`);
       }
       
       console.log(`[APPROVAL] Rejected:`, item.approval_id);

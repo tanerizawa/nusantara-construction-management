@@ -12,6 +12,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
 
 const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   console.log('=== ProjectRABWorkflow COMPONENT LOADED ===');
@@ -431,13 +432,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     return rabItems.reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  // Removed duplicate formatCurrency - using imported from utils
 
   if (loading) {
     return (

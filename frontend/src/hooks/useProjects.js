@@ -2,80 +2,26 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { projectAPI } from '../services/api';
 
 /**
- * Custom hook for       progress: { percentage: 40 },
-      budget: { 
-        contractValue: 8500000000,
-        spent: 3400000000,
-        remaining: 5100000000
-      },
-      timeline: { 
-        startDate: "2024-03-01", 
-        endDate: "2024-09-30",
-        estimatedCompletion: "2024-09-15"
-      },
-      team: {
-        projectManager: "Eng. Mariana",
-        contractor: "PT. Perumahan Sejahtera",
-        workers: 35
-      },
-      createdAt: "2024-05-15T13:20:00Z",
-      updatedAt: "2024-08-10T16:10:00Z"
-    },
-    {
-      id: "PRJ003",
-      projectCode: "YK-2024-003",
-      name: "Proyek Infrastruktur Jalan Raya",
-      description: "Pembangunan jalan raya sepanjang 15 km dengan jembatan dan fasilitas pendukung",
-      client: { 
-        company: "Dinas Pekerjaan Umum",
-        contact: "Ir. Ahmad Fauzi",
-        email: "ahmad@pu.go.id",
-        phone: "+62 21 5556789"
-      },
-      location: { 
-        city: "Bandung", 
-        province: "Jawa Barat",
-        address: "Jalur Utama Bandung-Cimahi"
-      },
-      status: "planning",
-      priority: "high",
-      progress: { percentage: 10 },
-      budget: { 
-        contractValue: 25000000000,
-        spent: 2500000000,
-        remaining: 22500000000
-      },
-      timeline: { 
-        startDate: "2024-10-01", 
-        endDate: "2025-06-30",
-        estimatedCompletion: "2025-06-15"
-      },
-      team: {
-        projectManager: "Eng. Bambang",
-        contractor: "PT. Infrastruktur Nusantara",
-        workers: 120
-      },
-      createdAt: "2024-08-01T09:15:00Z",
-      updatedAt: "2024-08-20T11:45:00Z"
-    },
-    {
-      id: "PRJ004",
-      projectCode: "YK-2024-004",
-      name: "Renovasi Gedung Sekolah Dasar",
-      description: "Renovasi total 3 gedung sekolah dasar termasuk penambahan fasilitas modern",
-      client: { 
-        company: "Dinas Pendidikan Kota",
-        contact: "Dra. Siti Nurhaliza",
-        email: "siti@diknas.go.id",
-        phone: "+62 21 4445678"
-      },
-      location: { 
-        city: "Bekasi", 
-        province: "Jawa Barat",
-        address: "Komplek Sekolah Terpadu Bekasi"
-      },
-      status: "completed",
-      priority: "medium", * Handles data fetching, caching, and state management following React best practices
+ * useProjects Hook
+ * 
+ * Professional custom hook for managing project data with React best practices.
+ * Handles data fetching, caching, filtering, pagination, and state management.
+ * 
+ * Features:
+ * - Automatic data fetching with loading states
+ * - Comprehensive error handling
+ * - Optimistic updates for delete/archive operations
+ * - Real-time statistics calculation
+ * - Advanced filtering and sorting
+ * - Pagination support
+ * - Auto-refresh capability
+ * 
+ * @param {Object} options - Hook configuration options
+ * @param {number} options.initialPageSize - Initial page size (default: 12)
+ * @param {boolean} options.enableAutoRefresh - Enable automatic refresh (default: false)
+ * @param {number} options.refreshInterval - Refresh interval in ms (default: 30000)
+ * 
+ * @returns {Object} Project state and actions
  */
 export const useProjects = (options = {}) => {
   const {
@@ -114,121 +60,6 @@ export const useProjects = (options = {}) => {
       page: 1 // Reset to first page when filters change
     });
   }, [state.filters, updateState]);
-
-  // Mock data fallback - Updated to match database structure
-  const mockProjects = useMemo(() => [
-    {
-      id: "PRJ001",
-      projectCode: "YK-2024-001",
-      name: "Pembangunan Gedung Perkantoran PT. Maju Bersama",
-      description: "Pembangunan gedung perkantoran 10 lantai dengan luas total 5000 m² di Jakarta Selatan",
-      client: { 
-        company: "PT. Maju Bersama",
-        contact: "Budi Santoso",
-        email: "budi@majubersama.com",
-        phone: "+62 21 1234567"
-      },
-      location: { 
-        city: "Jakarta Selatan", 
-        province: "DKI Jakarta",
-        address: "Jl. Sudirman No. 123"
-      },
-      status: "active",
-      priority: "high",
-      progress: { percentage: 65 },
-      budget: { 
-        contractValue: 15000000000,
-        spent: 9750000000,
-        remaining: 5250000000
-      },
-      timeline: { 
-        startDate: "2024-01-15", 
-        endDate: "2024-12-15",
-        estimatedCompletion: "2024-11-30"
-      },
-      team: {
-        projectManager: "Eng. Suryanto",
-        contractor: "PT. Bangun Jaya",
-        workers: 45
-      },
-      createdAt: "2024-01-10T10:00:00Z",
-      updatedAt: "2024-08-15T14:30:00Z"
-    },
-    {
-      id: "PRJ002",
-      projectCode: "YK-2024-002",
-      name: "Renovasi Pabrik PT. Industri Jaya",
-      description: "Renovasi dan ekspansi pabrik tekstil dengan penambahan area produksi seluas 2000 m²",
-      client: { 
-        company: "PT. Industri Jaya",
-        contact: "Sari Dewi",
-        email: "sari@industrijaya.com",
-        phone: "+62 251 987654"
-      },
-      location: { 
-        city: "Bogor", 
-        province: "Jawa Barat",
-        address: "Kawasan Industri Bogor, Blok A-15"
-      },
-      status: "active",
-      priority: "medium",
-      progress: { percentage: 45 },
-      budget: { 
-        contractValue: 8500000000,
-        spent: 3825000000,
-        remaining: 4675000000
-      },
-      timeline: { 
-        startDate: "2024-03-01", 
-        endDate: "2024-10-31",
-        estimatedCompletion: "2024-10-15"
-      },
-      team: {
-        projectManager: "Eng. Wahyudi",
-        contractor: "PT. Renovasi Prima",
-        workers: 28
-      },
-      createdAt: "2024-02-20T09:15:00Z",
-      updatedAt: "2024-08-12T11:45:00Z"
-    },
-    {
-      id: "PRJ003",
-      projectCode: "YK-2024-003",
-      name: "Pembangunan Perumahan Green Valley",
-      description: "Pembangunan kompleks perumahan eksklusif dengan 50 unit rumah dan fasilitas lengkap",
-      client: { 
-        company: "PT. Green Valley Developer",
-        contact: "Ahmad Hidayat",
-        email: "ahmad@greenvalley.com",
-        phone: "+62 21 5551234"
-      },
-      location: { 
-        city: "Tangerang", 
-        province: "Banten",
-        address: "Serpong, Tangerang Selatan"
-      },
-      status: "planning",
-      priority: "high",
-      progress: { percentage: 15 },
-      budget: { 
-        contractValue: 25000000000,
-        spent: 3750000000,
-        remaining: 21250000000
-      },
-      timeline: { 
-        startDate: "2024-06-01", 
-        endDate: "2025-06-01",
-        estimatedCompletion: "2025-05-15"
-      },
-      team: {
-        projectManager: "Eng. Mariana",
-        contractor: "PT. Perumahan Sejahtera",
-        workers: 35
-      },
-      createdAt: "2024-05-15T13:20:00Z",
-      updatedAt: "2024-08-10T16:10:00Z"
-    }
-  ], []);
 
   // Enhanced fetch function with proper error handling
   const fetchProjects = useCallback(async () => {

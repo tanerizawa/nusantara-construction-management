@@ -18,6 +18,9 @@ import ProjectControls from '../components/Projects/ProjectControls';
 import useProjects from '../hooks/useProjects';
 import useSubsidiaries from '../hooks/useSubsidiaries';
 
+// Utility Imports
+import { applyFilters } from '../utils/projectFilters';
+
 /**
  * Professional Project Management Page
  * Implements React best practices with proper separation of concerns
@@ -132,87 +135,12 @@ const Projects = () => {
     setDetailModal({ show: false, project: null });
   }, []);
 
-  // Professional filtering logic with comprehensive subsidiary matching
-  const filteredProjects = projects.filter(project => {
-    // Category filtering
-    if (category && category !== 'all') {
-      const now = new Date();
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
-      const oneMonth = 30 * 24 * 60 * 60 * 1000;
-
-      switch (category) {
-        case 'critical':
-          // Advanced critical project detection based on project management best practices
-          let criticalScore = 0;
-          
-          // High priority projects get base score
-          if (project.priority === 'high') {
-            criticalScore += 3;
-          }
-          
-          // Active projects (in progress) are more critical
-          if (project.status === 'active' || project.status === 'in_progress') {
-            criticalScore += 2;
-          }
-          
-          // Projects with upcoming deadlines (within 6 months) are critical
-          if (project.endDate) {
-            const endDate = new Date(project.endDate);
-            const daysToDeadline = Math.floor((endDate - now) / (24 * 60 * 60 * 1000));
-            
-            if (daysToDeadline <= 0) {
-              // Overdue projects are extremely critical
-              criticalScore += 5;
-            } else if (daysToDeadline <= 180) {
-              // Projects within 6 months are critical
-              criticalScore += 2;
-            }
-          }
-          
-          // A project is critical if score >= 5 (combination of factors)
-          const isCritical = criticalScore >= 5;
-          if (!isCritical) return false;
-          break;
-        case 'recent':
-          const createdDate = new Date(project.createdAt);
-          const isRecent = (now - createdDate) <= oneWeek;
-          if (!isRecent) return false;
-          break;
-        case 'deadline':
-          if (!project.endDate) return false;
-          const endDate = new Date(project.endDate);
-          const isNearDeadline = (endDate - now) <= oneMonth && endDate > now;
-          if (!isNearDeadline) return false;
-          break;
-        case 'in_progress':
-          if (project.status !== 'in_progress') return false;
-          break;
-        case 'completed':
-          if (project.status !== 'completed') return false;
-          break;
-        case 'planning':
-          if (project.status !== 'planning') return false;
-          break;
-        case 'on_hold':
-          if (project.status !== 'on_hold') return false;
-          break;
-        default:
-          break;
-      }
-    }
-
-    // Subsidiary filtering
-    const subsidiaryMatch = !filters.subsidiary || 
-      project.subsidiaryId === filters.subsidiary ||
-      project.subsidiary?.id === filters.subsidiary ||
-      project.subsidiary?.code === filters.subsidiary ||
-      (project.subsidiaryInfo && (
-        project.subsidiaryInfo.id === filters.subsidiary ||
-        project.subsidiaryInfo.code === filters.subsidiary
-      ));
-    
-    return subsidiaryMatch;
-  });
+  // Professional filtering logic using centralized utility functions
+  const filteredProjects = useMemo(() => {
+    return projects.filter(project => 
+      applyFilters(project, { category, subsidiary: filters.subsidiary })
+    );
+  }, [projects, category, filters.subsidiary]);
 
   // Check if filters are active
   const hasActiveFilters = useMemo(() => {

@@ -1,0 +1,101 @@
+import React from 'react';
+import { Download, Edit, Trash2, Lock, Unlock } from 'lucide-react';
+import { formatDate } from '../../../../utils/formatters';
+import { documentCategories } from '../config';
+import { getStatusInfo } from '../config/statusConfig';
+import { formatFileSize, getFileIcon } from '../utils';
+
+/**
+ * Document card component for grid view
+ * Displays: document info, actions, tags, status
+ */
+const DocumentCard = ({ doc, onDownload, onEdit, onDelete }) => {
+  const category = documentCategories[doc.category];
+  const Icon = getFileIcon(doc.fileType);
+  const statusInfo = getStatusInfo(doc.status);
+
+  return (
+    <div className="bg-white rounded-lg border p-6 hover:shadow-lg transition-shadow">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={`w-12 h-12 bg-${category.color}-100 rounded-lg flex items-center justify-center`}>
+            <Icon size={24} className={`text-${category.color}-600`} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-gray-900 truncate">{doc.name}</h4>
+            <p className="text-sm text-gray-500">{category.name}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          {doc.isPublic ? (
+            <Unlock size={16} className="text-green-600" title="Public" />
+          ) : (
+            <Lock size={16} className="text-red-600" title="Private" />
+          )}
+        </div>
+      </div>
+
+      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{doc.description}</p>
+
+      <div className="space-y-2 mb-4 text-xs text-gray-500">
+        <div className="flex justify-between">
+          <span>Size:</span>
+          <span>{formatFileSize(doc.size)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Upload:</span>
+          <span>{formatDate(doc.uploadDate)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Version:</span>
+          <span>v{doc.version}</span>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-3">
+        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium bg-${statusInfo.color}-100 text-${statusInfo.color}-800`}>
+          {statusInfo.text}
+        </span>
+        <span className="text-xs text-gray-500">{doc.downloadCount} downloads</span>
+      </div>
+
+      {doc.tags && doc.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-4">
+          {doc.tags.slice(0, 3).map(tag => (
+            <span key={tag} className="inline-flex px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+              {tag}
+            </span>
+          ))}
+          {doc.tags.length > 3 && (
+            <span className="text-xs text-gray-500">+{doc.tags.length - 3} more</span>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <button 
+          onClick={() => onDownload(doc.id, doc.filename)}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+        >
+          <Download size={14} />
+          Download
+        </button>
+        <button 
+          onClick={() => onEdit(doc)}
+          className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+        >
+          <Edit size={14} />
+        </button>
+        <button 
+          onClick={() => onDelete(doc.id)}
+          className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default DocumentCard;

@@ -30,8 +30,6 @@ import SubsidiaryCreate from './pages/SubsidiaryCreate';
 import SubsidiaryDetail from './pages/SubsidiaryDetail';
 import SubsidiaryEdit from './pages/SubsidiaryEdit';
 import Approvals from './pages/Approvals';
-import ApprovalTest from './pages/ApprovalTest';
-import ApprovalFixed from './pages/ApprovalFixed';
 import Settings from './pages/Settings';
 import ApprovalDashboard from './components/ApprovalDashboard';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
@@ -100,12 +98,6 @@ function App() {
                     <Approvals />
                   </MainLayout>
                 </ProtectedRoute>
-              } />
-              <Route path="/approval-test" element={
-                <ApprovalTest />
-              } />
-              <Route path="/approval-fixed" element={
-                <ApprovalFixed />
               } />
               <Route path="/analytics" element={
                 <ProtectedRoute>

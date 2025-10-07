@@ -17,6 +17,7 @@ import {
   Filter
 } from 'lucide-react';
 import { employeeAPI, projectAPI } from '../services/api';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 const ProjectTeam = ({ project, onUpdate }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -124,21 +125,7 @@ const ProjectTeam = ({ project, onUpdate }) => {
     }
   });
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
+  // Removed duplicate formatCurrency and formatDate - using imported from utils
 
   const TeamMemberForm = ({ member, onSave, onCancel }) => {
     const [formData, setFormData] = useState(member || {

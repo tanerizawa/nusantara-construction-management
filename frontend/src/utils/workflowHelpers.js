@@ -1,33 +1,49 @@
-// Workflow Helper Functions
+// Re-export formatters from centralized utility
+import { formatCurrency as formatCurrencyUtil, formatDate as formatDateUtil } from './formatters';
+
+/**
+ * Format currency in Indonesian Rupiah format
+ * @param {number} amount - Amount to format
+ * @returns {string} Formatted currency string
+ */
 export const formatCurrency = (amount) => {
-  if (!amount) return 'Rp 0';
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0
-  }).format(amount);
+  if (!amount && amount !== 0) return 'Rp 0';
+  return formatCurrencyUtil(amount);
 };
 
+/**
+ * Format date in Indonesian locale
+ * @param {string|Date} dateString - Date to format
+ * @returns {string} Formatted date string
+ */
 export const formatDate = (dateString) => {
   if (!dateString) return '-';
-  return new Date(dateString).toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  return formatDateUtil(dateString, { format: 'long' });
 };
 
 export const getStatusColor = (status) => {
   const statusColors = {
+    // Project statuses
     'completed': 'text-green-600 bg-green-100',
     'in_progress': 'text-blue-600 bg-blue-100',
     'pending': 'text-yellow-600 bg-yellow-100',
     'cancelled': 'text-red-600 bg-red-100',
+    
+    // Approval statuses
     'approved': 'text-green-600 bg-green-100',
     'rejected': 'text-red-600 bg-red-100',
-    'draft': 'text-gray-600 bg-gray-100'
+    'draft': 'text-gray-600 bg-gray-100',
+    'under_review': 'text-blue-600 bg-blue-100',
+    
+    // Purchase Order statuses
+    'sent': 'text-blue-600 bg-blue-100',
+    'received': 'text-purple-600 bg-purple-100',
+    
+    // Universal fallback
+    'default': 'text-gray-600 bg-gray-100'
   };
-  return statusColors[status] || 'text-gray-600 bg-gray-100';
+  
+  return statusColors[status] || statusColors['default'];
 };
 
 export const getApprovalStatusColor = (status) => {

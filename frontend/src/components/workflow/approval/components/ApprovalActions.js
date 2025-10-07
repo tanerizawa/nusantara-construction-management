@@ -1,0 +1,47 @@
+import React from 'react';
+import { ThumbsUp, ThumbsDown, Eye } from 'lucide-react';
+import { statusConfig } from '../config';
+
+/**
+ * Approval Actions Component
+ * Displays action buttons based on item status
+ */
+const ApprovalActions = ({ item, userDetails, onReview, onApprove, onReject }) => {
+  const config = statusConfig[item.status] || statusConfig['draft'];
+  
+  return (
+    <div className="flex gap-2">
+      {config.canReview && (
+        <button
+          onClick={() => onReview(item)}
+          className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          <Eye className="w-4 h-4 mr-1" />
+          Review
+        </button>
+      )}
+      
+      {config.canApprove && (
+        <>
+          <button
+            onClick={() => onApprove(item, userDetails)}
+            className="flex items-center px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            <ThumbsUp className="w-4 h-4 mr-1" />
+            Approve
+          </button>
+          
+          <button
+            onClick={() => onReject(item, userDetails)}
+            className="flex items-center px-3 py-1 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            <ThumbsDown className="w-4 h-4 mr-1" />
+            Reject
+          </button>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ApprovalActions;

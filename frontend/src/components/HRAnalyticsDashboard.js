@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Button, Card, DataCard } from './DataStates';
 import {
   BarChart3,
@@ -12,8 +11,10 @@ import {
   PieChart,
   Download,
   Filter,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
+import { employeeAPI } from '../services/api';
 
 function HRAnalyticsDashboard() {
   const [analyticsData, setAnalyticsData] = useState({
@@ -57,40 +58,26 @@ function HRAnalyticsDashboard() {
   const fetchAnalytics = async () => {
     try {
       setRefreshing(true);
-      const token = localStorage.getItem('token');
+      setError(null);
       
-      // Fetch all data in parallel
-      const [employees, trainings, reviews, incidents, alerts] = await Promise.all([
-        axios.get('http://localhost:5001/api/manpower', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('http://localhost:5001/api/manpower/training', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('http://localhost:5001/api/manpower/performance-reviews', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('http://localhost:5001/api/manpower/safety-incidents', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get('http://localhost:5001/api/manpower/certification-alerts', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
+      // Fetch real employee data from API
+      const employeesResponse = await employeeAPI.getAll();
+      const employees = employeesResponse.data || [];
 
-      // Process and calculate analytics
+      // Since we don't have separate training, safety, and review APIs yet,
+      // we'll generate analytics based on available employee data
       const processedData = processAnalyticsData({
-        employees: employees.data,
-        trainings: trainings.data,
-        reviews: reviews.data,
-        incidents: incidents.data,
-        alerts: alerts.data
+        employees,
+        trainings: [], // Would be populated from training API when available
+        reviews: [], // Would be populated from reviews API when available
+        incidents: [], // Would be populated from incidents API when available
+        alerts: [] // Would be populated from alerts API when available
       });
 
       setAnalyticsData(processedData);
       setError(null);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error('Error fetching HR analytics:', error);
       setError('Failed to fetch analytics data');
     } finally {
       setLoading(false);

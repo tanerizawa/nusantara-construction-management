@@ -16,6 +16,7 @@ import {
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
 
 const ProgressPaymentManager = ({ projectId, project, onPaymentChange }) => {
   const [payments, setPayments] = useState([]);
@@ -105,13 +106,7 @@ const ProgressPaymentManager = ({ projectId, project, onPaymentChange }) => {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
+  // Removed duplicate formatCurrency - using imported from utils
 
   const handleCreatePayment = async (paymentData) => {
     try {

@@ -12,151 +12,110 @@ import {
   Search,
   CreditCard,
   Wallet,
-  Receipt
+  Receipt,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
+import { financeAPI, projectAPI } from '../services/api';
 
 const FinanceManagement = () => {
   const [financeData, setFinanceData] = useState({});
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    // Mock financial data
-    const mockFinanceData = {
-      totalRevenue: 15750000000,
-      totalExpenses: 12320000000,
-      netProfit: 3430000000,
-      cashFlow: 8520000000,
-      monthlyGrowth: 12.5,
-      yearlyGrowth: 28.3,
-      activeProjects: 15,
-      completedProjects: 8,
-      pendingInvoices: 25,
-      paidInvoices: 142
-    };
-
-    const mockTransactions = [
-    {
-      id: 1,
-      date: '2025-08-25',
-      description: 'Project Payment - Mall Construction',
-      category: 'Revenue',
-      type: 'income',
-      amount: 2500000000,
-      status: 'completed',
-      projectId: 'PRJ-001',
-      reference: 'INV-2025-0825-001'
-    },
-    {
-      id: 2,
-      date: '2025-08-24',
-      description: 'Material Purchase - Cement & Steel',
-      category: 'Materials',
-      type: 'expense',
-      amount: 850000000,
-      status: 'completed',
-      projectId: 'PRJ-002',
-      reference: 'PO-2025-0824-001'
-    },
-    {
-      id: 3,
-      date: '2025-08-23',
-      description: 'Equipment Rental - Heavy Machinery',
-      category: 'Equipment',
-      type: 'expense',
-      amount: 425000000,
-      status: 'pending',
-      projectId: 'PRJ-003',
-      reference: 'RNT-2025-0823-001'
-    },
-    {
-      id: 4,
-      date: '2025-08-22',
-      description: 'Contractor Payment - Electrical Works',
-      category: 'Subcontractor',
-      type: 'expense',
-      amount: 675000000,
-      status: 'completed',
-      projectId: 'PRJ-001',
-      reference: 'PAY-2025-0822-001'
-    },
-    {
-      id: 5,
-      date: '2025-08-21',
-      description: 'Project Payment - Office Building',
-      category: 'Revenue',
-      type: 'income',
-      amount: 1850000000,
-      status: 'completed',
-      projectId: 'PRJ-004',
-      reference: 'INV-2025-0821-001'
-    }
-    ];
-
-    const mockBudgets = [
-    {
-      id: 1,
-      projectId: 'PRJ-001',
-      projectName: 'Mall Construction',
-      budgetAllocated: 15000000000,
-      budgetUsed: 12500000000,
-      budgetRemaining: 2500000000,
-      utilizationRate: 83.3,
-      status: 'on-track',
-      categories: {
-        materials: { allocated: 6000000000, used: 5200000000 },
-        labor: { allocated: 4500000000, used: 3800000000 },
-        equipment: { allocated: 2500000000, used: 2100000000 },
-        overhead: { allocated: 2000000000, used: 1400000000 }
-      }
-    },
-    {
-      id: 2,
-      projectId: 'PRJ-002',
-      projectName: 'Office Building',
-      budgetAllocated: 12000000000,
-      budgetUsed: 8500000000,
-      budgetRemaining: 3500000000,
-      utilizationRate: 70.8,
-      status: 'under-budget',
-      categories: {
-        materials: { allocated: 4800000000, used: 3600000000 },
-        labor: { allocated: 3600000000, used: 2800000000 },
-        equipment: { allocated: 2000000000, used: 1400000000 },
-        overhead: { allocated: 1600000000, used: 700000000 }
-      }
-    },
-    {
-      id: 3,
-      projectId: 'PRJ-003',
-      projectName: 'Residential Complex',
-      budgetAllocated: 8500000000,
-      budgetUsed: 8200000000,
-      budgetRemaining: 300000000,
-      utilizationRate: 96.5,
-      status: 'over-budget',
-      categories: {
-        materials: { allocated: 3400000000, used: 3500000000 },
-        labor: { allocated: 2550000000, used: 2600000000 },
-        equipment: { allocated: 1700000000, used: 1650000000 },
-        overhead: { allocated: 850000000, used: 450000000 }
-      }
-    }
-    ];
-
-    // Simulate API call
-    setTimeout(() => {
-      setFinanceData(mockFinanceData);
-      setTransactions(mockTransactions);
-      setBudgets(mockBudgets);
+  // Fetch real data from API instead of using mock data
+  const fetchFinanceData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch real financial data from API
+      const [financeResponse, projectsResponse] = await Promise.all([
+        financeAPI.getAll(),
+        projectAPI.getAll()
+      ]);
+      
+      const financeTransactions = financeResponse.data || [];
+      const projects = projectsResponse.data || [];
+      
+      // Calculate real financial metrics
+      const totalRevenue = financeTransactions
+        .filter(t => t.type === 'income' || t.type === 'credit')
+        .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+      
+      const totalExpenses = financeTransactions
+        .filter(t => t.type === 'expense' || t.type === 'debit')
+        .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+      
+      const netProfit = totalRevenue - totalExpenses;
+      
+      // Calculate project budgets from real data
+      const projectBudgets = projects.map(project => {
+        const projectTransactions = financeTransactions.filter(t => t.projectId === project.id);
+        const budgetUsed = projectTransactions.reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+        const budgetAllocated = parseFloat(project.budget || 0);
+        const budgetRemaining = budgetAllocated - budgetUsed;
+        const utilizationRate = budgetAllocated > 0 ? (budgetUsed / budgetAllocated) * 100 : 0;
+        
+        let status = 'on-track';
+        if (utilizationRate > 100) status = 'over-budget';
+        else if (utilizationRate < 70) status = 'under-budget';
+        
+        return {
+          id: project.id,
+          projectId: project.id,
+          projectName: project.name,
+          budgetAllocated,
+          budgetUsed,
+          budgetRemaining,
+          utilizationRate: Math.round(utilizationRate * 10) / 10,
+          status,
+          categories: {
+            materials: { allocated: budgetAllocated * 0.4, used: budgetUsed * 0.4 },
+            labor: { allocated: budgetAllocated * 0.3, used: budgetUsed * 0.3 },
+            equipment: { allocated: budgetAllocated * 0.2, used: budgetUsed * 0.2 },
+            overhead: { allocated: budgetAllocated * 0.1, used: budgetUsed * 0.1 }
+          }
+        };
+      });
+      
+      const completedTransactions = financeTransactions.filter(t => t.status === 'completed' || t.status === 'paid');
+      const pendingTransactions = financeTransactions.filter(t => t.status === 'pending' || t.status === 'unpaid');
+      
+      const calculatedFinanceData = {
+        totalRevenue,
+        totalExpenses,
+        netProfit,
+        cashFlow: totalRevenue - totalExpenses,
+        monthlyGrowth: 0, // Would need historical data to calculate
+        yearlyGrowth: 0, // Would need historical data to calculate
+        activeProjects: projects.filter(p => p.status === 'active').length,
+        completedProjects: projects.filter(p => p.status === 'completed').length,
+        pendingInvoices: pendingTransactions.length,
+        paidInvoices: completedTransactions.length
+      };
+      
+      setFinanceData(calculatedFinanceData);
+      setTransactions(financeTransactions);
+      setBudgets(projectBudgets);
+      
+    } catch (err) {
+      console.error('Error fetching finance data:', err);
+      setError('Failed to load financial data. Please try again.');
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  useEffect(() => {
+    fetchFinanceData();
+  }, [selectedPeriod]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -181,20 +140,50 @@ const FinanceManagement = () => {
   };
 
   const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.reference.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (transaction.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (transaction.reference || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (transaction.id || '').toString().toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === '' || transaction.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
   const formatCurrency = (amount) => {
-    return `Rp ${(amount / 1000000000).toFixed(1)}B`;
+    if (!amount || isNaN(amount)) return 'Rp 0';
+    const numAmount = parseFloat(amount);
+    if (numAmount >= 1000000000) {
+      return `Rp ${(numAmount / 1000000000).toFixed(1)}B`;
+    } else if (numAmount >= 1000000) {
+      return `Rp ${(numAmount / 1000000).toFixed(1)}M`;
+    } else if (numAmount >= 1000) {
+      return `Rp ${(numAmount / 1000).toFixed(1)}K`;
+    }
+    return `Rp ${numAmount.toFixed(0)}`;
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Loading financial data...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Data</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchFinanceData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

@@ -14,6 +14,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { projectAPI } from '../services/api';
+import { formatCurrency, formatDate } from '../utils/formatters';
 
 const ProjectMilestones = ({ project, onUpdate }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -221,22 +222,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
     };
   }, [milestones]);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
+  // Removed duplicate formatCurrency and formatDate - using imported from utils
 
   const getStatusInfo = (status) => {
     const statusMap = {

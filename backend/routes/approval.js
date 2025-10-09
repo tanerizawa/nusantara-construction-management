@@ -465,15 +465,10 @@ router.get('/debug/pending', async (req, res) => {
   try {
     const { userId = 'USR-PM-002' } = req.query; // Default to project manager
     
-    console.log('🔍 DEBUG: Getting pending approvals for user:', userId);
-    
     const pendingApprovals = await ApprovalService.getPendingApprovals(userId);
-    
-    console.log('🔍 DEBUG: Found pending approvals:', pendingApprovals.length);
     
     res.json({
       success: true,
-      debug: true,
       userId,
       count: pendingApprovals.length,
       data: pendingApprovals

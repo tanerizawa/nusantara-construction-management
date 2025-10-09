@@ -339,7 +339,6 @@ class NotificationService {
         }
       });
 
-      console.log(`Cleaned up ${deletedCount} old notifications`);
       return deletedCount;
     } catch (error) {
       console.error('Error cleaning up old notifications:', error);

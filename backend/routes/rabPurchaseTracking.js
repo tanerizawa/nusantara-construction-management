@@ -51,8 +51,8 @@ const RABPurchaseTracking = sequelize.define('RABPurchaseTracking', {
   timestamps: true
 });
 
-// Initialize the table
-RABPurchaseTracking.sync({ alter: true });
+// Initialize the table (disabled to prevent conflicts with views)
+// RABPurchaseTracking.sync({ alter: true });
 
 /**
  * GET /api/database/projects/:projectId/rab-items/:rabItemId/purchase-summary

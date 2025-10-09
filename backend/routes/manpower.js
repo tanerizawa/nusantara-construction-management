@@ -561,12 +561,9 @@ router.get('/:id', async (req, res) => {
 // @access  Private
 router.post('/', async (req, res) => {
   try {
-    console.log('📥 POST /api/manpower - Request Body:', JSON.stringify(req.body, null, 2));
-    
     // Validate input
     const { error, value } = employeeSchema.validate(req.body);
     if (error) {
-      console.log('❌ Validation Error:', error.details);
       return res.status(400).json({
         success: false,
         error: 'Validation failed',

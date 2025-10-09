@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: nusantara_construction
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin123
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -31,6 +33,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
+      TZ: Asia/Jakarta
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: nusantara_construction
@@ -63,8 +66,10 @@ services:
     container_name: nusantara-frontend
     restart: unless-stopped
     environment:
+      TZ: Asia/Jakarta
       REACT_APP_API_URL: /api
       REACT_APP_ENV: production
+      REACT_APP_TIMEZONE: Asia/Jakarta
       CHOKIDAR_USEPOLLING: false
       FAST_REFRESH: false
       WDS_SOCKET_HOST: false

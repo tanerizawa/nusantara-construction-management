@@ -479,37 +479,28 @@ router.delete("/:id", async (req, res) => {
   try {
     const { id: projectId } = req.params;
 
-    console.log(`🗑️  Deleting project: ${projectId}`);
-
     // Delete related data in order
     const rabDeleted = await ProjectRAB.destroy({ where: { projectId } });
-    console.log(`   ✓ Deleted ${rabDeleted} RAB items`);
 
     const milestonesDeleted = await ProjectMilestone.destroy({
       where: { projectId },
     });
-    console.log(`   ✓ Deleted ${milestonesDeleted} milestones`);
 
     const teamDeleted = await ProjectTeamMember.destroy({
       where: { projectId },
     });
-    console.log(`   ✓ Deleted ${teamDeleted} team members`);
 
     const documentsDeleted = await ProjectDocument.destroy({
       where: { projectId },
     });
-    console.log(`   ✓ Deleted ${documentsDeleted} documents`);
 
     const baDeleted = await BeritaAcara.destroy({ where: { projectId } });
-    console.log(`   ✓ Deleted ${baDeleted} berita acara`);
 
     const poDeleted = await PurchaseOrder.destroy({ where: { projectId } });
-    console.log(`   ✓ Deleted ${poDeleted} purchase orders`);
 
     const deliveryReceiptsDeleted = await DeliveryReceipt.destroy({
       where: { projectId },
     });
-    console.log(`   ✓ Deleted ${deliveryReceiptsDeleted} delivery receipts`);
 
     // Delete project
     const projectDeleted = await Project.destroy({ where: { id: projectId } });
@@ -520,8 +511,6 @@ router.delete("/:id", async (req, res) => {
         error: "Project not found",
       });
     }
-
-    console.log(`✅ Project ${projectId} deleted successfully`);
 
     res.json({
       success: true,

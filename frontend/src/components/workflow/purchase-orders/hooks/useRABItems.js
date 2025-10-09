@@ -220,7 +220,8 @@ export const useRABItems = (projectId) => {
     if (projectId) {
       fetchRABItems();
     }
-  }, [projectId, fetchRABItems]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]); // Only re-fetch when projectId changes, not when fetchRABItems changes
 
   return {
     rabItems,

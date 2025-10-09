@@ -69,6 +69,7 @@ export const useWorkflowData = (project) => {
         data: project.approvalHistory || []
       },
       purchaseOrders: project.purchaseOrders || [],
+      deliveryReceipts: project.deliveryReceipts || [], // Added delivery receipts for execution tracking
       budgetSummary: {
         totalBudget: parseFloat(project.totalBudget) || 0,
         approvedAmount: project.rabItems?.reduce((sum, item) => 

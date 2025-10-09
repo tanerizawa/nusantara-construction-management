@@ -68,7 +68,7 @@ const ProjectPurchaseOrders = ({
   // Loading state
   const loading = poLoading || rabLoading;
 
-  // Debug logging
+  // Debug logging (only on mount and mode change)
   useEffect(() => {
     console.log('========================================');
     console.log('[ProjectPurchaseOrders] MODE:', mode);
@@ -76,24 +76,34 @@ const ProjectPurchaseOrders = ({
     console.log('[ProjectPurchaseOrders] RAB Items:', filteredRABItems?.length);
     console.log('[ProjectPurchaseOrders] Purchase Orders:', purchaseOrders?.length);
     console.log('========================================');
-  }, [mode, createPOStep, filteredRABItems, purchaseOrders]);
+  }, [mode, createPOStep]); // Remove filteredRABItems and purchaseOrders from deps
 
   /**
    * Handle PO creation
    */
   const handleCreatePO = async (poData) => {
     try {
+      console.log('🚀 [CREATE PO] Starting PO creation...');
+      console.log('📦 [CREATE PO] PO Data:', poData);
+      
       // Validate PO data
       const validation = validateCompletePO(poData);
+      console.log('✅ [CREATE PO] Validation result:', validation);
+      
       if (!validation.isValid) {
+        console.error('❌ [CREATE PO] Validation failed:', validation.errors);
         alert('Validasi gagal:\n' + validation.errors.join('\n'));
         return;
       }
 
       // Create PO via hook
+      console.log('📡 [CREATE PO] Calling createPurchaseOrder API...');
       const result = await createPurchaseOrder(poData);
+      console.log('📨 [CREATE PO] API Response:', result);
       
       if (result.success) {
+        console.log('✅ [CREATE PO] PO created successfully:', result.data);
+        
         // Broadcast change to other components
         broadcastPOChange(result.data, 'create');
         
@@ -114,10 +124,12 @@ const ProjectPurchaseOrders = ({
         // Switch to history mode (via parent)
         if (onComplete) onComplete();
       } else {
+        console.error('❌ [CREATE PO] API returned error:', result.error);
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('Error creating purchase order:', error);
+      console.error('💥 [CREATE PO] Exception caught:', error);
+      console.error('💥 [CREATE PO] Error stack:', error.stack);
       alert('Gagal membuat Purchase Order: ' + error.message);
     }
   };
@@ -156,14 +168,14 @@ const ProjectPurchaseOrders = ({
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [fetchRABItems, fetchPurchaseOrders]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only setup interval once on mount
 
   return (
     <div className="space-y-6">
       {/* MODE: CREATE - Buat PO Baru */}
       {mode === 'create' ? (
         <>
-          {console.log('🔵 [RENDER] CREATE MODE - Showing RAB Selection')}
           {/* Header for Create Mode */}
           <div>
             <h2 className="text-2xl font-bold text-white">

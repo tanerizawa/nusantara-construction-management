@@ -5,21 +5,36 @@ import { workflowStages } from '../config';
 /**
  * WorkflowStagesCard Component
  * Displays the sequential workflow stages with status indicators
+ * 
+ * UPDATED LOGIC (Oct 9, 2025):
+ * - Procurement dapat berjalan parallel dengan Execution
+ * - Execution dimulai ketika ada Delivery Receipt (tanda terima PO)
+ * - Procurement tidak perlu 100% selesai untuk mulai Execution
  */
 const WorkflowStagesCard = ({ workflowData, project }) => {
-  // Calculate stages based on real project data with proper sequential logic
+  // Calculate stages based on real project data with parallel workflow logic
   const getStageStatus = () => {
-    // Stage completion must follow sequential order
+    // Stage 1: Planning - Setup awal proyek
     const planning_completed = project.status !== 'draft' && project.status !== 'pending';
     
+    // Stage 2: RAB Approval - Persetujuan budget
     const rabItems_exist = project.rabItems && project.rabItems.length > 0;
     const rab_approved = rabItems_exist && workflowData.rabStatus?.approved;
     const rab_completed = planning_completed && rab_approved;
     
+    // Stage 3: Procurement - Pengadaan material (dapat berjalan parallel)
+    const has_purchase_orders = workflowData.purchaseOrders?.length > 0;
     const po_approved = workflowData.purchaseOrders?.some(po => po.status === 'approved');
-    const procurement_completed = rab_completed && po_approved;
+    const all_po_received = workflowData.purchaseOrders?.every(po => po.status === 'received');
+    const procurement_completed = rab_completed && has_purchase_orders && all_po_received;
     
-    const execution_completed = procurement_completed && (project.status === 'active' || project.status === 'completed');
+    // Stage 4: Execution - Pelaksanaan (dimulai saat ada delivery receipt)
+    // LOGIC BARU: Tidak perlu tunggu procurement selesai 100%
+    const has_delivery_receipts = workflowData.deliveryReceipts?.length > 0;
+    const execution_started = rab_completed && po_approved && has_delivery_receipts;
+    const execution_completed = execution_started && (project.status === 'active' || project.status === 'completed');
+    
+    // Stage 5: Completion - Penyelesaian proyek
     const completion_completed = execution_completed && project.status === 'completed';
 
     return workflowStages.map((stage) => ({
@@ -30,15 +45,22 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
         stage.id === 'procurement' ? procurement_completed :
         stage.id === 'execution' ? execution_completed :
         stage.id === 'completion' ? completion_completed :
+        false,
+      // Track if stage is active (in progress but not completed)
+      active:
+        stage.id === 'planning' ? !planning_completed :
+        stage.id === 'rab-approval' ? (planning_completed && !rab_completed) :
+        stage.id === 'procurement' ? (rab_completed && !procurement_completed) :
+        stage.id === 'execution' ? (execution_started && !execution_completed) :
+        stage.id === 'completion' ? (execution_completed && !completion_completed) :
         false
     }));
   };
 
   const stages = getStageStatus();
-  const currentStageIndex = stages.findIndex(stage => 
-    !stage.completed && (workflowData.currentStage === stage.id || 
-    (workflowData.currentStage === 'planning' && stage.id === 'planning'))
-  );
+  
+  // Find current active stage (first non-completed stage that is active)
+  const currentStageIndex = stages.findIndex(stage => stage.active);
 
   return (
     <div className="space-y-4">
@@ -51,7 +73,7 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
         <div className="space-y-4">
           {stages.map((stage, index) => {
             const IconComponent = stage.icon;
-            const isActive = currentStageIndex === index;
+            const isActive = stage.active; // Use computed active state
             const isCompleted = stage.completed;
             
             return (
@@ -152,20 +174,48 @@ const getStageDetails = (stageId, project, workflowData) => {
         </p>
       );
     case 'procurement':
+      const totalPO = workflowData.purchaseOrders?.length || 0;
+      const approvedPO = workflowData.purchaseOrders?.filter(po => po.status === 'approved' || po.status === 'received')?.length || 0;
+      const receivedPO = workflowData.purchaseOrders?.filter(po => po.status === 'received')?.length || 0;
+      
       return (
-        <p>
-          {workflowData.purchaseOrders?.length > 0 
-            ? `${workflowData.purchaseOrders.length} PO - ${workflowData.purchaseOrders?.some(po => po.status === 'approved') ? 'Ada yang disetujui' : 'Menunggu persetujuan'}`
-            : 'Belum ada Purchase Order'}
-        </p>
+        <div className="space-y-1">
+          <p>{totalPO > 0 ? `${totalPO} Purchase Order` : 'Belum ada Purchase Order'}</p>
+          {totalPO > 0 && (
+            <>
+              <p>• Disetujui: {approvedPO} dari {totalPO} PO</p>
+              <p>• Diterima: {receivedPO} dari {totalPO} PO</p>
+              <p className="text-[#FF9F0A] font-medium">
+                {receivedPO < totalPO ? '⚠️ Pengadaan berjalan parallel dengan eksekusi' : '✓ Semua material sudah diterima'}
+              </p>
+            </>
+          )}
+        </div>
       );
     case 'execution':
+      const hasDeliveryReceipts = workflowData.deliveryReceipts?.length > 0;
+      const deliveryCount = workflowData.deliveryReceipts?.length || 0;
+      
       return (
-        <p>
-          {project.status === 'completed' ? 'Eksekusi selesai' : 
-           project.status === 'active' ? 'Dalam tahap pelaksanaan' : 
-           'Menunggu procurement selesai'}
-        </p>
+        <div className="space-y-1">
+          {project.status === 'completed' ? (
+            <p>✓ Eksekusi selesai</p>
+          ) : project.status === 'active' ? (
+            <>
+              <p>Dalam tahap pelaksanaan</p>
+              {hasDeliveryReceipts && (
+                <p>• {deliveryCount} tanda terima material sudah diterima</p>
+              )}
+            </>
+          ) : hasDeliveryReceipts ? (
+            <>
+              <p className="text-[#30D158] font-medium">✓ Siap untuk eksekusi</p>
+              <p>• {deliveryCount} tanda terima material sudah diterima</p>
+            </>
+          ) : (
+            <p>Menunggu tanda terima material pertama (Delivery Receipt)</p>
+          )}
+        </div>
       );
     case 'completion':
       return (

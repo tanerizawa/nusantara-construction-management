@@ -347,15 +347,14 @@ class ApprovalService {
   static async sendApprovalNotification(instanceId, stepId) {
     // Implementation for sending notifications
     // This will be enhanced with email service integration
-    console.log(`Sending approval notification for instance ${instanceId}, step ${stepId}`);
   }
 
   static async sendDecisionNotification(instanceId, stepId, decision, approverUserId) {
-    console.log(`Sending decision notification: ${decision} for instance ${instanceId}`);
+    // Notification logic to be implemented
   }
 
   static async sendCompletionNotification(instanceId) {
-    console.log(`Sending completion notification for instance ${instanceId}`);
+    // Notification logic to be implemented
   }
 
   /**

@@ -172,17 +172,6 @@ router.post('/:id/documents', upload.single('file'), async (req, res) => {
     const { id } = req.params;
     const { title, description, category, type, accessLevel, tags, isPublic, status } = req.body;
 
-    console.log('=== DOCUMENT UPLOAD DEBUG ===');
-    console.log('Project ID:', id);
-    console.log('Request body:', req.body);
-    console.log('File info:', req.file ? {
-      originalname: req.file.originalname,
-      filename: req.file.filename,
-      mimetype: req.file.mimetype,
-      size: req.file.size,
-      path: req.file.path
-    } : 'No file');
-
     // Check if project exists
     const project = await Project.findByPk(id);
     if (!project) {
@@ -269,8 +258,6 @@ router.post('/:id/documents', upload.single('file'), async (req, res) => {
       status: value.status || 'draft',
       downloadCount: 0
     });
-
-    console.log('✅ Document uploaded successfully:', document.id);
 
     res.status(201).json({
       success: true,
@@ -429,7 +416,6 @@ router.delete('/:id/documents/:documentId', async (req, res) => {
     // Delete physical file
     if (fs.existsSync(document.filePath)) {
       fs.unlinkSync(document.filePath);
-      console.log(`✅ Deleted file: ${document.filePath}`);
     }
 
     // Delete database record

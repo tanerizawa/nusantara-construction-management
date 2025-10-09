@@ -16,9 +16,6 @@ const { sequelize } = require('../config/database');
  */
 router.get('/', async (req, res) => {
   try {
-    console.log('DEBUG: JournalEntry model:', !!JournalEntry);
-    console.log('DEBUG: JournalEntry findAndCountAll:', typeof JournalEntry?.findAndCountAll);
-    
     const { 
       page = 1, 
       limit = 20, 

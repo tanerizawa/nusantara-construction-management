@@ -14,18 +14,14 @@ export const validatePOData = (poData) => {
     errors.push('Nama supplier harus diisi');
   }
   
-  if (!poData.supplierContact || poData.supplierContact.trim() === '') {
-    errors.push('Kontak supplier harus diisi');
-  }
+  // Note: supplierContact and supplierAddress are in notes field
+  // Backend doesn't have separate fields for these
   
-  if (!poData.supplierAddress || poData.supplierAddress.trim() === '') {
-    errors.push('Alamat supplier harus diisi');
-  }
-  
-  if (!poData.deliveryDate) {
+  // Validate delivery date
+  if (!poData.expectedDeliveryDate) {
     errors.push('Tanggal pengiriman harus diisi');
   } else {
-    const deliveryDate = new Date(poData.deliveryDate);
+    const deliveryDate = new Date(poData.expectedDeliveryDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -115,8 +111,9 @@ export const validatePOItems = (items) => {
   items.forEach((item, index) => {
     const itemErrors = [];
     
-    if (!item.rabItemId) {
-      itemErrors.push(`Item ${index + 1}: RAB item tidak valid`);
+    // Check inventoryId (required by backend)
+    if (!item.inventoryId) {
+      itemErrors.push(`Item ${index + 1}: Inventory ID tidak valid`);
     }
     
     const quantity = parseFloat(item.quantity);
@@ -185,11 +182,8 @@ export const validateCompletePO = (poData) => {
     allErrors.push(...itemsValidation.errors);
   }
   
-  // Validate contact
-  const contactValidation = validateSupplierContact(poData.supplierContact);
-  if (!contactValidation.isValid) {
-    allErrors.push(...contactValidation.errors);
-  }
+  // Note: supplierContact is embedded in notes field, not a separate field
+  // Backend schema doesn't have supplierContact field
   
   return {
     isValid: allErrors.length === 0,

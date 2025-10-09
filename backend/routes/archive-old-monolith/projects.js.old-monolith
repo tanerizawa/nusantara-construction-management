@@ -3,7 +3,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Joi = require('joi');
-const { Op } = require('sequelize');
+const { Op, QueryTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 const Project = require('../models/Project');
@@ -258,9 +259,25 @@ router.get('/:id', async (req, res) => {
       .filter(item => item.status === 'pending')
       .reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
     
+    // Fetch real Purchase Orders from database
+    const purchaseOrders = await PurchaseOrder.findAll({
+      where: { projectId: id },
+      order: [['createdAt', 'DESC']],
+      limit: 50
+    });
+
+    // Fetch real Delivery Receipts from database
+    const deliveryReceipts = await DeliveryReceipt.findAll({
+      where: { projectId: id },
+      order: [['receivedDate', 'DESC']],
+      limit: 50
+    });
+    
     // Mock some realistic data for demonstration
     const actualSpent = totalBudget * (parseFloat(project.progress) || 0) / 100 * 0.8; // 80% of progress as actual spending
-    const committedAmount = approvedRABAmount * 0.6; // 60% of approved RAB as committed POs
+    const committedAmount = purchaseOrders.reduce((sum, po) => 
+      (po.status === 'approved' || po.status === 'received') ? sum + (parseFloat(po.totalAmount) || 0) : sum, 0
+    );
     
     // Transform data for API response
     const transformedProject = {
@@ -349,23 +366,27 @@ router.get('/:id', async (req, res) => {
         rejected: rabItems.filter(item => item.status === 'rejected').length
       },
       
-      // Purchase Orders (mock data for now)
-      purchaseOrders: [
-        ...(approvedRABAmount > 0 ? [{
-          id: 'po_001',
-          description: 'Material Procurement Phase 1',
-          amount: committedAmount * 0.6,
-          status: 'approved',
-          createdAt: new Date()
-        }] : []),
-        ...(pendingRABAmount > 0 ? [{
-          id: 'po_002', 
-          description: 'Material Procurement Phase 2',
-          amount: committedAmount * 0.4,
-          status: 'pending',
-          createdAt: new Date()
-        }] : [])
-      ],
+      // Real Purchase Orders from database
+      purchaseOrders: purchaseOrders.map(po => ({
+        id: po.id,
+        poNumber: po.poNumber,
+        supplierName: po.supplierName,
+        totalAmount: po.totalAmount,
+        status: po.status,
+        orderDate: po.orderDate,
+        createdAt: po.createdAt
+      })),
+
+      // Real Delivery Receipts from database  
+      deliveryReceipts: deliveryReceipts.map(dr => ({
+        id: dr.id,
+        receiptNumber: dr.receiptNumber,
+        poNumber: dr.purchaseOrderId,
+        receivedDate: dr.receivedDate,
+        status: dr.status,
+        items: dr.items,
+        createdAt: dr.createdAt
+      })),
       
       // Actual expenses (mock realistic data)
       actualExpenses: actualSpent > 0 ? [
@@ -2769,6 +2790,238 @@ router.delete('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res)
     res.status(500).json({
       success: false,
       error: 'Failed to delete delivery receipt',
+      details: error.message
+    });
+  }
+});
+
+// ============================================
+// BUDGET MONITORING ENDPOINT
+// ============================================
+
+/**
+ * GET /api/projects/:id/budget-monitoring
+ * Get comprehensive budget monitoring data
+ * @param {string} timeframe - week, month, quarter, year
+ */
+router.get('/:id/budget-monitoring', async (req, res) => {
+  try {
+    const { id: projectId } = req.params;
+    const { timeframe = 'month' } = req.query;
+
+    console.log('🔵 Fetching budget monitoring for project:', projectId, 'timeframe:', timeframe);
+
+    // 1. Get all approved RAB items (Budget)
+    const rabItems = await ProjectRAB.findAll({
+      where: {
+        projectId,
+        status: 'approved'
+      },
+      attributes: ['id', 'category', 'description', 'quantity', 'unitPrice', 'totalPrice'],
+      raw: true
+    });
+
+    console.log('📊 RAB Items found:', rabItems.length);
+
+    // 2. Get tracking data (Actual spending)
+    const trackingQuery = `
+      SELECT 
+        pr.category,
+        SUM(rpt.quantity) as total_quantity,
+        SUM(rpt."totalAmount") as total_amount,
+        rpt.status,
+        DATE_TRUNC('${timeframe}', rpt."purchaseDate") as period
+      FROM rab_purchase_tracking rpt
+      JOIN project_rab pr ON pr.id::text = rpt."rabItemId"
+      WHERE rpt."projectId" = :projectId
+      GROUP BY pr.category, rpt.status, DATE_TRUNC('${timeframe}', rpt."purchaseDate")
+      ORDER BY period DESC
+    `;
+
+    const trackingResults = await sequelize.query(trackingQuery, {
+      replacements: { projectId },
+      type: QueryTypes.SELECT
+    });
+
+    console.log('💰 Tracking results:', trackingResults);
+
+    // 3. Calculate budget by category
+    const categoryBudgets = {};
+    rabItems.forEach(item => {
+      const category = item.category || 'Uncategorized';
+      if (!categoryBudgets[category]) {
+        categoryBudgets[category] = {
+          category,
+          budget: 0,
+          actual: 0,
+          committed: 0,
+          items: []
+        };
+      }
+      categoryBudgets[category].budget += parseFloat(item.totalPrice || 0);
+      categoryBudgets[category].items.push(item);
+    });
+
+    // 4. Add actual spending to categories
+    if (Array.isArray(trackingResults)) {
+      trackingResults.forEach(track => {
+        const category = track.category || 'Uncategorized';
+        if (categoryBudgets[category]) {
+          const amount = parseFloat(track.total_amount || 0);
+          
+          if (track.status === 'received' || track.status === 'completed') {
+            categoryBudgets[category].actual += amount;
+          } else if (track.status === 'pending' || track.status === 'approved') {
+            categoryBudgets[category].committed += amount;
+          }
+        }
+      });
+    }
+
+    // 5. Calculate summary and variance
+    const categories = Object.values(categoryBudgets).map(cat => {
+      const remaining = cat.budget - cat.actual - cat.committed;
+      const varianceAmount = cat.budget - cat.actual;
+      const variancePercentage = cat.budget > 0 
+        ? ((varianceAmount / cat.budget) * 100).toFixed(2)
+        : 0;
+      const utilizationPercentage = cat.budget > 0
+        ? (((cat.actual + cat.committed) / cat.budget) * 100).toFixed(2)
+        : 0;
+
+      return {
+        category: cat.category,
+        budget: parseFloat(cat.budget.toFixed(2)),
+        actual: parseFloat(cat.actual.toFixed(2)),
+        committed: parseFloat(cat.committed.toFixed(2)),
+        remaining: parseFloat(remaining.toFixed(2)),
+        varianceAmount: parseFloat(varianceAmount.toFixed(2)),
+        variancePercentage: parseFloat(variancePercentage),
+        utilizationPercentage: parseFloat(utilizationPercentage)
+      };
+    });
+
+    // 6. Calculate total summary
+    const summary = categories.reduce((acc, cat) => {
+      acc.totalBudget += cat.budget;
+      acc.totalActual += cat.actual;
+      acc.totalCommitted += cat.committed;
+      return acc;
+    }, {
+      totalBudget: 0,
+      totalActual: 0,
+      totalCommitted: 0
+    });
+
+    summary.remainingBudget = summary.totalBudget - summary.totalActual - summary.totalCommitted;
+    summary.utilizationPercentage = summary.totalBudget > 0
+      ? (((summary.totalActual + summary.totalCommitted) / summary.totalBudget) * 100).toFixed(2)
+      : 0;
+    summary.actualPercentage = summary.totalBudget > 0
+      ? ((summary.totalActual / summary.totalBudget) * 100).toFixed(2)
+      : 0;
+    summary.committedPercentage = summary.totalBudget > 0
+      ? ((summary.totalCommitted / summary.totalBudget) * 100).toFixed(2)
+      : 0;
+
+    // 7. Generate budget alerts
+    const alerts = [];
+    categories.forEach(cat => {
+      const utilization = parseFloat(cat.utilizationPercentage);
+      
+      if (cat.actual > cat.budget) {
+        alerts.push({
+          type: 'critical',
+          category: cat.category,
+          message: `Budget exceeded! Actual spending (Rp ${cat.actual.toLocaleString('id-ID')}) is over budget (Rp ${cat.budget.toLocaleString('id-ID')})`
+        });
+      } else if (utilization >= 95) {
+        alerts.push({
+          type: 'critical',
+          category: cat.category,
+          message: `Critical: ${utilization}% budget utilized for ${cat.category}`
+        });
+      } else if (utilization >= 80) {
+        alerts.push({
+          type: 'warning',
+          category: cat.category,
+          message: `Warning: ${utilization}% budget utilized for ${cat.category}`
+        });
+      }
+    });
+
+    // 8. Build timeline data
+    const timelineQuery = `
+      SELECT 
+        DATE_TRUNC('${timeframe}', rpt."purchaseDate") as period,
+        SUM(rpt."totalAmount") as actual_amount,
+        COUNT(*) as transaction_count
+      FROM rab_purchase_tracking rpt
+      WHERE rpt."projectId" = :projectId
+      GROUP BY DATE_TRUNC('${timeframe}', rpt."purchaseDate")
+      ORDER BY period ASC
+    `;
+
+    const timelineData = await sequelize.query(timelineQuery, {
+      replacements: { projectId },
+      type: QueryTypes.SELECT
+    });
+
+    const timeline = Array.isArray(timelineData) ? timelineData.map(item => ({
+      date: item.period,
+      actualAmount: parseFloat(item.actual_amount || 0),
+      budgetAmount: summary.totalBudget / 12, // Distributed evenly (simplified)
+      committedAmount: summary.totalCommitted,
+      transactionCount: parseInt(item.transaction_count || 0)
+    })) : [];
+
+    // 9. Simple forecast (next 3 periods based on avg spending)
+    const avgSpending = timeline.length > 0
+      ? timeline.reduce((sum, t) => sum + t.actualAmount, 0) / timeline.length
+      : 0;
+
+    const forecast = [];
+    if (avgSpending > 0) {
+      const periods = timeframe === 'week' ? ['Week 1', 'Week 2', 'Week 3'] :
+                     timeframe === 'month' ? ['Month 1', 'Month 2', 'Month 3'] :
+                     ['Q1', 'Q2', 'Q3'];
+      
+      periods.forEach((period, index) => {
+        forecast.push({
+          period,
+          projectedSpend: parseFloat((avgSpending * (1 + index * 0.05)).toFixed(2)), // 5% growth
+          confidence: Math.max(50, 90 - (index * 15)) // Decreasing confidence
+        });
+      });
+    }
+
+    // 10. Return comprehensive budget data
+    const budgetData = {
+      summary,
+      categories,
+      timeline,
+      alerts,
+      forecast,
+      metadata: {
+        projectId,
+        timeframe,
+        totalRABItems: rabItems.length,
+        generatedAt: new Date().toISOString()
+      }
+    };
+
+    console.log('✅ Budget monitoring data generated successfully');
+
+    res.json({
+      success: true,
+      data: budgetData
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching budget monitoring:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch budget monitoring data',
       details: error.message
     });
   }

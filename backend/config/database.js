@@ -10,6 +10,7 @@ const config = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
+    timezone: '+07:00', // WIB/Asia Jakarta
     logging: console.log,
     pool: {
       max: 5,
@@ -25,6 +26,7 @@ const config = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
+    timezone: '+07:00', // WIB/Asia Jakarta
     logging: false
   },
   production: {
@@ -34,6 +36,7 @@ const config = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT || 5432,
     dialect: 'postgres',
+    timezone: '+07:00', // WIB/Asia Jakarta
     logging: false,
     pool: {
       max: 20,

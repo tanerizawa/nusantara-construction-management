@@ -23,8 +23,6 @@ router.get('/:id/budget-monitoring', async (req, res) => {
     const { id: projectId } = req.params;
     const { timeframe = 'month' } = req.query;
 
-    console.log('🔵 Fetching budget monitoring for project:', projectId, 'timeframe:', timeframe);
-
     // Check if project exists
     const project = await Project.findByPk(projectId);
     if (!project) {
@@ -43,8 +41,6 @@ router.get('/:id/budget-monitoring', async (req, res) => {
       attributes: ['id', 'category', 'description', 'quantity', 'unitPrice', 'totalPrice'],
       raw: true
     });
-
-    console.log('📊 RAB Items found:', rabItems.length);
 
     // 2. Get tracking data (Actual spending) - Optional if table exists
     let trackingResults = [];
@@ -68,11 +64,8 @@ router.get('/:id/budget-monitoring', async (req, res) => {
         type: QueryTypes.SELECT
       });
     } catch (trackingError) {
-      console.log('⚠️  Tracking table not available, using estimated data');
       trackingResults = [];
     }
-
-    console.log('💰 Tracking results:', trackingResults.length);
 
     // 3. Calculate budget by category
     const categoryBudgets = {};
@@ -220,7 +213,6 @@ router.get('/:id/budget-monitoring', async (req, res) => {
         transactionCount: parseInt(item.transaction_count || 0)
       })) : [];
     } catch (timelineError) {
-      console.log('⚠️  Timeline data not available');
       timeline = [];
     }
 
@@ -266,8 +258,6 @@ router.get('/:id/budget-monitoring', async (req, res) => {
         generatedAt: new Date().toISOString()
       }
     };
-
-    console.log('✅ Budget monitoring data generated successfully');
 
     res.json({
       success: true,

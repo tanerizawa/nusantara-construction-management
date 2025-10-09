@@ -250,13 +250,17 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+// Auth & Users API - Modular Routes (Phase 2B Complete - 12 endpoints)
+// Consolidates: auth.js (194 lines), users.js (349 lines), users_db.js (349 lines duplicate)
+// Result: 4 modules (912 lines), eliminated 350 lines of duplication
+// Backup: auth.js.backup, users.js.backup available if needed
 app.use('/api/auth', require('./routes/auth'));
 
 // Projects API - Modular Routes (Phase 1 Complete - 54 endpoints)
-// Backup: Old monolith available at './routes/projects.js' if needed
 app.use('/api/projects', require('./routes/projects/index'));
 
-app.use('/api/subsidiaries', require('./routes/subsidiaries'));
+// Subsidiaries API - Modular Routes (Phase 5 Complete - 12 endpoints)
+app.use('/api/subsidiaries', require('./routes/subsidiaries/index'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/manpower', require('./routes/manpower'));
 app.use('/api/finance', require('./routes/finance'));
@@ -265,11 +269,15 @@ app.use('/api/coa', require('./routes/coa'));
 app.use('/api/chart-of-accounts', require('./routes/coa')); // Alias for backward compatibility
 app.use('/api/entities', require('./routes/entities'));
 app.use('/api/journal-entries', require('./routes/journalEntries'));
-app.use('/api/reports', require('./routes/financialReports'));
-app.use('/api/users', require('./routes/users'));
+
+// Financial Reports API - Modular Routes (Phase 3A - 9/44 endpoints implemented)
+// Phase 3A modules: Financial Statements (5), Tax Reports (4)
+// Phase 3B pending: Project Analytics, Fixed Assets, Executive, Budget, Cost Center, Compliance
+app.use('/api/reports', require('./routes/financial-reports'));
+
+// app.use('/api/users', require('./routes/users')); // DEPRECATED: Now handled by /api/auth/users
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));
-app.use('/api/approval', require('./routes/enhancedApproval'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/database', require('./routes/database'));

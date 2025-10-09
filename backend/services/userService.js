@@ -14,14 +14,11 @@ try {
   // Test database connection
   sequelize.authenticate().then(() => {
     dbAvailable = true;
-    console.log('🔄 UserService: Database mode enabled');
   }).catch(() => {
     dbAvailable = false;
-    console.log('🔄 UserService: JSON file mode enabled');
   });
 } catch (error) {
   dbAvailable = false;
-  console.log('🔄 UserService: JSON file mode enabled (no database module)');
 }
 
 class UserService {

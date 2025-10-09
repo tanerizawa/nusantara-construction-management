@@ -54,9 +54,13 @@ const POListView = ({
           <div className="flex items-center">
             <button
               onClick={closeDetail}
-              className="mr-4 p-2 hover:bg-[#3A3A3C] rounded-lg"
+              style={{
+                backgroundColor: '#2C2C2E',
+                border: '1px solid #38383A'
+              }}
+              className="mr-4 p-2 hover:bg-[#3A3A3C] rounded-lg transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 text-white" />
             </button>
             <div>
               <h3 className="text-lg font-semibold text-white">
@@ -114,7 +118,7 @@ const POListView = ({
             </div>
           </div>
 
-          {/* Items List */}
+          {/* Items List - Scrollable Table */}
           <div>
             <h4 className="text-md font-semibold text-white mb-3 flex items-center">
               <FileText className="h-5 w-5 mr-2 text-[#0A84FF]" />
@@ -127,55 +131,71 @@ const POListView = ({
               }}
               className="rounded-lg overflow-hidden"
             >
-              <table className="min-w-full divide-y divide-[#38383A]">
-                <thead style={{ backgroundColor: '#1C1C1E' }}>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[#98989D] uppercase tracking-wider">Item</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-[#98989D] uppercase tracking-wider">Jumlah</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-[#98989D] uppercase tracking-wider">Harga Satuan</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-[#98989D] uppercase tracking-wider">Total</th>
-                  </tr>
-                </thead>
-                <tbody style={{ backgroundColor: '#2C2C2E' }} className="divide-y divide-[#38383A]">
-                  {(selectedPO.items || []).map((item, index) => {
-                    const qty = parseFloat(item.quantity) || 0;
-                    const price = parseFloat(item.unitPrice || item.unit_price) || 0;
-                    const total = qty * price;
-                    
-                    return (
-                      <tr key={index} className="hover:bg-[#3A3A3C] transition-colors">
-                        <td className="px-4 py-3 text-sm text-white">{item.itemName || item.item_name || item.description}</td>
-                        <td className="px-4 py-3 text-sm text-right">
-                          <span className="text-[#0A84FF] font-medium">{qty.toFixed(2)}</span>
-                          <span className="text-[#8E8E93] ml-1">{item.unit}</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-white text-right">{formatCurrency(price)}</td>
-                        <td className="px-4 py-3 text-sm font-semibold text-[#30D158] text-right">{formatCurrency(total)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <div 
+                className="overflow-x-auto po-detail-items-scroll"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#38383A #2C2C2E'
+                }}
+              >
+                <style>{`
+                  .po-detail-items-scroll::-webkit-scrollbar {
+                    height: 8px;
+                  }
+                  .po-detail-items-scroll::-webkit-scrollbar-track {
+                    background: #2C2C2E;
+                  }
+                  .po-detail-items-scroll::-webkit-scrollbar-thumb {
+                    background: #38383A;
+                    border-radius: 4px;
+                  }
+                  .po-detail-items-scroll::-webkit-scrollbar-thumb:hover {
+                    background: #48484A;
+                  }
+                `}</style>
+                <table className="min-w-full divide-y divide-[#38383A]">
+                  <thead style={{ backgroundColor: '#1C1C1E' }}>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-[#98989D] uppercase tracking-wider">Item</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-[#98989D] uppercase tracking-wider">Jumlah</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-[#98989D] uppercase tracking-wider">Harga Satuan</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-[#98989D] uppercase tracking-wider">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody style={{ backgroundColor: '#2C2C2E' }} className="divide-y divide-[#38383A]">
+                    {(selectedPO.items || []).map((item, index) => {
+                      const qty = parseFloat(item.quantity) || 0;
+                      const price = parseFloat(item.unitPrice || item.unit_price) || 0;
+                      const total = qty * price;
+                      
+                      return (
+                        <tr key={index} className="hover:bg-[#3A3A3C] transition-colors">
+                          <td className="px-4 py-3 text-sm text-white">{item.itemName || item.item_name || item.description}</td>
+                          <td className="px-4 py-3 text-sm text-right">
+                            <span className="text-[#0A84FF] font-medium">{qty.toFixed(2)}</span>
+                            <span className="text-[#8E8E93] ml-1">{item.unit}</span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-white text-right">{formatCurrency(price)}</td>
+                          <td className="px-4 py-3 text-sm font-semibold text-[#30D158] text-right">{formatCurrency(total)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
           {/* Total */}
           <div 
             style={{
-              backgroundColor: '#0A84FF',
-              opacity: 0.1,
+              backgroundColor: 'rgba(10, 132, 255, 0.1)',
               border: '1px solid rgba(10, 132, 255, 0.3)'
             }}
-            className="rounded-lg p-4 relative mt-4"
+            className="rounded-lg p-4 mt-4"
           >
-            <div 
-              style={{
-                backgroundColor: 'transparent',
-                opacity: 1
-              }}
-              className="absolute inset-0 p-4 flex justify-between items-center"
-            >
-              <span className="text-lg font-semibold text-[#0A84FF]">Total Purchase Order</span>
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-semibold text-white">Total Purchase Order</span>
               <span className="text-2xl font-bold text-[#0A84FF]">
                 {formatCurrency(selectedPO.totalAmount || selectedPO.total_amount || 0)}
               </span>
@@ -432,7 +452,28 @@ const POListView = ({
           }}
           className="rounded-lg overflow-hidden"
         >
-          <div className="overflow-x-auto">
+          <div 
+            className="overflow-x-auto po-list-scroll"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#38383A #1C1C1E'
+            }}
+          >
+            <style>{`
+              .po-list-scroll::-webkit-scrollbar {
+                height: 8px;
+              }
+              .po-list-scroll::-webkit-scrollbar-track {
+                background: #1C1C1E;
+              }
+              .po-list-scroll::-webkit-scrollbar-thumb {
+                background: #38383A;
+                border-radius: 4px;
+              }
+              .po-list-scroll::-webkit-scrollbar-thumb:hover {
+                background: #48484A;
+              }
+            `}</style>
             <table className="min-w-full divide-y divide-[#38383A]">
               <thead style={{ backgroundColor: '#2C2C2E' }}>
                 <tr>

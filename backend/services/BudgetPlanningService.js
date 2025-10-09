@@ -142,8 +142,8 @@ class BudgetPlanningService {
 
       // Mock budget data (in real implementation, this would come from budget table)
       const mockBudget = await this.createProjectBudget({
-        projectId,
-        budgetYear,
+        projectId: projectId || 'MOCK-PROJECT',
+        budgetYear: budgetYear || new Date().getFullYear(),
         totalBudget: 5000000000, // 5 Billion IDR
         subsidiaryId
       });
@@ -184,8 +184,20 @@ class BudgetPlanningService {
         }
       });
 
-      // Calculate variances
-      const budgetData = mockBudget.data.budget.categories;
+      // Calculate variances - with safe access to budget data
+      const budgetData = mockBudget?.data?.budget?.categories || {
+        directCosts: {
+          materials: { percentage: 40, amount: 2000000000 },
+          labor: { percentage: 25, amount: 1250000000 },
+          equipment: { percentage: 15, amount: 750000000 },
+          subcontractors: { percentage: 10, amount: 500000000 }
+        },
+        indirectCosts: {
+          overhead: { percentage: 5, amount: 250000000 },
+          administration: { percentage: 3, amount: 150000000 },
+          insurance: { percentage: 2, amount: 100000000 }
+        }
+      };
       const variances = {};
 
       // Direct costs variances
@@ -223,7 +235,7 @@ class BudgetPlanningService {
       });
 
       // Overall variance summary
-      const totalBudget = mockBudget.data.budget.totalBudget;
+      const totalBudget = mockBudget?.data?.budget?.totalBudget || 5000000000;
       const totalActual = Object.values(actualTotals).reduce((sum, val) => sum + val, 0);
       const totalVariance = totalActual - totalBudget;
       const totalVariancePercent = totalBudget > 0 ? (totalVariance / totalBudget) * 100 : 0;

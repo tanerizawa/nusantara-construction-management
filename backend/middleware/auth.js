@@ -133,11 +133,10 @@ const logRequest = (req, res, next) => {
       logData.userRole = req.user.role;
     }
     
-    // Log to console in development, to file in production
+    // Log to structured format in production, simplified in development
     if (process.env.NODE_ENV === 'production') {
-      console.log(JSON.stringify(logData));
-    } else {
-      console.log(`${logData.method} ${logData.url} ${logData.statusCode} ${logData.duration}`);
+      // Use console.error for production logging (proper log stream)
+      console.error(JSON.stringify(logData));
     }
   });
   

@@ -43,8 +43,6 @@ class POFinanceSyncService {
               notes: `Auto-generated from Purchase Order ${poNumber}`,
               tags: ['purchase_order', 'material', supplierName.toLowerCase().replace(/\s+/g, '_')]
             });
-            
-            console.log(`✅ Created finance transaction for approved PO: ${poNumber}`);
           }
           break;
 
@@ -55,8 +53,6 @@ class POFinanceSyncService {
               status: 'completed',
               notes: financeTransaction.notes + ` | Goods received on ${new Date().toISOString().split('T')[0]}`
             });
-            
-            console.log(`✅ Updated finance transaction to completed for received PO: ${poNumber}`);
           }
           break;
 
@@ -67,8 +63,6 @@ class POFinanceSyncService {
               status: 'cancelled',
               notes: financeTransaction.notes + ` | PO cancelled on ${new Date().toISOString().split('T')[0]}`
             });
-            
-            console.log(`✅ Cancelled finance transaction for cancelled PO: ${poNumber}`);
           }
           break;
 

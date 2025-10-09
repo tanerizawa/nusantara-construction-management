@@ -94,6 +94,9 @@ export const usePurchaseOrders = (projectId) => {
    */
   const createPurchaseOrder = useCallback(async (poData) => {
     try {
+      console.log('🔵 [usePurchaseOrders] Creating PO...');
+      console.log('📦 [usePurchaseOrders] Payload:', poData);
+      
       setLoading(true);
       setError(null);
 
@@ -106,19 +109,34 @@ export const usePurchaseOrders = (projectId) => {
         body: JSON.stringify(poData)
       });
 
+      console.log('📡 [usePurchaseOrders] Response status:', response.status);
+      console.log('📡 [usePurchaseOrders] Response ok:', response.ok);
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create purchase order');
+        console.error('❌ [usePurchaseOrders] Error response:', errorData);
+        console.error('❌ [usePurchaseOrders] Validation details:', errorData.details);
+        
+        // Show detailed error message
+        let errorMessage = errorData.message || errorData.error || 'Failed to create purchase order';
+        if (errorData.details && Array.isArray(errorData.details)) {
+          errorMessage += '\n\nDetails:\n' + errorData.details.map(d => `- ${d.message || d}`).join('\n');
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      console.log('✅ [usePurchaseOrders] Success response:', result);
       
       // Refresh purchase orders after creation
+      console.log('🔄 [usePurchaseOrders] Refreshing PO list...');
       await fetchPurchaseOrders();
       
       return { success: true, data: result.data };
     } catch (err) {
-      console.error('Error creating purchase order:', err);
+      console.error('💥 [usePurchaseOrders] Exception:', err);
+      console.error('💥 [usePurchaseOrders] Stack:', err.stack);
       setError(err.message);
       return { success: false, error: err.message };
     } finally {

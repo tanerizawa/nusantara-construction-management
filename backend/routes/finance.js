@@ -442,7 +442,6 @@ router.get('/reports/income-statement', async (req, res) => {
 router.get('/project-integration', async (req, res) => {
   try {
     const { subsidiaryId, projectId } = req.query;
-    console.log('🔄 [BACKEND] Fetching integrated project finance data:', { subsidiaryId, projectId });
 
     // Build project filter
     const projectWhereClause = {};
@@ -607,15 +606,9 @@ router.get('/project-integration', async (req, res) => {
       timestamp: new Date().toISOString()
     };
 
-    console.log('✅ [BACKEND] Integrated project finance data prepared:', {
-      projects: response.data.projects.length,
-      transactions: response.data.transactions.length,
-      poTransactions: response.data.metrics.overview.poTransactions
-    });
-
     res.json(response);
   } catch (error) {
-    console.error('❌ [BACKEND] Error fetching integrated project finance data:', error);
+    console.error('Error fetching integrated project finance data:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch integrated project finance data',

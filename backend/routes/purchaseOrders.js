@@ -1,11 +1,62 @@
 const express = require('express');
 const Joi = require('joi');
-const { Op } = require('sequelize');
+const { Op, DataTypes } = require('sequelize');
 const PurchaseOrder = require('../models/PurchaseOrder');
 const { verifyToken } = require('../middleware/auth');
 const POFinanceSyncService = require('../services/poFinanceSync');
+const { sequelize } = require('../config/database');
 
 const router = express.Router();
+
+// Define RABPurchaseTracking model for quantity tracking
+const RABPurchaseTracking = sequelize.define(
+  "RABPurchaseTracking",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    projectId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    rabItemId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    poNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    quantity: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+    unitPrice: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
+    },
+    totalAmount: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
+    },
+    purchaseDate: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "pending",
+    },
+  },
+  {
+    tableName: "rab_purchase_tracking",
+    timestamps: true,
+  }
+);
 
 // Validation schema
 const purchaseOrderSchema = Joi.object({
@@ -257,6 +308,27 @@ router.post('/', verifyToken, async (req, res) => {
 
     const order = await PurchaseOrder.create(value);
 
+    // ✅ CREATE TRACKING RECORDS for RAB quantity tracking
+    try {
+      const trackingRecords = value.items.map((item) => ({
+        projectId: value.projectId,
+        rabItemId: item.inventoryId, // inventoryId is the RAB item UUID
+        poNumber: value.poNumber,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalAmount: item.totalPrice,
+        purchaseDate: value.orderDate,
+        status: value.status || "pending",
+      }));
+      
+      if (trackingRecords.length > 0) {
+        await RABPurchaseTracking.bulkCreate(trackingRecords);
+      }
+    } catch (trackingError) {
+      console.error('Failed to create tracking records:', trackingError.message);
+      // Don't fail the main PO creation
+    }
+
     res.status(201).json({
       success: true,
       data: order,
@@ -306,13 +378,24 @@ router.put('/:id', async (req, res) => {
     
     await order.update(value);
 
+    // ✅ UPDATE TRACKING RECORDS if status changed
+    if (value.status && value.status !== previousStatus) {
+      try {
+        await RABPurchaseTracking.update(
+          { status: value.status },
+          { where: { poNumber: order.poNumber } }
+        );
+      } catch (trackingError) {
+        console.error('Failed to update tracking:', trackingError.message);
+      }
+    }
+
     // Auto-sync to finance if status changed
     if (value.status && value.status !== previousStatus) {
       try {
-        console.log(`🔄 Status changed from ${previousStatus} to ${value.status} - syncing to finance...`);
         await POFinanceSyncService.syncPOToFinance(order.toJSON(), previousStatus);
       } catch (syncError) {
-        console.error('⚠️ Finance sync warning:', syncError.message);
+        console.error('Finance sync warning:', syncError.message);
         // Don't fail the main operation, just log the warning
       }
     }
@@ -347,7 +430,18 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
+    const poNumber = order.poNumber;
+    
     await order.destroy();
+
+    // ✅ DELETE TRACKING RECORDS
+    try {
+      await RABPurchaseTracking.destroy({
+        where: { poNumber: poNumber }
+      });
+    } catch (trackingError) {
+      console.error('Failed to delete tracking:', trackingError.message);
+    }
 
     res.json({
       success: true,
@@ -391,10 +485,9 @@ router.put('/:id/status', async (req, res) => {
 
     // Auto-sync to finance when status changes
     try {
-      console.log(`🔄 Status updated to ${status} - syncing to finance...`);
       await POFinanceSyncService.syncPOToFinance(order.toJSON());
     } catch (syncError) {
-      console.error('⚠️ Finance sync warning:', syncError.message);
+      console.error('Finance sync warning:', syncError.message);
     }
 
     res.json({

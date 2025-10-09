@@ -11,20 +11,16 @@ const Manpower = models.Manpower;
 const Inventory = models.InventoryItem;
 const Tax = models.TaxRecord;
 
-console.log('✅ Dashboard: Database-only mode initialized');
-
 // Load all data for dashboard (Database only - no fallback)
 const loadAllData = async () => {
   try {
-    console.log('🗄️ Dashboard: Loading data from database...');
-    
     const [projectsData, financeData, manpowerData, inventoryData, taxData] = await Promise.all([
       Project.findAll().catch(err => {
-        console.error('❌ Project.findAll error:', err.message);
+        console.error('Error loading projects:', err.message);
         return [];
       }),
       Finance.findAll().catch(err => {
-        console.error('❌ Finance.findAll error:', err.message);
+        console.error('Error loading finance data:', err.message);
         return [];
       }),
       Manpower.findAll().catch(err => {
@@ -36,18 +32,10 @@ const loadAllData = async () => {
         return [];
       }),
       Tax.findAll().catch(err => {
-        console.error('❌ Tax.findAll error:', err.message);
+        console.error('Error loading tax data:', err.message);
         return [];
       })
     ]);
-
-    console.log('📊 Database results:', {
-      projects: projectsData.length,
-      finance: financeData.length,
-      manpower: manpowerData.length,
-      inventory: inventoryData.length,
-      tax: taxData.length
-    });
 
     return {
       projects: projectsData || [],
@@ -57,7 +45,7 @@ const loadAllData = async () => {
       tax: taxData || []
     };
   } catch (error) {
-    console.error('❌ Error loading dashboard data from database:', error);
+    console.error('Error loading dashboard data:', error);
     // Return empty data instead of fallback to JSON
     return {
       projects: [],

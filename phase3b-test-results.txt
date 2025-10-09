@@ -1,0 +1,27 @@
+[PASS] Health Check - http://localhost:5000/api/reports/health - Status: 200
+[PASS] Available Reports - http://localhost:5000/api/reports/available - Status: 200
+[PASS] Trial Balance - http://localhost:5000/api/reports/trial-balance?as_of_date=2025-10-09 - Status: 200
+[PASS] Income Statement - http://localhost:5000/api/reports/income-statement?start_date=2025-01-01&end_date=2025-10-09 - Status: 200
+[PASS] Balance Sheet - http://localhost:5000/api/reports/balance-sheet?as_of_date=2025-10-09 - Status: 200
+[PASS] Cash Flow - http://localhost:5000/api/reports/cash-flow?start_date=2025-01-01&end_date=2025-10-09 - Status: 200
+[FAIL] Equity Changes - http://localhost:5000/api/reports/equity-changes?start_date=2025-01-01&end_date=2025-10-09 - Status: 500
+  Response: {"success":false,"message":"Error generating statement of changes in equity","error":"EquityChangesService.generateEquityChanges is not a function"}
+[PASS] PPh 21 Report - http://localhost:5000/api/reports/tax/pph21?month=10&year=2025 - Status: 200
+[PASS] PPN Report - http://localhost:5000/api/reports/tax/ppn?month=10&year=2025 - Status: 200
+[PASS] PPh 23 Report - http://localhost:5000/api/reports/tax/pph23?month=10&year=2025 - Status: 200
+[FAIL] Construction Tax Summary - http://localhost:5000/api/reports/tax/construction-summary?year=2025 - Status: 400
+  Response: {"success":false,"message":"Month parameter is required","format":"1-12"}
+[FAIL] Project Cost Analysis - http://localhost:5000/api/reports/project/cost-analysis?project_id=PRJ001 - Status: 500
+  Response: {"success":false,"message":"Error generating project cost analysis","error":"projectCostingService.generateCostAnalysis is not a function"}
+[PASS] Project Profitability - http://localhost:5000/api/reports/project/profitability?project_id=PRJ002 - Status: 200
+[PASS] Multi-Project Comparison - http://localhost:5000/api/reports/project/comparison?project_ids=PRJ001,PRJ002,PRJ003 - Status: 200
+[PASS] Resource Utilization - http://localhost:5000/api/reports/project/resource-utilization - Status: 200
+[PASS] Real-Time Cost Tracking - http://localhost:5000/api/reports/project/track-costs?project_id=PRJ001 - Status: 200
+[PASS] Asset List - http://localhost:5000/api/reports/fixed-asset/list?category=HEAVY_EQUIPMENT&limit=5 - Status: 200
+[PASS] Asset Depreciation - http://localhost:5000/api/reports/fixed-asset/depreciation?asset_id=ASSET-001 - Status: 200
+[PASS] Asset Valuation - http://localhost:5000/api/reports/fixed-asset/valuation?category=VEHICLES - Status: 200
+[PASS] Maintenance Schedule - http://localhost:5000/api/reports/fixed-asset/maintenance-schedule?asset_id=ASSET-001 - Status: 200
+[PASS] Asset Analytics - http://localhost:5000/api/reports/fixed-asset/analytics?category=HEAVY_EQUIPMENT - Status: 200
+[PASS] Tax Missing Params - http://localhost:5000/api/reports/tax/pph21 - Status: 400
+[PASS] Project Missing ID - http://localhost:5000/api/reports/project/profitability - Status: 400
+[PASS] Comparison Missing IDs - http://localhost:5000/api/reports/project/comparison - Status: 400

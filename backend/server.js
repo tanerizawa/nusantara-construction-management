@@ -9,6 +9,9 @@ const fs = require('fs');
 const { sequelize } = require('./config/database');
 const { models } = require('./models');
 
+// Set timezone to WIB (Asia/Jakarta)
+process.env.TZ = 'Asia/Jakarta';
+
 // Environment configuration
 const environment = process.env.NODE_ENV || 'development';
 const envFile = environment === 'production' ? '.env.production' : '.env.development';
@@ -248,7 +251,11 @@ app.use('/api', (req, res, next) => {
 });
 
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/projects', require('./routes/projects'));
+
+// Projects API - Modular Routes (Phase 1 Complete - 54 endpoints)
+// Backup: Old monolith available at './routes/projects.js' if needed
+app.use('/api/projects', require('./routes/projects/index'));
+
 app.use('/api/subsidiaries', require('./routes/subsidiaries'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/manpower', require('./routes/manpower'));
@@ -267,6 +274,7 @@ app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/database', require('./routes/database'));
 app.use('/api/rab-tracking', require('./routes/rabPurchaseTracking'));
+app.use('/api/rab-view', require('./routes/rab-view')); // Real-time RAB with availability
 console.log('Loading purchase-orders route...');
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 console.log('Purchase-orders route loaded successfully');

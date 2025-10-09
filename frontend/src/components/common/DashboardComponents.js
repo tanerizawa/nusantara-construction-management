@@ -1,25 +1,27 @@
 import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
-// Common Loading Component
+// Common Loading Component - Apple HIG Style
 export const LoadingSpinner = ({ message = "Loading..." }) => (
-  <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    <span className="ml-3 text-gray-600">{message}</span>
+  <div className="flex items-center justify-center h-64 bg-[#1C1C1E]">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A84FF]"></div>
+      <span className="mt-3 text-[#98989D] text-sm">{message}</span>
+    </div>
   </div>
 );
 
-// Common Error Component
+// Common Error Component - Apple HIG Style
 export const ErrorDisplay = ({ error, onRetry, title = "Error Loading Data" }) => (
-  <div className="flex items-center justify-center h-64">
+  <div className="flex items-center justify-center h-64 bg-[#1C1C1E]">
     <div className="text-center">
-      <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4">{error}</p>
+      <AlertCircle className="h-16 w-16 text-[#FF453A] mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      <p className="text-[#98989D] mb-4">{error}</p>
       {onRetry && (
         <button 
           onClick={onRetry}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
+          className="px-5 py-2.5 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0970DD] transition-colors duration-150 flex items-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
         >
           <RefreshCw className="h-4 w-4" />
           Retry
@@ -29,17 +31,17 @@ export const ErrorDisplay = ({ error, onRetry, title = "Error Loading Data" }) =
   </div>
 );
 
-// Common Chart Placeholder
+// Common Chart Placeholder - Apple HIG Style
 export const ChartPlaceholder = ({ height = "h-64", title = "Chart" }) => (
-  <div className={`${height} flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200`}>
-    <div className="text-center text-gray-500">
+  <div className={`${height} flex items-center justify-center bg-[#2C2C2E] rounded-xl border-2 border-dashed border-[#38383A]`}>
+    <div className="text-center text-[#636366]">
       <div className="text-sm font-medium">{title}</div>
       <div className="text-xs">No data available</div>
     </div>
   </div>
 );
 
-// Common Stats Card
+// Common Stats Card - Apple HIG Style
 export const StatsCard = ({ 
   title, 
   value, 
@@ -50,39 +52,38 @@ export const StatsCard = ({
   onClick 
 }) => {
   const colorClasses = {
-    blue: 'text-blue-600 bg-blue-50',
-    green: 'text-green-600 bg-green-50',
-    red: 'text-red-600 bg-red-50',
-    yellow: 'text-yellow-600 bg-yellow-50',
-    purple: 'text-purple-600 bg-purple-50',
-    gray: 'text-gray-600 bg-gray-50'
+    blue: 'text-[#0A84FF] bg-[#0A84FF]/10',
+    green: 'text-[#30D158] bg-[#30D158]/10',
+    red: 'text-[#FF453A] bg-[#FF453A]/10',
+    yellow: 'text-[#FF9F0A] bg-[#FF9F0A]/10',
+    purple: 'text-[#BF5AF2] bg-[#BF5AF2]/10',
+    gray: 'text-[#98989D] bg-[#98989D]/10'
   };
 
   return (
     <div 
-      className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 ${onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}
+      className={`bg-[#2C2C2E] border border-[#38383A] rounded-xl p-5 hover:border-[#48484A] transition-colors duration-150 ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-600 truncate">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">
+          <p className="text-sm text-[#98989D] truncate mb-2">{title}</p>
+          <p className="text-2xl font-bold text-white mb-1">
             {typeof value === 'number' ? formatNumber(value) : value}
           </p>
           {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+            <p className="text-sm text-[#636366]">{subtitle}</p>
           )}
           {trend && (
             <div className="flex items-center mt-2">
-              <span className={`text-sm ${trend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {trend > 0 ? '+' : ''}{trend}%
+              <span className={`text-xs font-medium ${trend.startsWith('+') ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>
+                {trend}
               </span>
-              <span className="text-xs text-gray-500 ml-1">from last period</span>
             </div>
           )}
         </div>
         {Icon && (
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${colorClasses[color]}`}>
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[color]}`}>
             <Icon className="h-6 w-6" />
           </div>
         )}
@@ -119,17 +120,17 @@ export const formatCurrency = (amount, currency = 'IDR') => {
   return `Rp ${numAmount.toLocaleString('id-ID')}`;
 };
 
-// Empty state component
+// Empty state component - Apple HIG Style
 export const EmptyState = ({ 
   title = "No data available", 
   description = "There is no data to display at the moment.",
   icon: Icon,
   action
 }) => (
-  <div className="text-center py-12">
-    {Icon && <Icon className="h-12 w-12 text-gray-400 mx-auto mb-4" />}
-    <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
-    <p className="text-gray-500 mb-4">{description}</p>
+  <div className="text-center py-12 bg-[#2C2C2E] border border-[#38383A] rounded-xl">
+    {Icon && <Icon className="h-12 w-12 text-[#636366] mx-auto mb-4" />}
+    <h3 className="text-lg font-medium text-white mb-2">{title}</h3>
+    <p className="text-[#98989D] mb-4">{description}</p>
     {action}
   </div>
 );

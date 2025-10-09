@@ -14,7 +14,7 @@ const MainLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-[#1C1C1E]">
       {/* Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 
@@ -27,7 +27,7 @@ const MainLayout = ({ children }) => {
         <Header onMenuClick={handleMenuClick} />
         
         {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#1C1C1E] p-6">
           {children}
         </main>
       </div>
@@ -35,7 +35,7 @@ const MainLayout = ({ children }) => {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-200"
           onClick={handleSidebarClose}
         />
       )}

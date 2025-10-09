@@ -1,27 +1,84 @@
-import React, { useState } from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
 
 // Hooks
-import { useApprovalData, useApprovalActions, useApprovalSync } from './hooks';
+import { useApprovalData, useApprovalActions } from './hooks';
 
 // Config
 import { approvalCategories } from './config';
 
 // Components
 import { ApprovalStatusBadge, ApprovalActions } from './components';
+import TandaTerimaContent from './components/TandaTerimaContent';
 
-// External components
-import TandaTerimaManager from '../tanda-terima/TandaTerimaManager';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+// Utils
+import { formatCurrency, formatDate } from '../../../utils/formatters';
 
 /**
  * Professional Approval Dashboard - Modularized
  * Main container for approval workflow
  */
 const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onDataChange }) => {
-  const [activeCategory, setActiveCategory] = useState('rab');
+  // Get initial tab from URL hash (nested format: #approval-status:tandaTerima)
+  const getInitialCategory = () => {
+    // Priority 1: URL hash with nested format (#approval-status:tandaTerima)
+    const hash = window.location.hash.replace('#', '');
+    if (hash.includes(':')) {
+      const [mainTab, subTab] = hash.split(':');
+      // Only use subTab if mainTab is 'approval-status'
+      if (mainTab === 'approval-status' && subTab && approvalCategories.some(cat => cat.id === subTab)) {
+        return subTab;
+      }
+    }
+    
+    // Priority 2: localStorage
+    const saved = localStorage.getItem('approvalDashboard_activeCategory');
+    if (saved && approvalCategories.some(cat => cat.id === saved)) {
+      return saved;
+    }
+    
+    // Priority 3: default
+    return 'rab';
+  };
+
+  const [activeCategory, setActiveCategory] = useState(getInitialCategory);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Sync active category with URL hash (nested format) and localStorage
+  useEffect(() => {
+    // Get current main tab from hash
+    const hash = window.location.hash.replace('#', '');
+    const mainTab = hash.includes(':') ? hash.split(':')[0] : hash;
+    
+    // Update URL hash with nested format (mainTab:subTab)
+    if (mainTab === 'approval-status' || mainTab === '') {
+      window.location.hash = `approval-status:${activeCategory}`;
+    }
+    
+    // Update localStorage as backup
+    localStorage.setItem('approvalDashboard_activeCategory', activeCategory);
+  }, [activeCategory]);
+
+  // Listen for browser back/forward navigation (hash changes)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash.includes(':')) {
+        const [mainTab, subTab] = hash.split(':');
+        // Only update if mainTab is 'approval-status' and subTab is valid
+        if (mainTab === 'approval-status' && subTab && approvalCategories.some(cat => cat.id === subTab) && subTab !== activeCategory) {
+          setActiveCategory(subTab);
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [activeCategory]);
 
   // Custom hooks
   const { 
@@ -37,8 +94,6 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
     handleApprove, 
     handleReject 
   } = useApprovalActions(projectId, setApprovalData, activeCategory, onDataChange);
-  
-  useApprovalSync(projectId, loadApprovalData);
 
   // Get current category data
   const currentCategoryData = approvalData[activeCategory] || [];
@@ -64,10 +119,10 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
+      <div className="flex items-center justify-center p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memuat data approval...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A84FF] mx-auto"></div>
+          <p className="mt-4 text-[#8E8E93]">Memuat data approval...</p>
         </div>
       </div>
     );
@@ -75,36 +130,22 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <p className="text-red-800">Error: {error}</p>
+      <div className="bg-[#FF3B30]/10 border border-[#FF3B30]/30 rounded-lg p-4">
+        <p className="text-[#FF3B30]">Error: {error}</p>
       </div>
     );
   }
 
-  // Special handling for Tanda Terima
-  if (activeCategory === 'tandaTerima') {
-    return <TandaTerimaManager projectId={projectId} project={project} />;
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Approval Dashboard</h2>
-          <p className="text-gray-600">Kelola persetujuan dokumen proyek</p>
-        </div>
-        <button
-          onClick={loadApprovalData}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </button>
+      <div>
+        <h2 className="text-lg font-semibold text-white">Approval Dashboard</h2>
+        <p className="text-sm text-[#8E8E93]">Kelola persetujuan dokumen proyek</p>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex gap-4 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-[#38383A] overflow-x-auto">
         {approvalCategories.map(category => {
           const Icon = category.icon;
           const isActive = activeCategory === category.id;
@@ -114,14 +155,14 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`flex items-center px-4 py-3 border-b-2 transition-colors ${
+              className={`flex items-center px-3 py-2 border-b-2 transition-colors whitespace-nowrap ${
                 isActive 
-                  ? 'border-blue-600 text-blue-600' 
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  ? 'border-[#0A84FF] text-[#0A84FF]' 
+                  : 'border-transparent text-[#8E8E93] hover:text-white'
               }`}
             >
-              <Icon className="w-5 h-5 mr-2" />
-              <span className="font-medium">{category.name}</span>
+              <Icon className="w-4 h-4 mr-2" />
+              <span className="font-medium text-sm">{category.name}</span>
               <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${category.color}`}>
                 {count}
               </span>
@@ -131,70 +172,90 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600">Total</p>
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-3">
+          <p className="text-xs text-[#8E8E93]">Total</p>
+          <p className="text-xl font-semibold text-white">{stats.total}</p>
         </div>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">Pending</p>
-          <p className="text-2xl font-bold text-yellow-900">{stats.pending}</p>
+        <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-lg p-3">
+          <p className="text-xs text-[#8E8E93]">Pending</p>
+          <p className="text-xl font-semibold text-[#FF9F0A]">{stats.pending}</p>
         </div>
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-sm text-green-800">Approved</p>
-          <p className="text-2xl font-bold text-green-900">{stats.approved}</p>
+        <div className="bg-[#30D158]/10 border border-[#30D158]/30 rounded-lg p-3">
+          <p className="text-xs text-[#8E8E93]">Approved</p>
+          <p className="text-xl font-semibold text-[#30D158]">{stats.approved}</p>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-800">Rejected</p>
-          <p className="text-2xl font-bold text-red-900">{stats.rejected}</p>
+        <div className="bg-[#FF3B30]/10 border border-[#FF3B30]/30 rounded-lg p-3">
+          <p className="text-xs text-[#8E8E93]">Rejected</p>
+          <p className="text-xl font-semibold text-[#FF3B30]">{stats.rejected}</p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Cari dokumen..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">Semua Status</option>
-          <option value="draft">Draft</option>
-          <option value="under_review">Under Review</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
-      </div>
-
-      {/* Approval Items List */}
-      <div className="space-y-4">
-        {filteredData.length === 0 ? (
-          <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
-            <p className="text-gray-600">Tidak ada data approval</p>
+      {/* Content Area - Different for Tanda Terima */}
+      {activeCategory === 'tandaTerima' ? (
+        <TandaTerimaContent projectId={projectId} project={project} onDataChange={onDataChange} />
+      ) : (
+        <>
+          {/* Filters - Only for RAB and PO */}
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#636366]" />
+              <input
+                type="text"
+                placeholder="Cari dokumen..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ 
+                  backgroundColor: '#1C1C1E !important', 
+                  color: 'white !important',
+                  border: '1px solid #38383A',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  paddingLeft: '2.5rem'
+                }}
+                className="w-full placeholder-[#636366] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF]"
+              />
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ 
+                backgroundColor: '#1C1C1E !important', 
+                color: 'white !important',
+                border: '1px solid #38383A',
+                borderRadius: '0.5rem',
+                padding: '0.5rem 1rem'
+              }}
+              className="focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF]"
+            >
+              <option value="all" style={{ backgroundColor: '#1C1C1E', color: 'white' }}>Semua Status</option>
+              <option value="draft" style={{ backgroundColor: '#1C1C1E', color: 'white' }}>Draft</option>
+              <option value="under_review" style={{ backgroundColor: '#1C1C1E', color: 'white' }}>Under Review</option>
+              <option value="pending" style={{ backgroundColor: '#1C1C1E', color: 'white' }}>Pending</option>
+              <option value="approved" style={{ backgroundColor: '#1C1C1E', color: 'white' }}>Approved</option>
+              <option value="rejected" style={{ backgroundColor: '#1C1C1E', color: 'white' }}>Rejected</option>
+            </select>
           </div>
+
+          {/* Approval Items List - Only for RAB and PO */}
+          <div className="space-y-4">
+            {filteredData.length === 0 ? (
+              <div className="text-center py-12 bg-[#2C2C2E] border border-[#38383A] rounded-lg">
+                <p className="text-[#8E8E93]">Tidak ada data approval</p>
+              </div>
         ) : (
           filteredData.map((item) => (
-            <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+            <div key={item.id} className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4 hover:border-[#0A84FF]/50 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{item.approval_id}</h3>
+                    <h3 className="text-base font-semibold text-white">{item.approval_id}</h3>
                     <ApprovalStatusBadge status={item.status} />
                   </div>
                   
-                  <p className="text-gray-700 mb-2">{item.description}</p>
+                  <p className="text-[#98989D] mb-2">{item.description}</p>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-[#8E8E93] mb-4">
                     {item.quantity && (
                       <div>
                         <span className="font-medium">Quantity:</span> {item.quantity} {item.unit}
@@ -216,7 +277,7 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
                   </div>
                   
                   {item.approved_by && (
-                    <p className="text-sm text-green-600">
+                    <p className="text-sm text-[#30D158]">
                       Approved by {item.approved_by} on {formatDate(item.approved_at)}
                     </p>
                   )}
@@ -233,7 +294,9 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
             </div>
           ))
         )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -1,0 +1,32 @@
+import React from 'react';
+import { Calendar } from 'lucide-react';
+import { formatCurrency } from '../utils/budgetFormatters';
+
+/**
+ * Component untuk cash flow forecast
+ */
+const CashFlowForecast = ({ forecast = [] }) => {
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-medium text-gray-900">Cash Flow Forecast</h3>
+        <div className="flex items-center space-x-2">
+          <Calendar className="h-4 w-4 text-gray-500" />
+          <span className="text-sm text-gray-600">Next 3 months</span>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-4">
+        {forecast.map((month, index) => (
+          <div key={index} className="text-center p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+            <p className="text-sm text-gray-600 mb-1">{month.month}</p>
+            <p className="text-lg font-bold text-gray-900">{formatCurrency(month.plannedExpenses)}</p>
+            <p className="text-xs text-gray-500">Planned expenses</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CashFlowForecast;

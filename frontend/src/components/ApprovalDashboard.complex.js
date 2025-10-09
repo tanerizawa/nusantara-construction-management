@@ -367,10 +367,7 @@ const ApprovalDashboard = () => {
   useEffect(() => {
     fetchData();
     
-    // Setup auto-refresh every 60 seconds
-    const interval = setInterval(fetchData, 60000);
-    
-    return () => clearInterval(interval);
+    // Auto-refresh removed to save resources
   }, [fetchData]);
 
   // ==================== COMPONENTS ====================

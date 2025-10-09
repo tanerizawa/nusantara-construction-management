@@ -29,36 +29,36 @@ const ProjectHeader = memo(({
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-2 bg-[#0A84FF]/10 rounded-lg">
+              <Building2 className="h-6 w-6 text-[#0A84FF]" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <h1 className="text-3xl font-bold text-white tracking-tight">
               Manajemen Proyek
             </h1>
           </div>
           
-          <p className="text-gray-600 dark:text-gray-300 text-lg">
+          <p className="text-[#98989D] text-lg">
             Kelola proyek konstruksi NUSANTARA GROUP secara profesional dan efisien
           </p>
           
           {/* Quick Summary */}
           <div className="flex items-center gap-6 mt-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-gray-600 dark:text-gray-400">
+              <div className="w-3 h-3 bg-[#0A84FF] rounded-full"></div>
+              <span className="text-[#98989D]">
                 {projectStats.total} total proyek
               </span>
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-gray-600 dark:text-gray-400">
+              <div className="w-3 h-3 bg-[#30D158] rounded-full"></div>
+              <span className="text-[#98989D]">
                 {projectStats.active} aktif
               </span>
             </div>
             
             {projectStats.overdue > 0 && (
-              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <div className="flex items-center gap-2 text-[#FF9F0A]">
                 <AlertTriangle className="h-4 w-4" />
                 <span className="font-medium">
                   {projectStats.overdue} terlambat
@@ -74,7 +74,7 @@ const ProjectHeader = memo(({
             onClick={onCreateProject}
             disabled={loading}
             size="lg"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-sm hover:shadow-md transition-all duration-200"
+            className="inline-flex items-center gap-2 bg-[#0A84FF] hover:bg-[#0970DD] shadow-lg hover:shadow-xl transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
           >
             <Plus className="h-5 w-5" />
             Proyek Baru
@@ -129,14 +129,14 @@ const ProjectHeader = memo(({
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div className="bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <AlertTriangle className="h-5 w-5 text-[#FF453A] flex-shrink-0" />
             <div>
-              <h4 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h4 className="text-sm font-medium text-[#FF453A]">
                 Peringatan Sistem
               </h4>
-              <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              <p className="text-sm text-[#FF453A] mt-1">
                 {error}
               </p>
             </div>

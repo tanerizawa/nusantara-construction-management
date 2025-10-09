@@ -4,73 +4,24 @@ import Button from './Button';
 
 /**
  * Professional Loading State Component
- * Provides consistent loading experience across the application
+ * Apple HIG inspired loading with clean spinner
  */
-export const LoadingState = ({ type = 'grid', count = 6 }) => {
-  if (type === 'grid') {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {Array.from({ length: count }).map((_, index) => (
-          <div
-            key={index}
-            className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 animate-pulse"
-          >
-            {/* Header skeleton */}
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex-1 pr-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
-              </div>
-              <div className="h-6 w-16 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
-            </div>
-            
-            {/* Content skeleton */}
-            <div className="space-y-2 mb-3">
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-2/3"></div>
-            </div>
-            
-            {/* Progress skeleton */}
-            <div className="space-y-2 mb-3">
-              <div className="flex justify-between">
-                <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-12"></div>
-              </div>
-              <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
-            </div>
-            
-            {/* Actions skeleton */}
-            <div className="pt-3 border-t border-gray-200 dark:border-gray-700 flex justify-between">
-              <div className="h-8 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
-              <div className="flex space-x-1">
-                <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded"></div>
-                <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded"></div>
-                <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded"></div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
+export const LoadingState = ({ message = 'Memuat data...' }) => {
   return (
-    <div className="space-y-4">
-      {Array.from({ length: count }).map((_, index) => (
-        <div
-          key={index}
-          className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 animate-pulse"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="h-12 w-12 bg-gray-200 dark:bg-gray-600 rounded"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
-            </div>
-            <div className="h-6 w-16 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
-          </div>
-        </div>
-      ))}
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      {/* Apple-style Loading Spinner */}
+      <div className="relative w-16 h-16">
+        {/* Outer ring */}
+        <div className="absolute inset-0 border-4 border-[#2C2C2E] rounded-full"></div>
+        {/* Animated spinner */}
+        <div className="absolute inset-0 border-4 border-transparent border-t-[#0A84FF] rounded-full animate-spin"></div>
+      </div>
+      
+      {/* Loading text */}
+      <div className="text-center space-y-1">
+        <p className="text-white font-medium">{message}</p>
+        <p className="text-[#98989D] text-sm">Mohon tunggu sebentar</p>
+      </div>
     </div>
   );
 };
@@ -93,22 +44,22 @@ export const EmptyState = ({
       icon: FileX,
       defaultTitle: 'Belum ada proyek',
       defaultDescription: 'Mulai dengan membuat proyek konstruksi pertama Anda',
-      iconColor: 'text-gray-400',
-      bgColor: 'bg-gray-50'
+      iconColor: 'text-[#8E8E93]',
+      bgColor: 'bg-[#2C2C2E]'
     },
     'no-results': {
       icon: FileX,
       defaultTitle: 'Tidak ada hasil ditemukan',
       defaultDescription: 'Coba ubah filter pencarian atau buat proyek baru',
-      iconColor: 'text-blue-400',
-      bgColor: 'bg-blue-50'
+      iconColor: 'text-[#0A84FF]',
+      bgColor: 'bg-[#0A84FF]/10'
     },
     'error': {
       icon: AlertTriangle,
       defaultTitle: 'Terjadi kesalahan',
       defaultDescription: 'Gagal memuat data. Silakan coba lagi',
-      iconColor: 'text-red-400',
-      bgColor: 'bg-red-50'
+      iconColor: 'text-[#FF453A]',
+      bgColor: 'bg-[#FF453A]/10'
     }
   };
 
@@ -121,11 +72,11 @@ export const EmptyState = ({
         <Icon className={`h-8 w-8 ${config.iconColor}`} />
       </div>
       
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      <h3 className="text-xl font-semibold text-white mb-2">
         {title || config.defaultTitle}
       </h3>
       
-      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+      <p className="text-[#98989D] mb-6 max-w-md mx-auto">
         {description || config.defaultDescription}
       </p>
       
@@ -168,24 +119,24 @@ export const ErrorState = ({
 }) => {
   return (
     <div className="text-center py-12">
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-full mb-4">
-        <AlertTriangle className="h-8 w-8 text-red-400" />
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-[#FF453A]/10 rounded-full mb-4">
+        <AlertTriangle className="h-8 w-8 text-[#FF453A]" />
       </div>
       
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      <h3 className="text-xl font-semibold text-white mb-2">
         {title}
       </h3>
       
-      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+      <p className="text-[#98989D] mb-6 max-w-md mx-auto">
         {error?.message || 'Terjadi kesalahan saat memuat data. Silakan coba lagi.'}
       </p>
       
       {showDetails && error?.stack && (
         <details className="mb-6 text-left max-w-2xl mx-auto">
-          <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+          <summary className="cursor-pointer text-sm text-[#8E8E93] hover:text-[#98989D]">
             Detail teknis
           </summary>
-          <pre className="mt-2 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs overflow-auto">
+          <pre className="mt-2 p-4 bg-[#2C2C2E] rounded-lg text-xs overflow-auto text-[#98989D]">
             {error.stack}
           </pre>
         </details>
@@ -219,6 +170,7 @@ export const ErrorState = ({
 
 /**
  * Stats Card Component for Dashboard Metrics
+ * Apple HIG Design
  */
 export const StatsCard = ({ 
   title, 
@@ -229,32 +181,50 @@ export const StatsCard = ({
   color = 'blue' 
 }) => {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    yellow: 'bg-yellow-50 text-yellow-600',
-    red: 'bg-red-50 text-red-600'
+    blue: {
+      bg: 'bg-[#0A84FF]/10',
+      text: 'text-[#0A84FF]',
+      icon: 'text-[#0A84FF]'
+    },
+    green: {
+      bg: 'bg-[#30D158]/10',
+      text: 'text-[#30D158]',
+      icon: 'text-[#30D158]'
+    },
+    yellow: {
+      bg: 'bg-[#FF9F0A]/10',
+      text: 'text-[#FF9F0A]',
+      icon: 'text-[#FF9F0A]'
+    },
+    red: {
+      bg: 'bg-[#FF453A]/10',
+      text: 'text-[#FF453A]',
+      icon: 'text-[#FF453A]'
+    }
   };
 
+  const colors = colorClasses[color] || colorClasses.blue;
+
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+    <div className="bg-[#2C2C2E] rounded-xl border border-[#38383A] p-6 hover:border-[#48484A] transition-colors duration-150">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+          <p className="text-sm font-medium text-[#98989D]">
             {title}
           </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+          <p className="text-2xl font-bold text-white mt-1">
             {value}
           </p>
           {subtitle && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-[#636366] mt-1">
               {subtitle}
             </p>
           )}
         </div>
         
         {Icon && (
-          <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-            <Icon className="h-6 w-6" />
+          <div className={`p-3 rounded-lg ${colors.bg}`}>
+            <Icon className={`h-6 w-6 ${colors.icon}`} />
           </div>
         )}
       </div>
@@ -263,14 +233,14 @@ export const StatsCard = ({
         <div className="mt-4 flex items-center text-sm">
           <span className={`font-medium ${
             trend.direction === 'up' 
-              ? 'text-green-600' 
+              ? 'text-[#30D158]' 
               : trend.direction === 'down' 
-                ? 'text-red-600' 
-                : 'text-gray-600'
+                ? 'text-[#FF453A]' 
+                : 'text-[#98989D]'
           }`}>
             {trend.value}
           </span>
-          <span className="text-gray-600 dark:text-gray-400 ml-1">
+          <span className="text-[#98989D] ml-1">
             {trend.label}
           </span>
         </div>
@@ -278,3 +248,4 @@ export const StatsCard = ({
     </div>
   );
 };
+// Cache cleared at Wed Oct  8 07:41:07 PM UTC 2025

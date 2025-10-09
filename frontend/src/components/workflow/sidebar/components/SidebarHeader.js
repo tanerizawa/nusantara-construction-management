@@ -1,0 +1,28 @@
+import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+/**
+ * Header sidebar dengan toggle collapse
+ */
+export const SidebarHeader = ({ project, isCollapsed, onToggle }) => {
+  return (
+    <div className="p-3 border-b border-[#38383A] flex items-center justify-between">
+      {!isCollapsed && (
+        <h2 className="text-lg font-semibold text-white truncate">
+          {project?.name || 'Project Details'}
+        </h2>
+      )}
+      <button
+        onClick={onToggle}
+        className="p-2 hover:bg-[#3A3A3C] rounded-lg transition-colors flex-shrink-0"
+        title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-4 w-4 text-[#8E8E93]" />
+        ) : (
+          <ChevronLeft className="h-4 w-4 text-[#8E8E93]" />
+        )}
+      </button>
+    </div>
+  );
+};

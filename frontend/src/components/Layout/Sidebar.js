@@ -116,20 +116,20 @@ const Sidebar = ({ isOpen, onClose }) => {
             {/* Parent menu with toggle */}
             <button
               onClick={() => toggleSubmenu(item.id)}
-              className={`w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+              className={`w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg transition-colors duration-150 group focus:outline-none focus:ring-2 focus:ring-[#0A84FF] ${
                 itemActive || item.submenu?.some(sub => isActive(sub.path))
-                  ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
-                  : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
+                  ? 'bg-[#0A84FF]/20 text-[#0A84FF] border border-[#0A84FF]/30'
+                  : 'text-[#98989D] hover:text-white hover:bg-[#2C2C2E]'
               }`}
             >
               <div className="flex items-center space-x-3">
-                <Icon size={20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
+                <Icon size={20} className={itemActive ? 'text-[#0A84FF]' : 'text-[#636366] group-hover:text-white'} />
                 <span className="font-medium">{item.label}</span>
               </div>
               {isExpanded ? (
-                <ChevronDown size={16} className="text-gray-400" />
+                <ChevronDown size={16} className="text-[#636366]" />
               ) : (
-                <ChevronRight size={16} className="text-gray-400" />
+                <ChevronRight size={16} className="text-[#636366]" />
               )}
             </button>
             
@@ -146,16 +146,16 @@ const Sidebar = ({ isOpen, onClose }) => {
             to={item.path}
             onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-all duration-200 group ${
+              `flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors duration-150 group focus:outline-none focus:ring-2 focus:ring-[#0A84FF] ${
                 level > 0 ? 'text-sm' : ''
               } ${
                 isActive
-                  ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30'
-                  : 'text-gray-300 hover:text-white hover:bg-slate-700/50'
+                  ? 'bg-[#0A84FF]/20 text-[#0A84FF] border border-[#0A84FF]/30'
+                  : 'text-[#98989D] hover:text-white hover:bg-[#2C2C2E]'
               }`
             }
           >
-            <Icon size={level > 0 ? 16 : 20} className={itemActive ? 'text-blue-400' : 'text-gray-400 group-hover:text-white'} />
+            <Icon size={level > 0 ? 16 : 20} className={itemActive ? 'text-[#0A84FF]' : 'text-[#636366] group-hover:text-white'} />
             <span className="font-medium">{item.label}</span>
           </NavLink>
         )}
@@ -166,14 +166,14 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1C1C1E] border-r border-[#38383A] transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         
         {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-700/50">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-[#38383A]">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] rounded-lg flex items-center justify-center shadow-lg">
               <span className="text-white text-sm font-bold">NG</span>
             </div>
             <span className="text-white font-semibold text-lg">Nusantara Group</span>
@@ -182,7 +182,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-slate-700/50 transition-colors lg:hidden"
+            className="p-2 rounded-lg text-[#98989D] hover:text-white hover:bg-[#2C2C2E] transition-colors duration-150 lg:hidden focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
           >
             <X size={20} />
           </button>
@@ -196,11 +196,11 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Footer - Version Info */}
-        <div className="p-4 border-t border-slate-700/50">
-          <div className="px-4 py-2 rounded-lg bg-gradient-to-r from-slate-800/30 to-slate-700/30">
+        <div className="p-4 border-t border-[#38383A]">
+          <div className="px-4 py-2 rounded-lg bg-[#2C2C2E]">
             <div className="text-center">
-              <p className="text-xs text-gray-400">Version 2.1.0</p>
-              <p className="text-xs text-gray-500">© 2025 Nusantara Group</p>
+              <p className="text-xs text-[#98989D]">Version 2.1.0</p>
+              <p className="text-xs text-[#636366]">© 2025 Nusantara Group</p>
             </div>
           </div>
         </div>

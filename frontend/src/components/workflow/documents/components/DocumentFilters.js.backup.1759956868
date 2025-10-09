@@ -1,0 +1,36 @@
+import React from 'react';
+import { Search } from 'lucide-react';
+import { documentCategories } from '../config';
+
+/**
+ * Search and filter controls component
+ * Handles: search input, category filter dropdown
+ */
+const DocumentFilters = ({ searchTerm, setSearchTerm, filterCategory, setFilterCategory }) => {
+  return (
+    <div className="flex gap-4">
+      <div className="flex-1 relative">
+        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Cari dokumen..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border rounded-lg"
+        />
+      </div>
+      <select
+        value={filterCategory}
+        onChange={(e) => setFilterCategory(e.target.value)}
+        className="border rounded-lg px-3 py-2"
+      >
+        <option value="all">Semua Kategori</option>
+        {Object.entries(documentCategories).map(([key, cat]) => (
+          <option key={key} value={key}>{cat.name}</option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+export default DocumentFilters;

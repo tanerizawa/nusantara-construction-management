@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, Building2 } from 'lucide-react';
+import { ArrowLeft, Building2 } from 'lucide-react';
 import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
 import { projectAPI, apiClient } from '../services/api';
 import useSubsidiaries from '../hooks/useSubsidiaries';
 
@@ -228,7 +227,8 @@ const ProjectCreate = () => {
         description: formData.description,
         clientName: formData.client.company,
         clientContact: {
-          phone: formData.client.phone,
+          contact: formData.client.contact || '',  // ✅ ADDED: nama kontak person
+          phone: formData.client.phone || '',
           email: formData.client.email || ''
         },
         location: {
@@ -278,64 +278,65 @@ const ProjectCreate = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+    <div className="min-h-screen bg-[#1C1C1E]">
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
+        {/* Compact Header */}
+        <div className="flex items-center gap-4 mb-6">
           <Button
             onClick={handleBack}
             variant="ghost"
             size="sm"
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="text-[#0A84FF] hover:text-[#0A84FF]/80 hover:bg-[#0A84FF]/10"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
             Kembali
           </Button>
           
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-2 bg-[#0A84FF]/10 rounded-lg">
+              <Building2 className="h-5 w-5 text-[#0A84FF]" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-white">
               Buat Proyek Baru
             </h1>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Basic Information */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+          <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="w-1 h-5 bg-[#0A84FF] rounded-full"></span>
               Informasi Dasar
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Nama Proyek *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-                            bg-white dark:bg-slate-800 text-gray-900 dark:text-white`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] transition-colors
+                            ${errors.name ? 'border-[#FF3B30]' : 'border-[#38383A]'}
+                            bg-[#1C1C1E] text-white placeholder-[#636366]`}
                   placeholder="Masukkan nama proyek"
                 />
                 {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                  <p className="mt-1.5 text-xs text-[#FF3B30]">{errors.name}</p>
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Kode Proyek (Auto Generated)
                 </label>
                 <div className="relative">
-                  <div className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                                 bg-gray-50 dark:bg-slate-700 text-gray-700 dark:text-gray-300
+                  <div className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                                 bg-[#2C2C2E] text-[#98989D]
                                  flex items-center justify-between">
                     <span className="font-mono text-lg">
                       {loadingPreview ? (
@@ -346,51 +347,51 @@ const ProjectCreate = () => {
                       ) : projectCodePreview ? (
                         projectCodePreview
                       ) : formData.subsidiary.code ? (
-                        <span className="text-gray-400">Kode akan dibuat setelah memilih subsidiary</span>
+                        <span className="text-[#636366]">Kode akan dibuat setelah memilih subsidiary</span>
                       ) : (
-                        <span className="text-gray-400">Pilih subsidiary untuk generate kode</span>
+                        <span className="text-[#636366]">Pilih subsidiary untuk generate kode</span>
                       )}
                     </span>
                     {projectCodePreview && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                      <span className="text-xs bg-[#30D158]/20 text-[#30D158] px-2 py-1 rounded">
                         Auto Generated
                       </span>
                     )}
                   </div>
                 </div>
                 {projectCodePreview && (
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-[#8E8E93]">
                     Format: Tahun + Kode Subsidiary + Urutan (contoh: {new Date().getFullYear()}{formData.subsidiary.code}001)
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Anak Perusahaan Pelaksana *
                 </label>
                 {loadingSubsidiaries ? (
-                  <div className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                               bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-400
+                  <div className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                               bg-[#2C2C2E] text-[#8E8E93]
                                flex items-center justify-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
                     Memuat data anak perusahaan...
                   </div>
                 ) : subsidiaryError ? (
-                  <div className="w-full px-4 py-3 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400">
+                  <div className="w-full px-4 py-2.5 border border-[#FF3B30]/50 rounded-lg bg-[#FF3B30]/10 text-[#FF3B30]">
                     Gagal memuat data anak perusahaan: {subsidiaryError}
                   </div>
                 ) : noSubsidiaries ? (
-                  <div className="w-full px-4 py-3 border border-amber-300 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                  <div className="w-full px-4 py-2.5 border border-[#FF9F0A]/50 rounded-lg bg-[#FF9F0A]/10 text-[#FF9F0A]">
                     Tidak ada anak perusahaan yang tersedia
                   </div>
                 ) : (
                   <select
                     value={formData.subsidiary.id}
                     onChange={(e) => handleSubsidiaryChange(e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                              ${errors.subsidiary ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-                              bg-white dark:bg-slate-800 text-gray-900 dark:text-white`}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                              ${errors.subsidiary ? 'border-[#FF3B30]' : 'border-[#38383A]'}
+                              bg-[#1C1C1E] text-white`}
                   >
                     <option value="">Pilih anak perusahaan yang akan menjalankan proyek</option>
                     {subsidiaries.map(subsidiary => (
@@ -451,15 +452,15 @@ const ProjectCreate = () => {
                 )}
                 
                 {!loadingSubsidiaries && noSubsidiaries && (
-                  <div className="mt-3 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
-                    <div className="text-sm text-amber-800 dark:text-amber-200">
+                  <div className="mt-3 p-4 bg-[#FF9F0A]/10 rounded-lg border border-[#FF9F0A]/30">
+                    <div className="text-sm text-[#FF9F0A]">
                       <div className="font-medium mb-1">⚠️ Belum Ada Data Anak Perusahaan</div>
                       <div>Silakan tambahkan data anak perusahaan terlebih dahulu di menu Subsidiaries.</div>
                     </div>
                   </div>
                 )}
                 {errors.subsidiary && (
-                  <p className="mt-1 text-sm text-red-600">{errors.subsidiary}</p>
+                  <p className="mt-1 text-sm text-[#FF3B30]">{errors.subsidiary}</p>
                 )}
                 {formData.subsidiary.id && (
                   <p className="mt-1 text-sm text-gray-500">
@@ -469,166 +470,224 @@ const ProjectCreate = () => {
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Deskripsi Proyek
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
                   placeholder="Deskripsikan detail proyek..."
                 />
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Client Information */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+          <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="w-1 h-5 bg-[#0A84FF] rounded-full"></span>
               Informasi Klien
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Nama Perusahaan *
                 </label>
                 <input
                   type="text"
                   value={formData.client.company}
                   onChange={(e) => handleInputChange('client.company', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            ${errors['client.company'] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-                            bg-white dark:bg-slate-800 text-gray-900 dark:text-white`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                            ${errors['client.company'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
+                            bg-[#1C1C1E] text-white`}
                   placeholder="Nama perusahaan klien"
                 />
                 {errors['client.company'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['client.company']}</p>
+                  <p className="mt-1 text-sm text-[#FF3B30]">{errors['client.company']}</p>
                 )}
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Kontak Person
                 </label>
                 <input
                   type="text"
                   value={formData.client.contact}
                   onChange={(e) => handleInputChange('client.contact', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
                   placeholder="Nama kontak person"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email Klien
-                </label>
-                <input
-                  type="email"
-                  value={formData.client.email}
-                  onChange={(e) => handleInputChange('client.email', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
-                  placeholder="email@client.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Telepon Klien
                 </label>
                 <input
                   type="tel"
                   value={formData.client.phone}
                   onChange={(e) => handleInputChange('client.phone', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
-                           focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                           bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
                   placeholder="081234567890"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Email Klien
+                </label>
+                <input
+                  type="email"
+                  value={formData.client.email}
+                  onChange={(e) => handleInputChange('client.email', e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
+                  placeholder="email@client.com"
+                />
+              </div>
             </div>
-          </Card>
+          </div>
+
+          {/* Project Location */}
+          <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="w-1 h-5 bg-[#0A84FF] rounded-full"></span>
+              Lokasi Proyek
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Alamat Proyek
+                </label>
+                <input
+                  type="text"
+                  value={formData.location?.address || ''}
+                  onChange={(e) => handleInputChange('location.address', e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
+                  placeholder="Alamat lengkap lokasi proyek"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Kota
+                </label>
+                <input
+                  type="text"
+                  value={formData.location?.city || ''}
+                  onChange={(e) => handleInputChange('location.city', e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
+                  placeholder="Nama kota"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Provinsi
+                </label>
+                <input
+                  type="text"
+                  value={formData.location?.province || ''}
+                  onChange={(e) => handleInputChange('location.province', e.target.value)}
+                  className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                           focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                           bg-[#1C1C1E] text-white"
+                  placeholder="Nama provinsi"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Timeline & Budget */}
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+          <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <span className="w-1 h-5 bg-[#0A84FF] rounded-full"></span>
               Timeline & Budget
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Tanggal Mulai *
                 </label>
                 <input
                   type="date"
                   value={formData.timeline.startDate}
                   onChange={(e) => handleInputChange('timeline.startDate', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            ${errors['timeline.startDate'] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-                            bg-white dark:bg-slate-800 text-gray-900 dark:text-white`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                            ${errors['timeline.startDate'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
+                            bg-[#1C1C1E] text-white`}
                 />
                 {errors['timeline.startDate'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['timeline.startDate']}</p>
+                  <p className="mt-1 text-sm text-[#FF3B30]">{errors['timeline.startDate']}</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Tanggal Selesai *
                 </label>
                 <input
                   type="date"
                   value={formData.timeline.endDate}
                   onChange={(e) => handleInputChange('timeline.endDate', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            ${errors['timeline.endDate'] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-                            bg-white dark:bg-slate-800 text-gray-900 dark:text-white`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                            ${errors['timeline.endDate'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
+                            bg-[#1C1C1E] text-white`}
                 />
                 {errors['timeline.endDate'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['timeline.endDate']}</p>
+                  <p className="mt-1 text-sm text-[#FF3B30]">{errors['timeline.endDate']}</p>
                 )}
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Nilai Kontrak *
                 </label>
                 <input
                   type="number"
                   value={formData.budget.contractValue}
                   onChange={(e) => handleInputChange('budget.contractValue', parseFloat(e.target.value) || 0)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                            ${errors['budget.contractValue'] ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}
-                            bg-white dark:bg-slate-800 text-gray-900 dark:text-white`}
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                            ${errors['budget.contractValue'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
+                            bg-[#1C1C1E] text-white`}
                   placeholder="0"
                   min="1"
                 />
                 {errors['budget.contractValue'] && (
-                  <p className="mt-1 text-sm text-red-600">{errors['budget.contractValue']}</p>
+                  <p className="mt-1 text-sm text-[#FF3B30]">{errors['budget.contractValue']}</p>
                 )}
                 <p className="mt-1 text-sm text-gray-500">
                   Masukkan nilai dalam Rupiah (contoh: 500000000 untuk 500 juta)
                 </p>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Submit Buttons */}
-          <div className="flex items-center justify-end gap-4">
+          <div className="flex items-center justify-end gap-4 pt-2">
             <Button
               type="button"
               onClick={handleBack}
               variant="outline"
               disabled={loading}
+              className="px-6 py-2.5 border-[#38383A] text-[#98989D] hover:text-white hover:border-[#48484A]"
             >
               Batal
             </Button>
@@ -636,7 +695,7 @@ const ProjectCreate = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="px-6 py-2.5 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white border border-[#0A84FF]/20"
             >
               {loading ? (
                 <>
@@ -644,10 +703,7 @@ const ProjectCreate = () => {
                   Menyimpan...
                 </>
               ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Simpan Proyek
-                </>
+                'Simpan Proyek'
               )}
             </Button>
           </div>

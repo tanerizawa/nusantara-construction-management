@@ -53,14 +53,14 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 backdrop-blur-xl border-b border-slate-700/50 shadow-lg">
+    <header className="sticky top-0 z-30 bg-[#1C1C1E] backdrop-blur-xl border-b border-[#38383A] shadow-lg">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Left Section */}
         <div className="flex items-center space-x-4">
           {/* Menu Button */}
           <button
             onClick={onMenuClick}
-            className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200 lg:hidden"
+            className="p-2 rounded-lg text-[#98989D] hover:text-white hover:bg-[#2C2C2E] transition-colors duration-150 lg:hidden focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
             aria-label="Toggle menu"
           >
             <Menu size={20} />
@@ -72,7 +72,7 @@ const Header = ({ onMenuClick }) => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+            className="p-2 rounded-lg text-[#98989D] hover:text-white hover:bg-[#2C2C2E] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
             aria-label="Toggle theme"
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
@@ -82,12 +82,12 @@ const Header = ({ onMenuClick }) => {
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+              className="relative p-2 rounded-lg text-[#98989D] hover:text-white hover:bg-[#2C2C2E] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
               aria-label="Notifications"
             >
               <Bell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#FF453A] text-white text-xs rounded-full flex items-center justify-center animate-pulse shadow-lg">
                   {unreadCount}
                 </span>
               )}
@@ -95,19 +95,19 @@ const Header = ({ onMenuClick }) => {
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="text-sm font-semibold text-gray-900">Notifikasi</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-[#2C2C2E] rounded-xl shadow-xl border border-[#38383A] py-2 z-50">
+                <div className="px-4 py-2 border-b border-[#38383A]">
+                  <h3 className="text-sm font-semibold text-white">Notifikasi</h3>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   {notifications.map((notification) => (
-                    <div key={notification.id} className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                    <div key={notification.id} className="px-4 py-3 hover:bg-[#3A3A3C] cursor-pointer border-b border-[#38383A] last:border-0 transition-colors duration-150">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                          <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                          <p className="text-sm font-medium text-white">{notification.title}</p>
+                          <p className="text-xs text-[#98989D] mt-1">{notification.message}</p>
                         </div>
-                        <span className="text-xs text-gray-500 ml-2">{notification.time}</span>
+                        <span className="text-xs text-[#636366] ml-2">{notification.time}</span>
                       </div>
                     </div>
                   ))}
@@ -120,10 +120,10 @@ const Header = ({ onMenuClick }) => {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200"
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-[#2C2C2E] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
               aria-label="User menu"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#636366] to-[#48484A] rounded-full flex items-center justify-center shadow-lg">
                 <User size={16} className="text-white" />
               </div>
               <div className="hidden sm:block text-left">
@@ -131,17 +131,17 @@ const Header = ({ onMenuClick }) => {
                   {user?.profile?.fullName || 'Admin User'}
                 </p>
               </div>
-              <ChevronDown size={16} className="text-gray-400" />
+              <ChevronDown size={16} className="text-[#636366]" />
             </button>
 
             {/* User Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">
+              <div className="absolute right-0 mt-2 w-56 bg-[#2C2C2E] rounded-xl shadow-xl border border-[#38383A] py-2 z-50">
+                <div className="px-4 py-3 border-b border-[#38383A]">
+                  <p className="text-sm font-medium text-white">
                     {user?.profile?.fullName || 'Admin User'}
                   </p>
-                  <p className="text-xs text-gray-600">System Administrator</p>
+                  <p className="text-xs text-[#98989D]">System Administrator</p>
                 </div>
                 
                 <button
@@ -149,7 +149,7 @@ const Header = ({ onMenuClick }) => {
                     setShowUserMenu(false);
                     navigate('/profile');
                   }}
-                  className="w-full flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center px-4 py-2.5 text-sm text-[#98989D] hover:text-white hover:bg-[#3A3A3C] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
                 >
                   <User size={16} className="mr-3" />
                   Profile
@@ -160,17 +160,17 @@ const Header = ({ onMenuClick }) => {
                     setShowUserMenu(false);
                     navigate('/settings');
                   }}
-                  className="w-full flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center px-4 py-2.5 text-sm text-[#98989D] hover:text-white hover:bg-[#3A3A3C] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
                 >
                   <Settings size={16} className="mr-3" />
                   Pengaturan
                 </button>
                 
-                <hr className="my-2" />
+                <hr className="my-2 border-[#38383A]" />
                 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center px-4 py-2.5 text-sm text-[#FF453A] hover:bg-[#FF453A]/10 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#FF453A]"
                 >
                   <LogOut size={16} className="mr-3" />
                   Keluar

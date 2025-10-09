@@ -7,59 +7,59 @@ import { BarChart3, Calculator, Clock, ShoppingCart, Users } from 'lucide-react'
  */
 const QuickStats = ({ project, workflowData }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+    <div className="bg-[#2C2C2E] rounded-lg  border border-[#38383A] overflow-hidden">
+      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
+        <h3 className="text-base font-semibold text-white flex items-center">
           <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
           Statistik Cepat
         </h3>
       </div>
-      <div className="p-6">
+      <div className="p-4">
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Calculator className="h-4 w-4 text-blue-600" />
+              <div className="p-2 bg-[#0A84FF]/20 rounded-lg">
+                <Calculator className="h-4 w-4 text-[#0A84FF]" />
               </div>
-              <span className="text-sm font-medium text-gray-700">RAB Items</span>
+              <span className="text-sm font-medium text-[#98989D]">RAB Items</span>
             </div>
-            <span className="text-lg font-bold text-gray-900">
+            <span className="text-base font-bold text-white">
               {project.rabItems?.length || 0}
             </span>
           </div>
           
-          <div className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="h-4 w-4 text-yellow-600" />
+              <div className="p-2 bg-[#FF9F0A]/20 rounded-lg">
+                <Clock className="h-4 w-4 text-[#FF9F0A]" />
               </div>
-              <span className="text-sm font-medium text-gray-700">Pending Approvals</span>
+              <span className="text-sm font-medium text-[#98989D]">Pending Approvals</span>
             </div>
-            <span className="text-lg font-bold text-yellow-600">
+            <span className="text-base font-bold text-[#FF9F0A]">
               {workflowData.approvalStatus?.pending || 0}
             </span>
           </div>
           
-          <div className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <ShoppingCart className="h-4 w-4 text-green-600" />
+              <div className="p-2 bg-[#30D158]/20 rounded-lg">
+                <ShoppingCart className="h-4 w-4 text-[#30D158]" />
               </div>
-              <span className="text-sm font-medium text-gray-700">Active POs</span>
+              <span className="text-sm font-medium text-[#98989D]">Active POs</span>
             </div>
-            <span className="text-lg font-bold text-green-600">
+            <span className="text-base font-bold text-[#30D158]">
               {workflowData.purchaseOrders?.filter(po => po.status === 'active').length || 0}
             </span>
           </div>
           
-          <div className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors">
+          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <Users className="h-4 w-4 text-purple-600" />
               </div>
-              <span className="text-sm font-medium text-gray-700">Team Members</span>
+              <span className="text-sm font-medium text-[#98989D]">Team Members</span>
             </div>
-            <span className="text-lg font-bold text-purple-600">
+            <span className="text-base font-bold text-purple-600">
               {project.teamMembers?.length || 0}
             </span>
           </div>

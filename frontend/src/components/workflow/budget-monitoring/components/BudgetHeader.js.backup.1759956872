@@ -1,0 +1,48 @@
+import React from 'react';
+import { RefreshCw, Download } from 'lucide-react';
+
+/**
+ * Header component untuk Budget Monitoring
+ */
+const BudgetHeader = ({ 
+  projectName, 
+  timeframe, 
+  onTimeframeChange, 
+  onRefresh 
+}) => {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900">Budget Monitoring</h2>
+        <p className="text-gray-600">Real-time budget tracking untuk {projectName}</p>
+      </div>
+      
+      <div className="flex items-center space-x-3">
+        <select
+          value={timeframe}
+          onChange={(e) => onTimeframeChange(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="week">Mingguan</option>
+          <option value="month">Bulanan</option>
+          <option value="quarter">Kuartal</option>
+        </select>
+        
+        <button
+          onClick={onRefresh}
+          className="flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </button>
+        
+        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default BudgetHeader;

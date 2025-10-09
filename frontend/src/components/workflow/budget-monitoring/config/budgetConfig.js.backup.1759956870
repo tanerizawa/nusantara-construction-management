@@ -1,0 +1,37 @@
+import { CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+
+/**
+ * Budget variance thresholds
+ */
+export const VARIANCE_THRESHOLDS = {
+  GOOD: 5,
+  WARNING: 15,
+  DANGER: 100
+};
+
+/**
+ * Get color class based on variance percentage
+ */
+export const getVarianceColor = (percentage) => {
+  if (percentage <= VARIANCE_THRESHOLDS.GOOD) return 'text-green-600';
+  if (percentage <= VARIANCE_THRESHOLDS.WARNING) return 'text-yellow-600';
+  return 'text-red-600';
+};
+
+/**
+ * Get status icon based on variance
+ */
+export const getStatusIcon = (percentage) => {
+  if (percentage <= VARIANCE_THRESHOLDS.GOOD) return CheckCircle;
+  if (percentage <= VARIANCE_THRESHOLDS.WARNING) return AlertTriangle;
+  return AlertCircle;
+};
+
+/**
+ * Timeframe options for budget monitoring
+ */
+export const TIMEFRAME_OPTIONS = [
+  { value: 'week', label: 'Mingguan' },
+  { value: 'month', label: 'Bulanan' },
+  { value: 'quarter', label: 'Kuartal' }
+];

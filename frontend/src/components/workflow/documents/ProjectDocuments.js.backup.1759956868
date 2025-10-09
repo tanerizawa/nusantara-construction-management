@@ -1,0 +1,199 @@
+import React, { useState } from 'react';
+import { Upload, FileText } from 'lucide-react';
+import { useDocuments, useDocumentFilters, useDocumentStats } from './hooks';
+import {
+  DocumentStats,
+  DocumentFilters,
+  DocumentCard,
+  DocumentListTable,
+  DocumentForm,
+  EmptyState
+} from './components';
+
+/**
+ * ProjectDocuments - Main container component
+ * Simplified orchestration using custom hooks and modular components
+ */
+const ProjectDocuments = ({ project, onUpdate }) => {
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+
+  // Custom hooks for data management
+  const {
+    documents,
+    loading,
+    uploadDocument,
+    updateDocument,
+    deleteDocument,
+    downloadDocument,
+    loadDocuments
+  } = useDocuments(project);
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    filterCategory,
+    setFilterCategory,
+    filteredDocuments
+  } = useDocumentFilters(documents);
+
+  const stats = useDocumentStats(documents);
+
+  // Document CRUD handlers
+  const handleSaveDocument = async (documentData) => {
+    try {
+      if (editingDocument) {
+        await updateDocument(editingDocument.id, documentData);
+        setEditingDocument(null);
+        alert('Dokumen berhasil diperbarui!');
+      } else {
+        await uploadDocument(documentData);
+        setShowUploadForm(false);
+        alert('Dokumen berhasil diupload!');
+      }
+      await loadDocuments();
+    } catch (error) {
+      console.error('Error saving document:', error);
+      alert('Gagal menyimpan dokumen. Silakan coba lagi.');
+    }
+  };
+
+  const handleDeleteDocument = async (documentId) => {
+    // eslint-disable-next-line no-restricted-globals
+    if (!confirm('Yakin ingin menghapus dokumen ini?')) return;
+    
+    try {
+      await deleteDocument(documentId);
+      alert('Dokumen berhasil dihapus!');
+      await loadDocuments();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Gagal menghapus dokumen. Silakan coba lagi.');
+    }
+  };
+
+  const handleDownloadDocument = async (documentId, filename) => {
+    try {
+      await downloadDocument(documentId, filename);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('Gagal download dokumen. Silakan coba lagi.');
+    }
+  };
+
+  // Early return if no project
+  if (!project) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <FileText size={48} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Project Selected</h3>
+          <p className="text-gray-600">Please select a project to view documents</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-xl font-semibold">Project Documents</h3>
+          <p className="text-gray-600">Kelola dokumen dan file proyek</p>
+        </div>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            disabled={loading}
+          >
+            {viewMode === 'grid' ? 'List View' : 'Grid View'}
+          </button>
+          <button 
+            onClick={() => setShowUploadForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            disabled={loading}
+          >
+            <Upload size={16} />
+            Upload Dokumen
+          </button>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-2 text-gray-600">
+            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            Memuat dokumen...
+          </div>
+        </div>
+      )}
+
+      {!loading && (
+        <>
+          {/* Statistics Cards */}
+          <DocumentStats stats={stats} />
+
+          {/* Search and Filter */}
+          <DocumentFilters
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterCategory={filterCategory}
+            setFilterCategory={setFilterCategory}
+          />
+
+          {/* Documents Display */}
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredDocuments.map((doc) => (
+                <DocumentCard
+                  key={doc.id}
+                  doc={doc}
+                  onDownload={handleDownloadDocument}
+                  onEdit={setEditingDocument}
+                  onDelete={handleDeleteDocument}
+                />
+              ))}
+            </div>
+          ) : (
+            <DocumentListTable
+              documents={filteredDocuments}
+              onDownload={handleDownloadDocument}
+              onEdit={setEditingDocument}
+              onDelete={handleDeleteDocument}
+            />
+          )}
+
+          {/* Empty State */}
+          {filteredDocuments.length === 0 && (
+            <EmptyState
+              searchTerm={searchTerm}
+              filterCategory={filterCategory}
+            />
+          )}
+
+          {/* Forms */}
+          {showUploadForm && (
+            <DocumentForm
+              onSave={handleSaveDocument}
+              onCancel={() => setShowUploadForm(false)}
+            />
+          )}
+          
+          {editingDocument && (
+            <DocumentForm
+              document={editingDocument}
+              onSave={handleSaveDocument}
+              onCancel={() => setEditingDocument(null)}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default ProjectDocuments;

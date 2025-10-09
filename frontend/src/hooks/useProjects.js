@@ -159,13 +159,8 @@ export const useProjects = (options = {}) => {
     }
   }, [state.projects, updateState, fetchProjects]);
 
-  // Auto-refresh effect
-  useEffect(() => {
-    if (enableAutoRefresh) {
-      const interval = setInterval(fetchProjects, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [enableAutoRefresh, refreshInterval, fetchProjects]);
+  // Auto-refresh removed to save resources
+  // Users can manually refresh using the refresh button
 
   // Initial fetch
   useEffect(() => {

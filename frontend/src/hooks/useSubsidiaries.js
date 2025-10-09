@@ -70,16 +70,8 @@ const useSubsidiaries = (options = {}) => {
     fetchSubsidiaries();
   }, [fetchSubsidiaries]);
 
-  // Auto refresh
-  useEffect(() => {
-    if (!autoRefresh) return;
-
-    const interval = setInterval(() => {
-      fetchSubsidiaries();
-    }, refreshInterval);
-
-    return () => clearInterval(interval);
-  }, [autoRefresh, refreshInterval, fetchSubsidiaries]);
+  // Auto refresh removed to save resources
+  // Users can manually refresh using the refresh button
 
   // Filtered subsidiaries
   const filteredSubsidiaries = useMemo(() => {

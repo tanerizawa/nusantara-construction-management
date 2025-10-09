@@ -86,17 +86,17 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-[#1C1C1E] min-h-screen">
       {/* Header */}
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Ringkasan aktivitas dan statistik proyek</p>
+          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          <p className="text-[#98989D]">Ringkasan aktivitas dan statistik proyek</p>
         </div>
         <button 
           onClick={fetchDashboardData}
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:opacity-50"
+          className="px-5 py-2.5 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0970DD] transition-colors duration-150 flex items-center gap-2 text-sm font-medium disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
@@ -143,65 +143,65 @@ const Dashboard = () => {
       {/* Quick Actions & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div className="bg-[#2C2C2E] border border-[#38383A] p-6 rounded-xl hover:border-[#48484A] transition-colors">
+          <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <button className="w-full flex items-center justify-between p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="w-full flex items-center justify-between p-3 text-left border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] hover:border-[#48484A] transition-colors duration-150">
               <div className="flex items-center">
-                <Building className="h-5 w-5 text-blue-600 mr-3" />
-                <span className="font-medium">Buat Proyek Baru</span>
+                <Building className="h-5 w-5 text-[#0A84FF] mr-3" />
+                <span className="font-medium text-white">Buat Proyek Baru</span>
               </div>
-              <div className="text-gray-400">→</div>
+              <div className="text-[#98989D]">→</div>
             </button>
             
-            <button className="w-full flex items-center justify-between p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="w-full flex items-center justify-between p-3 text-left border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] hover:border-[#48484A] transition-colors duration-150">
               <div className="flex items-center">
-                <ShoppingCart className="h-5 w-5 text-green-600 mr-3" />
-                <span className="font-medium">Buat Purchase Order</span>
+                <ShoppingCart className="h-5 w-5 text-[#30D158] mr-3" />
+                <span className="font-medium text-white">Buat Purchase Order</span>
               </div>
-              <div className="text-gray-400">→</div>
+              <div className="text-[#98989D]">→</div>
             </button>
             
-            <button className="w-full flex items-center justify-between p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="w-full flex items-center justify-between p-3 text-left border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] hover:border-[#48484A] transition-colors duration-150">
               <div className="flex items-center">
-                <BarChart3 className="h-5 w-5 text-purple-600 mr-3" />
-                <span className="font-medium">Lihat Laporan</span>
+                <BarChart3 className="h-5 w-5 text-[#64D2FF] mr-3" />
+                <span className="font-medium text-white">Lihat Laporan</span>
               </div>
-              <div className="text-gray-400">→</div>
+              <div className="text-[#98989D]">→</div>
             </button>
             
-            <button className="w-full flex items-center justify-between p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors">
+            <button className="w-full flex items-center justify-between p-3 text-left border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] hover:border-[#48484A] transition-colors duration-150">
               <div className="flex items-center">
-                <Package className="h-5 w-5 text-orange-600 mr-3" />
-                <span className="font-medium">Kelola Inventory</span>
+                <Package className="h-5 w-5 text-[#FF9F0A] mr-3" />
+                <span className="font-medium text-white">Kelola Inventory</span>
               </div>
-              <div className="text-gray-400">→</div>
+              <div className="text-[#98989D]">→</div>
             </button>
           </div>
         </div>
 
         {/* Recent Activities */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg border shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Aktivitas Terbaru</h3>
+        <div className="lg:col-span-2 bg-[#2C2C2E] border border-[#38383A] p-6 rounded-xl hover:border-[#48484A] transition-colors">
+          <h3 className="text-lg font-semibold text-white mb-4">Aktivitas Terbaru</h3>
           <div className="space-y-4">
             {recentActivities.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Activity className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+              <div className="text-center py-8 text-[#636366]">
+                <Activity className="h-8 w-8 mx-auto mb-2 text-[#636366]" />
                 <p>Belum ada aktivitas terbaru</p>
               </div>
             ) : (
               recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-start space-x-3 py-3 border-b border-gray-100 last:border-b-0">
+                <div key={index} className="flex items-start space-x-3 py-3 border-b border-[#38383A] last:border-b-0">
                   <div className="flex-shrink-0">
-                    {activity.type === 'project' && <Building className="h-5 w-5 text-blue-600" />}
-                    {activity.type === 'purchase_order' && <ShoppingCart className="h-5 w-5 text-green-600" />}
-                    {activity.type === 'approval' && <CheckCircle className="h-5 w-5 text-green-600" />}
-                    {activity.type === 'alert' && <AlertTriangle className="h-5 w-5 text-yellow-600" />}
+                    {activity.type === 'project' && <Building className="h-5 w-5 text-[#0A84FF]" />}
+                    {activity.type === 'purchase_order' && <ShoppingCart className="h-5 w-5 text-[#30D158]" />}
+                    {activity.type === 'approval' && <CheckCircle className="h-5 w-5 text-[#30D158]" />}
+                    {activity.type === 'alert' && <AlertTriangle className="h-5 w-5 text-[#FF9F0A]" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-sm text-gray-600">{activity.description}</p>
-                    <p className="text-xs text-gray-500 mt-1">{activity.timestamp}</p>
+                    <p className="text-sm font-medium text-white">{activity.title}</p>
+                    <p className="text-sm text-[#98989D]">{activity.description}</p>
+                    <p className="text-xs text-[#636366] mt-1">{activity.timestamp}</p>
                   </div>
                 </div>
               ))
@@ -211,31 +211,31 @@ const Dashboard = () => {
       </div>
 
       {/* Project Status Overview */}
-      <div className="mt-8 bg-white p-6 rounded-lg border shadow-sm">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Status Proyek</h3>
+      <div className="mt-8 bg-[#2C2C2E] border border-[#38383A] p-6 rounded-xl hover:border-[#48484A] transition-colors">
+        <h3 className="text-lg font-semibold text-white mb-4">Status Proyek</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center p-4 border rounded-lg">
-            <Target className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{dashboardData.projects.active}</p>
-            <p className="text-sm text-gray-600">Proyek Aktif</p>
+          <div className="text-center p-4 border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] transition-colors">
+            <Target className="h-8 w-8 text-[#0A84FF] mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{dashboardData.projects.active}</p>
+            <p className="text-sm text-[#98989D]">Proyek Aktif</p>
           </div>
           
-          <div className="text-center p-4 border rounded-lg">
-            <Clock className="h-8 w-8 text-yellow-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{dashboardData.projects.total - dashboardData.projects.active - dashboardData.projects.completed}</p>
-            <p className="text-sm text-gray-600">Dalam Perencanaan</p>
+          <div className="text-center p-4 border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] transition-colors">
+            <Clock className="h-8 w-8 text-[#FF9F0A] mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{dashboardData.projects.total - dashboardData.projects.active - dashboardData.projects.completed}</p>
+            <p className="text-sm text-[#98989D]">Dalam Perencanaan</p>
           </div>
           
-          <div className="text-center p-4 border rounded-lg">
-            <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">{dashboardData.projects.completed}</p>
-            <p className="text-sm text-gray-600">Selesai</p>
+          <div className="text-center p-4 border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] transition-colors">
+            <CheckCircle className="h-8 w-8 text-[#30D158] mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">{dashboardData.projects.completed}</p>
+            <p className="text-sm text-[#98989D]">Selesai</p>
           </div>
           
-          <div className="text-center p-4 border rounded-lg">
-            <AlertTriangle className="h-8 w-8 text-red-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-gray-900">0</p>
-            <p className="text-sm text-gray-600">Bermasalah</p>
+          <div className="text-center p-4 border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] transition-colors">
+            <AlertTriangle className="h-8 w-8 text-[#FF453A] mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">0</p>
+            <p className="text-sm text-[#98989D]">Bermasalah</p>
           </div>
         </div>
       </div>

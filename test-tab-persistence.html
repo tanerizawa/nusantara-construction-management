@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Dashboard Tab Persistence Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #0A84FF;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #8E8E93;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            background: #1C1C1E;
+            border: 1px solid #38383A;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #38383A;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 8px;
+            color: #8E8E93;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #3A3A3C;
+            color: white;
+        }
+
+        .tab.active {
+            background: #0A84FF;
+            color: white;
+            border-color: #0A84FF;
+        }
+
+        .content {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .info-box {
+            background: #30D158;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-box.warning {
+            background: #FF9F0A;
+        }
+
+        .info-box.error {
+            background: #FF3B30;
+        }
+
+        .storage-info {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        button {
+            background: #0A84FF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        button.danger {
+            background: #FF3B30;
+        }
+
+        .test-result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #38383A;
+        }
+
+        .test-result.pass {
+            background: #30D158;
+            color: white;
+        }
+
+        .test-result.fail {
+            background: #FF3B30;
+            color: white;
+        }
+
+        code {
+            background: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Approval Dashboard Tab Persistence Test</h1>
+        <p class="subtitle">Test URL Hash + localStorage functionality untuk tab RAB, PO, dan Tanda Terima</p>
+
+        <!-- URL Display -->
+        <div class="test-section">
+            <h2 style="margin-bottom: 15px;">🔗 Current URL</h2>
+            <div class="storage-info" id="url-info">
+                Checking URL...
+            </div>
+            <button onclick="copyURL()">📋 Copy URL</button>
+            <button onclick="openInNewTab()">🔗 Open in New Tab</button>
+        </div>
+
+        <!-- Simulated Tabs -->
+        <div class="test-section">
+            <h2 style="margin-bottom: 15px;">Simulasi Approval Dashboard Tabs</h2>
+            <div class="tabs">
+                <button class="tab active" data-tab="rab">📊 RAB</button>
+                <button class="tab" data-tab="po">🛒 Purchase Order</button>
+                <button class="tab" data-tab="tandaTerima">📦 Tanda Terima</button>
+            </div>
+            <div class="content">
+                <h3 id="tab-title">RAB Content</h3>
+                <p id="tab-content">Ini adalah konten tab RAB. Klik tab lain untuk melihat perubahan.</p>
+            </div>
+        </div>
+
+        <!-- localStorage Info -->
+        <div class="test-section">
+            <h2 style="margin-bottom: 15px;">localStorage Status</h2>
+            <div class="storage-info" id="storage-info">
+                Checking localStorage...
+            </div>
+            <button onclick="refreshStorageInfo()">🔄 Refresh Info</button>
+            <button onclick="clearStorage()" class="danger">🗑️ Clear localStorage</button>
+        </div>
+
+        <!-- Test Instructions -->
+        <div class="test-section">
+            <h2 style="margin-bottom: 15px;">📝 Testing Steps</h2>
+            <ol style="line-height: 2; padding-left: 20px;">
+                <li>Klik tab berbeda (RAB, PO, atau Tanda Terima)</li>
+                <li>Lihat URL berubah dengan hash (#rab, #po, #tandaTerima)</li>
+                <li>Lihat localStorage info di bawah - nilai akan tersimpan</li>
+                <li><strong>Refresh halaman ini (F5 atau Ctrl+R)</strong></li>
+                <li>✅ Tab yang terakhir dipilih harus tetap aktif dari hash URL!</li>
+                <li><strong>Test Browser Back/Forward:</strong> Klik beberapa tab → Back → Forward</li>
+                <li><strong>Test Share URL:</strong> Copy URL dengan hash → Paste di browser baru</li>
+            </ol>
+            
+            <div class="info-box">
+                <strong>✅ Expected Behavior:</strong><br>
+                1. URL hash berubah saat klik tab: <code>#rab</code>, <code>#po</code>, <code>#tandaTerima</code><br>
+                2. Setelah refresh, tab restore dari URL hash (prioritas utama)<br>
+                3. Browser back/forward mengubah tab sesuai history<br>
+                4. Copy URL + paste di tab baru → langsung ke tab yang sama
+            </div>
+
+            <div class="info-box warning" style="margin-top: 10px;">
+                <strong>🔍 Priority Order:</strong><br>
+                1. URL Hash (#tandaTerima) - Prioritas tertinggi<br>
+                2. localStorage - Fallback jika hash kosong<br>
+                3. Default (rab) - Jika keduanya kosong
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="test-section">
+            <h2 style="margin-bottom: 15px;">Test Results</h2>
+            <div id="test-results">
+                <p style="color: #8E8E93;">Lakukan test steps di atas untuk melihat hasil.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'approvalDashboard_activeCategory';
+        
+        // Tab content
+        const tabContents = {
+            rab: {
+                title: '📊 RAB Content',
+                content: 'Menampilkan daftar Rencana Anggaran Biaya (RAB) yang perlu di-approve.'
+            },
+            po: {
+                title: '🛒 Purchase Order Content',
+                content: 'Menampilkan daftar Purchase Order yang pending approval.'
+            },
+            tandaTerima: {
+                title: '📦 Tanda Terima Content',
+                content: 'Menampilkan daftar Tanda Terima barang yang sudah diterima dan otomatis disetujui.'
+            }
+        };
+
+        // Get initial tab from URL hash or localStorage
+        function getInitialTab() {
+            // Priority 1: URL hash
+            const hash = window.location.hash.replace('#', '');
+            if (hash && tabContents[hash]) {
+                return hash;
+            }
+            
+            // Priority 2: localStorage
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved && tabContents[saved]) {
+                return saved;
+            }
+            
+            // Priority 3: default
+            return 'rab';
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const initialTab = getInitialTab();
+            const hash = window.location.hash.replace('#', '');
+            
+            setActiveTab(initialTab, true);
+            
+            if (hash && tabContents[hash]) {
+                showTestResult(`✅ Tab restored from URL hash: <code>#${hash}</code>`, 'pass');
+            } else {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved && tabContents[saved]) {
+                    showTestResult(`✅ Tab restored from localStorage: <code>${saved}</code> (no hash in URL)`, 'pass');
+                } else {
+                    showTestResult(`ℹ️ No saved tab found, using default: <code>rab</code>`, 'pass');
+                }
+            }
+            
+            refreshStorageInfo();
+            updateURLDisplay();
+        });
+
+        // Listen for hash changes (browser back/forward)
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash && tabContents[hash]) {
+                setActiveTab(hash, false);
+                showTestResult(`🔙 Browser navigation: Tab changed to <code>${hash}</code> from URL hash`, 'pass');
+                refreshStorageInfo();
+                updateURLDisplay();
+            }
+        });
+
+        // Tab click handlers
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabId = e.target.dataset.tab;
+                setActiveTab(tabId);
+                
+                // Update URL hash
+                window.location.hash = tabId;
+                
+                // Save to localStorage as backup
+                localStorage.setItem(STORAGE_KEY, tabId);
+                refreshStorageInfo();
+                updateURLDisplay();
+                
+                showTestResult(`✅ Tab changed to: <code>${tabId}</code><br>→ URL updated to <code>${window.location.href}</code><br>→ Saved to localStorage`, 'pass');
+            });
+        });
+
+        function setActiveTab(tabId, isRestore = false) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.tab === tabId) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Update content
+            const content = tabContents[tabId];
+            if (content) {
+                document.getElementById('tab-title').textContent = content.title;
+                document.getElementById('tab-content').textContent = content.content;
+            }
+        }
+
+        function updateURLDisplay() {
+            const currentURL = window.location.href;
+            const hash = window.location.hash || '(no hash)';
+            
+            let info = `<strong>Full URL:</strong><br><code style="word-break: break-all;">${currentURL}</code><br><br>`;
+            info += `<strong>Hash:</strong> <code>${hash}</code>`;
+            
+            document.getElementById('url-info').innerHTML = info;
+        }
+
+        function refreshStorageInfo() {
+            const value = localStorage.getItem(STORAGE_KEY);
+            const allKeys = Object.keys(localStorage);
+            
+            let info = `<strong>Current Value:</strong> <code>${value || '(none)'}</code><br><br>`;
+            info += `<strong>All localStorage keys:</strong><br>`;
+            
+            if (allKeys.length === 0) {
+                info += `<span style="color: #8E8E93;">(empty)</span>`;
+            } else {
+                allKeys.forEach(key => {
+                    const val = localStorage.getItem(key);
+                    info += `• <code>${key}</code>: <code>${val}</code><br>`;
+                });
+            }
+            
+            document.getElementById('storage-info').innerHTML = info;
+        }
+
+        function clearStorage() {
+            if (confirm('Clear localStorage? This will reset the active tab to default (RAB).')) {
+                localStorage.removeItem(STORAGE_KEY);
+                refreshStorageInfo();
+                showTestResult(`🗑️ localStorage cleared. Refresh to see default tab (RAB).`, 'pass');
+            }
+        }
+
+        function copyURL() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showTestResult(`📋 URL copied to clipboard: <code>${window.location.href}</code>`, 'pass');
+            }).catch(() => {
+                showTestResult(`❌ Failed to copy URL to clipboard`, 'fail');
+            });
+        }
+
+        function openInNewTab() {
+            window.open(window.location.href, '_blank');
+            showTestResult(`🔗 Opened in new tab: <code>${window.location.href}</code>`, 'pass');
+        }
+
+        function showTestResult(message, type = 'pass') {
+            const resultsDiv = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            resultsDiv.innerHTML = `
+                <div class="test-result ${type}">
+                    <strong>[${timestamp}]</strong> ${message}
+                </div>
+            ` + resultsDiv.innerHTML;
+        }
+    </script>
+</body>
+</html>

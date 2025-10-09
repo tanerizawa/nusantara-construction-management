@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Users, FileText, Calendar, Location } from 'lucide-react';
+import { DollarSign, Users, FileText, Calendar, MapPin } from 'lucide-react';
 import { formatCurrency, formatDate, calculateDaysDifference, calculateBudgetUtilization } from '../utils';
 import FinancialSummary from './FinancialSummary';
 import QuickStats from './QuickStats';
@@ -17,7 +17,7 @@ const ProjectOverview = ({ project, workflowData }) => {
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat data proyek...</p>
+          <p className="text-[#8E8E93]">Memuat data proyek...</p>
         </div>
       </div>
     );
@@ -29,63 +29,81 @@ const ProjectOverview = ({ project, workflowData }) => {
   );
 
   return (
-    <div className="space-y-6">
-      {/* Project Stats Cards - Responsive Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+    <div className="space-y-4">
+      {/* Project Stats Cards - Responsive Grid - Compact */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {/* Budget Card */}
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 md:p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-              <DollarSign className="h-5 w-5 md:h-6 md:w-6" />
+        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-[#30D158]/20 rounded-lg">
+                <DollarSign className="h-5 w-5 text-[#30D158]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#8E8E93]">Budget Terpakai</p>
+                <p className="text-lg font-semibold text-white">{budgetUtilization}%</p>
+              </div>
             </div>
-            <span className="text-lg md:text-xl font-bold">{budgetUtilization}%</span>
           </div>
-          <h3 className="text-sm md:text-base font-medium">Budget Terpakai</h3>
-          <p className="text-xs md:text-sm opacity-90 mt-1 truncate">
-            {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
-          </p>
+          <div className="mt-2 pt-2 border-t border-[#38383A]">
+            <p className="text-xs text-[#98989D]">
+              {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
+            </p>
+          </div>
         </div>
 
         {/* Team Card */}
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-4 md:p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-              <Users className="h-5 w-5 md:h-6 md:w-6" />
+        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-[#BF5AF2]/20 rounded-lg">
+                <Users className="h-5 w-5 text-[#BF5AF2]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#8E8E93]">Anggota Tim</p>
+                <p className="text-lg font-semibold text-white">{project.teamMembers?.length || 0}</p>
+              </div>
             </div>
-            <span className="text-2xl md:text-3xl font-bold">{project.teamMembers?.length || 0}</span>
           </div>
-          <h3 className="text-sm md:text-base font-medium">Anggota Tim</h3>
-          <p className="text-xs md:text-sm opacity-90 mt-1">Tim Aktif</p>
+          <div className="mt-2 pt-2 border-t border-[#38383A]">
+            <p className="text-xs text-[#98989D]">Tim Aktif</p>
+          </div>
         </div>
 
         {/* Documents Card */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-4 md:p-6 text-white shadow-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-              <FileText className="h-5 w-5 md:h-6 md:w-6" />
+        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-[#FF9F0A]/20 rounded-lg">
+                <FileText className="h-5 w-5 text-[#FF9F0A]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#8E8E93]">Dokumen</p>
+                <p className="text-lg font-semibold text-white">{project.documents?.length || 0}</p>
+              </div>
             </div>
-            <span className="text-2xl md:text-3xl font-bold">{project.documents?.length || 0}</span>
           </div>
-          <h3 className="text-sm md:text-base font-medium">Dokumen</h3>
-          <p className="text-xs md:text-sm opacity-90 mt-1">File Terlampir</p>
+          <div className="mt-2 pt-2 border-t border-[#38383A]">
+            <p className="text-xs text-[#98989D]">File Terlampir</p>
+          </div>
         </div>
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column - Main Information */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Project Information */}
           <ProjectInformationCard project={project} />
 
           {/* Project Description */}
           {project.description && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-900">Deskripsi Proyek</h3>
+            <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
+              <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
+                <h3 className="text-base font-semibold text-white">Deskripsi Proyek</h3>
               </div>
-              <div className="p-6">
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+              <div className="p-4">
+                <p className="text-sm text-[#98989D] leading-relaxed whitespace-pre-wrap break-words">
                   {project.description}
                 </p>
               </div>
@@ -93,21 +111,21 @@ const ProjectOverview = ({ project, workflowData }) => {
           )}
 
           {/* Workflow Stages - Project Flow Route */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Calendar className="h-5 w-5 mr-2 text-green-600" />
+          <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
+            <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
+              <h3 className="text-base font-semibold text-white flex items-center">
+                <Calendar className="h-4 w-4 mr-2 text-[#30D158]" />
                 Alur Tahapan Proyek
               </h3>
             </div>
-            <div className="p-6">
+            <div className="p-4">
               <WorkflowStagesCard workflowData={workflowData} project={project} />
             </div>
           </div>
         </div>
 
         {/* Right Column - Summary Cards */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           <FinancialSummary project={project} workflowData={workflowData} />
           <QuickStats project={project} workflowData={workflowData} />
           <RecentActivity project={project} />
@@ -123,60 +141,60 @@ const ProjectOverview = ({ project, workflowData }) => {
  */
 const ProjectInformationCard = ({ project }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+    <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
+      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
+        <h3 className="text-base font-semibold text-white flex items-center">
+          <Calendar className="h-4 w-4 mr-2 text-[#0A84FF]" />
           Informasi Proyek
         </h3>
       </div>
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
+      <div className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Nama Proyek</label>
-              <h2 className="text-xl font-bold text-gray-900 break-words word-wrap">
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Nama Proyek</label>
+              <h2 className="text-lg font-bold text-white break-words word-wrap">
                 {project.name || project.title || 'Nama proyek tidak tersedia'}
               </h2>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Kode Proyek</label>
-              <p className="text-base font-semibold text-gray-900 bg-gray-50 px-3 py-2 rounded-lg">
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Kode Proyek</label>
+              <p className="text-sm font-semibold text-white bg-[#1C1C1E] px-3 py-2 rounded-lg border border-[#38383A]">
                 {project.code || project.id || '-'}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Jenis Proyek</label>
-              <p className="text-base text-gray-900">
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Jenis Proyek</label>
+              <p className="text-sm text-white">
                 {project.type || project.category || 'Konstruksi Umum'}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Klien</label>
-              <div className="text-base text-gray-900">
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Klien</label>
+              <div className="text-sm text-white">
                 {renderClientInfo(project.client, project.clientName)}
               </div>
             </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Lokasi Proyek</label>
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Lokasi Proyek</label>
               <div className="flex items-start space-x-2">
-                <Location className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                <p className="text-base text-gray-900 break-words word-wrap leading-relaxed">
+                <MapPin className="h-4 w-4 text-[#8E8E93] mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-white break-words word-wrap leading-relaxed">
                   {renderLocationInfo(project.location)}
                 </p>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Durasi Proyek</label>
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Durasi Proyek</label>
               <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-gray-400" />
-                <p className="text-base text-gray-900">
+                <Calendar className="h-4 w-4 text-[#8E8E93]" />
+                <p className="text-sm text-white">
                   {project.startDate && project.endDate ? (
                     <>
                       {formatDate(project.startDate)} - {formatDate(project.endDate)}
-                      <span className="ml-2 text-sm text-gray-500">
+                      <span className="ml-2 text-xs text-[#636366]">
                         ({calculateDaysDifference(project.startDate, project.endDate)} hari)
                       </span>
                     </>
@@ -185,9 +203,9 @@ const ProjectInformationCard = ({ project }) => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-500 mb-1">Status Saat Ini</label>
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Status Saat Ini</label>
               <div className="flex items-center space-x-2">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(project.status)}`}>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
                   {getStatusText(project.status)}
                 </span>
               </div>
@@ -206,9 +224,9 @@ const renderClientInfo = (client, clientName) => {
       return (
         <div className="space-y-1">
           <p className="font-medium break-words">{client.company}</p>
-          {client.pic && <p className="text-sm text-gray-600">PIC: {client.pic}</p>}
-          {client.email && <p className="text-sm text-gray-600">Email: {client.email}</p>}
-          {client.phone && <p className="text-sm text-gray-600">Telepon: {client.phone}</p>}
+          {client.pic && <p className="text-sm text-[#8E8E93]">PIC: {client.pic}</p>}
+          {client.email && <p className="text-sm text-[#8E8E93]">Email: {client.email}</p>}
+          {client.phone && <p className="text-sm text-[#8E8E93]">Telepon: {client.phone}</p>}
         </div>
       );
     }
@@ -231,12 +249,12 @@ const renderLocationInfo = (location) => {
 
 const getStatusColor = (status) => {
   const colorMap = {
-    active: 'bg-green-100 text-green-800',
-    planning: 'bg-blue-100 text-blue-800',
-    'on-hold': 'bg-yellow-100 text-yellow-800',
-    completed: 'bg-gray-100 text-gray-800'
+    active: 'bg-[#30D158]/20 text-[#30D158]',
+    planning: 'bg-[#0A84FF]/20 text-[#0A84FF]',
+    'on-hold': 'bg-[#FF9F0A]/20 text-[#FF9F0A]',
+    completed: 'bg-[#8E8E93]/20 text-[#8E8E93]'
   };
-  return colorMap[status] || 'bg-gray-100 text-gray-800';
+  return colorMap[status] || 'bg-[#8E8E93]/20 text-[#8E8E93]';
 };
 
 const getStatusText = (status) => {

@@ -16,6 +16,7 @@ const ProjectDocument = require('../models/ProjectDocument');
 const User = require('../models/User');
 const DeliveryReceipt = require('../models/DeliveryReceipt');
 const PurchaseOrder = require('../models/PurchaseOrder');
+const BeritaAcara = require('../models/BeritaAcara');
 
 const router = express.Router();
 
@@ -651,7 +652,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 });
 
 // @route   DELETE /api/projects/:id
-// @desc    Delete project
+// @desc    Delete project (with cascade delete of related data)
 // @access  Private
 router.delete('/:id', async (req, res) => {
   try {
@@ -665,18 +666,95 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
-    await project.destroy();
+    console.log(`🗑️  Deleting project ${id} and all related data...`);
 
-    res.json({
-      success: true,
-      message: 'Project deleted successfully'
-    });
+    // Start transaction for safe cascade delete
+    const transaction = await Project.sequelize.transaction();
+
+    try {
+      // 1. Delete Delivery Receipts
+      const deliveryReceiptsDeleted = await DeliveryReceipt.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${deliveryReceiptsDeleted} delivery receipts`);
+
+      // 2. Delete Purchase Orders
+      const poDeleted = await PurchaseOrder.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${poDeleted} purchase orders`);
+
+      // 3. Delete Berita Acara (BA)
+      const baDeleted = await BeritaAcara.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${baDeleted} berita acara`);
+
+      // 4. Delete RAB Items
+      const rabDeleted = await ProjectRAB.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${rabDeleted} RAB items`);
+
+      // 5. Delete Team Members
+      const teamDeleted = await ProjectTeamMember.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${teamDeleted} team members`);
+
+      // 6. Delete Milestones
+      const milestonesDeleted = await ProjectMilestone.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${milestonesDeleted} milestones`);
+
+      // 7. Delete Documents
+      const documentsDeleted = await ProjectDocument.destroy({
+        where: { projectId: id },
+        transaction
+      });
+      console.log(`   ✓ Deleted ${documentsDeleted} documents`);
+
+      // 8. Finally, delete the project itself
+      await project.destroy({ transaction });
+      console.log(`   ✓ Deleted project ${id}`);
+
+      // Commit transaction
+      await transaction.commit();
+
+      console.log(`✅ Successfully deleted project ${id} and all related data`);
+
+      res.json({
+        success: true,
+        message: 'Project and all related data deleted successfully',
+        deleted: {
+          deliveryReceipts: deliveryReceiptsDeleted,
+          purchaseOrders: poDeleted,
+          beritaAcara: baDeleted,
+          rabItems: rabDeleted,
+          teamMembers: teamDeleted,
+          milestones: milestonesDeleted,
+          documents: documentsDeleted
+        }
+      });
+    } catch (error) {
+      // Rollback transaction on error
+      await transaction.rollback();
+      throw error;
+    }
   } catch (error) {
-    console.error('Error deleting project:', error);
+    console.error('❌ Error deleting project:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to delete project',
-      details: error.message
+      details: error.message,
+      hint: 'Project may have related data that needs to be deleted first'
     });
   }
 });
@@ -1927,7 +2005,7 @@ router.delete('/:id/documents/:documentId', async (req, res) => {
 // BERITA ACARA ENDPOINTS
 // ================================================================
 
-const BeritaAcara = require('../models/BeritaAcara');
+// BeritaAcara already imported at top
 const ProgressPayment = require('../models/ProgressPayment');
 
 // Get all Berita Acara for a project
@@ -2298,6 +2376,66 @@ router.get('/:id/delivery-receipts', verifyToken, async (req, res) => {
   }
 });
 
+// Get approved POs available for delivery receipt creation
+// IMPORTANT: This must come BEFORE /:id/delivery-receipts/:receiptId route
+router.get('/:id/delivery-receipts/available-pos', verifyToken, async (req, res) => {
+  try {
+    const { id: projectId } = req.params;
+
+    // Get all approved POs for this project
+    const approvedPOs = await PurchaseOrder.findAll({
+      where: {
+        projectId,
+        status: 'approved'
+      },
+      attributes: ['id', 'poNumber', 'supplierName', 'totalAmount', 'orderDate', 'expectedDeliveryDate', 'items', 'status'],
+      order: [['orderDate', 'DESC']]
+    });
+
+    // Get delivery receipts for these POs to check completion status
+    const deliveryReceipts = await DeliveryReceipt.findAll({
+      where: {
+        projectId,
+        purchaseOrderId: approvedPOs.map(po => po.id)
+      },
+      attributes: ['purchaseOrderId', 'status', 'receiptType', 'items']
+    });
+
+    // Map delivery status to POs
+    const posWithDeliveryStatus = approvedPOs.map(po => {
+      const receipts = deliveryReceipts.filter(dr => dr.purchaseOrderId === po.id);
+      const completedReceipts = receipts.filter(dr => dr.status === 'completed');
+      const hasFullDelivery = receipts.some(dr => dr.receiptType === 'full_delivery' && dr.status === 'completed');
+      
+      return {
+        ...po.toJSON(),
+        deliveryStatus: hasFullDelivery ? 'fully_delivered' : 
+                       completedReceipts.length > 0 ? 'partial_delivered' : 'pending_delivery',
+        deliveryReceipts: receipts.length,
+        canCreateReceipt: !hasFullDelivery
+      };
+    });
+
+    res.json({
+      success: true,
+      data: posWithDeliveryStatus,
+      summary: {
+        total: posWithDeliveryStatus.length,
+        pendingDelivery: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'pending_delivery').length,
+        partialDelivered: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'partial_delivered').length,
+        fullyDelivered: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'fully_delivered').length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching available POs for delivery receipt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available POs',
+      details: error.message
+    });
+  }
+});
+
 // Create new delivery receipt
 router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
   try {
@@ -2322,8 +2460,6 @@ router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
       documents
     } = req.body;
 
-    const { DeliveryReceipt, PurchaseOrder } = require('../models');
-
     // Validate PO exists and is approved
     const purchaseOrder = await PurchaseOrder.findOne({
       where: {
@@ -2344,7 +2480,8 @@ router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
     const receiptCount = await DeliveryReceipt.count({ where: { projectId } });
     const receiptNumber = DeliveryReceipt.generateReceiptNumber(projectId, receiptCount + 1);
 
-    // Create delivery receipt
+    // Create delivery receipt with auto-approval
+    // Status langsung 'approved' karena penerimaan = persetujuan
     const deliveryReceipt = await DeliveryReceipt.create({
       id: `DR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       receiptNumber,
@@ -2361,7 +2498,7 @@ router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
       supplierDeliveryPhone,
       vehicleNumber,
       deliveryMethod: deliveryMethod || 'truck',
-      status: 'received',
+      status: 'approved', // Auto-approved saat dibuat
       receiptType: receiptType || 'full_delivery',
       items: items || [],
       qualityNotes,
@@ -2369,7 +2506,9 @@ router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
       deliveryNotes,
       photos: photos || [],
       documents: documents || [],
-      inspectionResult: 'pending',
+      inspectionResult: 'approved', // Auto-approved
+      approvedBy: req.user?.id || 'SYSTEM',
+      approvedAt: new Date(),
       createdBy: req.user?.id || 'SYSTEM'
     });
 
@@ -2382,7 +2521,7 @@ router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
     res.status(201).json({
       success: true,
       data: deliveryReceipt,
-      message: 'Delivery Receipt created successfully'
+      message: 'Tanda Terima berhasil dibuat dan otomatis disetujui'
     });
   } catch (error) {
     console.error('Error creating delivery receipt:', error);
@@ -2398,7 +2537,6 @@ router.post('/:id/delivery-receipts', verifyToken, async (req, res) => {
 router.get('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res) => {
   try {
     const { id: projectId, receiptId } = req.params;
-    const { DeliveryReceipt, PurchaseOrder, User } = require('../models');
 
     const deliveryReceipt = await DeliveryReceipt.findOne({
       where: {
@@ -2460,7 +2598,6 @@ router.patch('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res) 
   try {
     const { id: projectId, receiptId } = req.params;
     const updateData = req.body;
-    const { DeliveryReceipt, PurchaseOrder } = require('../models');
 
     const deliveryReceipt = await DeliveryReceipt.findOne({
       where: {
@@ -2507,7 +2644,6 @@ router.patch('/:id/delivery-receipts/:receiptId/approve', verifyToken, async (re
   try {
     const { id: projectId, receiptId } = req.params;
     const { inspectionResult, qualityNotes, conditionNotes } = req.body;
-    const { DeliveryReceipt, PurchaseOrder } = require('../models');
 
     const deliveryReceipt = await DeliveryReceipt.findOne({
       where: {
@@ -2564,7 +2700,6 @@ router.patch('/:id/delivery-receipts/:receiptId/reject', verifyToken, async (req
   try {
     const { id: projectId, receiptId } = req.params;
     const { rejectedReason, inspectionResult } = req.body;
-    const { DeliveryReceipt } = require('../models');
 
     const deliveryReceipt = await DeliveryReceipt.findOne({
       where: {
@@ -2608,7 +2743,6 @@ router.patch('/:id/delivery-receipts/:receiptId/reject', verifyToken, async (req
 router.delete('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res) => {
   try {
     const { id: projectId, receiptId } = req.params;
-    const { DeliveryReceipt } = require('../models');
 
     const deliveryReceipt = await DeliveryReceipt.findOne({
       where: {
@@ -2640,64 +2774,5 @@ router.delete('/:id/delivery-receipts/:receiptId', verifyToken, async (req, res)
   }
 });
 
-// Get approved POs available for delivery receipt creation
-router.get('/:id/delivery-receipts/available-pos', verifyToken, async (req, res) => {
-  try {
-    const { id: projectId } = req.params;
-    const { PurchaseOrder, DeliveryReceipt } = require('../models');
-
-    // Get all approved POs for this project
-    const approvedPOs = await PurchaseOrder.findAll({
-      where: {
-        projectId,
-        status: 'approved'
-      },
-      attributes: ['id', 'poNumber', 'supplierName', 'totalAmount', 'orderDate', 'expectedDeliveryDate', 'items', 'status'],
-      order: [['orderDate', 'DESC']]
-    });
-
-    // Get delivery receipts for these POs to check completion status
-    const deliveryReceipts = await DeliveryReceipt.findAll({
-      where: {
-        projectId,
-        purchaseOrderId: approvedPOs.map(po => po.id)
-      },
-      attributes: ['purchaseOrderId', 'status', 'receiptType', 'items']
-    });
-
-    // Map delivery status to POs
-    const posWithDeliveryStatus = approvedPOs.map(po => {
-      const receipts = deliveryReceipts.filter(dr => dr.purchaseOrderId === po.id);
-      const completedReceipts = receipts.filter(dr => dr.status === 'completed');
-      const hasFullDelivery = receipts.some(dr => dr.receiptType === 'full_delivery' && dr.status === 'completed');
-      
-      return {
-        ...po.toJSON(),
-        deliveryStatus: hasFullDelivery ? 'fully_delivered' : 
-                       completedReceipts.length > 0 ? 'partial_delivered' : 'pending_delivery',
-        deliveryReceipts: receipts.length,
-        canCreateReceipt: !hasFullDelivery
-      };
-    });
-
-    res.json({
-      success: true,
-      data: posWithDeliveryStatus,
-      summary: {
-        total: posWithDeliveryStatus.length,
-        pendingDelivery: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'pending_delivery').length,
-        partialDelivered: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'partial_delivered').length,
-        fullyDelivered: posWithDeliveryStatus.filter(po => po.deliveryStatus === 'fully_delivered').length
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching available POs for delivery receipt:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch available POs',
-      details: error.message
-    });
-  }
-});
-
 module.exports = router;
+

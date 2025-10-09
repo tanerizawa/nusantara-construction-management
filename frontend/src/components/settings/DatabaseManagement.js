@@ -23,8 +23,8 @@ import {
   LinearProgress,
   IconButton,
   Tooltip,
-  Switch,
-  FormControlLabel
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import {
   Storage as StorageIcon,
@@ -54,25 +54,14 @@ const DatabaseManagement = () => {
   const [backupProgress, setBackupProgress] = useState(0);
   const [restoreFile, setRestoreFile] = useState(null);
   const [alerts, setAlerts] = useState([]);
-  const [autoRefresh, setAutoRefresh] = useState(true);
 
   useEffect(() => {
     fetchDatabaseStatus();
     fetchDatabases();
     
-    // Auto refresh every 30 seconds if enabled
-    let interval;
-    if (autoRefresh) {
-      interval = setInterval(() => {
-        fetchDatabaseStatus();
-        fetchDatabases();
-      }, 30000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoRefresh]);
+    // Auto refresh removed to save resources
+    // Users can manually refresh using the refresh button
+  }, []);
 
   const fetchDatabaseStatus = async (retryCount = 0) => {
     setStatusLoading(true);
@@ -373,22 +362,9 @@ const DatabaseManagement = () => {
           avatar={<DatabaseIcon />}
           title="Status Database"
           action={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={autoRefresh}
-                    onChange={(e) => setAutoRefresh(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label="Auto Refresh"
-                sx={{ mr: 1 }}
-              />
-              <IconButton onClick={fetchDatabaseStatus} disabled={statusLoading}>
-                <RefreshIcon />
-              </IconButton>
-            </Box>
+            <IconButton onClick={fetchDatabaseStatus} disabled={statusLoading}>
+              <RefreshIcon />
+            </IconButton>
           }
         />
         <CardContent>

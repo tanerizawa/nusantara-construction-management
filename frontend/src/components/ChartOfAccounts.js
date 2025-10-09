@@ -122,12 +122,8 @@ const ChartOfAccounts = () => {
   useEffect(() => {
     fetchAccounts();
     
-    // Auto-refresh every 30 seconds for real-time data
-    const interval = setInterval(() => {
-      fetchAccounts(true);
-    }, 30000);
-
-    return () => clearInterval(interval);
+    // Auto-refresh removed to save resources
+    // Users can manually refresh using the refresh button
   }, [fetchAccounts]);
 
   const handleRefresh = () => {

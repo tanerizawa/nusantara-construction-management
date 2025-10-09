@@ -1,0 +1,69 @@
+import React from 'react';
+
+// Modular imports
+import { useSidebarState, useWorkflowData } from './sidebar/hooks';
+import { workflowTabs } from './sidebar/config';
+import {
+  SidebarHeader,
+  ProjectInfo,
+  UrgentNotifications,
+  NavigationTabs,
+  QuickActions,
+  SidebarLoading
+} from './sidebar/components';
+
+/**
+ * ProjectWorkflowSidebar - Modular Version
+ * 
+ * Main sidebar component untuk project workflow navigation.
+ * Sekarang menggunakan modular hooks dan components.
+ */
+const ProjectWorkflowSidebar = ({ projectId, project, activeTab, onTabChange, onActionTrigger }) => {
+  // Custom hooks
+  const { isCollapsed, toggleCollapsed } = useSidebarState();
+  const { loading, urgentNotifications } = useWorkflowData(projectId);
+
+  // Loading state
+  if (loading) {
+    return <SidebarLoading />;
+  }
+
+  return (
+    <div className={`h-full flex flex-col transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+      {/* Header dengan collapse toggle */}
+      <SidebarHeader 
+        project={project}
+        isCollapsed={isCollapsed}
+        onToggle={toggleCollapsed}
+      />
+
+      {/* Project Info - Only show when expanded */}
+      {!isCollapsed && (
+        <div>
+          <ProjectInfo project={project} />
+          <div className="px-4 pb-2">
+            <UrgentNotifications notifications={urgentNotifications} />
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <NavigationTabs
+        tabs={workflowTabs}
+        activeTab={activeTab}
+        isCollapsed={isCollapsed}
+        onTabChange={onTabChange}
+      />
+
+      {/* Quick Actions */}
+      <div className={`border-t border-gray-200 ${isCollapsed ? 'p-2' : 'p-3'}`}>
+        <QuickActions
+          isCollapsed={isCollapsed}
+          onActionTrigger={onActionTrigger}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ProjectWorkflowSidebar;

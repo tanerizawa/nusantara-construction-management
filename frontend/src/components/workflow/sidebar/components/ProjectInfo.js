@@ -1,0 +1,34 @@
+import React from 'react';
+
+/**
+ * Menampilkan informasi project (location & status)
+ */
+export const ProjectInfo = ({ project }) => {
+  const formatLocation = (location) => {
+    if (typeof location === 'object' && location) {
+      const parts = [
+        location.address,
+        location.city,
+        location.province
+      ].filter(Boolean);
+      
+      return parts.join(', ') || 'Project Location';
+    }
+    return location || 'Project Location';
+  };
+
+  return (
+    <div className="px-4 py-2 border-b border-[#38383A]">
+      <div className="text-sm">
+        <p className="text-sm text-[#98989D] line-clamp-2">
+          {formatLocation(project?.location)}
+        </p>
+        <div className="mt-2">
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#0A84FF]/20 text-[#0A84FF]">
+            {project?.status?.toUpperCase() || 'PLANNING'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};

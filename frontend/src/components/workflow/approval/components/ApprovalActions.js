@@ -14,7 +14,7 @@ const ApprovalActions = ({ item, userDetails, onReview, onApprove, onReject }) =
       {config.canReview && (
         <button
           onClick={() => onReview(item)}
-          className="flex items-center px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center px-3 py-1 text-sm bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90"
         >
           <Eye className="w-4 h-4 mr-1" />
           Review
@@ -25,7 +25,7 @@ const ApprovalActions = ({ item, userDetails, onReview, onApprove, onReject }) =
         <>
           <button
             onClick={() => onApprove(item, userDetails)}
-            className="flex items-center px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="flex items-center px-3 py-1 text-sm bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90"
           >
             <ThumbsUp className="w-4 h-4 mr-1" />
             Approve
@@ -33,7 +33,7 @@ const ApprovalActions = ({ item, userDetails, onReview, onApprove, onReject }) =
           
           <button
             onClick={() => onReject(item, userDetails)}
-            className="flex items-center px-3 py-1 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700"
+            className="flex items-center px-3 py-1 text-sm bg-[#FF3B30] text-white rounded-lg hover:bg-[#FF3B30]/90"
           >
             <ThumbsDown className="w-4 h-4 mr-1" />
             Reject

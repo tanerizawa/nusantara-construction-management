@@ -13,7 +13,7 @@ import {
 export const statusConfig = {
   'draft': { 
     label: 'Draft', 
-    color: 'bg-gray-100 text-gray-800', 
+    color: 'bg-[#3A3A3C] text-[#98989D]', 
     icon: FileText,
     description: 'Dokumen belum submit',
     canReview: true,
@@ -21,7 +21,7 @@ export const statusConfig = {
   },
   'under_review': { 
     label: 'Diperiksa', 
-    color: 'bg-blue-100 text-blue-800', 
+    color: 'bg-[#0A84FF]/20 text-[#0A84FF]', 
     icon: Eye,
     description: 'Sedang dalam pemeriksaan',
     canReview: false,
@@ -29,7 +29,7 @@ export const statusConfig = {
   },
   'pending': { 
     label: 'Menunggu Approval', 
-    color: 'bg-yellow-100 text-yellow-800', 
+    color: 'bg-[#FF9F0A]/20 text-[#FF9F0A]', 
     icon: Clock,
     description: 'Menunggu persetujuan',
     canReview: false,
@@ -37,7 +37,7 @@ export const statusConfig = {
   },
   'approved': { 
     label: 'Disetujui', 
-    color: 'bg-green-100 text-green-800', 
+    color: 'bg-[#30D158]/20 text-[#30D158]', 
     icon: CheckCircle,
     description: 'Telah disetujui',
     canReview: false,
@@ -45,7 +45,7 @@ export const statusConfig = {
   },
   'rejected': { 
     label: 'Ditolak', 
-    color: 'bg-red-100 text-red-800', 
+    color: 'bg-[#FF3B30]/20 text-[#FF3B30]', 
     icon: XCircle,
     description: 'Ditolak',
     canReview: true,

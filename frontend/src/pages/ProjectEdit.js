@@ -28,25 +28,28 @@ const ProjectEdit = () => {
   const [subsidiaries, setSubsidiaries] = useState([]);
   const [loadingSubsidiaries, setLoadingSubsidiaries] = useState(true);
   
-  // Form Data State
+  // Form Data State - Aligned with ProjectCreate structure
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    clientName: '',
-    clientContact: {
-      contactPerson: '',
+    client: {
+      company: '',
+      contact: '',
       phone: '',
-      email: '',
-      address: ''
+      email: ''
     },
     location: {
       address: '',
       city: '',
       province: ''
     },
-    budget: '',
-    startDate: '',
-    endDate: '',
+    timeline: {
+      startDate: '',
+      endDate: ''
+    },
+    budget: {
+      contractValue: 0
+    },
     status: 'planning',
     priority: 'medium',
     progress: 0,
@@ -68,10 +71,29 @@ const ProjectEdit = () => {
       
       setProject(projectData);
       
-      // Handle different data structures from API
-      const clientName = projectData.clientName || projectData.client?.company || '';
-      const clientContact = projectData.clientContact || projectData.client || {};
-      const budget = projectData.budget?.total || projectData.budget || '';
+      // Format dates for HTML input (YYYY-MM-DD)
+      const formatDateForInput = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+      };
+      
+      // Handle different possible data structures from API
+      const clientCompany = projectData.clientName || projectData.client?.company || '';
+      
+      // For contact field, check multiple possible locations
+      const clientContact = 
+        projectData.clientContact?.contact ||      // New format: clientContact.contact
+        projectData.client?.contact ||             // Alternative: client.contact
+        projectData.clientContact?.contactPerson || // Legacy: clientContact.contactPerson
+        projectData.clientContact?.person ||       // Alternative: clientContact.person
+        '';
+        
+      const clientPhone = projectData.clientContact?.phone || projectData.client?.phone || '';
+      const clientEmail = projectData.clientContact?.email || projectData.client?.email || '';
+      
+      const budgetValue = projectData.budget?.contractValue || projectData.budget?.total || projectData.budget || 0;
       const startDate = projectData.timeline?.startDate || projectData.startDate || '';
       const endDate = projectData.timeline?.endDate || projectData.endDate || '';
       const progress = projectData.progress?.percentage || projectData.progress || 0;
@@ -83,41 +105,49 @@ const ProjectEdit = () => {
         code: ''
       };
       
-      console.log('Client data:', clientName, clientContact); // Debug log
-      console.log('Budget:', budget); // Debug log
-      console.log('Timeline:', startDate, endDate); // Debug log
-      console.log('Subsidiary:', subsidiary); // Debug log
+      console.log('Parsed data:', { // Debug log
+        clientCompany,
+        clientContact,
+        clientPhone,
+        clientEmail,
+        budgetValue,
+        startDate,
+        endDate,
+        progress,
+        subsidiary
+      });
       
-      // Format dates for HTML input (YYYY-MM-DD)
-      const formatDateForInput = (dateStr) => {
-        if (!dateStr) return '';
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return '';
-        return date.toISOString().split('T')[0];
-      };
+      // Additional debug for clientContact
+      console.log('ClientContact debug:', {
+        'projectData.clientContact': projectData.clientContact,
+        'extracted clientContact': clientContact
+      });
       
-      // Populate form with existing data
+      // Populate form with existing data - use same structure as ProjectCreate
       setFormData({
         name: projectData.name || '',
         description: projectData.description || '',
-        clientName: clientName,
-        clientContact: {
-          contactPerson: clientContact.contactPerson || clientContact.person || '',
-          phone: clientContact.phone || '',
-          email: clientContact.email || '',
-          address: clientContact.address || ''
+        client: {
+          company: clientCompany,
+          contact: clientContact,
+          phone: clientPhone,
+          email: clientEmail
         },
         location: {
           address: projectData.location?.address || '',
           city: projectData.location?.city || '',
           province: projectData.location?.province || ''
         },
-        budget: budget,
-        startDate: formatDateForInput(startDate),
-        endDate: formatDateForInput(endDate),
+        timeline: {
+          startDate: formatDateForInput(startDate),
+          endDate: formatDateForInput(endDate)
+        },
+        budget: {
+          contractValue: Number(budgetValue) || 0
+        },
         status: projectData.status || 'planning',
         priority: projectData.priority || 'medium',
-        progress: progress,
+        progress: Number(progress) || 0,
         subsidiary: {
           id: subsidiary.id || '',
           name: subsidiary.name || '',
@@ -205,20 +235,35 @@ const ProjectEdit = () => {
     setSuccessMessage('');
 
     try {
+      // Prepare data with consistent structure
       const updateData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        clientName: formData.clientName.trim(),
-        clientContact: formData.clientContact,
-        location: formData.location,
-        budget: parseFloat(formData.budget) || 0,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
+        clientName: formData.client.company.trim(),
+        clientContact: {
+          contact: formData.client.contact.trim(),
+          phone: formData.client.phone.trim(),
+          email: formData.client.email.trim()
+        },
+        location: {
+          address: formData.location.address.trim(),
+          city: formData.location.city.trim(),
+          province: formData.location.province.trim()
+        },
+        budget: Number(formData.budget.contractValue) || 0,
+        startDate: formData.timeline.startDate,
+        endDate: formData.timeline.endDate,
         status: formData.status,
         priority: formData.priority,
-        progress: parseInt(formData.progress) || 0,
-        subsidiary: formData.subsidiary
+        progress: Number(formData.progress) || 0,
+        subsidiary: {
+          id: formData.subsidiary.id,
+          code: formData.subsidiary.code,
+          name: formData.subsidiary.name
+        }
       };
+
+      console.log('Updating project with data:', updateData); // Debug log
 
       const response = await projectAPI.update(id, updateData);
       
@@ -240,10 +285,10 @@ const ProjectEdit = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Memuat data proyek...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A84FF] mx-auto mb-4"></div>
+          <p className="text-[#8E8E93]">Memuat data proyek...</p>
         </div>
       </div>
     );
@@ -251,14 +296,16 @@ const ProjectEdit = () => {
 
   if (error && !project) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-full bg-[#FF3B30]/10 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="h-8 w-8 text-[#FF3B30]" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Terjadi Kesalahan</h2>
+          <p className="text-[#8E8E93] mb-6">{error}</p>
           <Link 
             to="/admin/projects" 
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2.5 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors font-medium"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Kembali ke Daftar Proyek
@@ -269,37 +316,50 @@ const ProjectEdit = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#000000]">
+      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link 
-                to={`/admin/projects/${id}`}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Kembali
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Edit Proyek
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  {project?.name}
-                </p>
-              </div>
-            </div>
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-6">
+            <Link 
+              to={`/admin/projects/${id}`}
+              style={{
+                backgroundColor: '#1C1C1E',
+                border: '1px solid #38383A'
+              }}
+              className="inline-flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-white hover:bg-[#2C2C2E] transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Kembali
+            </Link>
+          </div>
+          
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Edit Proyek
+            </h1>
+            <p className="text-[#8E8E93]">
+              {project?.name}
+            </p>
           </div>
         </div>
 
         {/* Success Message */}
         {successMessage && (
-          <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mr-3" />
-              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+          <div 
+            style={{
+              backgroundColor: '#30D158',
+              opacity: 0.1,
+              border: '1px solid rgba(48, 209, 88, 0.3)'
+            }}
+            className="mb-6 rounded-lg p-4 relative"
+          >
+            <div 
+              style={{ backgroundColor: 'transparent', opacity: 1 }}
+              className="flex items-center absolute inset-0 p-4"
+            >
+              <CheckCircle className="w-5 h-5 text-[#30D158] mr-3 flex-shrink-0" />
+              <p className="text-sm font-medium text-[#30D158]">
                 {successMessage}
               </p>
             </div>
@@ -308,10 +368,20 @@ const ProjectEdit = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-            <div className="flex items-center">
-              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 mr-3" />
-              <p className="text-sm font-medium text-red-800 dark:text-red-200">
+          <div 
+            style={{
+              backgroundColor: '#FF3B30',
+              opacity: 0.1,
+              border: '1px solid rgba(255, 59, 48, 0.3)'
+            }}
+            className="mb-6 rounded-lg p-4 relative"
+          >
+            <div 
+              style={{ backgroundColor: 'transparent', opacity: 1 }}
+              className="flex items-center absolute inset-0 p-4"
+            >
+              <AlertTriangle className="w-5 h-5 text-[#FF3B30] mr-3 flex-shrink-0" />
+              <p className="text-sm font-medium text-[#FF3B30]">
                 {error}
               </p>
             </div>
@@ -321,74 +391,115 @@ const ProjectEdit = () => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Informasi Dasar
-            </h2>
+          <div 
+            style={{
+              backgroundColor: '#1C1C1E',
+              border: '1px solid #38383A'
+            }}
+            className="rounded-xl p-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-[#0A84FF]/10 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-[#0A84FF]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Informasi Dasar
+                </h2>
+                <p className="text-sm text-[#8E8E93]">
+                  Data utama proyek
+                </p>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nama Proyek <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Nama Proyek <span className="text-[#FF3B30]">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                  required
-                  disabled={saving}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Perusahaan Klien <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.clientName}
-                  onChange={(e) => handleInputChange('clientName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="Masukkan nama proyek"
                   required
                   disabled={saving}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Anak Perusahaan Pelaksana <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Perusahaan Klien <span className="text-[#FF3B30]">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.client.company}
+                  onChange={(e) => handleInputChange('client.company', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="Nama perusahaan klien"
+                  required
+                  disabled={saving}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Anak Perusahaan Pelaksana <span className="text-[#FF3B30]">*</span>
                 </label>
                 <select
                   value={formData.subsidiary.id}
                   onChange={(e) => handleSubsidiaryChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
                   required
                   disabled={saving || loadingSubsidiaries}
                 >
-                  <option value="">
-                    {loadingSubsidiaries ? 'Memuat...' : 'Pilih anak perusahaan yang akan menjalankan proyek'}
+                  <option value="" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>
+                    {loadingSubsidiaries ? 'Memuat...' : 'Pilih anak perusahaan'}
                   </option>
                   {subsidiaries.map(subsidiary => (
-                    <option key={subsidiary.id} value={subsidiary.id}>
+                    <option key={subsidiary.id} value={subsidiary.id} style={{ backgroundColor: '#2C2C2E', color: 'white' }}>
                       {subsidiary.code} - {subsidiary.name}
                     </option>
                   ))}
                 </select>
                 {formData.subsidiary.id && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    Proyek akan dilaksanakan oleh: <span className="font-medium">{formData.subsidiary.name}</span>
+                  <p className="mt-2 text-sm text-[#8E8E93]">
+                    Dilaksanakan oleh: <span className="font-medium text-[#0A84FF]">{formData.subsidiary.name}</span>
                   </p>
                 )}
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Deskripsi
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Deskripsi Proyek
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  rows={4}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366] resize-none"
+                  placeholder="Deskripsi detail tentang proyek..."
                   disabled={saving}
                 />
               </div>
@@ -396,56 +507,79 @@ const ProjectEdit = () => {
           </div>
 
           {/* Client Contact */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Kontak Klien
-            </h2>
+          <div 
+            style={{
+              backgroundColor: '#1C1C1E',
+              border: '1px solid #38383A'
+            }}
+            className="rounded-xl p-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-[#30D158]/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-[#30D158]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Kontak Klien
+                </h2>
+                <p className="text-sm text-[#8E8E93]">
+                  Informasi kontak pihak klien
+                </p>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Nama Kontak
                 </label>
                 <input
                   type="text"
-                  value={formData.clientContact.contactPerson}
-                  onChange={(e) => handleInputChange('clientContact.contactPerson', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  value={formData.client.contact}
+                  onChange={(e) => handleInputChange('client.contact', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="Nama person in charge"
                   disabled={saving}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Telepon
                 </label>
                 <input
                   type="tel"
-                  value={formData.clientContact.phone}
-                  onChange={(e) => handleInputChange('clientContact.phone', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  value={formData.client.phone}
+                  onChange={(e) => handleInputChange('client.phone', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="+62 xxx xxxx xxxx"
                   disabled={saving}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Email
                 </label>
                 <input
                   type="email"
-                  value={formData.clientContact.email}
-                  onChange={(e) => handleInputChange('clientContact.email', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                  disabled={saving}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Alamat Klien
-                </label>
-                <input
-                  type="text"
-                  value={formData.clientContact.address}
-                  onChange={(e) => handleInputChange('clientContact.address', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  value={formData.client.email}
+                  onChange={(e) => handleInputChange('client.email', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="email@example.com"
                   disabled={saving}
                 />
               </div>
@@ -453,44 +587,79 @@ const ProjectEdit = () => {
           </div>
 
           {/* Location */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Lokasi Proyek
-            </h2>
+          <div 
+            style={{
+              backgroundColor: '#1C1C1E',
+              border: '1px solid #38383A'
+            }}
+            className="rounded-xl p-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-[#FF9F0A]/10 flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-[#FF9F0A]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Lokasi Proyek
+                </h2>
+                <p className="text-sm text-[#8E8E93]">
+                  Lokasi pelaksanaan proyek
+                </p>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-3">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Alamat Proyek
                 </label>
                 <input
                   type="text"
                   value={formData.location.address}
                   onChange={(e) => handleInputChange('location.address', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="Alamat lengkap lokasi proyek"
                   disabled={saving}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Kota
                 </label>
                 <input
                   type="text"
                   value={formData.location.city}
                   onChange={(e) => handleInputChange('location.city', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="Nama kota"
                   disabled={saving}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Provinsi
                 </label>
                 <input
                   type="text"
                   value={formData.location.province}
                   onChange={(e) => handleInputChange('location.province', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="Nama provinsi"
                   disabled={saving}
                 />
               </div>
@@ -498,117 +667,190 @@ const ProjectEdit = () => {
           </div>
 
           {/* Project Details */}
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Detail Proyek
-            </h2>
+          <div 
+            style={{
+              backgroundColor: '#1C1C1E',
+              border: '1px solid #38383A'
+            }}
+            className="rounded-xl p-6"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-[#BF5AF2]/10 flex items-center justify-center">
+                <Building className="w-5 h-5 text-[#BF5AF2]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-white">
+                  Detail Proyek
+                </h2>
+                <p className="text-sm text-[#8E8E93]">
+                  Anggaran, timeline, dan status proyek
+                </p>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Anggaran (IDR)
+                <label className="block text-sm font-medium text-[#98989D] mb-2 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Nilai Kontrak (IDR)
                 </label>
                 <input
                   type="number"
-                  value={formData.budget}
-                  onChange={(e) => handleInputChange('budget', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  value={formData.budget.contractValue}
+                  onChange={(e) => handleInputChange('budget.contractValue', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="0"
+                  min="0"
                   disabled={saving}
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Progress (%)
                 </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.progress}
-                  onChange={(e) => handleInputChange('progress', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                  disabled={saving}
-                />
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.progress}
+                    onChange={(e) => handleInputChange('progress', e.target.value)}
+                    style={{
+                      backgroundColor: '#2C2C2E',
+                      border: '1px solid #38383A',
+                      color: 'white'
+                    }}
+                    className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                    placeholder="0"
+                    disabled={saving}
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#636366] pointer-events-none">
+                    %
+                  </div>
+                </div>
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tanggal Mulai <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-[#98989D] mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Tanggal Mulai <span className="text-[#FF3B30]">*</span>
                 </label>
                 <input
                   type="date"
-                  value={formData.startDate}
-                  onChange={(e) => handleInputChange('startDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  value={formData.timeline.startDate}
+                  onChange={(e) => handleInputChange('timeline.startDate', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white',
+                    colorScheme: 'dark'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
                   required
                   disabled={saving}
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tanggal Selesai <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-[#98989D] mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Tanggal Selesai <span className="text-[#FF3B30]">*</span>
                 </label>
                 <input
                   type="date"
-                  value={formData.endDate}
-                  onChange={(e) => handleInputChange('endDate', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  value={formData.timeline.endDate}
+                  onChange={(e) => handleInputChange('timeline.endDate', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white',
+                    colorScheme: 'dark'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
                   required
                   disabled={saving}
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
+                  Status Proyek
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
                   disabled={saving}
                 >
-                  <option value="planning">Planning</option>
-                  <option value="active">Active</option>
-                  <option value="on_hold">On Hold</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="planning" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🔵 Planning</option>
+                  <option value="active" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🟢 Active</option>
+                  <option value="on_hold" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🟡 On Hold</option>
+                  <option value="completed" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>✅ Completed</option>
+                  <option value="cancelled" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🔴 Cancelled</option>
                 </select>
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Prioritas
                 </label>
                 <select
                   value={formData.priority}
                   onChange={(e) => handleInputChange('priority', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
                   disabled={saving}
                 >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
+                  <option value="low" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>⚪ Low</option>
+                  <option value="medium" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🟡 Medium</option>
+                  <option value="high" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🟠 High</option>
+                  <option value="urgent" style={{ backgroundColor: '#2C2C2E', color: 'white' }}>🔴 Urgent</option>
                 </select>
               </div>
             </div>
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex items-center justify-end space-x-3 pt-6">
+          <div className="flex items-center justify-between pt-6 border-t border-[#38383A]">
             <Link
               to={`/admin/projects/${id}`}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              style={{
+                backgroundColor: '#1C1C1E',
+                border: '1px solid #38383A'
+              }}
+              className="inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium text-white hover:bg-[#2C2C2E] transition-colors"
             >
               <X className="w-4 h-4 mr-2" />
               Batal
             </Link>
+            
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              style={{
+                backgroundColor: saving ? '#0A84FF80' : '#0A84FF'
+              }}
+              className="inline-flex items-center px-8 py-2.5 rounded-lg text-white font-semibold hover:bg-[#0A84FF]/90 focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-2 focus:ring-offset-[#000000] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0A84FF]/20"
             >
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Menyimpan...
+                  Menyimpan Perubahan...
                 </>
               ) : (
                 <>

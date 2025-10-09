@@ -38,9 +38,7 @@ const AdvancedAnalyticsDashboard = () => {
   useEffect(() => {
     fetchAnalyticsData();
     
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(fetchAnalyticsData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    // Auto-refresh removed to save resources
   }, []);
 
   const fetchAnalyticsData = async () => {

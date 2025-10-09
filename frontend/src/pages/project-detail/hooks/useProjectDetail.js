@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
-import { projectAPI } from '../../../../services/api';
+import { useEffect, useState, useCallback } from 'react';
+import { projectAPI } from '../../../services/api';
 
 /**
  * Custom hook untuk mengelola project detail data

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { 
   Building2, 
   MapPin, 
@@ -256,16 +256,16 @@ const ProjectCard = memo(({
 
   return (
     <Card className={`group relative overflow-hidden
-                     bg-white dark:bg-slate-800 
-                     border border-gray-200 dark:border-gray-700
-                     hover:border-blue-300 dark:hover:border-blue-500
-                     hover:shadow-lg dark:hover:shadow-slate-900/25
-                     transition-all duration-200 ease-out
-                     transform hover:scale-[1.01]
+                     bg-[#2C2C2E]
+                     border border-[#38383A]
+                     hover:border-[#0A84FF]
+                     hover:shadow-xl
+                     transition-all duration-150 ease-out
+                     transform hover:scale-[1.02]
                      ${className}`}>
       
       {/* Status Indicator */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-[#0A84FF]" />
       
       {/* Optimized Content Layout - Compact but readable */}
       <div className="p-4">
@@ -281,9 +281,9 @@ const ProjectCard = memo(({
           </div>
           
           {/* Project Name - Enhanced typography */}
-          <h3 className="text-base font-semibold text-gray-900 dark:text-white 
-                         leading-snug group-hover:text-blue-600 
-                         dark:group-hover:text-blue-400 transition-colors duration-200
+          <h3 className="text-base font-semibold text-white
+                         leading-snug group-hover:text-[#0A84FF]
+                         transition-colors duration-150
                          cursor-pointer break-words hyphens-auto line-clamp-2"
               onClick={handleViewClick}
               title={safeRender(project.name, 'Unnamed Project')}>
@@ -292,8 +292,8 @@ const ProjectCard = memo(({
         </div>
 
         {/* Metadata Row - Enhanced with better spacing */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
-          <span className="font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-medium">
+        <div className="flex items-center gap-2 text-sm text-[#98989D] mb-3">
+          <span className="font-mono bg-[#3A3A3C] px-2 py-1 rounded text-xs font-medium text-[#98989D]">
             {safeRender(project.projectCode || project.id, 'NO-CODE')}
           </span>
           {project.client?.company && (
@@ -303,10 +303,10 @@ const ProjectCard = memo(({
           )}
           {(project.subsidiary?.code || project.subsidiaryInfo?.code) && (
             <span 
-              className="text-blue-600 dark:text-blue-400 font-medium text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 rounded-md border border-blue-200" 
+              className="text-[#0A84FF] font-medium text-xs px-2 py-1 bg-[#0A84FF]/10 rounded-md border border-[#0A84FF]/30" 
               title={`Anak Perusahaan: ${project.subsidiary?.name || project.subsidiaryInfo?.name || ''}\nSpesialisasi: ${project.subsidiary?.specialization || project.subsidiaryInfo?.specialization || 'N/A'}`}
             >
-                            <span className="text-xs font-medium">
+              <span className="text-xs font-medium">
                 {safeRender(project.subsidiary?.code || project.subsidiaryInfo?.code)}
               </span>
             </span>
@@ -315,12 +315,12 @@ const ProjectCard = memo(({
 
         {/* Budget Section - Moved above subsidiary for better space utilization */}
         {(project.budget?.contractValue || project.budget?.total || project.budget) && (
-          <div className="mb-3 p-2.5 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-100 dark:border-green-800">
+          <div className="mb-3 p-2.5 bg-[#30D158]/10 rounded-md border border-[#30D158]/30">
             <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-green-600 shrink-0" />
+              <DollarSign className="w-4 h-4 text-[#30D158] shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="text-xs text-green-600 dark:text-green-400 font-medium">Nilai Proyek</div>
-                <div className="font-bold text-green-700 dark:text-green-300 text-sm truncate" 
+                <div className="text-xs text-[#30D158] font-medium">Nilai Proyek</div>
+                <div className="font-bold text-[#30D158] text-sm truncate" 
                      title={formatCurrency(project.budget?.contractValue || project.budget?.total || project.budget)}>
                   {formatCurrency(project.budget?.contractValue || project.budget?.total || project.budget)}
                 </div>
@@ -331,14 +331,14 @@ const ProjectCard = memo(({
 
         {/* Enhanced Subsidiary Information */}
         {(project.subsidiary || project.subsidiaryInfo) && (
-          <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-800">
+          <div className="mb-2 p-2 bg-[#0A84FF]/10 rounded-md border border-[#0A84FF]/30">
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-3 h-3 text-blue-500" />
+              <Building2 className="w-3 h-3 text-[#0A84FF]" />
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">
+                <div className="text-xs font-medium text-[#0A84FF] truncate">
                   {safeRender(project.subsidiary?.name || project.subsidiaryInfo?.name, 'Unknown Subsidiary')}
                 </div>
-                <div className="text-xs text-blue-600 dark:text-blue-400 capitalize">
+                <div className="text-xs text-[#98989D] capitalize">
                   {safeRender(project.subsidiary?.specialization || project.subsidiaryInfo?.specialization, 'General')}
                 </div>
               </div>
@@ -353,8 +353,8 @@ const ProjectCard = memo(({
             {/* Location - Enhanced display with proper object handling */}
             {project.location && (
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <MapPin className="w-4 h-4 text-gray-500 shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300 truncate text-sm font-medium">
+                <MapPin className="w-4 h-4 text-[#636366] shrink-0" />
+                <span className="text-[#98989D] truncate text-sm font-medium">
                   {formatLocation(project.location, 'Lokasi belum ditentukan')}
                 </span>
               </div>
@@ -366,8 +366,8 @@ const ProjectCard = memo(({
             {/* Timeline - Enhanced date range display */}
             {(project.timeline || project.startDate || project.endDate) && (
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <CalendarDays className="w-4 h-4 text-blue-600 shrink-0" />
-                <span className="text-gray-700 dark:text-gray-300 truncate text-sm font-medium" 
+                <CalendarDays className="w-4 h-4 text-[#0A84FF] shrink-0" />
+                <span className="text-[#98989D] truncate text-sm font-medium" 
                       title={formatDateRange(project.timeline?.startDate || project.startDate, project.timeline?.endDate || project.endDate)}>
                   {formatDateRange(project.timeline?.startDate || project.startDate, project.timeline?.endDate || project.endDate)}
                 </span>
@@ -388,18 +388,18 @@ const ProjectCard = memo(({
         {/* Enhanced Progress Section */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progress</span>
+            <span className="text-sm font-medium text-white">Progress</span>
             <div className="flex items-center gap-2">
               <span className={`text-xs px-2 py-1 rounded-md font-medium ${progressAnalytics.bgColor} ${progressAnalytics.textColor}`}>
                 {progressAnalytics.trend}
               </span>
-              <span className="text-base font-bold text-gray-900 dark:text-white">
+              <span className="text-base font-bold text-white">
                 {Math.round(project.progress?.percentage || project.progress || 0)}%
               </span>
             </div>
           </div>
           
-          <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+          <div className="w-full bg-[#3A3A3C] rounded-full h-2">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${progressAnalytics.color} shadow-sm`}
               style={{ width: `${Math.min(Number(project.progress?.percentage || project.progress || 0), 100)}%` }}
@@ -409,7 +409,7 @@ const ProjectCard = memo(({
 
         {/* Enhanced Action Row with Prominent Detail Button */}
         {showActions && (
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600 gap-2">
+          <div className="flex items-center justify-between pt-3 border-t border-[#38383A] gap-2">
             {/* Progress Status Text - Left */}
             <span className={`text-xs font-medium ${progressAnalytics.textColor} flex-1 truncate`}>
               {progressAnalytics.status}
@@ -422,14 +422,12 @@ const ProjectCard = memo(({
                 onClick={handleViewClick}
                 variant="default"
                 size="sm"
-                className="h-7 px-4 bg-blue-600 hover:bg-blue-700 text-white 
-                         shadow-lg hover:shadow-xl hover:shadow-blue-500/50 
-                         transition-all duration-300 ease-out
+                className="h-7 px-4 bg-[#0A84FF] hover:bg-[#0970DD] text-white 
+                         shadow-lg hover:shadow-xl hover:shadow-[#0A84FF]/50 
+                         transition-all duration-150 ease-out
                          text-xs font-semibold rounded-md border-0 
-                         focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
-                         hover:scale-105 active:scale-95
-                         bg-gradient-to-r from-blue-600 to-blue-700
-                         hover:from-blue-700 hover:to-blue-800"
+                         focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-1
+                         hover:scale-105 active:scale-95"
                 title="Lihat Detail Proyek"
               >
                 <span>Detail</span>
@@ -440,11 +438,7 @@ const ProjectCard = memo(({
                 onClick={handleEditClick}
                 variant="ghost"
                 size="sm"
-                className="w-7 h-7 p-0 text-gray-500 dark:text-gray-400 
-                         hover:text-blue-600 dark:hover:text-blue-400 
-                         hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                         transition-all duration-200 rounded-md border border-gray-200
-                         hover:border-blue-300 hover:shadow-sm"
+                className="w-7 h-7 p-0 text-[#FF9500] bg-[#FF9500]/15 hover:bg-[#FF9500]/25 border border-[#FF9500]/30 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#FF9500]/50"
                 title="Edit Proyek"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -455,11 +449,7 @@ const ProjectCard = memo(({
                   onClick={handleArchiveClick}
                   variant="ghost"
                   size="sm"
-                  className="w-7 h-7 p-0 text-gray-500 dark:text-gray-400 
-                           hover:text-amber-600 dark:hover:text-amber-400 
-                           hover:bg-amber-50 dark:hover:bg-amber-900/20 
-                           transition-all duration-200 rounded-md border border-gray-200
-                           hover:border-amber-300 hover:shadow-sm"
+                  className="w-7 h-7 p-0 text-[#FF9F0A] bg-[#FF9F0A]/15 hover:bg-[#FF9F0A]/25 border border-[#FF9F0A]/30 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#FF9F0A]/50"
                   title="Arsipkan Proyek"
                 >
                   <Archive className="w-3.5 h-3.5" />
@@ -470,11 +460,7 @@ const ProjectCard = memo(({
                 onClick={handleDeleteClick}
                 variant="ghost"
                 size="sm"
-                className="w-7 h-7 p-0 text-gray-500 dark:text-gray-400 
-                         hover:text-red-600 dark:hover:text-red-400 
-                         hover:bg-red-50 dark:hover:bg-red-900/20 
-                         transition-all duration-200 rounded-md border border-gray-200
-                         hover:border-red-300 hover:shadow-sm"
+                className="w-7 h-7 p-0 text-[#FF3B30] bg-[#FF3B30]/15 hover:bg-[#FF3B30]/25 border border-[#FF3B30]/30 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#FF3B30]/50"
                 title="Hapus Proyek"
               >
                 <Trash2 className="w-3.5 h-3.5" />

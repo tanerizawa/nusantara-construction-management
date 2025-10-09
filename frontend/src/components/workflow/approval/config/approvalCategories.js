@@ -1,7 +1,7 @@
 import { 
   FileBarChart, 
-  ShoppingCart, 
-  Package 
+  ShoppingCart,
+  PackageCheck
 } from 'lucide-react';
 
 /**
@@ -14,7 +14,7 @@ export const approvalCategories = [
     name: 'RAB',
     fullName: 'RAB & BOQ',
     icon: FileBarChart,
-    color: 'bg-blue-100 text-blue-800',
+    color: 'bg-[#0A84FF]/20 text-[#0A84FF]',
     description: 'Rencana Anggaran Biaya & Bill of Quantities'
   },
   {
@@ -22,15 +22,15 @@ export const approvalCategories = [
     name: 'PO',
     fullName: 'Purchase Orders',
     icon: ShoppingCart,
-    color: 'bg-green-100 text-green-800',
+    color: 'bg-[#30D158]/20 text-[#30D158]',
     description: 'Pemesanan material dan equipment'
   },
   {
     id: 'tandaTerima',
     name: 'Tanda Terima',
     fullName: 'Tanda Terima',
-    icon: Package,
-    color: 'bg-purple-100 text-purple-800',
+    icon: PackageCheck,
+    color: 'bg-[#BF5AF2]/20 text-[#BF5AF2]',
     description: 'Konfirmasi penerimaan barang dari PO yang sudah approved'
   }
 ];

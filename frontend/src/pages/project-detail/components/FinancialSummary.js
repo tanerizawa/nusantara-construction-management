@@ -8,36 +8,36 @@ import { formatCurrency } from '../utils';
  */
 const FinancialSummary = ({ project, workflowData }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-blue-50 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+    <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
+      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
+        <h3 className="text-base font-semibold text-white flex items-center">
+          <DollarSign className="h-4 w-4 mr-2 text-[#30D158]" />
           Ringkasan Keuangan
         </h3>
       </div>
-      <div className="p-6">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-600">Total Budget</span>
-            <span className="text-lg font-bold text-gray-900">
+      <div className="p-4">
+        <div className="space-y-3">
+          <div className="flex justify-between items-center p-3 bg-[#1C1C1E] border border-[#38383A] rounded-lg">
+            <span className="text-sm font-medium text-[#8E8E93]">Total Budget</span>
+            <span className="text-base font-bold text-white">
               {formatCurrency(project.totalBudget)}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-600">RAB Approved</span>
-            <span className="text-base font-semibold text-blue-700">
+          <div className="flex justify-between items-center p-3 bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-lg">
+            <span className="text-sm font-medium text-[#8E8E93]">RAB Approved</span>
+            <span className="text-base font-semibold text-[#0A84FF]">
               {formatCurrency(workflowData.budgetSummary?.approvedAmount || 0)}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-600">PO Committed</span>
-            <span className="text-base font-semibold text-yellow-700">
+          <div className="flex justify-between items-center p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-lg">
+            <span className="text-sm font-medium text-[#8E8E93]">PO Committed</span>
+            <span className="text-base font-semibold text-[#FF9F0A]">
               {formatCurrency(workflowData.budgetSummary?.committedAmount || 0)}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-            <span className="text-sm font-medium text-gray-600">Actual Spent</span>
-            <span className="text-base font-semibold text-green-700">
+          <div className="flex justify-between items-center p-3 bg-[#30D158]/10 border border-[#30D158]/30 rounded-lg">
+            <span className="text-sm font-medium text-[#8E8E93]">Actual Spent</span>
+            <span className="text-base font-semibold text-[#30D158]">
               {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
             </span>
           </div>

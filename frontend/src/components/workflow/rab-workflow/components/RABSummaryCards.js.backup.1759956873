@@ -1,0 +1,40 @@
+import React from 'react';
+import { formatCurrency } from '../../../../utils/formatters';
+import { calculateTotalRAB } from '../utils/rabCalculations';
+
+/**
+ * RABSummaryCards Component
+ * Displays summary statistics for RAB items
+ */
+const RABSummaryCards = ({ rabItems, approvalStatus }) => {
+  const totalRAB = calculateTotalRAB(rabItems);
+  
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="text-center">
+          <div className="text-2xl font-bold text-blue-600">{rabItems.length}</div>
+          <div className="text-sm text-gray-600">Total Items</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-green-600">{formatCurrency(totalRAB)}</div>
+          <div className="text-sm text-gray-600">Total RAB</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-yellow-600">
+            {approvalStatus?.currentStep || '-'}
+          </div>
+          <div className="text-sm text-gray-600">Current Step</div>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-purple-600">
+            {approvalStatus?.progress || '0'}%
+          </div>
+          <div className="text-sm text-gray-600">Approval Progress</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RABSummaryCards;

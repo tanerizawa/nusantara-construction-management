@@ -56,14 +56,14 @@ const ProjectBudgetMonitoring = ({ projectId, project, onDataChange }) => {
       {/* Summary cards */}
       <BudgetSummaryCards summary={summary} />
 
-      {/* Budget utilization progress */}
-      <BudgetUtilization summary={summary} />
-
       {/* Category breakdown and distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CategoryTable categories={categories} />
         <BudgetDistributionChart categories={categories} />
       </div>
+
+      {/* Budget utilization progress */}
+      <BudgetUtilization summary={summary} />
 
       {/* Budget timeline chart */}
       <BudgetTimelineChart timeline={timeline} />

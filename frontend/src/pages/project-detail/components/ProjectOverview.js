@@ -40,15 +40,24 @@ const ProjectOverview = ({ project, workflowData }) => {
                 <DollarSign className="h-5 w-5 text-[#30D158]" />
               </div>
               <div>
-                <p className="text-xs text-[#8E8E93]">Budget Terpakai</p>
+                <p className="text-xs text-[#8E8E93]">Budget Utilization</p>
                 <p className="text-lg font-semibold text-white">{budgetUtilization}%</p>
               </div>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-[#38383A]">
-            <p className="text-xs text-[#98989D]">
-              {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
-            </p>
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-[#98989D]">Terpakai:</span>
+              <span className="text-xs text-white font-medium">
+                {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center mt-1">
+              <span className="text-xs text-[#98989D]">Total Budget:</span>
+              <span className="text-xs text-[#8E8E93]">
+                {formatCurrency(project.totalBudget || 0)}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -128,7 +137,7 @@ const ProjectOverview = ({ project, workflowData }) => {
         <div className="space-y-4">
           <FinancialSummary project={project} workflowData={workflowData} />
           <QuickStats project={project} workflowData={workflowData} />
-          <RecentActivity project={project} />
+          <RecentActivity project={project} workflowData={workflowData} />
         </div>
       </div>
     </div>

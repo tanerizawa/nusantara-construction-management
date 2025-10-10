@@ -235,6 +235,13 @@ router.get("/:id", async (req, res) => {
       limit: 50,
     });
 
+    // Fetch real Berita Acara from database
+    const beritaAcara = await BeritaAcara.findAll({
+      where: { projectId: id },
+      order: [["createdAt", "DESC"]],
+      limit: 50,
+    });
+
     // Calculate committed amount from real PO data
     const committedAmount = purchaseOrders.reduce(
       (sum, po) =>
@@ -336,9 +343,19 @@ router.get("/:id", async (req, res) => {
         receiptNumber: dr.receiptNumber,
         poNumber: dr.purchaseOrderId,
         receivedDate: dr.receivedDate,
+        supplier: dr.supplier,
         status: dr.status,
         items: dr.items,
         createdAt: dr.createdAt,
+      })),
+
+      // Real Berita Acara
+      beritaAcara: beritaAcara.map((ba) => ({
+        id: ba.id,
+        title: ba.title,
+        description: ba.description,
+        status: ba.status,
+        createdAt: ba.createdAt,
       })),
 
       metadata: project.metadata || {},

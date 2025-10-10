@@ -9,19 +9,19 @@ export const useApprovalSync = (projectId, loadApprovalData) => {
   /**
    * Setup approval status change listener
    */
+  // Listen to approval status changes from other components
   const setupApprovalListener = useCallback(() => {
     const handleApprovalChange = (event) => {
-      if (event.detail && event.detail.projectId === projectId) {
-        console.log('[APPROVAL SYNC] Approval status changed, refreshing data...', event.detail);
+      const { projectId: changedProjectId } = event.detail;
+      
+      // Reload data if this project's approval status changed
+      if (changedProjectId === projectId) {
         loadApprovalData();
       }
     };
 
     window.addEventListener('approvalStatusChanged', handleApprovalChange);
-    
-    return () => {
-      window.removeEventListener('approvalStatusChanged', handleApprovalChange);
-    };
+    return () => window.removeEventListener('approvalStatusChanged', handleApprovalChange);
   }, [projectId, loadApprovalData]);
 
   /**
@@ -30,7 +30,6 @@ export const useApprovalSync = (projectId, loadApprovalData) => {
   const setupStorageListener = useCallback(() => {
     const handleStorageChange = (event) => {
       if (event.key === `approval_status_${projectId}`) {
-        console.log('[APPROVAL SYNC] Storage changed, refreshing data...');
         loadApprovalData();
       }
     };
@@ -42,34 +41,19 @@ export const useApprovalSync = (projectId, loadApprovalData) => {
     };
   }, [projectId, loadApprovalData]);
 
-  /**
-   * Setup auto-refresh interval
-   */
-  const setupAutoRefresh = useCallback((intervalMs = 60000) => {
-    const interval = setInterval(() => {
-      console.log('[AUTO-REFRESH] Refreshing approval data...');
-      loadApprovalData();
-    }, intervalMs);
-
-    return () => clearInterval(interval);
-  }, [loadApprovalData]);
-
   // Setup all listeners on mount
   useEffect(() => {
     const cleanupApproval = setupApprovalListener();
     const cleanupStorage = setupStorageListener();
-    const cleanupAutoRefresh = setupAutoRefresh();
 
     return () => {
       cleanupApproval();
       cleanupStorage();
-      cleanupAutoRefresh();
     };
-  }, [setupApprovalListener, setupStorageListener, setupAutoRefresh]);
+  }, [setupApprovalListener, setupStorageListener]);
 
   return {
     setupApprovalListener,
-    setupStorageListener,
-    setupAutoRefresh
+    setupStorageListener
   };
 };

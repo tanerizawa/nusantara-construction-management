@@ -51,7 +51,6 @@ export const useApprovalData = (projectId) => {
         let finalStatus = 'draft';
         if (cachedStatus && cachedStatus.status) {
           finalStatus = cachedStatus.status;
-          console.log(`[RAB STATUS] Using cached status for ${item.id}: ${finalStatus}`);
         } else if (item.isApproved) {
           finalStatus = 'approved';
         }
@@ -189,20 +188,12 @@ export const useApprovalData = (projectId) => {
     setError(null);
     
     try {
-      console.log('[APPROVAL DATA] Loading data for project:', projectId);
-      
       // Load all data types in parallel
       const [rabData, poData, receiptData] = await Promise.all([
         loadRAB(),
         loadPO(),
         loadTandaTerima()
       ]);
-
-      console.log('[APPROVAL DATA] Data loaded:', {
-        rab: rabData.length,
-        po: poData.length,
-        tandaTerima: receiptData.length
-      });
 
       setApprovalData({
         rab: rabData,

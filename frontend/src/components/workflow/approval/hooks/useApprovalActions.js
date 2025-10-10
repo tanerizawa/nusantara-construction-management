@@ -13,7 +13,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
   const updatePOStatusInDatabase = useCallback(async (poId, status, approvedBy = null) => {
     try {
       const backendStatus = mapStatusToBackend(status);
-      console.log(`[API UPDATE] Updating PO ${poId} status from ${status} to backend status ${backendStatus}`);
       
       const updateData = {
         status: backendStatus,
@@ -34,8 +33,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
       }
 
       const result = await response.json();
-      console.log(`[API UPDATE] Successfully updated PO ${poId} status:`, result);
-      
       return result;
     } catch (error) {
       console.error('[API UPDATE] Error updating PO status:', error);
@@ -48,8 +45,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
    */
   const updateRABStatusInDatabase = useCallback(async (rabId, isApproved, approvedBy = null) => {
     try {
-      console.log(`[API UPDATE] Updating RAB ${rabId} approval status to ${isApproved}`);
-      
       if (isApproved) {
         // Use the approve endpoint for approval
         const response = await fetch(`/api/projects/${projectId}/rab/${rabId}/approve`, {
@@ -68,7 +63,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
         }
 
         const result = await response.json();
-        console.log(`[API UPDATE] Successfully approved RAB ${rabId}:`, result);
         return result;
         
       } else {
@@ -94,7 +88,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
         }
 
         const result = await response.json();
-        console.log(`[API UPDATE] Successfully updated RAB ${rabId} status:`, result);
         return result;
       }
     } catch (error) {
@@ -114,15 +107,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
       
       const itemKey = item.approval_type === 'purchaseOrders' ? `po_${item.id}` : `rab_${item.id}`;
       
-      console.log(`[APPROVAL CACHE] Saving approval status:`, {
-        cacheKey,
-        itemKey,
-        item_id: item.id,
-        item_type: item.approval_type,
-        newStatus,
-        approvedBy
-      });
-      
       approvalStatuses[itemKey] = {
         status: newStatus,
         approved_at: newStatus === 'approved' ? new Date().toISOString() : null,
@@ -133,7 +117,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
       };
       
       localStorage.setItem(cacheKey, JSON.stringify(approvalStatuses));
-      console.log(`[APPROVAL CACHE] Saved status for ${itemKey}: ${newStatus}`);
       
       // Trigger event to notify other components
       const statusChangeEvent = new CustomEvent('approvalStatusChanged', {
@@ -156,8 +139,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
    * Handle mark as reviewed
    */
   const handleMarkAsReviewed = useCallback(async (item, loadApprovalData) => {
-    console.log(`[APPROVAL] Starting handleMarkAsReviewed for:`, item);
-    
     try {
       const updatedItem = { ...item, status: 'under_review' };
       
@@ -179,8 +160,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
         await updateRABStatusInDatabase(item.id, false);
       }
       
-      console.log(`[APPROVAL] Successfully marked as reviewed:`, item.approval_id);
-      
     } catch (error) {
       console.error('❌ [APPROVAL] Error marking as reviewed:', error);
       alert(`Error marking as reviewed: ${error.message}`);
@@ -192,8 +171,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
    * Handle approve
    */
   const handleApprove = useCallback(async (item, userDetails, loadApprovalData) => {
-    console.log('[APPROVAL] Starting handleApprove for:', item);
-    
     // eslint-disable-next-line no-restricted-globals
     if (!confirm(`Setujui ${item.approval_id}?`)) return;
     
@@ -226,7 +203,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
       
       if (onDataChange) onDataChange();
       
-      console.log('[APPROVAL] Successfully approved:', item.approval_id);
       alert(`✅ ${item.approval_id} berhasil disetujui!`);
       
     } catch (error) {
@@ -240,8 +216,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
    * Handle reject
    */
   const handleReject = useCallback(async (item, userDetails, loadApprovalData) => {
-    console.log('[APPROVAL] Starting handleReject for:', item);
-    
     const reason = prompt(`Alasan penolakan ${item.approval_id}:`);
     if (!reason) return;
     
@@ -275,7 +249,6 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
       
       if (onDataChange) onDataChange();
       
-      console.log('[APPROVAL] Successfully rejected:', item.approval_id);
       alert(`❌ ${item.approval_id} ditolak dengan alasan: ${reason}`);
       
     } catch (error) {

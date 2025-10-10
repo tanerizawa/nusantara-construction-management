@@ -118,7 +118,7 @@ const TandaTerimaContent = ({ projectId, project, onDataChange }) => {
         ) : (
           <ReceiptsTable
             receipts={filteredReceiptsList}
-            onView={(receipt) => console.log('View receipt:', receipt)}
+            onView={(receipt) => {/* View handler */}}
           />
         )}
       </div>

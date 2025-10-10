@@ -16,12 +16,12 @@ const CashFlowForecast = ({ forecast = [] }) => {
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {forecast.map((item, index) => (
           <div key={index} className="text-center p-4 border border-[#38383A] rounded-lg hover:border-blue-300 transition-colors">
-            <p className="text-sm text-[#8E8E93] mb-1">{item.period}</p>
-            <p className="text-lg font-bold text-white">{formatCurrency(item.projectedSpend)}</p>
-            <p className="text-xs text-[#98989D]">Planned expenses</p>
+            <p className="text-xs text-[#8E8E93] mb-2">{item.period}</p>
+            <p className="text-sm md:text-base font-bold text-white break-words">{formatCurrency(item.projectedSpend)}</p>
+            <p className="text-xs text-[#98989D] mt-1">Planned expenses</p>
           </div>
         ))}
       </div>

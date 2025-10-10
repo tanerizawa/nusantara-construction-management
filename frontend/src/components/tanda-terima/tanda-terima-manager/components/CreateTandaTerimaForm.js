@@ -36,6 +36,33 @@ const CreateTandaTerimaForm = ({ availablePOs, projectId, onSuccess }) => {
     setError('');
 
     try {
+      // Prepare items from selected PO
+      const items = selectedPO && selectedPO.items ? selectedPO.items.map(item => ({
+        itemName: item.itemName || item.description || 'Item',
+        orderedQty: parseFloat(item.quantity) || 0,
+        receivedQty: parseFloat(item.quantity) || 0, // Full delivery by default
+        unit: item.unit || 'pcs',
+        condition: 'good',
+        notes: ''
+      })) : [];
+
+      // Transform formData to match backend schema
+      const requestData = {
+        purchaseOrderId: formData.purchaseOrderId,
+        receiptType: formData.receiptType,
+        receivedDate: formData.deliveryDate, // Map deliveryDate → receivedDate
+        location: formData.deliveryLocation, // Map deliveryLocation → location
+        receivedBy: formData.receiverName || 'System',
+        items: items, // REQUIRED: items array
+        vehicleInfo: formData.receiverPhone ? {
+          driverName: formData.receiverName,
+          driverPhone: formData.receiverPhone
+        } : undefined,
+        notes: formData.deliveryNotes || '', // Map deliveryNotes → notes
+        storageLocation: formData.deliveryLocation,
+        status: 'received' // Set to received for auto-approval
+      };
+
       const token = localStorage.getItem('token');
       const response = await fetch(`/api/projects/${projectId}/delivery-receipts`, {
         method: 'POST',
@@ -43,7 +70,7 @@ const CreateTandaTerimaForm = ({ availablePOs, projectId, onSuccess }) => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(requestData)
       });
 
       const result = await response.json();
@@ -67,7 +94,11 @@ const CreateTandaTerimaForm = ({ availablePOs, projectId, onSuccess }) => {
         
         onSuccess && onSuccess();
       } else {
-        setError(result.error || 'Gagal membuat tanda terima');
+        // Show detailed validation errors
+        const errorMsg = result.details 
+          ? `Validation error: ${result.details.join(', ')}`
+          : result.error || 'Gagal membuat tanda terima';
+        setError(errorMsg);
       }
     } catch (err) {
       console.error('Error creating delivery receipt:', err);

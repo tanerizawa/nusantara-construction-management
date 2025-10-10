@@ -81,13 +81,16 @@ export const useWorkflowData = (project) => {
       },
       currentStage: project.currentStage || calculateProjectStage(project),
       milestones: {
-        pending: project.milestones?.filter(m => m.status === 'pending').length || 0
+        pending: project.milestones?.filter(m => m.status === 'pending').length || 0,
+        data: project.milestones || []
       },
-      beritaAcara: {
+      beritaAcara: project.beritaAcara || [], // Keep as array for activity feed
+      beritaAcaraStatus: {
         pending: project.beritaAcara?.filter(ba => ba.status === 'pending').length || 0
       },
       progressPayments: {
-        pending: project.progressPayments?.filter(pp => pp.status === 'pending').length || 0
+        pending: project.progressPayments?.filter(pp => pp.status === 'pending').length || 0,
+        data: project.progressPayments || []
       }
     };
 

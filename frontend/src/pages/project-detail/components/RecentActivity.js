@@ -17,54 +17,62 @@ const RecentActivity = ({ project, workflowData }) => {
     const acts = [];
     
     // Add RAB approvals
-    workflowData?.rabStatus?.data?.forEach(rab => {
-      if (rab.approvedAt) {
-        acts.push({
-          type: 'approval',
-          title: 'RAB Item disetujui',
-          description: rab.description || 'Item budget',
-          timestamp: rab.approvedAt,
-          icon: CheckCircle,
-          color: '#30D158'
-        });
-      }
-    });
+    if (Array.isArray(workflowData?.rabStatus?.data)) {
+      workflowData.rabStatus.data.forEach(rab => {
+        if (rab.approvedAt) {
+          acts.push({
+            type: 'approval',
+            title: 'RAB Item disetujui',
+            description: rab.description || 'Item budget',
+            timestamp: rab.approvedAt,
+            icon: CheckCircle,
+            color: '#30D158'
+          });
+        }
+      });
+    }
     
     // Add PO creations
-    workflowData?.purchaseOrders?.forEach(po => {
-      acts.push({
-        type: 'purchase',
-        title: 'Purchase Order dibuat',
-        description: `PO: ${po.poNumber || 'N/A'}`,
-        timestamp: po.createdAt,
-        icon: ShoppingCart,
-        color: '#0A84FF'
+    if (Array.isArray(workflowData?.purchaseOrders)) {
+      workflowData.purchaseOrders.forEach(po => {
+        acts.push({
+          type: 'purchase',
+          title: 'Purchase Order dibuat',
+          description: `PO: ${po.poNumber || 'N/A'}`,
+          timestamp: po.createdAt,
+          icon: ShoppingCart,
+          color: '#0A84FF'
+        });
       });
-    });
+    }
     
     // Add delivery receipts
-    workflowData?.deliveryReceipts?.forEach(dr => {
-      acts.push({
-        type: 'delivery',
-        title: 'Material diterima',
-        description: `${dr.items?.length || 0} items dari ${dr.supplier || 'supplier'}`,
-        timestamp: dr.createdAt,
-        icon: Package,
-        color: '#BF5AF2'
+    if (Array.isArray(workflowData?.deliveryReceipts)) {
+      workflowData.deliveryReceipts.forEach(dr => {
+        acts.push({
+          type: 'delivery',
+          title: 'Material diterima',
+          description: `${dr.items?.length || 0} items dari ${dr.supplier || 'supplier'}`,
+          timestamp: dr.createdAt,
+          icon: Package,
+          color: '#BF5AF2'
+        });
       });
-    });
+    }
     
     // Add Berita Acara if available
-    workflowData?.beritaAcara?.forEach(ba => {
-      acts.push({
-        type: 'document',
-        title: 'Berita Acara dibuat',
-        description: ba.title || ba.description || 'Dokumen resmi',
-        timestamp: ba.createdAt,
-        icon: ClipboardCheck,
-        color: '#FF9F0A'
+    if (Array.isArray(workflowData?.beritaAcara)) {
+      workflowData.beritaAcara.forEach(ba => {
+        acts.push({
+          type: 'document',
+          title: 'Berita Acara dibuat',
+          description: ba.title || ba.description || 'Dokumen resmi',
+          timestamp: ba.createdAt,
+          icon: ClipboardCheck,
+          color: '#FF9F0A'
+        });
       });
-    });
+    }
     
     // Add project creation
     if (project.createdAt) {

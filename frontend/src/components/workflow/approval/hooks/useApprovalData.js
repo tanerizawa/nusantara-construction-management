@@ -18,7 +18,13 @@ export const useApprovalData = (projectId) => {
    */
   const loadRAB = useCallback(async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/rab`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/projects/${projectId}/rab`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch RAB');
       
       const result = await response.json();
@@ -81,7 +87,13 @@ export const useApprovalData = (projectId) => {
    */
   const loadPO = useCallback(async () => {
     try {
-      const response = await fetch(`/api/purchase-orders?projectId=${projectId}`);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/purchase-orders?projectId=${projectId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch PO');
       
       const result = await response.json();

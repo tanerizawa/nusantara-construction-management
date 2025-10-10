@@ -307,15 +307,50 @@ router.post('/:id/delivery-receipts', async (req, res) => {
       receiptNumber = `DR-${projectId.substring(0, 8)}-${String(drCount + 1).padStart(4, '0')}`;
     }
 
+    // Generate unique ID
+    const receiptId = `DR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     // Get createdBy from request body or authenticated user
     const createdBy = value.createdBy || (req.user && req.user.id) || 'system';
 
-    const deliveryReceipt = await DeliveryReceipt.create({
+    // Map items to match model schema (orderedQty → orderedQuantity, receivedQty → deliveredQuantity)
+    const mappedItems = value.items.map(item => ({
+      itemName: item.itemName,
+      orderedQuantity: item.orderedQty,
+      deliveredQuantity: item.receivedQty,
+      unit: item.unit,
+      condition: item.condition || 'good',
+      notes: item.notes || ''
+    }));
+
+    // Prepare data with correct field mapping for model
+    const receiptData = {
+      id: receiptId,
       projectId,
       receiptNumber,
-      ...value,
+      purchaseOrderId: value.purchaseOrderId,
+      deliveryDate: value.receivedDate, // Map receivedDate → deliveryDate
+      receivedDate: value.receivedDate,
+      deliveryLocation: value.location || value.storageLocation, // Map location → deliveryLocation
+      receivedBy: value.receivedBy || createdBy,
+      receiverName: value.receivedBy || 'System', // REQUIRED field
+      receiverPosition: null,
+      receiverPhone: value.vehicleInfo?.driverPhone || null,
+      supplierDeliveryPerson: value.vehicleInfo?.driverName || null,
+      supplierDeliveryPhone: value.vehicleInfo?.driverPhone || null,
+      vehicleNumber: value.vehicleInfo?.plateNumber || null,
+      deliveryMethod: 'truck',
+      status: value.status || 'received',
+      receiptType: value.receiptType || 'full_delivery',
+      items: mappedItems, // Use mapped items with correct field names
+      deliveryNotes: value.notes || '',
+      qualityNotes: null,
+      conditionNotes: null,
+      inspectionResult: 'pending',
       createdBy
-    });
+    };
+
+    const deliveryReceipt = await DeliveryReceipt.create(receiptData);
 
     // Fetch with relations
     const receiptWithRelations = await DeliveryReceipt.findByPk(deliveryReceipt.id, {

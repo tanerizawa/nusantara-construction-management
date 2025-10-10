@@ -63,8 +63,16 @@ export const useRABItems = (projectId) => {
       setLoading(true);
       setError(null);
       
+      const token = localStorage.getItem('token');
+      
       // First, get RAB items for this project
-      const response = await fetch(`/api/projects/${projectId}/rab`);
+      const response = await fetch(`/api/projects/${projectId}/rab`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
       if (!response.ok) {
         throw new Error('Failed to fetch RAB items');
       }
@@ -76,7 +84,6 @@ export const useRABItems = (projectId) => {
         
         // Then get purchase summary for all RAB items in this project
         const summaryUrl = `/api/rab-tracking/projects/${projectId}/purchase-summary`;
-        console.log('[DEBUG] Fetching purchase summary from:', summaryUrl);
         
         const summaryResponse = await fetch(summaryUrl);
         let purchaseSummary = {};

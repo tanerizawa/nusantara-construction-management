@@ -221,7 +221,7 @@ router.post('/:id/rab/bulk', async (req, res) => {
         quantity: qty,
         unitPrice: price,
         totalPrice: qty * price,
-        status: item.status || 'pending',
+        status: item.status || 'draft', // Changed from 'pending' to 'draft'
         notes: item.notes || '',
         createdBy: createdBy || item.createdBy
       };
@@ -464,7 +464,7 @@ router.post('/:id/rab/approve-all', async (req, res) => {
     }, {
       where: { 
         projectId: id,
-        status: 'pending'
+        status: 'draft' // Changed from 'pending' to 'draft'
       }
     });
 

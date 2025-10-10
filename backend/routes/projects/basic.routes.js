@@ -15,6 +15,7 @@ const ProjectMilestone = require("../../models/ProjectMilestone");
 const User = require("../../models/User");
 const PurchaseOrder = require("../../models/PurchaseOrder");
 const DeliveryReceipt = require("../../models/DeliveryReceipt");
+const BeritaAcara = require("../../models/BeritaAcara");
 const { verifyToken } = require("../../middleware/auth");
 
 const router = express.Router();
@@ -396,8 +397,25 @@ router.post("/", verifyToken, async (req, res) => {
       });
     }
 
+    // Generate project ID
+    const year = new Date().getFullYear();
+    const subsidiaryCode = value.subsidiary?.code || 'GEN'; // Default to 'GEN' if no subsidiary
+    
+    // Get count of existing projects for this year and subsidiary
+    const { count } = await Project.findAndCountAll({
+      where: {
+        id: {
+          [Op.like]: `${year}${subsidiaryCode}%`
+        }
+      }
+    });
+    
+    const sequence = String(count + 1).padStart(3, '0');
+    const projectId = `${year}${subsidiaryCode}${sequence}`;
+
     // Create project
     const project = await Project.create({
+      id: projectId,
       ...value,
       subsidiaryId: value.subsidiary?.id,
       subsidiaryInfo: value.subsidiary,
@@ -479,7 +497,19 @@ router.delete("/:id", async (req, res) => {
   try {
     const { id: projectId } = req.params;
 
-    // Delete related data in order
+    // Delete related data in correct order (respect foreign key constraints)
+    // 1. Delete child records first (delivery receipts reference purchase orders)
+    const deliveryReceiptsDeleted = await DeliveryReceipt.destroy({
+      where: { projectId },
+    });
+
+    // 2. Now safe to delete purchase orders
+    const poDeleted = await PurchaseOrder.destroy({ where: { projectId } });
+
+    // 3. Delete berita acara
+    const baDeleted = await BeritaAcara.destroy({ where: { projectId } });
+
+    // 4. Delete other project data
     const rabDeleted = await ProjectRAB.destroy({ where: { projectId } });
 
     const milestonesDeleted = await ProjectMilestone.destroy({
@@ -491,14 +521,6 @@ router.delete("/:id", async (req, res) => {
     });
 
     const documentsDeleted = await ProjectDocument.destroy({
-      where: { projectId },
-    });
-
-    const baDeleted = await BeritaAcara.destroy({ where: { projectId } });
-
-    const poDeleted = await PurchaseOrder.destroy({ where: { projectId } });
-
-    const deliveryReceiptsDeleted = await DeliveryReceipt.destroy({
       where: { projectId },
     });
 

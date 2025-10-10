@@ -137,7 +137,7 @@ router.get('/:id/delivery-receipts/available-pos', async (req, res) => {
     const approvedPOs = await PurchaseOrder.findAll({
       where: {
         projectId,
-        status: 'approved'
+        status: 'approved' // Only get POs that haven't been received yet
       },
       attributes: ['id', 'poNumber', 'supplierName', 'totalAmount', 'orderDate', 'expectedDeliveryDate', 'items', 'status'],
       order: [['orderDate', 'DESC']]
@@ -152,20 +152,20 @@ router.get('/:id/delivery-receipts/available-pos', async (req, res) => {
       attributes: ['purchaseOrderId', 'status', 'receiptType', 'items']
     });
 
-    // Map delivery status to POs
+    // Map delivery status to POs and filter out completed ones
     const posWithDeliveryStatus = approvedPOs.map(po => {
       const receipts = deliveryReceipts.filter(dr => dr.purchaseOrderId === po.id);
-      const completedReceipts = receipts.filter(dr => dr.status === 'completed');
-      const hasFullDelivery = receipts.some(dr => dr.receiptType === 'full_delivery' && dr.status === 'completed');
+      const completedReceipts = receipts.filter(dr => ['received', 'completed'].includes(dr.status));
+      const hasFullDelivery = receipts.some(dr => dr.receiptType === 'full_delivery' && ['received', 'completed'].includes(dr.status));
 
       return {
         ...po.toJSON(),
         deliveryStatus: hasFullDelivery ? 'fully_delivered' :
                        completedReceipts.length > 0 ? 'partial_delivered' : 'pending_delivery',
         deliveryReceipts: receipts.length,
-        canCreateReceipt: !hasFullDelivery
+        canCreateReceipt: !hasFullDelivery // Hide if already has full delivery
       };
-    });
+    }).filter(po => po.canCreateReceipt); // Only return POs that can create receipts
 
     res.json({
       success: true,
@@ -310,8 +310,19 @@ router.post('/:id/delivery-receipts', async (req, res) => {
     // Generate unique ID
     const receiptId = `DR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Get createdBy from request body or authenticated user
-    const createdBy = value.createdBy || (req.user && req.user.id) || 'system';
+    // Get authenticated user - REQUIRED for foreign key fields (receivedBy, createdBy)
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required. User ID not found in request.'
+      });
+    }
+
+    const userId = req.user.id;
+    
+    // Both receivedBy and createdBy are foreign keys - must be valid user IDs
+    const createdBy = userId; // Always use authenticated user for createdBy
+    const receivedBy = userId; // Always use authenticated user for receivedBy
 
     // Map items to match model schema (orderedQty → orderedQuantity, receivedQty → deliveredQuantity)
     const mappedItems = value.items.map(item => ({
@@ -332,8 +343,8 @@ router.post('/:id/delivery-receipts', async (req, res) => {
       deliveryDate: value.receivedDate, // Map receivedDate → deliveryDate
       receivedDate: value.receivedDate,
       deliveryLocation: value.location || value.storageLocation, // Map location → deliveryLocation
-      receivedBy: value.receivedBy || createdBy,
-      receiverName: value.receivedBy || 'System', // REQUIRED field
+      receivedBy, // FOREIGN KEY: Must be valid user ID
+      receiverName: value.receivedBy || req.user.username || 'Unknown', // Display name (not FK)
       receiverPosition: null,
       receiverPhone: value.vehicleInfo?.driverPhone || null,
       supplierDeliveryPerson: value.vehicleInfo?.driverName || null,
@@ -347,10 +358,18 @@ router.post('/:id/delivery-receipts', async (req, res) => {
       qualityNotes: null,
       conditionNotes: null,
       inspectionResult: 'pending',
-      createdBy
+      createdBy // FOREIGN KEY: Must be valid user ID
     };
 
     const deliveryReceipt = await DeliveryReceipt.create(receiptData);
+
+    // Update PO status if delivery receipt is auto-approved (status: received or completed)
+    if (receiptData.status === 'received' || receiptData.status === 'completed') {
+      const purchaseOrder = await PurchaseOrder.findByPk(receiptData.purchaseOrderId);
+      if (purchaseOrder && purchaseOrder.status === 'approved') {
+        await purchaseOrder.update({ status: 'received' });
+      }
+    }
 
     // Fetch with relations
     const receiptWithRelations = await DeliveryReceipt.findByPk(deliveryReceipt.id, {

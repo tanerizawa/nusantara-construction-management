@@ -69,14 +69,20 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
         milestoneItemData.notes = formData.notes;
       }
 
-      // Add deliverables if exists
+      // Add deliverables if exists (filter out empty strings)
       if (formData.deliverables && formData.deliverables.length > 0) {
-        milestoneItemData.deliverables = formData.deliverables;
+        const validDeliverables = formData.deliverables.filter(d => d && d.trim() !== '');
+        if (validDeliverables.length > 0) {
+          milestoneItemData.deliverables = validDeliverables;
+        }
       }
 
-      // Add dependencies if exists
+      // Add dependencies if exists (filter out empty strings)
       if (formData.dependencies && formData.dependencies.length > 0) {
-        milestoneItemData.dependencies = formData.dependencies;
+        const validDependencies = formData.dependencies.filter(d => d && d.trim() !== '');
+        if (validDependencies.length > 0) {
+          milestoneItemData.dependencies = validDependencies;
+        }
       }
 
       if (milestone) {

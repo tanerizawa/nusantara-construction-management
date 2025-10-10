@@ -126,6 +126,11 @@ const BeritaAcara = sequelize.define('BeritaAcara', {
     allowNull: true,
     defaultValue: []
   },
+  witnesses: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
   notes: {
     type: DataTypes.TEXT,
     allowNull: true

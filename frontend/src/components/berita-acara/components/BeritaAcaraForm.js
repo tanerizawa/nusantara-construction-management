@@ -168,9 +168,8 @@ const BeritaAcaraForm = ({
                 className="w-full bg-[#1C1C1E] border border-[#38383A] text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
               >
                 <option value="partial">Sebagian (Partial)</option>
+                <option value="provisional">Sementara (Provisional)</option>
                 <option value="final">Final</option>
-                <option value="handover">Serah Terima (Handover)</option>
-                <option value="inspection">Inspeksi</option>
               </select>
             </div>
           </div>

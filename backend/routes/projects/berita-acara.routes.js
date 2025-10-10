@@ -15,11 +15,11 @@ const router = express.Router();
 // Validation schema for Berita Acara
 const beritaAcaraSchema = Joi.object({
   milestoneId: Joi.string().optional(),
-  baType: Joi.string().valid('partial', 'final', 'handover', 'inspection').default('partial'),
+  baType: Joi.string().valid('partial', 'final', 'provisional').default('partial'),
   workDescription: Joi.string().required(),
   completionPercentage: Joi.number().min(0).max(100).required(),
   completionDate: Joi.date().required(),
-  status: Joi.string().valid('draft', 'submitted', 'approved', 'rejected').default('draft'),
+  status: Joi.string().valid('draft', 'submitted', 'approved', 'rejected', 'client_review').default('draft'),
   clientNotes: Joi.string().allow('').optional(),
   clientApprovalDate: Joi.date().optional(),
   clientApprovalNotes: Joi.string().allow('').optional(),
@@ -28,7 +28,9 @@ const beritaAcaraSchema = Joi.object({
     name: Joi.string().required(),
     position: Joi.string().required(),
     organization: Joi.string().optional()
-  })).optional()
+  })).optional(),
+  photos: Joi.array().items(Joi.string()).optional(),
+  documents: Joi.array().items(Joi.string()).optional()
 });
 
 /**

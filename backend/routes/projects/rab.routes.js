@@ -44,7 +44,8 @@ router.get('/:id/rab', async (req, res) => {
       total: rabItems.length,
       totalAmount: rabItems.reduce((sum, item) => sum + parseFloat(item.totalPrice || 0), 0),
       approved: rabItems.filter(item => item.status === 'approved').length,
-      pending: rabItems.filter(item => item.status === 'pending').length,
+      draft: rabItems.filter(item => item.status === 'draft').length, // Changed from 'pending' to 'draft'
+      under_review: rabItems.filter(item => item.status === 'under_review').length,
       rejected: rabItems.filter(item => item.status === 'rejected').length,
       byCategory: rabItems.reduce((acc, item) => {
         if (!acc[item.category]) {
@@ -113,7 +114,7 @@ router.get('/:id/rab/:rabId', async (req, res) => {
 router.post('/:id/rab', async (req, res) => {
   try {
     const { id } = req.params;
-    const { category, description, unit, quantity, unitPrice, notes, createdBy, status = 'pending' } = req.body;
+    const { category, description, unit, quantity, unitPrice, notes, createdBy, status = 'draft' } = req.body; // Changed default from 'pending' to 'draft'
 
     // Check if project exists
     const project = await Project.findByPk(id);

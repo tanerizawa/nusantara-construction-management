@@ -35,8 +35,8 @@ const ProjectMilestones = ({ project, onUpdate }) => {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading milestones...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0A84FF] mx-auto"></div>
+          <p className="mt-2 text-[#8E8E93]">Loading milestones...</p>
         </div>
       </div>
     );
@@ -47,12 +47,12 @@ const ProjectMilestones = ({ project, onUpdate }) => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-xl font-semibold">Project Milestones</h3>
-          <p className="text-gray-600">Kelola tonggak pencapaian proyek</p>
+          <h3 className="text-xl font-semibold text-white">Project Milestones</h3>
+          <p className="text-[#8E8E93]">Kelola tonggak pencapaian proyek</p>
         </div>
         <button 
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
         >
           <Plus size={16} />
           Tambah Milestone
@@ -66,12 +66,12 @@ const ProjectMilestones = ({ project, onUpdate }) => {
       <MilestoneProgressOverview stats={stats} />
 
       {/* Milestones Timeline */}
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <div className="p-4 border-b">
-          <h4 className="font-semibold">Timeline Milestone</h4>
+      <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
+        <div className="p-4 border-b border-[#38383A]">
+          <h4 className="font-semibold text-white">Timeline Milestone</h4>
         </div>
         
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-[#38383A]">
           {milestones.map((milestone, index) => (
             <MilestoneTimelineItem
               key={milestone.id}

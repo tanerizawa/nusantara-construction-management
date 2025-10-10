@@ -10,6 +10,7 @@ import { approvalCategories } from './config';
 // Components
 import { ApprovalStatusBadge, ApprovalActions } from './components';
 import TandaTerimaContent from './components/TandaTerimaContent';
+import BeritaAcaraContent from './components/BeritaAcaraContent';
 
 // Utils
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -191,9 +192,11 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
         </div>
       </div>
 
-      {/* Content Area - Different for Tanda Terima */}
+      {/* Content Area - Different for Tanda Terima and Berita Acara */}
       {activeCategory === 'tandaTerima' ? (
         <TandaTerimaContent projectId={projectId} project={project} onDataChange={onDataChange} />
+      ) : activeCategory === 'beritaAcara' ? (
+        <BeritaAcaraContent projectId={projectId} project={project} onDataChange={onDataChange} />
       ) : (
         <>
           {/* Filters - Only for RAB and PO */}

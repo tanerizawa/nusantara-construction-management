@@ -265,6 +265,55 @@ router.patch('/:projectId/berita-acara/:baId', async (req, res) => {
 });
 
 /**
+ * @route   POST /api/projects/:projectId/berita-acara/:baId/submit
+ * @desc    Submit Berita Acara for review
+ * @access  Private
+ */
+router.post('/:projectId/berita-acara/:baId/submit', async (req, res) => {
+  try {
+    const { projectId, baId } = req.params;
+    const { submittedBy } = req.body;
+
+    const beritaAcara = await BeritaAcara.findOne({
+      where: { id: baId, projectId }
+    });
+
+    if (!beritaAcara) {
+      return res.status(404).json({
+        success: false,
+        error: 'Berita Acara not found'
+      });
+    }
+
+    if (beritaAcara.status !== 'draft') {
+      return res.status(400).json({
+        success: false,
+        error: 'Only draft Berita Acara can be submitted'
+      });
+    }
+
+    await beritaAcara.update({
+      status: 'submitted',
+      submittedBy: submittedBy || 'system',
+      submittedAt: new Date()
+    });
+
+    res.json({
+      success: true,
+      data: beritaAcara,
+      message: 'Berita Acara submitted successfully for review'
+    });
+  } catch (error) {
+    console.error('Error submitting Berita Acara:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit Berita Acara',
+      details: error.message
+    });
+  }
+});
+
+/**
  * @route   PATCH /api/projects/:projectId/berita-acara/:baId/approve
  * @desc    Approve Berita Acara
  * @access  Private

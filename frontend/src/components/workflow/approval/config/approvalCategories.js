@@ -1,12 +1,13 @@
 import { 
   FileBarChart, 
   ShoppingCart,
-  PackageCheck
+  PackageCheck,
+  ClipboardCheck
 } from 'lucide-react';
 
 /**
  * Approval Categories Configuration
- * Defines the three main approval categories in the system
+ * Defines the main approval categories in the system
  */
 export const approvalCategories = [
   {
@@ -32,5 +33,13 @@ export const approvalCategories = [
     icon: PackageCheck,
     color: 'bg-[#BF5AF2]/20 text-[#BF5AF2]',
     description: 'Konfirmasi penerimaan barang dari PO yang sudah approved'
+  },
+  {
+    id: 'beritaAcara',
+    name: 'Berita Acara',
+    fullName: 'Berita Acara',
+    icon: ClipboardCheck,
+    color: 'bg-[#FF9F0A]/20 text-[#FF9F0A]',
+    description: 'Persetujuan Berita Acara kemajuan pekerjaan'
   }
 ];

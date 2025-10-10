@@ -17,7 +17,7 @@ import Login from './components/Auth/Login';
 // Import pages
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
-import Finance from './pages/Finance';
+import Finance from './pages/finance';
 import Projects from './pages/Projects';
 import ProjectCreate from './pages/ProjectCreate';
 import ProjectDetail from './pages/ProjectDetail';

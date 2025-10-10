@@ -62,21 +62,45 @@ export const useMilestones = (projectId) => {
         return;
       }
 
+      // Only send fields that backend accepts (match Joi schema)
       const updatedData = { 
         title: milestone.name || milestone.title,
-        description: milestone.description,
+        description: milestone.description || '',
         targetDate: milestone.targetDate,
         progress,
         status: progress === 100 ? 'completed' : progress > 0 ? 'in_progress' : 'pending',
-        assignedTo: milestone.assignedTeam?.[0] || null,
-        priority: milestone.priority || 'medium',
-        notes: milestone.notes || ''
+        priority: milestone.priority || 'medium'
       };
+
+      // Only add optional fields if they have values
+      if (milestone.assignedTeam?.[0]) {
+        updatedData.assignedTo = milestone.assignedTeam[0];
+      }
+      
+      if (milestone.notes) {
+        updatedData.notes = milestone.notes;
+      }
+
+      // Add deliverables if exists (filter empty)
+      if (milestone.deliverables && milestone.deliverables.length > 0) {
+        const validDeliverables = milestone.deliverables.filter(d => d && d.trim() !== '');
+        if (validDeliverables.length > 0) {
+          updatedData.deliverables = validDeliverables;
+        }
+      }
+
+      // Add dependencies if exists (filter empty)
+      if (milestone.dependencies && milestone.dependencies.length > 0) {
+        const validDependencies = milestone.dependencies.filter(d => d && d.trim() !== '');
+        if (validDependencies.length > 0) {
+          updatedData.dependencies = validDependencies;
+        }
+      }
 
       await projectAPI.updateMilestone(projectId, milestoneId, updatedData);
       
       setMilestones(prev => prev.map(m => 
-        m.id === milestoneId ? { ...milestone, ...updatedData } : m
+        m.id === milestoneId ? { ...m, progress, status: updatedData.status } : m
       ));
     } catch (error) {
       console.error('Error updating milestone progress:', error);

@@ -3,6 +3,7 @@ import { FileText, CheckCircle, Clock, DollarSign } from 'lucide-react';
 
 /**
  * Komponen untuk menampilkan statistik ringkasan Berita Acara
+ * Dark theme version with iOS/macOS colors
  */
 const BASummaryCards = ({ statistics }) => {
   const { total, pending, approved, paymentReady } = statistics;
@@ -12,25 +13,29 @@ const BASummaryCards = ({ statistics }) => {
       icon: FileText,
       label: 'Total BA',
       value: total,
-      color: 'text-blue-500'
+      color: '#0A84FF',
+      bgColor: 'rgba(10, 132, 255, 0.1)'
     },
     {
       icon: Clock,
       label: 'Pending',
       value: pending,
-      color: 'text-yellow-500'
+      color: '#FF9F0A',
+      bgColor: 'rgba(255, 159, 10, 0.1)'
     },
     {
       icon: CheckCircle,
       label: 'Disetujui',
       value: approved,
-      color: 'text-green-500'
+      color: '#30D158',
+      bgColor: 'rgba(48, 209, 88, 0.1)'
     },
     {
       icon: DollarSign,
       label: 'Siap Bayar',
       value: paymentReady,
-      color: 'text-emerald-500'
+      color: '#32D74B',
+      bgColor: 'rgba(50, 215, 75, 0.1)'
     }
   ];
 
@@ -39,12 +44,20 @@ const BASummaryCards = ({ statistics }) => {
       {cards.map((card, index) => {
         const Icon = card.icon;
         return (
-          <div key={index} className="bg-white p-4 rounded-lg border">
-            <div className="flex items-center">
-              <Icon className={`h-8 w-8 ${card.color}`} />
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">{card.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+          <div 
+            key={index} 
+            className="bg-[#2C2C2E] p-4 rounded-lg border border-[#38383A]"
+          >
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: card.bgColor }}
+              >
+                <Icon size={20} style={{ color: card.color }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-[#8E8E93]">{card.label}</p>
+                <p className="text-lg font-bold text-white">{card.value}</p>
               </div>
             </div>
           </div>

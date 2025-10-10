@@ -20,36 +20,42 @@ export const BA_STATUS = {
 
 /**
  * Konfigurasi tampilan untuk setiap status BA
+ * Dark theme with iOS/macOS colors
  */
 export const getStatusConfig = (status) => {
   const configs = {
     [BA_STATUS.DRAFT]: { 
       label: 'Draft', 
-      color: 'bg-gray-100 text-gray-800',
+      color: '#8E8E93',
+      bgColor: 'rgba(142, 142, 147, 0.1)',
       icon: FileText,
       description: 'Masih dalam tahap penyusunan'
     },
     [BA_STATUS.SUBMITTED]: { 
       label: 'Diajukan', 
-      color: 'bg-blue-100 text-blue-800',
+      color: '#0A84FF',
+      bgColor: 'rgba(10, 132, 255, 0.1)',
       icon: Clock,
       description: 'Menunggu review dari klien'
     },
     [BA_STATUS.CLIENT_REVIEW]: { 
       label: 'Review Klien', 
-      color: 'bg-yellow-100 text-yellow-800',
+      color: '#FF9F0A',
+      bgColor: 'rgba(255, 159, 10, 0.1)',
       icon: User,
       description: 'Sedang direview oleh klien'
     },
     [BA_STATUS.APPROVED]: { 
       label: 'Disetujui', 
-      color: 'bg-green-100 text-green-800',
+      color: '#30D158',
+      bgColor: 'rgba(48, 209, 88, 0.1)',
       icon: CheckCircle,
       description: 'BA telah disetujui, siap untuk pembayaran'
     },
     [BA_STATUS.REJECTED]: { 
       label: 'Ditolak', 
-      color: 'bg-red-100 text-red-800',
+      color: '#FF3B30',
+      bgColor: 'rgba(255, 59, 48, 0.1)',
       icon: AlertTriangle,
       description: 'BA ditolak, perlu revisi'
     }

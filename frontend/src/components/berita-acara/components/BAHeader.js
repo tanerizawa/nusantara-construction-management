@@ -3,21 +3,22 @@ import { Plus } from 'lucide-react';
 
 /**
  * Komponen header untuk Berita Acara Manager
+ * Dark theme version
  */
 const BAHeader = ({ onCreateBA }) => {
   return (
     <div className="flex justify-between items-center">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900">Berita Acara Management</h3>
-        <p className="text-sm text-gray-600 mt-1">
+        <h3 className="text-xl font-semibold text-white">Berita Acara Management</h3>
+        <p className="text-sm text-[#8E8E93] mt-1">
           Kelola Berita Acara untuk milestone dan pembayaran proyek
         </p>
       </div>
       <button
         onClick={onCreateBA}
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 transition-colors"
+        className="bg-[#0A84FF] text-white px-4 py-2 rounded-lg hover:bg-[#0A84FF]/90 flex items-center gap-2 transition-colors"
       >
-        <Plus className="w-4 h-4" />
+        <Plus size={16} />
         <span>Buat BA Baru</span>
       </button>
     </div>

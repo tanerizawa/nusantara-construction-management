@@ -60,7 +60,8 @@ const CreateTandaTerimaForm = ({ availablePOs, projectId, onSuccess }) => {
         } : undefined,
         notes: formData.deliveryNotes || '', // Map deliveryNotes → notes
         storageLocation: formData.deliveryLocation,
-        status: 'received' // Set to received for auto-approval
+        status: 'received', // Set to received for auto-approval
+        createdBy: localStorage.getItem('userId') || localStorage.getItem('username') || 'system' // REQUIRED
       };
 
       const token = localStorage.getItem('token');
@@ -95,9 +96,23 @@ const CreateTandaTerimaForm = ({ availablePOs, projectId, onSuccess }) => {
         onSuccess && onSuccess();
       } else {
         // Show detailed validation errors
-        const errorMsg = result.details 
-          ? `Validation error: ${result.details.join(', ')}`
-          : result.error || 'Gagal membuat tanda terima';
+        let errorMsg = 'Gagal membuat tanda terima';
+        
+        if (result.details) {
+          // Handle both array and object details
+          if (Array.isArray(result.details)) {
+            errorMsg = `Validation error: ${result.details.join(', ')}`;
+          } else if (typeof result.details === 'object') {
+            errorMsg = `Validation error: ${JSON.stringify(result.details)}`;
+          } else {
+            errorMsg = `Validation error: ${result.details}`;
+          }
+        } else if (result.error) {
+          errorMsg = result.error;
+        } else if (result.message) {
+          errorMsg = result.message;
+        }
+        
         setError(errorMsg);
       }
     } catch (err) {

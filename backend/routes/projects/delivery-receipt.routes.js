@@ -37,7 +37,8 @@ const deliveryReceiptSchema = Joi.object({
   location: Joi.string().optional(),
   storageLocation: Joi.string().optional(),
   notes: Joi.string().allow('').optional(),
-  status: Joi.string().valid('draft', 'received', 'inspected', 'completed', 'rejected').default('draft')
+  status: Joi.string().valid('draft', 'received', 'inspected', 'completed', 'rejected').default('draft'),
+  createdBy: Joi.string().optional() // Optional, will use req.user.id if not provided
 });
 
 /**
@@ -306,11 +307,14 @@ router.post('/:id/delivery-receipts', async (req, res) => {
       receiptNumber = `DR-${projectId.substring(0, 8)}-${String(drCount + 1).padStart(4, '0')}`;
     }
 
+    // Get createdBy from request body or authenticated user
+    const createdBy = value.createdBy || (req.user && req.user.id) || 'system';
+
     const deliveryReceipt = await DeliveryReceipt.create({
       projectId,
       receiptNumber,
       ...value,
-      createdBy: req.body.createdBy
+      createdBy
     });
 
     // Fetch with relations

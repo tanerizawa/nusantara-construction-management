@@ -164,6 +164,19 @@ const setupAssociations = () => {
     as: 'project'
   });
 
+  // ProjectMilestone - User relationships (assignedTo)
+  ProjectMilestone.belongsTo(User, {
+    foreignKey: 'assignedTo',
+    as: 'assignedUser',
+    constraints: false // assignedTo is optional
+  });
+  
+  User.hasMany(ProjectMilestone, {
+    foreignKey: 'assignedTo',
+    as: 'assignedMilestones',
+    constraints: false
+  });
+
   // Project - ProjectTeamMember relationships
   Project.hasMany(ProjectTeamMember, {
     foreignKey: 'projectId',

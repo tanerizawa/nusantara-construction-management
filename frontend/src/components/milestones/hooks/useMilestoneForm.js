@@ -50,16 +50,34 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
     e.preventDefault();
     
     try {
-      // Map frontend fields to backend fields
+      // Map frontend fields to backend fields (match Joi schema)
       const milestoneItemData = {
         title: formData.name || formData.title,
-        description: formData.description,
+        description: formData.description || '',
         targetDate: formData.targetDate,
-        assignedTo: formData.assignedTeam?.[0] || null,
         priority: formData.priority || 'medium',
-        notes: formData.notes || '',
-        createdBy: 'current_user'
+        status: formData.status || 'pending',
+        progress: formData.progress || 0
       };
+
+      // Only add optional fields if they have values
+      if (formData.assignedTeam?.[0]) {
+        milestoneItemData.assignedTo = formData.assignedTeam[0];
+      }
+      
+      if (formData.notes) {
+        milestoneItemData.notes = formData.notes;
+      }
+
+      // Add deliverables if exists
+      if (formData.deliverables && formData.deliverables.length > 0) {
+        milestoneItemData.deliverables = formData.deliverables;
+      }
+
+      // Add dependencies if exists
+      if (formData.dependencies && formData.dependencies.length > 0) {
+        milestoneItemData.dependencies = formData.dependencies;
+      }
 
       if (milestone) {
         // Update existing milestone

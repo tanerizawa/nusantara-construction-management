@@ -22,56 +22,39 @@ const MilestoneFormModal = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
-      style={{
-        zIndex: 9999,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}
+      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg max-w-2xl w-full max-h-screen overflow-y-auto"
-        style={{
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          maxWidth: '672px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-        }}
+        className="bg-[#2C2C2E] rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#38383A]"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b">
-          <h3 className="text-lg font-semibold">
+        <div className="p-6 border-b border-[#38383A]">
+          <h3 className="text-lg font-semibold text-white">
             {milestone ? 'Edit Milestone' : 'Tambah Milestone'}
           </h3>
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Nama Milestone</label>
+            <label className="block text-sm font-medium text-[#8E8E93] mb-1">Nama Milestone</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white placeholder-[#98989D] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+              placeholder="Masukkan nama milestone"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Deskripsi</label>
+            <label className="block text-sm font-medium text-[#8E8E93] mb-1">Deskripsi</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white placeholder-[#98989D] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+              placeholder="Deskripsi milestone"
               rows={3}
               required
             />
@@ -79,52 +62,55 @@ const MilestoneFormModal = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Target Tanggal</label>
+              <label className="block text-sm font-medium text-[#8E8E93] mb-1">Target Tanggal</label>
               <input
                 type="date"
                 value={formData.targetDate}
                 onChange={(e) => setFormData({ ...formData, targetDate: e.target.value })}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-1">Budget</label>
+              <label className="block text-sm font-medium text-[#8E8E93] mb-1">Budget (Rp)</label>
               <input
                 type="number"
                 value={formData.budget}
                 onChange={(e) => setFormData({ ...formData, budget: parseInt(e.target.value) || 0 })}
-                className="w-full border rounded-lg px-3 py-2"
+                className="w-full bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white placeholder-[#98989D] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+                placeholder="0"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Deliverables</label>
-            {(formData.deliverables || []).map((deliverable, index) => (
-              <div key={index} className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={deliverable}
-                  onChange={(e) => updateDeliverable(index, e.target.value)}
-                  className="flex-1 border rounded-lg px-3 py-2"
-                  placeholder="Deliverable item"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeDeliverable(index)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+            <label className="block text-sm font-medium text-[#8E8E93] mb-2">Deliverables</label>
+            <div className="space-y-2">
+              {(formData.deliverables || []).map((deliverable, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={deliverable}
+                    onChange={(e) => updateDeliverable(index, e.target.value)}
+                    className="flex-1 bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white placeholder-[#98989D] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+                    placeholder="Deliverable item"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeDeliverable(index)}
+                    className="text-[#FF3B30] hover:text-[#FF3B30]/80 transition-colors p-2"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
             <button
               type="button"
               onClick={addDeliverable}
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+              className="flex items-center gap-2 text-[#0A84FF] hover:text-[#0A84FF]/80 transition-colors mt-2"
             >
               <Plus size={16} />
               Tambah Deliverable
@@ -132,11 +118,12 @@ const MilestoneFormModal = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Catatan</label>
+            <label className="block text-sm font-medium text-[#8E8E93] mb-1">Catatan</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
+              className="w-full bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white placeholder-[#98989D] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+              placeholder="Catatan tambahan (opsional)"
               rows={2}
             />
           </div>
@@ -144,14 +131,14 @@ const MilestoneFormModal = ({
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+              className="flex-1 bg-[#0A84FF] text-white py-2.5 px-4 rounded-lg hover:bg-[#0A84FF]/90 transition-colors font-medium"
             >
               {milestone ? 'Update' : 'Tambah'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
+              className="flex-1 bg-[#48484A] text-white py-2.5 px-4 rounded-lg hover:bg-[#48484A]/80 transition-colors font-medium"
             >
               Batal
             </button>

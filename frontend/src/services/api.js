@@ -247,6 +247,14 @@ export const projectAPI = {
     });
     return response;
   },
+  
+  // Berita Acara endpoints
+  getBeritaAcara: (projectId) => apiService.get(`/projects/${projectId}/berita-acara`),
+  getBeritaAcaraById: (projectId, baId) => apiService.get(`/projects/${projectId}/berita-acara/${baId}`),
+  createBeritaAcara: (projectId, data) => apiService.post(`/projects/${projectId}/berita-acara`, data),
+  updateBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}`, data),
+  deleteBeritaAcara: (projectId, baId) => apiService.delete(`/projects/${projectId}/berita-acara/${baId}`),
+  approveBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}/approve`, data),
 };
 
 export const subsidiaryAPI = {

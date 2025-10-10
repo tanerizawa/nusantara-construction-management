@@ -9,8 +9,8 @@ import { getVarianceColor } from '../config/budgetConfig';
 const BudgetSummaryCards = ({ summary = {} }) => {
   const {
     totalBudget = 0,
-    committedAmount = 0,
-    actualSpent = 0,
+    totalCommitted = 0,
+    totalActual = 0,
     remainingBudget = 0,
     variancePercentage = 0
   } = summary;
@@ -24,15 +24,15 @@ const BudgetSummaryCards = ({ summary = {} }) => {
     },
     {
       label: 'Committed',
-      value: formatCurrency(committedAmount),
-      percentage: ((committedAmount / totalBudget) * 100).toFixed(1),
+      value: formatCurrency(totalCommitted),
+      percentage: ((totalCommitted / totalBudget) * 100).toFixed(1),
       icon: Activity,
       color: 'text-[#FF9F0A]'
     },
     {
       label: 'Actual Spent',
-      value: formatCurrency(actualSpent),
-      percentage: ((actualSpent / totalBudget) * 100).toFixed(1),
+      value: formatCurrency(totalActual),
+      percentage: ((totalActual / totalBudget) * 100).toFixed(1),
       icon: DollarSign,
       color: 'text-[#30D158]'
     },

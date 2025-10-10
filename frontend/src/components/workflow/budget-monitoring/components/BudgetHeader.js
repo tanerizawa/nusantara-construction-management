@@ -21,7 +21,7 @@ const BudgetHeader = ({
         <select
           value={timeframe}
           onChange={(e) => onTimeframeChange(e.target.value)}
-          className="border border-[#38383A] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-[#2C2C2E] text-white border border-[#38383A] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="week">Mingguan</option>
           <option value="month">Bulanan</option>

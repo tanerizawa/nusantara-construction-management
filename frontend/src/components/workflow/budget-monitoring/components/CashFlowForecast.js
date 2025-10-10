@@ -17,10 +17,10 @@ const CashFlowForecast = ({ forecast = [] }) => {
       </div>
       
       <div className="grid grid-cols-3 gap-4">
-        {forecast.map((month, index) => (
+        {forecast.map((item, index) => (
           <div key={index} className="text-center p-4 border border-[#38383A] rounded-lg hover:border-blue-300 transition-colors">
-            <p className="text-sm text-[#8E8E93] mb-1">{month.month}</p>
-            <p className="text-lg font-bold text-white">{formatCurrency(month.plannedExpenses)}</p>
+            <p className="text-sm text-[#8E8E93] mb-1">{item.period}</p>
+            <p className="text-lg font-bold text-white">{formatCurrency(item.projectedSpend)}</p>
             <p className="text-xs text-[#98989D]">Planned expenses</p>
           </div>
         ))}

@@ -34,19 +34,19 @@ const CategoryTable = ({ categories = [] }) => {
           </thead>
           <tbody className="bg-[#2C2C2E] divide-y divide-[#38383A]">
             {categories.map((category, index) => {
-              const variance = calculateVariancePercentage(category.budgetAmount, category.actualAmount);
+              const variance = calculateVariancePercentage(category.budget, category.actual);
               const StatusIcon = getStatusIcon(Math.abs(variance));
               
               return (
                 <tr key={index} className="hover:bg-[#1C1C1E] transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                    {category.name}
+                    {category.category}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    {formatCurrency(category.budgetAmount)}
+                    {formatCurrency(category.budget)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-white">
-                    {formatCurrency(category.actualAmount)}
+                    {formatCurrency(category.actual)}
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getVarianceColor(Math.abs(variance))}`}>
                     {variance > 0 ? '+' : ''}{variance.toFixed(1)}%

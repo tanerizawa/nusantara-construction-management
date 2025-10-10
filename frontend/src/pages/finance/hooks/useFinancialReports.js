@@ -3,15 +3,18 @@
  * Custom hook for managing financial reports
  */
 
-import { useState, useCallback } from 'react';
-import { financeAPI } from '../../../services/api';
+import { useState, useCallback } from "react";
+import { financeAPI } from "../../../services/api";
 
-export const useFinancialReports = (selectedSubsidiary = 'all', selectedProject = 'all') => {
+export const useFinancialReports = (
+  selectedSubsidiary = "all",
+  selectedProject = "all"
+) => {
   const [financialReports, setFinancialReports] = useState({
     incomeStatement: {},
     balanceSheet: {},
     cashFlow: {},
-    summary: {}
+    summary: {},
   });
   const [reportsLoading, setReportsLoading] = useState(false);
   const [activeDetailedReport, setActiveDetailedReport] = useState(null);
@@ -23,27 +26,27 @@ export const useFinancialReports = (selectedSubsidiary = 'all', selectedProject 
     setReportsLoading(true);
     try {
       const params = {};
-      
-      if (selectedSubsidiary !== 'all') {
+
+      if (selectedSubsidiary !== "all") {
         params.subsidiary_id = selectedSubsidiary;
       }
-      
-      if (selectedProject !== 'all') {
+
+      if (selectedProject !== "all") {
         params.project_id = selectedProject;
       }
 
       const response = await financeAPI.getFinancialReports(params);
-      
+
       if (response.success) {
         setFinancialReports(response.data);
       }
     } catch (error) {
-      console.error('Error fetching financial reports:', error);
+      console.error("Error fetching financial reports:", error);
       setFinancialReports({
         incomeStatement: {},
         balanceSheet: {},
         cashFlow: {},
-        summary: {}
+        summary: {},
       });
     } finally {
       setReportsLoading(false);
@@ -54,7 +57,7 @@ export const useFinancialReports = (selectedSubsidiary = 'all', selectedProject 
    * Toggle detailed report view
    */
   const toggleDetailedReport = (reportType) => {
-    setActiveDetailedReport(prev => 
+    setActiveDetailedReport((prev) =>
       prev === reportType ? null : reportType
     );
   };
@@ -72,6 +75,6 @@ export const useFinancialReports = (selectedSubsidiary = 'all', selectedProject 
     activeDetailedReport,
     fetchFinancialReports,
     toggleDetailedReport,
-    closeDetailedReport
+    closeDetailedReport,
   };
 };

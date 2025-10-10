@@ -13,22 +13,22 @@ export const calculateTransactionSummary = (transactions) => {
     return {
       income: 0,
       expense: 0,
-      balance: 0
+      balance: 0,
     };
   }
 
   const income = transactions
-    .filter(t => t.type === 'income')
+    .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
 
   const expense = transactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
 
   return {
     income,
     expense,
-    balance: income - expense
+    balance: income - expense,
   };
 };
 
@@ -70,7 +70,7 @@ export const calculatePercentageChange = (current, previous) => {
  * @param {string} field - Field name containing amount
  * @returns {number} Total amount
  */
-export const calculateTotal = (items, field = 'amount') => {
+export const calculateTotal = (items, field = "amount") => {
   if (!Array.isArray(items) || items.length === 0) return 0;
   return items.reduce((sum, item) => sum + parseFloat(item[field] || 0), 0);
 };
@@ -84,7 +84,7 @@ export const groupTransactionsByCategory = (transactions) => {
   if (!Array.isArray(transactions)) return {};
 
   return transactions.reduce((groups, transaction) => {
-    const category = transaction.category || 'Uncategorized';
+    const category = transaction.category || "Uncategorized";
     if (!groups[category]) {
       groups[category] = [];
     }
@@ -102,12 +102,12 @@ export const calculateCategoryTotals = (transactions) => {
   if (!Array.isArray(transactions) || transactions.length === 0) return [];
 
   const grouped = groupTransactionsByCategory(transactions);
-  
+
   return Object.entries(grouped)
     .map(([category, items]) => ({
       category,
       count: items.length,
-      total: calculateTotal(items, 'amount')
+      total: calculateTotal(items, "amount"),
     }))
     .sort((a, b) => b.total - a.total);
 };
@@ -122,18 +122,21 @@ export const calculateMonthlyTotals = (transactions) => {
 
   const grouped = transactions.reduce((groups, transaction) => {
     const date = new Date(transaction.date);
-    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    
+    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}`;
+
     if (!groups[month]) {
       groups[month] = { income: 0, expense: 0 };
     }
-    
-    if (transaction.type === 'income') {
+
+    if (transaction.type === "income") {
       groups[month].income += parseFloat(transaction.amount || 0);
-    } else if (transaction.type === 'expense') {
+    } else if (transaction.type === "expense") {
       groups[month].expense += parseFloat(transaction.amount || 0);
     }
-    
+
     return groups;
   }, {});
 
@@ -141,7 +144,7 @@ export const calculateMonthlyTotals = (transactions) => {
     .map(([month, totals]) => ({
       month,
       ...totals,
-      balance: totals.income - totals.expense
+      balance: totals.income - totals.expense,
     }))
     .sort((a, b) => a.month.localeCompare(b.month));
 };
@@ -156,14 +159,14 @@ export const calculateRunningBalance = (transactions, initialBalance = 0) => {
   if (!Array.isArray(transactions)) return [];
 
   let balance = initialBalance;
-  
-  return transactions.map(transaction => {
+
+  return transactions.map((transaction) => {
     const amount = parseFloat(transaction.amount || 0);
-    balance += transaction.type === 'income' ? amount : -amount;
-    
+    balance += transaction.type === "income" ? amount : -amount;
+
     return {
       ...transaction,
-      runningBalance: balance
+      runningBalance: balance,
     };
   });
 };
@@ -177,13 +180,13 @@ export const calculateRunningBalance = (transactions, initialBalance = 0) => {
 export const calculateBudgetVariance = (budget, actual) => {
   const variance = budget - actual;
   const variancePercentage = budget > 0 ? (variance / budget) * 100 : 0;
-  
+
   return {
     variance,
     variancePercentage,
     isOverBudget: variance < 0,
     isUnderBudget: variance > 0,
-    isOnBudget: Math.abs(variancePercentage) < 5 // Within 5% tolerance
+    isOnBudget: Math.abs(variancePercentage) < 5, // Within 5% tolerance
   };
 };
 
@@ -198,7 +201,7 @@ export const calculateProjectFinanceSummary = (transactions, budget) => {
   const spent = summary.expense;
   const remaining = budget - spent;
   const percentageUsed = budget > 0 ? (spent / budget) * 100 : 0;
-  
+
   return {
     budget,
     spent,
@@ -206,6 +209,6 @@ export const calculateProjectFinanceSummary = (transactions, budget) => {
     percentageUsed,
     income: summary.income,
     isOverBudget: spent > budget,
-    transactionCount: transactions.length
+    transactionCount: transactions.length,
   };
 };

@@ -13,64 +13,64 @@ export const validateTransactionForm = (formData) => {
 
   // Type validation
   if (!formData.type) {
-    errors.type = 'Tipe transaksi harus dipilih';
+    errors.type = "Tipe transaksi harus dipilih";
   }
 
   // Category validation
-  if (!formData.category || formData.category.trim() === '') {
-    errors.category = 'Kategori harus diisi';
+  if (!formData.category || formData.category.trim() === "") {
+    errors.category = "Kategori harus diisi";
   }
 
   // Amount validation
-  if (!formData.amount || formData.amount === '' || formData.amount === '0') {
-    errors.amount = 'Jumlah harus diisi';
+  if (!formData.amount || formData.amount === "" || formData.amount === "0") {
+    errors.amount = "Jumlah harus diisi";
   } else if (parseFloat(formData.amount) <= 0) {
-    errors.amount = 'Jumlah harus lebih dari 0';
+    errors.amount = "Jumlah harus lebih dari 0";
   } else if (isNaN(parseFloat(formData.amount))) {
-    errors.amount = 'Jumlah harus berupa angka';
+    errors.amount = "Jumlah harus berupa angka";
   }
 
   // Description validation
-  if (!formData.description || formData.description.trim() === '') {
-    errors.description = 'Deskripsi harus diisi';
+  if (!formData.description || formData.description.trim() === "") {
+    errors.description = "Deskripsi harus diisi";
   } else if (formData.description.length < 5) {
-    errors.description = 'Deskripsi minimal 5 karakter';
+    errors.description = "Deskripsi minimal 5 karakter";
   } else if (formData.description.length > 500) {
-    errors.description = 'Deskripsi maksimal 500 karakter';
+    errors.description = "Deskripsi maksimal 500 karakter";
   }
 
   // Date validation
   if (!formData.date) {
-    errors.date = 'Tanggal harus diisi';
+    errors.date = "Tanggal harus diisi";
   } else {
     const dateObj = new Date(formData.date);
     const today = new Date();
     today.setHours(23, 59, 59, 999); // End of today
-    
+
     if (isNaN(dateObj.getTime())) {
-      errors.date = 'Format tanggal tidak valid';
+      errors.date = "Format tanggal tidak valid";
     } else if (dateObj > today) {
-      errors.date = 'Tanggal tidak boleh di masa depan';
+      errors.date = "Tanggal tidak boleh di masa depan";
     }
   }
 
   // Payment method validation
   if (!formData.paymentMethod) {
-    errors.paymentMethod = 'Metode pembayaran harus dipilih';
+    errors.paymentMethod = "Metode pembayaran harus dipilih";
   }
 
   // Reference number validation (optional but if provided should be valid)
-  if (formData.referenceNumber && formData.referenceNumber.trim() !== '') {
+  if (formData.referenceNumber && formData.referenceNumber.trim() !== "") {
     if (formData.referenceNumber.length < 3) {
-      errors.referenceNumber = 'Nomor referensi minimal 3 karakter';
+      errors.referenceNumber = "Nomor referensi minimal 3 karakter";
     } else if (formData.referenceNumber.length > 50) {
-      errors.referenceNumber = 'Nomor referensi maksimal 50 karakter';
+      errors.referenceNumber = "Nomor referensi maksimal 50 karakter";
     }
   }
 
   return {
     isValid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
 };
 
@@ -84,55 +84,55 @@ export const validateTaxForm = (formData) => {
 
   // Type validation
   if (!formData.type) {
-    errors.type = 'Jenis pajak harus dipilih';
+    errors.type = "Jenis pajak harus dipilih";
   }
 
   // Amount validation
-  if (!formData.amount || formData.amount === '' || formData.amount === '0') {
-    errors.amount = 'Jumlah pajak harus diisi';
+  if (!formData.amount || formData.amount === "" || formData.amount === "0") {
+    errors.amount = "Jumlah pajak harus diisi";
   } else if (parseFloat(formData.amount) <= 0) {
-    errors.amount = 'Jumlah pajak harus lebih dari 0';
+    errors.amount = "Jumlah pajak harus lebih dari 0";
   } else if (isNaN(parseFloat(formData.amount))) {
-    errors.amount = 'Jumlah pajak harus berupa angka';
+    errors.amount = "Jumlah pajak harus berupa angka";
   }
 
   // Period validation (YYYY-MM format)
   if (!formData.period) {
-    errors.period = 'Periode harus diisi';
+    errors.period = "Periode harus diisi";
   } else {
     const periodRegex = /^\d{4}-\d{2}$/;
     if (!periodRegex.test(formData.period)) {
-      errors.period = 'Format periode harus YYYY-MM';
+      errors.period = "Format periode harus YYYY-MM";
     } else {
-      const [year, month] = formData.period.split('-').map(Number);
+      const [year, month] = formData.period.split("-").map(Number);
       const currentYear = new Date().getFullYear();
-      
+
       if (year < 2000 || year > currentYear + 1) {
         errors.period = `Tahun harus antara 2000 dan ${currentYear + 1}`;
       }
-      
+
       if (month < 1 || month > 12) {
-        errors.period = 'Bulan harus antara 01 dan 12';
+        errors.period = "Bulan harus antara 01 dan 12";
       }
     }
   }
 
   // Description validation
   if (formData.description && formData.description.length > 500) {
-    errors.description = 'Deskripsi maksimal 500 karakter';
+    errors.description = "Deskripsi maksimal 500 karakter";
   }
 
   // Payment date validation (optional)
   if (formData.paymentDate) {
     const dateObj = new Date(formData.paymentDate);
     if (isNaN(dateObj.getTime())) {
-      errors.paymentDate = 'Format tanggal pembayaran tidak valid';
+      errors.paymentDate = "Format tanggal pembayaran tidak valid";
     }
   }
 
   return {
     isValid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
 };
 
@@ -147,29 +147,29 @@ export const validateAmount = (amount, options = {}) => {
     min = 0,
     max = Number.MAX_SAFE_INTEGER,
     allowZero = false,
-    allowNegative = false
+    allowNegative = false,
   } = options;
 
   const errors = [];
 
-  if (amount === null || amount === undefined || amount === '') {
-    errors.push('Jumlah harus diisi');
+  if (amount === null || amount === undefined || amount === "") {
+    errors.push("Jumlah harus diisi");
     return { isValid: false, errors };
   }
 
   const numAmount = parseFloat(amount);
 
   if (isNaN(numAmount)) {
-    errors.push('Jumlah harus berupa angka');
+    errors.push("Jumlah harus berupa angka");
     return { isValid: false, errors };
   }
 
   if (!allowZero && numAmount === 0) {
-    errors.push('Jumlah tidak boleh nol');
+    errors.push("Jumlah tidak boleh nol");
   }
 
   if (!allowNegative && numAmount < 0) {
-    errors.push('Jumlah tidak boleh negatif');
+    errors.push("Jumlah tidak boleh negatif");
   }
 
   if (numAmount < min) {
@@ -182,7 +182,7 @@ export const validateAmount = (amount, options = {}) => {
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
@@ -196,11 +196,11 @@ export const validateDateRange = (startDate, endDate) => {
   const errors = {};
 
   if (!startDate) {
-    errors.startDate = 'Tanggal mulai harus diisi';
+    errors.startDate = "Tanggal mulai harus diisi";
   }
 
   if (!endDate) {
-    errors.endDate = 'Tanggal akhir harus diisi';
+    errors.endDate = "Tanggal akhir harus diisi";
   }
 
   if (startDate && endDate) {
@@ -208,27 +208,28 @@ export const validateDateRange = (startDate, endDate) => {
     const end = new Date(endDate);
 
     if (isNaN(start.getTime())) {
-      errors.startDate = 'Format tanggal mulai tidak valid';
+      errors.startDate = "Format tanggal mulai tidak valid";
     }
 
     if (isNaN(end.getTime())) {
-      errors.endDate = 'Format tanggal akhir tidak valid';
+      errors.endDate = "Format tanggal akhir tidak valid";
     }
 
     if (start > end) {
-      errors.dateRange = 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir';
+      errors.dateRange =
+        "Tanggal mulai tidak boleh lebih besar dari tanggal akhir";
     }
 
     // Check if range is not too large (max 1 year)
     const daysDiff = (end - start) / (1000 * 60 * 60 * 24);
     if (daysDiff > 365) {
-      errors.dateRange = 'Rentang tanggal maksimal 1 tahun';
+      errors.dateRange = "Rentang tanggal maksimal 1 tahun";
     }
   }
 
   return {
     isValid: Object.keys(errors).length === 0,
-    errors
+    errors,
   };
 };
 
@@ -238,21 +239,21 @@ export const validateDateRange = (startDate, endDate) => {
  * @param {string} prefix - Expected prefix (optional)
  * @returns {Object} Validation result
  */
-export const validateReferenceNumber = (refNumber, prefix = '') => {
+export const validateReferenceNumber = (refNumber, prefix = "") => {
   const errors = [];
 
-  if (!refNumber || refNumber.trim() === '') {
+  if (!refNumber || refNumber.trim() === "") {
     return { isValid: true, errors }; // Optional field
   }
 
   const trimmed = refNumber.trim();
 
   if (trimmed.length < 3) {
-    errors.push('Nomor referensi minimal 3 karakter');
+    errors.push("Nomor referensi minimal 3 karakter");
   }
 
   if (trimmed.length > 50) {
-    errors.push('Nomor referensi maksimal 50 karakter');
+    errors.push("Nomor referensi maksimal 50 karakter");
   }
 
   if (prefix && !trimmed.startsWith(prefix)) {
@@ -262,12 +263,14 @@ export const validateReferenceNumber = (refNumber, prefix = '') => {
   // Check for invalid characters (only alphanumeric, dash, slash allowed)
   const validPattern = /^[A-Za-z0-9\-\/]+$/;
   if (!validPattern.test(trimmed)) {
-    errors.push('Nomor referensi hanya boleh mengandung huruf, angka, dash (-), dan slash (/)');
+    errors.push(
+      "Nomor referensi hanya boleh mengandung huruf, angka, dash (-), dan slash (/)"
+    );
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };
 
@@ -279,23 +282,23 @@ export const validateReferenceNumber = (refNumber, prefix = '') => {
 export const validateCategory = (category) => {
   const errors = [];
 
-  if (!category || category.trim() === '') {
-    errors.push('Kategori harus diisi');
+  if (!category || category.trim() === "") {
+    errors.push("Kategori harus diisi");
     return { isValid: false, errors };
   }
 
   const trimmed = category.trim();
 
   if (trimmed.length < 2) {
-    errors.push('Kategori minimal 2 karakter');
+    errors.push("Kategori minimal 2 karakter");
   }
 
   if (trimmed.length > 100) {
-    errors.push('Kategori maksimal 100 karakter');
+    errors.push("Kategori maksimal 100 karakter");
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   };
 };

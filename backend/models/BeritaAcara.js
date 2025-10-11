@@ -110,6 +110,11 @@ const BeritaAcara = sequelize.define('BeritaAcara', {
     type: DataTypes.DATE,
     allowNull: true
   },
+  contractorSignature: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'contractor_signature'
+  },
   clientNotes: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -151,6 +156,14 @@ const BeritaAcara = sequelize.define('BeritaAcara', {
     defaultValue: []
   },
   
+  // Audit trail
+  statusHistory: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: [],
+    field: 'status_history'
+  },
+  
   createdBy: {
     type: DataTypes.STRING,
     allowNull: true
@@ -187,8 +200,27 @@ const BeritaAcara = sequelize.define('BeritaAcara', {
           paymentDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
         });
         
-        // Here you would trigger payment workflow
-        // await createProgressPayment(beritaAcara);
+        // Auto-create progress payment
+        try {
+          const ProgressPayment = sequelize.models.ProgressPayment;
+          if (ProgressPayment && beritaAcara.paymentAmount && beritaAcara.paymentAmount > 0) {
+            await ProgressPayment.create({
+              projectId: beritaAcara.projectId,
+              beritaAcaraId: beritaAcara.id,
+              amount: beritaAcara.paymentAmount,
+              percentage: beritaAcara.completionPercentage,
+              dueDate: beritaAcara.paymentDueDate,
+              status: 'ba_approved',
+              baApprovedAt: beritaAcara.approvedAt,
+              notes: `Auto-generated from BA ${beritaAcara.baNumber}`,
+              createdBy: beritaAcara.approvedBy || 'system'
+            });
+            console.log(`✅ Progress payment created for BA ${beritaAcara.baNumber}`);
+          }
+        } catch (error) {
+          console.error('⚠️ Failed to create progress payment:', error.message);
+          // Don't throw - BA approval should not fail if payment creation fails
+        }
       }
     }
   }
@@ -210,6 +242,20 @@ BeritaAcara.prototype.getWorkProgress = function() {
     completionDate: this.completionDate,
     isComplete: this.completionPercentage >= 100
   };
+};
+
+BeritaAcara.prototype.addStatusHistory = async function(newStatus, changedBy, notes = null) {
+  const history = this.statusHistory || [];
+  history.push({
+    status: newStatus,
+    previousStatus: this.status,
+    changedBy: changedBy,
+    changedAt: new Date(),
+    notes: notes
+  });
+  
+  this.statusHistory = history;
+  return this.save();
 };
 
 // Class methods

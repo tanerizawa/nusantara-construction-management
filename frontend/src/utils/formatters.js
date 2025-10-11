@@ -257,3 +257,45 @@ export const formatPostalCode = (postalCode) => {
   }
   return postalCode;
 };
+
+// Format currency compact untuk Indonesia (Juta/Miliar)
+export const formatCurrencyCompact = (amount) => {
+  if (!amount || amount === 0) return 'Rp 0';
+  
+  const absAmount = Math.abs(amount);
+  const isNegative = amount < 0;
+  const sign = isNegative ? '-' : '';
+  
+  // Helper function to remove trailing zeros after decimal point
+  const formatValue = (value) => {
+    // Remove trailing zeros and unnecessary decimal point
+    return value.toString().replace(/\.?0+$/, '');
+  };
+  
+  // Triliun (1,000,000,000,000+)
+  if (absAmount >= 1000000000000) {
+    const value = formatValue((absAmount / 1000000000000).toFixed(2));
+    return `${sign}Rp ${value} Triliun`;
+  }
+  
+  // Miliar (1,000,000,000+)
+  if (absAmount >= 1000000000) {
+    const value = formatValue((absAmount / 1000000000).toFixed(2));
+    return `${sign}Rp ${value} Miliar`;
+  }
+  
+  // Juta (1,000,000+)
+  if (absAmount >= 1000000) {
+    const value = formatValue((absAmount / 1000000).toFixed(2));
+    return `${sign}Rp ${value} Juta`;
+  }
+  
+  // Ribu (1,000+)
+  if (absAmount >= 1000) {
+    const value = formatValue((absAmount / 1000).toFixed(1));
+    return `${sign}Rp ${value} Ribu`;
+  }
+  
+  // Dibawah 1000
+  return `${sign}Rp ${absAmount.toFixed(0)}`;
+};

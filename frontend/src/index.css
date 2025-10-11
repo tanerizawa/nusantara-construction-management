@@ -44,6 +44,24 @@
   transition-duration: 150ms;
 }
 
+/* Slide down animation for inline sections */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 2000px;
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
 /* =================================================================
    GLOBAL ANIMATIONS AND OVERRIDES
    ================================================================= */
@@ -521,7 +539,80 @@
     box-shadow: none;
     border: 1px solid #e5e7eb;
   }
+
+  /* Handover Document Print Styles */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: white !important;
+  }
+
+  /* Hide modal overlay during print */
+  .fixed.inset-0 {
+    position: static !important;
+    background: white !important;
+  }
+
+  /* Show only the document */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Document should fill the page */
+  #handover-document {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Adjust padding for print */
+  #handover-document > div {
+    padding: 1cm !important;
+  }
+
+  /* Prevent page breaks inside important elements */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  table, ol, ul {
+    page-break-inside: avoid;
+  }
+
+  /* Signature section should stay together */
+  .grid.grid-cols-2 {
+    page-break-inside: avoid;
+  }
+
+  /* Better spacing for printed document */
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Ensure borders are visible */
+  .border-2 {
+    border-width: 2px !important;
+  }
+
+  .border-dashed {
+    border-style: dashed !important;
+  }
+
+  /* Make sure black borders stay black */
+  .border-black {
+    border-color: #000 !important;
+  }
 }
+
 
 /* Custom Utility Classes for Inventory Cards */
 @layer utilities {

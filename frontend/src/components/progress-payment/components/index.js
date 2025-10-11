@@ -4,4 +4,8 @@ export { default as BARequirementAlert } from './BARequirementAlert';
 export { default as PaymentTable } from './PaymentTable';
 export { PaymentEmptyState, PaymentLoadingState, PaymentErrorState } from './PaymentStates';
 export { default as PaymentCreateModal } from './PaymentCreateModal';
+export { default as PaymentCreateForm } from './PaymentCreateForm';
 export { default as PaymentDetailModal } from './PaymentDetailModal';
+export { default as PaymentDetailView } from './PaymentDetailView';
+export { default as InvoiceManager } from './InvoiceManager';
+export { default as InvoiceDetailView } from './InvoiceDetailView';

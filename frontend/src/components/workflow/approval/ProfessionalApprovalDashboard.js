@@ -8,7 +8,7 @@ import { useApprovalData, useApprovalActions } from './hooks';
 import { approvalCategories } from './config';
 
 // Components
-import { ApprovalStatusBadge, ApprovalActions } from './components';
+import { ApprovalStatusBadge, ApprovalActions, ProgressPaymentContent } from './components';
 import TandaTerimaContent from './components/TandaTerimaContent';
 import BeritaAcaraContent from './components/BeritaAcaraContent';
 
@@ -192,11 +192,18 @@ const ProfessionalApprovalDashboard = ({ projectId, project, userDetails, onData
         </div>
       </div>
 
-      {/* Content Area - Different for Tanda Terima and Berita Acara */}
+      {/* Content Area - Different for specialized categories */}
       {activeCategory === 'tandaTerima' ? (
         <TandaTerimaContent projectId={projectId} project={project} onDataChange={onDataChange} />
       ) : activeCategory === 'beritaAcara' ? (
         <BeritaAcaraContent projectId={projectId} project={project} onDataChange={onDataChange} />
+      ) : activeCategory === 'progressPayments' ? (
+        <ProgressPaymentContent
+          data={filteredData}
+          onMarkAsReviewed={(item) => handleMarkAsReviewed(item, loadApprovalData)}
+          onApprove={(item) => handleApprove(item, userDetails, loadApprovalData)}
+          onReject={(item) => handleReject(item, userDetails, loadApprovalData)}
+        />
       ) : (
         <>
           {/* Filters - Only for RAB and PO */}

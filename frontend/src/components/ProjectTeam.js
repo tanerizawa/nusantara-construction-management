@@ -4,9 +4,9 @@ import { useTeamMembers } from './team/hooks/useTeamMembers';
 import { useEmployees } from './team/hooks/useEmployees';
 import TeamStatsCards from './team/components/TeamStatsCards';
 import TeamSearchBar from './team/components/TeamSearchBar';
-import TeamMemberCard from './team/components/TeamMemberCard';
+import TeamMemberTable from './team/components/TeamMemberTable';
 import TeamEmptyState from './team/components/TeamEmptyState';
-import TeamMemberFormModal from './team/components/TeamMemberFormModal';
+import TeamMemberInlineForm from './team/components/TeamMemberInlineForm';
 
 const ProjectTeam = ({ project, onUpdate }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -54,20 +54,43 @@ const ProjectTeam = ({ project, onUpdate }) => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h3 className="text-xl font-semibold">Project Team</h3>
-          <p className="text-gray-600">Kelola anggota tim proyek</p>
+          <h3 className="text-xl font-semibold text-white">Project Team</h3>
+          <p className="text-[#8E8E93]">Kelola anggota tim proyek</p>
         </div>
         <button 
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#409CFF] transition-colors font-medium"
         >
           <Plus size={16} />
-          Tambah Anggota
+          {showAddForm ? 'Tutup Form' : 'Tambah Anggota'}
         </button>
       </div>
 
       {/* Statistics Cards */}
       <TeamStatsCards teamStats={teamStats} />
+
+      {/* Add Form - Inline (appears when button clicked) */}
+      {showAddForm && (
+        <TeamMemberInlineForm
+          projectId={project.id}
+          availableEmployees={availableEmployees}
+          roles={roles}
+          onClose={() => setShowAddForm(false)}
+          onSuccess={handleFormSuccess}
+        />
+      )}
+
+      {/* Edit Form - Inline (appears when edit clicked) */}
+      {editingMember && (
+        <TeamMemberInlineForm
+          projectId={project.id}
+          member={editingMember}
+          availableEmployees={availableEmployees}
+          roles={roles}
+          onClose={() => setEditingMember(null)}
+          onSuccess={handleFormSuccess}
+        />
+      )}
 
       {/* Search and Filter */}
       <TeamSearchBar
@@ -78,43 +101,16 @@ const ProjectTeam = ({ project, onUpdate }) => {
         roles={roles}
       />
 
-      {/* Team Members Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredMembers.map((member) => (
-          <TeamMemberCard
-            key={member.id}
-            member={member}
-            onEdit={() => setEditingMember(member)}
-            onDelete={() => handleDeleteMember(member.id)}
-          />
-        ))}
-      </div>
+      {/* Team Members Table */}
+      <TeamMemberTable
+        members={filteredMembers}
+        onEdit={(member) => setEditingMember(member)}
+        onDelete={handleDeleteMember}
+      />
 
       {/* Empty State */}
       {filteredMembers.length === 0 && (
         <TeamEmptyState searchTerm={searchTerm} filterRole={filterRole} />
-      )}
-
-      {/* Forms */}
-      {showAddForm && (
-        <TeamMemberFormModal
-          projectId={project.id}
-          availableEmployees={availableEmployees}
-          roles={roles}
-          onClose={() => setShowAddForm(false)}
-          onSuccess={handleFormSuccess}
-        />
-      )}
-      
-      {editingMember && (
-        <TeamMemberFormModal
-          projectId={project.id}
-          member={editingMember}
-          availableEmployees={availableEmployees}
-          roles={roles}
-          onClose={() => setEditingMember(null)}
-          onSuccess={handleFormSuccess}
-        />
       )}
     </div>
   );

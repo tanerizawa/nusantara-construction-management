@@ -8,7 +8,8 @@ export const useApprovalData = (projectId) => {
   const [approvalData, setApprovalData] = useState({
     rab: [],
     purchaseOrders: [],
-    tandaTerima: []
+    tandaTerima: [],
+    progressPayments: []
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -181,6 +182,42 @@ export const useApprovalData = (projectId) => {
   }, [projectId]);
 
   /**
+   * Load Progress Payments for approval
+   */
+  const loadProgressPayments = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/projects/${projectId}/progress-payments`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch progress payments');
+      
+      const result = await response.json();
+      const paymentsData = result.data || [];
+      
+      // Filter payments that need approval (pending_ba or pending_approval status)
+      const pendingPayments = paymentsData.filter(payment => 
+        payment.status === 'pending_ba' || 
+        payment.status === 'pending_approval'
+      );
+      
+      return pendingPayments.map(payment => ({
+        ...payment,
+        approval_id: payment.invoiceNumber || `PAY-${payment.id?.slice(0, 8)}`,
+        approval_type: 'payment',
+        type: 'payment'
+      }));
+    } catch (error) {
+      console.error('[Progress Payments] Load error:', error);
+      return [];
+    }
+  }, [projectId]);
+
+  /**
    * Load all approval data
    */
   const loadApprovalData = useCallback(async () => {
@@ -189,16 +226,18 @@ export const useApprovalData = (projectId) => {
     
     try {
       // Load all data types in parallel
-      const [rabData, poData, receiptData] = await Promise.all([
+      const [rabData, poData, receiptData, paymentsData] = await Promise.all([
         loadRAB(),
         loadPO(),
-        loadTandaTerima()
+        loadTandaTerima(),
+        loadProgressPayments()
       ]);
 
       setApprovalData({
         rab: rabData,
         purchaseOrders: poData,
-        tandaTerima: receiptData
+        tandaTerima: receiptData,
+        progressPayments: paymentsData
       });
 
     } catch (err) {
@@ -207,7 +246,7 @@ export const useApprovalData = (projectId) => {
     } finally {
       setLoading(false);
     }
-  }, [projectId, loadRAB, loadPO, loadTandaTerima]);
+  }, [projectId, loadRAB, loadPO, loadTandaTerima, loadProgressPayments]);
 
   /**
    * Refresh specific category data
@@ -226,6 +265,9 @@ export const useApprovalData = (projectId) => {
         case 'tandaTerima':
           categoryData = await loadTandaTerima();
           break;
+        case 'progressPayments':
+          categoryData = await loadProgressPayments();
+          break;
         default:
           return;
       }
@@ -237,7 +279,7 @@ export const useApprovalData = (projectId) => {
     } catch (err) {
       console.error(`Error refreshing ${category}:`, err);
     }
-  }, [loadRAB, loadPO, loadTandaTerima]);
+  }, [loadRAB, loadPO, loadTandaTerima, loadProgressPayments]);
 
   // Load data on mount
   useEffect(() => {

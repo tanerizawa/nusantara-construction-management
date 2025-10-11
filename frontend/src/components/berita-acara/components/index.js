@@ -5,3 +5,7 @@ export { default as BAList } from './BAList';
 export { BALoadingState, BAErrorState } from './BAStates';
 export { default as BeritaAcaraForm } from './BeritaAcaraForm';
 export { default as BeritaAcaraViewer } from './BeritaAcaraViewer';
+export { default as SubmitBAModal } from './SubmitBAModal';
+export { default as HandoverDocument } from './HandoverDocument';
+export { default as SignaturePad } from './SignaturePad';
+

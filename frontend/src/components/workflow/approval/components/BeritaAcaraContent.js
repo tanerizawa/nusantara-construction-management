@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Clock, FileText, DollarSign, User } from 'lucide-react';
 import { ApprovalStatusBadge } from './index';
 import { formatCurrency, formatDate } from '../../../../utils/formatters';
-import projectAPI from '../../../../services/api';
+import { projectAPI } from '../../../../services/api';
 
 /**
  * Berita Acara Content for Approval Workflow

@@ -97,6 +97,38 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
   }, [projectId]);
 
   /**
+   * Update Payment status in database
+   */
+  const updatePaymentStatusInDatabase = useCallback(async (paymentId, status, approvedBy = null) => {
+    try {
+      const updateData = {
+        status: status === 'approved' ? 'approved' : 'rejected',
+        approvedBy: approvedBy,
+        approvalDate: new Date().toISOString()
+      };
+      
+      const response = await fetch(`/api/projects/${projectId}/progress-payments/${paymentId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update payment status: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('[API UPDATE] Error updating payment status:', error);
+      throw error;
+    }
+  }, [projectId]);
+
+  /**
    * Save approval status to localStorage cache
    */
   const saveApprovalStatusToCache = useCallback((item, newStatus, approvedBy = null) => {
@@ -199,6 +231,8 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
         await updatePOStatusInDatabase(item.id, 'approved', approvedBy);
       } else if (item.approval_type === 'rab') {
         await updateRABStatusInDatabase(item.id, true, approvedBy);
+      } else if (item.approval_type === 'payment') {
+        await updatePaymentStatusInDatabase(item.id, 'approved', approvedBy);
       }
       
       if (onDataChange) onDataChange();
@@ -210,7 +244,7 @@ export const useApprovalActions = (projectId, setApprovalData, activeCategory, o
       alert(`Error approving: ${error.message}`);
       loadApprovalData();
     }
-  }, [activeCategory, setApprovalData, saveApprovalStatusToCache, updatePOStatusInDatabase, updateRABStatusInDatabase, onDataChange]);
+  }, [activeCategory, setApprovalData, saveApprovalStatusToCache, updatePOStatusInDatabase, updateRABStatusInDatabase, updatePaymentStatusInDatabase, onDataChange]);
 
   /**
    * Handle reject

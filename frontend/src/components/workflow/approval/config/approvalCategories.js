@@ -2,7 +2,8 @@ import {
   FileBarChart, 
   ShoppingCart,
   PackageCheck,
-  ClipboardCheck
+  ClipboardCheck,
+  DollarSign
 } from 'lucide-react';
 
 /**
@@ -41,5 +42,13 @@ export const approvalCategories = [
     icon: ClipboardCheck,
     color: 'bg-[#FF9F0A]/20 text-[#FF9F0A]',
     description: 'Persetujuan Berita Acara kemajuan pekerjaan'
+  },
+  {
+    id: 'progressPayments',
+    name: 'Payment',
+    fullName: 'Progress Payments',
+    icon: DollarSign,
+    color: 'bg-[#FF453A]/20 text-[#FF453A]',
+    description: 'Persetujuan pembayaran progress berdasarkan BA'
   }
 ];

@@ -45,7 +45,7 @@ export const useTeamForm = (projectId, member, availableEmployees, onSuccess) =>
       name: employee.name,
       email: employee.email,
       phone: employee.phone,
-      joinDate: member?.joinDate || new Date().toISOString().split('T')[0],
+      startDate: member?.startDate || new Date().toISOString().split('T')[0], // Changed from joinDate to startDate
       totalHours: member?.totalHours || 0,
       totalCost: member?.totalCost || 0,
       status: member?.status || 'active',
@@ -56,22 +56,23 @@ export const useTeamForm = (projectId, member, availableEmployees, onSuccess) =>
 
     try {
       // Prepare data with projectId and proper structure
+      // Only include fields that backend schema allows
       const teamMemberData = {
         name: memberData.name,
         role: memberData.role,
         email: memberData.email || '',
         phone: memberData.phone || '',
         employeeId: memberData.employeeId || '',
-        joinDate: memberData.joinDate,
+        startDate: memberData.startDate, // Backend uses startDate, not joinDate
         allocation: parseFloat(memberData.allocation) || 100,
         hourlyRate: parseFloat(memberData.hourlyRate) || 0,
         status: memberData.status || 'active',
-        skills: JSON.stringify(memberData.skills || []),
-        certifications: JSON.stringify(memberData.certifications || []),
-        responsibilities: JSON.stringify(memberData.responsibilities || []),
-        performance: parseFloat(memberData.performance) || 0,
-        notes: memberData.notes || '',
-        addedBy: 'current_user' // Should get from auth context
+        skills: memberData.skills || [], // Array, not JSON string
+        responsibilities: memberData.responsibilities.filter(r => r.trim() !== '') || [], // Array, not JSON string
+        notes: memberData.notes || ''
+        // Removed: certifications (not in backend schema)
+        // Removed: performance (not in backend schema)
+        // Removed: addedBy (not in backend schema)
       };
 
       if (member) {

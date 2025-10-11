@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   ArrowLeft, 
   Edit, 
@@ -8,14 +8,16 @@ import {
   FileText,
   User,
   MapPin,
-  Percent
+  Percent,
+  File
 } from 'lucide-react';
 import { getStatusConfig, getBATypeConfig } from '../config/baStatusConfig';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
+import HandoverDocument from './HandoverDocument';
 
 /**
  * Viewer component untuk menampilkan detail Berita Acara
- * Full implementation with dark theme
+ * Full implementation with dark theme and handover document
  */
 const BeritaAcaraViewer = ({ 
   beritaAcara, 
@@ -23,8 +25,20 @@ const BeritaAcaraViewer = ({
   onEdit, 
   onBack 
 }) => {
+  const [showHandover, setShowHandover] = useState(false);
   const statusConfig = getStatusConfig(beritaAcara.status);
   const typeConfig = getBATypeConfig(beritaAcara.baType);
+
+  const handlePrint = () => {
+    // Use browser's native print function
+    // The @media print CSS will hide non-printable elements
+    window.print();
+  };
+
+  const handleDownload = () => {
+    // TODO: Implement PDF generation
+    alert('Fitur download PDF akan segera tersedia');
+  };
 
   return (
     <div className="space-y-6">
@@ -61,16 +75,46 @@ const BeritaAcaraViewer = ({
           </div>
         </div>
 
-        {beritaAcara.status === 'draft' && (
-          <button
-            onClick={onEdit}
-            className="flex items-center gap-2 bg-[#0A84FF] text-white px-4 py-2 rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
-          >
-            <Edit size={16} />
-            Edit BA
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {beritaAcara.status === 'draft' && (
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-2 bg-[#0A84FF] text-white px-4 py-2 rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
+            >
+              <Edit size={16} />
+              Edit BA
+            </button>
+          )}
+          
+          {/* View Handover Document Button - Available after submission */}
+          {['submitted', 'client_review', 'approved', 'rejected'].includes(beritaAcara.status) && (
+            <button
+              onClick={() => setShowHandover(!showHandover)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                showHandover 
+                  ? 'bg-[#48484A] text-white hover:bg-[#48484A]/80' 
+                  : 'bg-[#30D158] text-white hover:bg-[#30D158]/90'
+              }`}
+            >
+              <File size={16} />
+              {showHandover ? 'Sembunyikan Dokumen' : 'Lihat Berita Acara Formal'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Inline Handover Document - Shows at top when toggled */}
+      {showHandover && (
+        <div className="animate-slideDown">
+          <HandoverDocument
+            beritaAcara={beritaAcara}
+            project={project}
+            onPrint={handlePrint}
+            onDownload={handleDownload}
+            onClose={() => setShowHandover(false)}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

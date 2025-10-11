@@ -72,6 +72,20 @@ router.get('/:id/team', async (req, res) => {
       }]
     });
 
+    // Transform data: parse responsibilities from JSON string to array
+    const transformedMembers = teamMembers.map(member => {
+      const memberData = member.toJSON();
+      // Parse responsibilities if it's a JSON string
+      if (memberData.responsibilities && typeof memberData.responsibilities === 'string') {
+        try {
+          memberData.responsibilities = JSON.parse(memberData.responsibilities);
+        } catch (e) {
+          memberData.responsibilities = [];
+        }
+      }
+      return memberData;
+    });
+
     // Calculate statistics
     const stats = {
       total: teamMembers.length,
@@ -88,7 +102,7 @@ router.get('/:id/team', async (req, res) => {
 
     res.json({
       success: true,
-      data: teamMembers,
+      data: transformedMembers,
       stats
     });
   } catch (error) {
@@ -182,11 +196,16 @@ router.post('/:id/team', async (req, res) => {
       }
     }
 
-    const teamMember = await ProjectTeamMember.create({
+    // Prepare data for database
+    // responsibilities is TEXT field, needs to be JSON string
+    const memberData = {
       projectId: id,
       ...value,
+      responsibilities: value.responsibilities ? JSON.stringify(value.responsibilities) : null,
       createdBy: req.body.createdBy
-    });
+    };
+
+    const teamMember = await ProjectTeamMember.create(memberData);
 
     // Fetch with relations
     const memberWithUser = await ProjectTeamMember.findByPk(teamMember.id, {
@@ -243,10 +262,15 @@ router.put('/:id/team/:memberId', async (req, res) => {
       });
     }
 
-    await teamMember.update({
+    // Prepare update data
+    // responsibilities is TEXT field, needs to be JSON string
+    const updateData = {
       ...value,
+      responsibilities: value.responsibilities ? JSON.stringify(value.responsibilities) : null,
       updatedBy: req.body.updatedBy
-    });
+    };
+
+    await teamMember.update(updateData);
 
     // Fetch with relations
     const updatedMember = await ProjectTeamMember.findByPk(teamMember.id, {

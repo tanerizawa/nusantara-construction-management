@@ -138,6 +138,27 @@ const apiService = {
     }
   },
 
+  // PATCH request
+  patch: async (endpoint, data = {}) => {
+    try {
+      console.log('🔄 PATCH REQUEST:', endpoint, data);
+      const response = await apiClient.patch(endpoint, data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ PATCH ERROR:', error.response?.data);
+      
+      // Enhanced error handling for validation errors
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorDetails = error.response.data.errors.map(err => 
+          typeof err === 'object' ? `${err.field}: ${err.message}` : err
+        ).join(', ');
+        throw new Error(`Validation Error: ${errorDetails}`);
+      }
+      
+      throw new Error(error.response?.data?.error || error.response?.data?.message || 'Failed to update data');
+    }
+  },
+
   // DELETE request
   delete: async (endpoint) => {
     try {
@@ -254,6 +275,7 @@ export const projectAPI = {
   createBeritaAcara: (projectId, data) => apiService.post(`/projects/${projectId}/berita-acara`, data),
   updateBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}`, data),
   deleteBeritaAcara: (projectId, baId) => apiService.delete(`/projects/${projectId}/berita-acara/${baId}`),
+  submitBeritaAcara: (projectId, baId, data) => apiService.post(`/projects/${projectId}/berita-acara/${baId}/submit`, data),
   approveBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}/approve`, data),
 };
 

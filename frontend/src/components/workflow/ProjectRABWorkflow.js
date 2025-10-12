@@ -102,36 +102,36 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   useEffect(() => {
     const fetchWorkflowStats = async () => {
       try {
-        // Fetch POs
-        const poResponse = await api.get(`/api/projects/${projectId}/purchase-orders`);
+        // Fetch POs - Using query parameter for project filtering
+        const poResponse = await api.get(`/purchase-orders?projectId=${projectId}`);
         const pos = poResponse.data?.data || [];
         const approvedPOs = pos.filter(po => po.status === 'approved');
 
-        // Fetch Tanda Terima (Receipts)
+        // Fetch Delivery Receipts - Using correct nested route
         let receipts = [];
         try {
-          const receiptResponse = await api.get(`/api/projects/${projectId}/receipts`);
+          const receiptResponse = await api.get(`/projects/${projectId}/delivery-receipts`);
           receipts = receiptResponse.data?.data || [];
         } catch (err) {
-          console.log('Receipts endpoint not ready yet');
+          console.warn('Error fetching receipts:', err.message);
         }
 
-        // Fetch Berita Acara
+        // Fetch Berita Acara - Using correct nested route
         let bas = [];
         try {
-          const baResponse = await api.get(`/api/projects/${projectId}/berita-acara`);
+          const baResponse = await api.get(`/projects/${projectId}/berita-acara`);
           bas = baResponse.data?.data || [];
         } catch (err) {
-          console.log('BA endpoint not ready yet');
+          console.warn('Error fetching berita acara:', err.message);
         }
 
-        // Fetch Progress Payments
+        // Fetch Progress Payments - Using correct nested route
         let payments = [];
         try {
-          const paymentResponse = await api.get(`/api/projects/${projectId}/progress-payments`);
+          const paymentResponse = await api.get(`/projects/${projectId}/progress-payments`);
           payments = paymentResponse.data?.data || [];
         } catch (err) {
-          console.log('Payment endpoint not ready yet');
+          console.warn('Error fetching payments:', err.message);
         }
 
         setWorkflowStats({

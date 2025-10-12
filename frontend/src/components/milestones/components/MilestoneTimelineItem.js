@@ -1,7 +1,8 @@
-import React from 'react';
-import { Edit, Trash2, Calendar, DollarSign } from 'lucide-react';
+import React, { useState } from 'react';
+import { Edit, Trash2, Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import { getStatusInfo, isOverdue } from '../config/statusConfig';
+import MilestoneWorkflowProgress from '../MilestoneWorkflowProgress';
 
 const MilestoneTimelineItem = ({ 
   milestone, 
@@ -13,6 +14,10 @@ const MilestoneTimelineItem = ({
 }) => {
   const statusInfo = getStatusInfo(isOverdue(milestone) ? 'overdue' : milestone.status);
   const Icon = statusInfo.icon;
+  const [showWorkflowProgress, setShowWorkflowProgress] = useState(false);
+
+  // Check if milestone has category link
+  const hasCategoryLink = milestone.category_link && milestone.category_link.enabled;
 
   return (
     <div className="px-4 py-3">
@@ -105,6 +110,24 @@ const MilestoneTimelineItem = ({
             <p className="text-xs text-[#98989D] mt-2 line-clamp-1">{milestone.description}</p>
           )}
 
+          {/* RAB Category Link Badge */}
+          {hasCategoryLink && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded text-xs">
+                <Package className="h-3 w-3 text-[#0A84FF]" />
+                <span className="text-[#0A84FF]">{milestone.category_link.category_name}</span>
+              </div>
+              <button
+                onClick={() => setShowWorkflowProgress(true)}
+                className="inline-flex items-center gap-1.5 px-2 py-1 bg-[#30D158]/10 border border-[#30D158]/30 rounded text-xs hover:bg-[#30D158]/20 transition-colors"
+                title="View workflow progress"
+              >
+                <TrendingUp className="h-3 w-3 text-[#30D158]" />
+                <span className="text-[#30D158]">View Progress</span>
+              </button>
+            </div>
+          )}
+
           {/* Progress Update Slider - Inline, only for non-completed */}
           {milestone.status !== 'completed' && (
             <div className="mt-2.5 flex items-center gap-2">
@@ -128,6 +151,15 @@ const MilestoneTimelineItem = ({
       {/* Connection Line - Proportional */}
       {!isLast && (
         <div className="ml-3.5 mt-2.5 h-5 w-px bg-[#38383A]" />
+      )}
+
+      {/* Workflow Progress Modal */}
+      {showWorkflowProgress && hasCategoryLink && (
+        <MilestoneWorkflowProgress
+          milestoneId={milestone.id}
+          projectId={milestone.project_id || milestone.projectId}
+          onClose={() => setShowWorkflowProgress(false)}
+        />
       )}
     </div>
   );

@@ -8,7 +8,6 @@ const ACTION_TYPES = {
   SET_PROJECTS: 'SET_PROJECTS',
   SET_FINANCES: 'SET_FINANCES',
   SET_TAXES: 'SET_TAXES',
-  SET_INVENTORY: 'SET_INVENTORY',
   UPDATE_EMPLOYEE: 'UPDATE_EMPLOYEE',
   UPDATE_PROJECT: 'UPDATE_PROJECT',
   CLEAR_ERROR: 'CLEAR_ERROR'
@@ -29,11 +28,6 @@ const initialState = {
     reports: [],
     calculations: [],
     overview: {}
-  },
-  inventory: {
-    items: [],
-    categories: [],
-    warehouses: []
   }
 };
 
@@ -60,9 +54,6 @@ const appReducer = (state, action) => {
     
     case ACTION_TYPES.SET_TAXES:
       return { ...state, taxes: action.payload, loading: false };
-    
-    case ACTION_TYPES.SET_INVENTORY:
-      return { ...state, inventory: action.payload, loading: false };
     
     case ACTION_TYPES.UPDATE_EMPLOYEE:
       return {
@@ -138,7 +129,6 @@ export const actionCreators = {
   setProjects: (projects) => ({ type: ACTION_TYPES.SET_PROJECTS, payload: projects }),
   setFinances: (finances) => ({ type: ACTION_TYPES.SET_FINANCES, payload: finances }),
   setTaxes: (taxes) => ({ type: ACTION_TYPES.SET_TAXES, payload: taxes }),
-  setInventory: (inventory) => ({ type: ACTION_TYPES.SET_INVENTORY, payload: inventory }),
   updateEmployee: (employee) => ({ type: ACTION_TYPES.UPDATE_EMPLOYEE, payload: employee }),
   updateProject: (project) => ({ type: ACTION_TYPES.UPDATE_PROJECT, payload: project })
 };
@@ -162,9 +152,4 @@ export const useFinances = () => {
 export const useTaxes = () => {
   const { taxes, loading, error } = useAppState();
   return { taxes, loading, error };
-};
-
-export const useInventory = () => {
-  const { inventory, loading, error } = useAppState();
-  return { inventory, loading, error };
 };

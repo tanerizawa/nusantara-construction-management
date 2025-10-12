@@ -3,29 +3,26 @@
  * Consolidates all dashboard-related API calls to eliminate redundancy
  */
 
-import { projectAPI, financeAPI, employeeAPI, inventoryAPI } from './api';
+import { projectAPI, financeAPI, employeeAPI } from './api';
 
 class DashboardAPIService {
   // Get comprehensive dashboard data
   static async getDashboardOverview(timeRange = 'month') {
     try {
-      const [projectsRes, financeRes, employeesRes, inventoryRes] = await Promise.all([
+      const [projectsRes, financeRes, employeesRes] = await Promise.all([
         projectAPI.getAll().catch(() => ({ data: [] })),
         financeAPI.getAll().catch(() => ({ data: [] })),
-        employeeAPI.getAll().catch(() => ({ data: [] })),
-        inventoryAPI.getAll().catch(() => ({ data: [] }))
+        employeeAPI.getAll().catch(() => ({ data: [] }))
       ]);
 
       const projects = projectsRes.data || [];
       const financeTransactions = financeRes.data || [];
       const employees = employeesRes.data || [];
-      const inventory = inventoryRes.data || [];
 
       return this.calculateDashboardMetrics({
         projects,
         financeTransactions,
         employees,
-        inventory,
         timeRange
       });
     } catch (error) {
@@ -35,7 +32,7 @@ class DashboardAPIService {
   }
 
   // Calculate comprehensive metrics from raw data
-  static calculateDashboardMetrics({ projects, financeTransactions, employees, inventory, timeRange }) {
+  static calculateDashboardMetrics({ projects, financeTransactions, employees, timeRange }) {
     // Financial Metrics
     const totalRevenue = financeTransactions
       .filter(t => t.type === 'income' || t.type === 'credit')
@@ -60,18 +57,11 @@ class DashboardAPIService {
     const departmentBreakdown = this.calculateDepartmentBreakdown(employees);
     const avgPerformanceRating = this.calculateAvgPerformance(employees);
 
-    // Inventory Metrics
-    const totalInventoryItems = inventory.length;
-    const totalInventoryValue = inventory.reduce((sum, item) => 
-      sum + (parseFloat(item.value || 0) * parseInt(item.quantity || 0)), 0);
-    const lowStockItems = inventory.filter(item => 
-      parseInt(item.quantity || 0) < parseInt(item.minQuantity || 10)).length;
-
     // Recent Activities (from transactions and project updates)
     const recentActivities = this.generateRecentActivities(financeTransactions, projects);
 
     // Alerts and Notifications
-    const alerts = this.generateAlerts(projects, inventory, employees, financeTransactions);
+    const alerts = this.generateAlerts(projects, employees, financeTransactions);
 
     return {
       overview: {
@@ -84,9 +74,7 @@ class DashboardAPIService {
         activeProjects,
         completedProjects,
         totalEmployees,
-        activeEmployees,
-        totalInventoryItems,
-        lowStockItems
+        activeEmployees
       },
       financial: {
         revenue: totalRevenue,
@@ -111,12 +99,6 @@ class DashboardAPIService {
         departments: departmentBreakdown,
         avgPerformance: avgPerformanceRating,
         newHires: this.calculateNewHires(employees, timeRange)
-      },
-      inventory: {
-        totalItems: totalInventoryItems,
-        totalValue: totalInventoryValue,
-        lowStock: lowStockItems,
-        categories: this.calculateInventoryCategories(inventory)
       },
       recentActivities,
       alerts,
@@ -163,14 +145,6 @@ class DashboardAPIService {
     }).length;
   }
 
-  static calculateInventoryCategories(inventory) {
-    return inventory.reduce((acc, item) => {
-      const category = item.category || 'Other';
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
   static generateRecentActivities(transactions, projects) {
     const activities = [];
     
@@ -211,7 +185,7 @@ class DashboardAPIService {
       .slice(0, 15);
   }
 
-  static generateAlerts(projects, inventory, employees, transactions) {
+  static generateAlerts(projects, employees, transactions) {
     const alerts = [];
 
     // Budget alerts
@@ -232,21 +206,6 @@ class DashboardAPIService {
         });
       }
     });
-
-    // Inventory alerts
-    const lowStock = inventory.filter(item => 
-      parseInt(item.quantity || 0) < parseInt(item.minQuantity || 10));
-    
-    if (lowStock.length > 0) {
-      alerts.push({
-        id: 'inventory-low-stock',
-        type: 'warning',
-        title: 'Low Stock Alert',
-        message: `${lowStock.length} items are running low on stock`,
-        timestamp: new Date(),
-        priority: 'medium'
-      });
-    }
 
     // Employee-related alerts
     const inactiveEmployees = employees.filter(e => e.status !== 'active').length;

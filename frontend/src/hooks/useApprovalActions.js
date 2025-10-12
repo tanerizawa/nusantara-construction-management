@@ -18,11 +18,11 @@ const useApprovalActions = (type, projectId, onSuccess, onError) => {
 
   // API endpoint mapping
   const endpoints = {
-    rab: `/api/projects/${projectId}/rab`,
+    rab: `/projects/${projectId}/rab`,
     po: `/api/purchase-orders`,  // PO routes are at root level
     'purchase-orders': `/api/purchase-orders`,  // Alternative name
-    ba: `/api/projects/${projectId}/berita-acara`,
-    tt: `/api/projects/${projectId}/tanda-terima`
+    ba: `/projects/${projectId}/berita-acara`,
+    tt: `/projects/${projectId}/tanda-terima`
   };
 
   const baseEndpoint = endpoints[type] || endpoints.rab;

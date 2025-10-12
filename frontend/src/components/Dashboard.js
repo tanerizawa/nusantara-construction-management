@@ -178,14 +178,6 @@ const Dashboard = () => {
               </div>
               <div className="text-gray-400">→</div>
             </button>
-            
-            <button className="w-full flex items-center justify-between p-3 text-left border rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-center">
-                <Package className="h-5 w-5 text-orange-600 mr-3" />
-                <span className="font-medium">Kelola Inventory</span>
-              </div>
-              <div className="text-gray-400">→</div>
-            </button>
           </div>
         </div>
 

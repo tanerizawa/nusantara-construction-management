@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CategorySelector Debug Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1C1C1E;
+      color: white;
+    }
+    .test-section {
+      background: #2C2C2E;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 1px solid #38383A;
+    }
+    .success { color: #30D158; }
+    .error { color: #FF453A; }
+    .info { color: #0A84FF; }
+    pre {
+      background: #1C1C1E;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    button {
+      background: #0A84FF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0077ED;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 CategorySelector API Debug Test</h1>
+  
+  <div class="test-section">
+    <h2>Test Configuration</h2>
+    <p><strong>Project ID:</strong> <span id="projectId">2025LTS001</span></p>
+    <p><strong>API Endpoint:</strong> <span id="apiEndpoint">https://nusantaragroup.co/api/projects/2025LTS001/milestones/rab-categories</span></p>
+    <p><strong>Token:</strong> <span id="tokenStatus" class="info">Checking...</span></p>
+  </div>
+
+  <div class="test-section">
+    <h2>Actions</h2>
+    <button onclick="testAPICall()">🧪 Test API Call</button>
+    <button onclick="testWithAuth()">🔐 Test with Auth Token</button>
+    <button onclick="clearResults()">🗑️ Clear Results</button>
+  </div>
+
+  <div class="test-section">
+    <h2>Results</h2>
+    <div id="results">
+      <p class="info">Click "Test API Call" to start...</p>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Raw Response Data</h2>
+    <pre id="rawData">No data yet...</pre>
+  </div>
+
+  <div class="test-section">
+    <h2>Parsed Categories</h2>
+    <div id="parsedCategories">No categories parsed yet...</div>
+  </div>
+
+  <script>
+    const projectId = '2025LTS001';
+    const apiBase = 'https://nusantaragroup.co/api';
+    
+    // Check for token
+    function checkToken() {
+      const token = localStorage.getItem('token');
+      const tokenStatus = document.getElementById('tokenStatus');
+      if (token) {
+        tokenStatus.textContent = `Found (${token.substring(0, 20)}...)`;
+        tokenStatus.className = 'success';
+        return token;
+      } else {
+        tokenStatus.textContent = 'Not found - Please login first';
+        tokenStatus.className = 'error';
+        return null;
+      }
+    }
+
+    // Test API call
+    async function testAPICall() {
+      const results = document.getElementById('results');
+      const rawData = document.getElementById('rawData');
+      
+      results.innerHTML = '<p class="info">🔄 Testing API call...</p>';
+      
+      const token = checkToken();
+      if (!token) {
+        results.innerHTML = '<p class="error">❌ No token found. Please login first.</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/projects/${projectId}/milestones/rab-categories`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        results.innerHTML += `<p class="info">📡 Status: ${response.status} ${response.statusText}</p>`;
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          results.innerHTML += `<p class="error">❌ API Error: ${errorText}</p>`;
+          rawData.textContent = errorText;
+          return;
+        }
+
+        const data = await response.json();
+        results.innerHTML += `<p class="success">✅ API call successful!</p>`;
+        
+        rawData.textContent = JSON.stringify(data, null, 2);
+
+        if (data.success && data.data) {
+          displayCategories(data.data);
+          results.innerHTML += `<p class="success">✅ Found ${data.data.length} categories</p>`;
+        } else {
+          results.innerHTML += `<p class="error">❌ No data in response</p>`;
+        }
+
+      } catch (error) {
+        results.innerHTML += `<p class="error">❌ Error: ${error.message}</p>`;
+        rawData.textContent = `Error: ${error.message}\n${error.stack}`;
+      }
+    }
+
+    // Display categories
+    function displayCategories(categories) {
+      const container = document.getElementById('parsedCategories');
+      
+      if (!categories || categories.length === 0) {
+        container.innerHTML = '<p class="error">No categories found</p>';
+        return;
+      }
+
+      let html = '<div style="display: grid; gap: 10px;">';
+      
+      categories.forEach((cat, index) => {
+        const formatted = new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          minimumFractionDigits: 0
+        }).format(cat.totalValue || 0);
+
+        html += `
+          <div style="background: #1C1C1E; padding: 15px; border-radius: 8px; border: 1px solid #38383A;">
+            <h3 style="margin: 0 0 10px 0; color: #0A84FF;">${index + 1}. ${cat.name}</h3>
+            <p style="margin: 5px 0; color: #8E8E93;">
+              📦 Items: <strong>${cat.itemCount}</strong>
+            </p>
+            <p style="margin: 5px 0; color: #8E8E93;">
+              💰 Total Value: <strong>${formatted}</strong>
+            </p>
+            ${cat.lastUpdated ? `
+              <p style="margin: 5px 0; color: #636366; font-size: 12px;">
+                🕐 Last Updated: ${new Date(cat.lastUpdated).toLocaleString()}
+              </p>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    // Test with explicit auth
+    async function testWithAuth() {
+      const token = prompt('Enter your auth token (or leave empty to use stored token):');
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      testAPICall();
+    }
+
+    // Clear results
+    function clearResults() {
+      document.getElementById('results').innerHTML = '<p class="info">Results cleared</p>';
+      document.getElementById('rawData').textContent = 'No data yet...';
+      document.getElementById('parsedCategories').innerHTML = 'No categories parsed yet...';
+    }
+
+    // Auto-check token on load
+    window.onload = () => {
+      checkToken();
+    };
+  </script>
+</body>
+</html>

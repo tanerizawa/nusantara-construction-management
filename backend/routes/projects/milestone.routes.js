@@ -9,6 +9,7 @@ const Joi = require('joi');
 const ProjectMilestone = require('../../models/ProjectMilestone');
 const Project = require('../../models/Project');
 const User = require('../../models/User');
+const milestoneIntegrationService = require('../../services/milestone/milestoneIntegrationService');
 
 const router = express.Router();
 
@@ -89,6 +90,81 @@ router.get('/:id/milestones', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch milestones',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/projects/:id/milestones/rab-categories
+ * @desc    Get available RAB categories for milestone linking
+ * @access  Private
+ * NOTE: Must be BEFORE /:milestoneId route to avoid treating 'rab-categories' as an ID
+ */
+router.get('/:id/milestones/rab-categories', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if project exists
+    const project = await Project.findByPk(id);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: 'Project not found'
+      });
+    }
+
+    const categories = await milestoneIntegrationService.getAvailableRABCategories(id);
+
+    res.json({
+      success: true,
+      data: categories,
+      count: categories.length
+    });
+  } catch (error) {
+    console.error('Error getting RAB categories:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get RAB categories',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/projects/:id/milestones/suggest
+ * @desc    Suggest milestones from approved RAB
+ * @access  Private
+ * NOTE: Must be BEFORE /:milestoneId route to avoid treating 'suggest' as an ID
+ */
+router.get('/:id/milestones/suggest', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if project exists
+    const project = await Project.findByPk(id);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: 'Project not found'
+      });
+    }
+
+    const suggestions = await milestoneIntegrationService.suggestMilestonesFromRAB(id);
+
+    res.json({
+      success: true,
+      data: suggestions,
+      count: suggestions.length,
+      message: suggestions.length > 0 
+        ? `Found ${suggestions.length} milestone suggestions from RAB`
+        : 'No new milestone suggestions available'
+    });
+  } catch (error) {
+    console.error('Error suggesting milestones:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to suggest milestones',
       details: error.message
     });
   }
@@ -324,6 +400,91 @@ router.delete('/:id/milestones/:milestoneId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete milestone',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/projects/:projectId/milestones/:milestoneId/progress
+ * @desc    Get detailed workflow progress for a milestone
+ * @access  Private
+ */
+router.get('/:projectId/milestones/:milestoneId/progress', async (req, res) => {
+  try {
+    const { milestoneId } = req.params;
+
+    // Check if milestone exists
+    const milestone = await ProjectMilestone.findByPk(milestoneId);
+    if (!milestone) {
+      return res.status(404).json({
+        success: false,
+        error: 'Milestone not found'
+      });
+    }
+
+    const progressData = await milestoneIntegrationService.calculateWorkflowProgress(milestoneId);
+
+    if (!progressData) {
+      return res.json({
+        success: true,
+        data: null,
+        message: 'Milestone is not linked to RAB category'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: progressData
+    });
+  } catch (error) {
+    console.error('Error getting milestone progress:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get milestone progress',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/projects/:projectId/milestones/:milestoneId/sync
+ * @desc    Manually trigger workflow sync for a milestone
+ * @access  Private
+ */
+router.post('/:projectId/milestones/:milestoneId/sync', async (req, res) => {
+  try {
+    const { milestoneId } = req.params;
+
+    // Check if milestone exists
+    const milestone = await ProjectMilestone.findByPk(milestoneId);
+    if (!milestone) {
+      return res.status(404).json({
+        success: false,
+        error: 'Milestone not found'
+      });
+    }
+
+    // Check if milestone is linked to RAB
+    if (!milestone.category_link || !milestone.category_link.enabled) {
+      return res.status(400).json({
+        success: false,
+        error: 'Milestone is not linked to RAB category'
+      });
+    }
+
+    const progressData = await milestoneIntegrationService.calculateWorkflowProgress(milestoneId);
+
+    res.json({
+      success: true,
+      data: progressData,
+      message: 'Milestone synced successfully'
+    });
+  } catch (error) {
+    console.error('Error syncing milestone:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to sync milestone',
       details: error.message
     });
   }

@@ -648,75 +648,6 @@ export const ProjectProgressChart = ({
   );
 };
 
-// Inventory Status Chart
-export const InventoryStatusChart = ({
-  items = [],
-  title = 'Status Inventory',
-  className = '',
-  ...props
-}) => {
-  // Filter valid items and ensure they have required properties
-  const validItems = items.filter(item => 
-    item && 
-    typeof item.quantity === 'number' && 
-    typeof item.minStock === 'number' &&
-    !isNaN(item.quantity) &&
-    !isNaN(item.minStock)
-  );
-  
-  const totalItems = validItems.length;
-  const inStock = validItems.filter(item => item.quantity > item.minStock).length;
-  const lowStock = validItems.filter(item => item.quantity <= item.minStock && item.quantity > 0).length;
-  const outOfStock = validItems.filter(item => item.quantity === 0).length;
-  
-  const categories = [
-    { label: 'Stok Aman', value: inStock, color: 'bg-green-500', textColor: 'text-green-600' },
-    { label: 'Stok Menipis', value: lowStock, color: 'bg-yellow-500', textColor: 'text-yellow-600' },
-    { label: 'Stok Habis', value: outOfStock, color: 'bg-red-500', textColor: 'text-red-600' }
-  ];
-  
-  return (
-    <ChartContainer
-      title={title}
-      subtitle={`Total ${totalItems} item`}
-      className={className}
-      {...props}
-    >
-      {totalItems > 0 ? (
-        <div className="grid grid-cols-3 gap-4 h-full">
-          {categories.map((category, index) => (
-            <div key={index} className="text-center">
-              <div className="relative mb-4">
-                <div className="w-16 h-16 mx-auto rounded-full border-4 border-gray-200 flex items-center justify-center">
-                  <span className={`text-xl font-bold ${category.textColor}`}>
-                    {category.value}
-                  </span>
-                </div>
-                <div
-                  className={`absolute inset-0 w-16 h-16 mx-auto rounded-full border-4 border-transparent ${category.color}`}
-                  style={{
-                    background: `conic-gradient(${category.color.replace('bg-', '')} ${totalItems > 0 ? (category.value / totalItems) * 360 : 0}deg, transparent 0deg)`,
-                    clipPath: 'circle(50%)'
-                  }}
-                />
-              </div>
-              
-              <h4 className="text-sm font-medium text-gray-700 mb-1">
-                {category.label}
-              </h4>
-              <p className="text-xs text-gray-500">
-                {totalItems > 0 ? Math.round((category.value / totalItems) * 100) : 0}%
-              </p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <ChartEmpty message="Belum ada data inventory" />
-      )}
-    </ChartContainer>
-  );
-};
-
 // Financial Overview Chart
 export const FinancialOverviewChart = ({
   income = 0,
@@ -773,7 +704,6 @@ const ChartComponents = {
   KPIChart,
   RevenueChart,
   ProjectProgressChart,
-  InventoryStatusChart,
   FinancialOverviewChart
 };
 

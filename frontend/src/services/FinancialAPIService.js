@@ -313,8 +313,7 @@ class FinancialAPIService {
           current: {
             cash: 2850000000,
             accountsReceivable: 4120000000,
-            inventory: 1650000000,
-            total: 8620000000
+            total: 6970000000
           },
           fixed: {
             equipment: 15200000000,
@@ -322,7 +321,7 @@ class FinancialAPIService {
             land: 12400000000,
             total: 36500000000
           },
-          total: 45120000000
+          total: 43470000000
         },
         liabilities: {
           current: {

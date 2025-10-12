@@ -1,6 +1,7 @@
 import React from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useMilestoneForm } from '../hooks/useMilestoneForm';
+import CategorySelector from '../CategorySelector';
 
 const MilestoneInlineForm = ({ 
   projectId,
@@ -114,6 +115,47 @@ const MilestoneInlineForm = ({
             </select>
           </div>
         </div>
+
+        {/* Row 3.5: RAB Category Link */}
+        <CategorySelector
+          projectId={projectId}
+          value={formData.categoryLink}
+          onChange={(category) => {
+            setFormData({ 
+              ...formData, 
+              categoryLink: category ? {
+                enabled: true,
+                category_id: category.id || null,
+                category_name: category.name,
+                auto_generated: false
+              } : null
+            });
+          }}
+          onCategorySelect={(category) => {
+            // Auto-populate fields when category selected
+            if (category && !isEditMode) {
+              // Estimate duration: 1 month per 100M rupiah
+              const estimatedMonths = Math.max(1, Math.ceil(category.totalValue / 100000000));
+              const estimatedDays = estimatedMonths * 30;
+              
+              const startDate = new Date();
+              const endDate = new Date();
+              endDate.setDate(endDate.getDate() + estimatedDays);
+              
+              setFormData({
+                ...formData,
+                name: formData.name || `${category.name} - Fase 1`,
+                budget: category.totalValue || formData.budget,
+                categoryLink: {
+                  enabled: true,
+                  category_id: category.id || null,
+                  category_name: category.name,
+                  auto_generated: false
+                }
+              });
+            }
+          }}
+        />
 
         {/* Row 4: Deliverables */}
         <div>

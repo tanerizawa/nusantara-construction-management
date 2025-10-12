@@ -50,33 +50,6 @@ const StockMovementChart = ({ data }) => {
   );
 };
 
-const InventoryValueChart = ({ data }) => {
-  const defaultData = [
-    { month: 'Jan', value: 245000000 },
-    { month: 'Feb', value: 289000000 },
-    { month: 'Mar', value: 198000000 },
-    { month: 'Apr', value: 356000000 },
-    { month: 'May', value: 387000000 },
-    { month: 'Jun', value: 425000000 },
-    { month: 'Jul', value: 467000000 },
-  ];
-
-  const chartData = data || defaultData;
-
-  return (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis tickFormatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value)} />
-        <Tooltip formatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value)} />
-        <Legend />
-        <Line type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', strokeWidth: 2, r: 6 }} />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-};
-
 const CategoryDistributionChart = ({ data }) => {
   const defaultData = [
     { name: 'Semen & Agregat', value: 35, count: 145 },
@@ -204,18 +177,6 @@ const PurchaseOrderTrendChart = ({ data }) => {
 const AnalyticsCharts = () => {
   return (
     <div className="space-y-6">
-      {/* Stock Movement Chart */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Stock Movement Analysis</h3>
-        <StockMovementChart />
-      </div>
-
-      {/* Inventory Value Chart */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Inventory Value Trend</h3>
-        <InventoryValueChart />
-      </div>
-
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Distribution */}
@@ -252,7 +213,6 @@ const AnalyticsCharts = () => {
 // Export individual chart components for reuse
 export {
   StockMovementChart,
-  InventoryValueChart,
   CategoryDistributionChart,
   SupplierPerformanceChart,
   WarehouseUtilizationChart,

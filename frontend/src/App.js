@@ -35,7 +35,6 @@ import ApprovalDashboard from './components/ApprovalDashboard';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 
 // Import routes
-import InventoryRoutes from './routes/InventoryRoutes';
 import AssetRoutes from './routes/AssetRoutes';
 
 
@@ -202,13 +201,6 @@ function App() {
                     <Settings />
                   </MainLayout>
                 </ProtectedRoute>
-              } />
-              
-              {/* Inventory Sub-routes - With Layout */}
-              <Route path="/inventory/*" element={
-                <MainLayout>
-                  <InventoryRoutes />
-                </MainLayout>
               } />
               
               {/* Asset Management Sub-routes - With Layout */}

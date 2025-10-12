@@ -3,7 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Home, 
   FolderOpen, 
-  Package, 
   Users, 
   DollarSign, 
   Settings,
@@ -41,12 +40,6 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'Manajemen Proyek',
       icon: FolderOpen,
       path: '/projects'
-    },
-    {
-      id: 'inventory',
-      label: 'Inventory',
-      icon: Package,
-      path: '/inventory'
     },
     {
       id: 'manpower',

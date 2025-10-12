@@ -67,12 +67,15 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Log all errors normally - all endpoints should exist
     console.error('API Error:', {
       url: error.config?.url,
       status: error.response?.status,
       message: error.message,
       responseData: error.response?.data
-    });    if (error.response?.status === 401) {
+    });
+    
+    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
@@ -319,17 +322,6 @@ export const taxAPI = {
   delete: (id) => apiService.delete(`/tax/${id}`),
   getByPeriod: (period) => apiService.get(`/tax?period=${period}`),
   getByType: (type) => apiService.get(`/tax?type=${type}`),
-};
-
-export const inventoryAPI = {
-  getAll: (params) => apiService.get('/inventory', params),
-  getById: (id) => apiService.get(`/inventory/${id}`),
-  create: (data) => apiService.post('/inventory', data),
-  update: (id, data) => apiService.put(`/inventory/${id}`, data),
-  delete: (id) => apiService.delete(`/inventory/${id}`),
-  getByCategory: (category) => apiService.get(`/inventory?category=${category}`),
-  getByStatus: (status) => apiService.get(`/inventory?status=${status}`),
-  getLowStock: () => apiService.get('/inventory?lowStock=true'),
 };
 
 export const purchaseOrderAPI = {

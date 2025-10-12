@@ -261,7 +261,6 @@ app.use('/api/projects', require('./routes/projects/index'));
 
 // Subsidiaries API - Modular Routes (Phase 5 Complete - 12 endpoints)
 app.use('/api/subsidiaries', require('./routes/subsidiaries/index'));
-app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/manpower', require('./routes/manpower'));
 app.use('/api/finance', require('./routes/finance'));
 app.use('/api/tax', require('./routes/tax'));

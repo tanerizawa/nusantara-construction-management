@@ -105,7 +105,7 @@ export const useProgressPayments = (projectId, onPaymentChange) => {
 
     try {
       // Both approval and rejection use the same /status endpoint
-      const endpoint = `/api/projects/${projectId}/progress-payments/${paymentId}/status`;
+      const endpoint = `/projects/${projectId}/progress-payments/${paymentId}/status`;
       
       // Prepare request body
       const body = {
@@ -148,7 +148,7 @@ export const useProgressPayments = (projectId, onPaymentChange) => {
 
   const sendInvoice = useCallback(async (paymentId) => {
     try {
-      const endpoint = `/api/projects/${projectId}/progress-payments/${paymentId}/status`;
+      const endpoint = `/projects/${projectId}/progress-payments/${paymentId}/status`;
       
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -182,7 +182,7 @@ export const useProgressPayments = (projectId, onPaymentChange) => {
     }
 
     try {
-      const endpoint = `/api/projects/${projectId}/progress-payments/${paymentId}/status`;
+      const endpoint = `/projects/${projectId}/progress-payments/${paymentId}/status`;
       
       const response = await fetch(endpoint, {
         method: 'PUT',

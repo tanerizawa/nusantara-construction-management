@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Eye, FileText, Calendar, Building, User, Clock } from 'lucide-react';
+import { ArrowLeft, Eye, FileText, Calendar, Building, User, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../../utils/formatters';
 import { POStatusBadge } from '../components';
 import { formatPONumber } from '../utils/poFormatters';
@@ -14,7 +14,10 @@ const POListView = ({
   projectName, 
   projectAddress, 
   projectId,
-  loading 
+  loading,
+  onApprovePO,
+  onRejectPO,
+  onApproveAllPO
 }) => {
   const [selectedPO, setSelectedPO] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -172,7 +175,7 @@ const POListView = ({
                         <tr key={index} className="hover:bg-[#3A3A3C] transition-colors">
                           <td className="px-4 py-3 text-sm text-white">{item.itemName || item.item_name || item.description}</td>
                           <td className="px-4 py-3 text-sm text-right">
-                            <span className="text-[#0A84FF] font-medium">{qty.toFixed(2)}</span>
+                            <span className="text-[#0A84FF] font-medium">{Math.floor(qty)}</span>
                             <span className="text-[#8E8E93] ml-1">{item.unit}</span>
                           </td>
                           <td className="px-4 py-3 text-sm text-white text-right">{formatCurrency(price)}</td>
@@ -366,8 +369,7 @@ const POListView = ({
               <p className="text-sm text-[#8E8E93]">Total Nilai</p>
               <p className="text-lg font-bold text-white">
                 {formatCurrency(
-                  purchaseOrders.reduce((sum, po) => sum + (po.totalAmount || po.total_amount || 0), 0),
-                  true
+                  purchaseOrders.reduce((sum, po) => sum + (parseFloat(po.totalAmount) || parseFloat(po.total_amount) || 0), 0)
                 )}
               </p>
             </div>
@@ -477,28 +479,25 @@ const POListView = ({
             <table className="min-w-full divide-y divide-[#38383A]">
               <thead style={{ backgroundColor: '#2C2C2E' }}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
                     No. PO
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
                     Supplier
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
-                    Tanggal Dibuat
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                  <th className="px-3 py-3 text-left text-xs font-semibold text-[#98989D] uppercase tracking-wider">
                     Tanggal Kirim
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-[#98989D] uppercase tracking-wider">
-                    Jumlah Item
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                  <th className="px-3 py-3 text-right text-xs font-semibold text-[#98989D] uppercase tracking-wider">
                     Total Nilai
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#98989D] uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#98989D] uppercase tracking-wider">
+                    Approval
+                  </th>
+                  <th className="px-3 py-3 text-center text-xs font-semibold text-[#98989D] uppercase tracking-wider">
                     Aksi
                   </th>
                 </tr>
@@ -514,9 +513,9 @@ const POListView = ({
                       className="hover:bg-[#2C2C2E] transition-colors"
                     >
                       {/* No. PO */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <FileText className="h-4 w-4 mr-2 text-[#0A84FF]" />
+                          <FileText className="h-4 w-4 mr-1.5 text-[#0A84FF]" />
                           <span className="text-sm font-medium text-white">
                             {formatPONumber(po.poNumber || po.po_number)}
                           </span>
@@ -524,81 +523,110 @@ const POListView = ({
                       </td>
                       
                       {/* Supplier */}
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-3">
                         <div className="flex items-center">
-                          <Building className="h-4 w-4 mr-2 text-[#0A84FF] flex-shrink-0" />
-                          <div className="max-w-xs">
+                          <Building className="h-4 w-4 mr-1.5 text-[#0A84FF] flex-shrink-0" />
+                          <div className="max-w-[180px]">
                             <p className="text-sm font-medium text-white truncate">
                               {po.supplierName || po.supplier_name || '-'}
                             </p>
-                            {(po.supplierAddress || po.supplier_address) && (
-                              <p className="text-xs text-[#8E8E93] truncate mt-1">
-                                {po.supplierAddress || po.supplier_address}
-                              </p>
-                            )}
                           </div>
                         </div>
                       </td>
                       
-                      {/* Tanggal Dibuat */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-2 text-[#8E8E93]" />
-                          <span className="text-sm text-white">
-                            {formatDate(po.createdAt || po.created_at)}
-                          </span>
-                        </div>
-                      </td>
-                      
                       {/* Tanggal Kirim */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap">
                         <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-[#8E8E93]" />
+                          <Clock className="h-4 w-4 mr-1.5 text-[#0A84FF]" />
                           <span className="text-sm text-[#0A84FF]">
                             {formatDate(po.deliveryDate || po.delivery_date)}
                           </span>
                         </div>
                       </td>
                       
-                      {/* Jumlah Item */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span 
-                          style={{
-                            backgroundColor: 'rgba(48, 209, 88, 0.1)',
-                            border: '1px solid rgba(48, 209, 88, 0.3)'
-                          }}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-[#30D158]"
-                        >
-                          {itemCount} {itemCount === 1 ? 'item' : 'items'}
-                        </span>
-                      </td>
-                      
                       {/* Total Nilai */}
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <td className="px-3 py-3 whitespace-nowrap text-right">
                         <div className="text-sm font-bold text-[#0A84FF]">
                           {formatCurrency(totalAmount)}
-                        </div>
-                        <div className="text-xs text-[#8E8E93] mt-1">
-                          ~{formatCurrency(totalAmount / Math.max(itemCount, 1))} /item
                         </div>
                       </td>
                       
                       {/* Status */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         <POStatusBadge status={po.status} />
                       </td>
                       
+                      {/* Approval */}
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
+                        {po.status === 'pending' ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onApprovePO && onApprovePO(po);
+                              }}
+                              style={{
+                                backgroundColor: 'rgba(48, 209, 88, 0.1)',
+                                border: '1px solid rgba(48, 209, 88, 0.3)'
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-[#30D158]/20 transition-all group"
+                              title="Approve PO"
+                            >
+                              <CheckCircle2 className="h-4 w-4 text-[#30D158] group-hover:scale-110 transition-transform" />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRejectPO && onRejectPO(po);
+                              }}
+                              style={{
+                                backgroundColor: 'rgba(255, 69, 58, 0.1)',
+                                border: '1px solid rgba(255, 69, 58, 0.3)'
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-[#FF453A]/20 transition-all group"
+                              title="Reject PO"
+                            >
+                              <XCircle className="h-4 w-4 text-[#FF453A] group-hover:scale-110 transition-transform" />
+                            </button>
+                          </div>
+                        ) : po.status === 'approved' ? (
+                          <span 
+                            style={{
+                              backgroundColor: 'rgba(48, 209, 88, 0.1)',
+                              border: '1px solid rgba(48, 209, 88, 0.3)'
+                            }}
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-[#30D158]"
+                          >
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                            Approved
+                          </span>
+                        ) : po.status === 'rejected' ? (
+                          <span 
+                            style={{
+                              backgroundColor: 'rgba(255, 69, 58, 0.1)',
+                              border: '1px solid rgba(255, 69, 58, 0.3)'
+                            }}
+                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-[#FF453A]"
+                          >
+                            <XCircle className="h-3.5 w-3.5 mr-1" />
+                            Rejected
+                          </span>
+                        ) : (
+                          <span className="text-[#8E8E93] text-sm">-</span>
+                        )}
+                      </td>
+                      
                       {/* Aksi */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         <button
                           onClick={() => showPODetail(po)}
                           style={{
                             backgroundColor: '#0A84FF',
                             border: '1px solid #0A84FF'
                           }}
-                          className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-[#0A84FF]/80 transition-all shadow-md shadow-[#0A84FF]/20 hover:shadow-lg hover:shadow-[#0A84FF]/30"
+                          className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:bg-[#0A84FF]/80 transition-all shadow-md shadow-[#0A84FF]/20 hover:shadow-lg hover:shadow-[#0A84FF]/30"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-3.5 w-3.5 mr-1" />
                           Detail
                         </button>
                       </td>
@@ -606,39 +634,41 @@ const POListView = ({
                   );
                 })}
               </tbody>
+              
+              {/* Table Footer - Approval Summary */}
+              <tfoot style={{ backgroundColor: '#2C2C2E', borderTop: '2px solid #38383A' }}>
+                <tr>
+                  <td colSpan="3" className="px-3 py-3 text-left">
+                    <span className="text-sm font-semibold text-white">Total PO:</span>
+                  </td>
+                  <td className="px-3 py-3 text-right">
+                    <div className="text-sm font-bold text-[#0A84FF]">
+                      {formatCurrency(filteredPOs.reduce((sum, po) => sum + (parseFloat(po.totalAmount) || parseFloat(po.total_amount) || 0), 0))}
+                    </div>
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <span className="text-xs text-white">
+                      {filteredPOs.filter(po => po.status === 'approved').length}/{filteredPOs.length}
+                    </span>
+                  </td>
+                  <td colSpan="2" className="px-3 py-3 text-center">
+                    {filteredPOs.filter(po => po.status === 'pending').length > 0 && onApproveAllPO && (
+                      <button
+                        onClick={onApproveAllPO}
+                        style={{
+                          backgroundColor: 'rgba(48, 209, 88, 0.15)',
+                          border: '1px solid rgba(48, 209, 88, 0.4)'
+                        }}
+                        className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-[#30D158] hover:bg-[#30D158]/25 transition-all"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                        Approve All ({filteredPOs.filter(po => po.status === 'pending').length})
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
-          </div>
-          
-          {/* Table Footer Summary */}
-          <div 
-            style={{
-              backgroundColor: '#2C2C2E',
-              borderTop: '2px solid #38383A'
-            }}
-            className="px-6 py-4"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div>
-                  <span className="text-xs text-[#98989D]">Total PO:</span>
-                  <span className="ml-2 text-sm font-semibold text-white">{filteredPOs.length}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-[#98989D]">Total Item:</span>
-                  <span className="ml-2 text-sm font-semibold text-white">
-                    {filteredPOs.reduce((sum, po) => sum + (po.items || []).length, 0)}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <span className="text-xs text-[#98989D] mr-2">Total Nilai Keseluruhan:</span>
-                <span className="text-lg font-bold text-[#0A84FF]">
-                  {formatCurrency(
-                    filteredPOs.reduce((sum, po) => sum + (po.totalAmount || po.total_amount || 0), 0)
-                  )}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       )}

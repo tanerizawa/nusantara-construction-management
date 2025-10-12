@@ -17,7 +17,7 @@ const ProgressPaymentContent = ({
     return (
       <div className="text-center py-12">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#2C2C2E] flex items-center justify-center">
-          <DollarSign size={32} className="text-[#8E8E93]" />
+          <DollarSign size={32} className="text-[#30D158]" />
         </div>
         <p className="text-[#8E8E93] text-sm">Tidak ada payment yang menunggu approval</p>
       </div>
@@ -71,7 +71,7 @@ const ProgressPaymentContent = ({
             <div>
               <p className="text-xs text-[#8E8E93] mb-1">Invoice Date</p>
               <div className="flex items-center gap-1">
-                <Calendar size={14} className="text-[#8E8E93]" />
+                <Calendar size={14} className="text-[#0A84FF]" />
                 <p className="text-sm text-white">
                   {payment.invoiceDate ? formatDate(payment.invoiceDate) : 'N/A'}
                 </p>
@@ -82,7 +82,7 @@ const ProgressPaymentContent = ({
             <div>
               <p className="text-xs text-[#8E8E93] mb-1">Berita Acara</p>
               <div className="flex items-center gap-1">
-                <FileText size={14} className="text-[#8E8E93]" />
+                <FileText size={14} className="text-[#0A84FF]" />
                 <p className="text-sm font-medium text-white">
                   {payment.beritaAcara?.baNumber || 'N/A'}
                 </p>
@@ -93,7 +93,7 @@ const ProgressPaymentContent = ({
             <div>
               <p className="text-xs text-[#8E8E93] mb-1">Due Date</p>
               <div className="flex items-center gap-1">
-                <Calendar size={14} className="text-[#8E8E93]" />
+                <Calendar size={14} className="text-[#0A84FF]" />
                 <p className="text-sm text-white">
                   {formatDate(payment.dueDate)}
                 </p>

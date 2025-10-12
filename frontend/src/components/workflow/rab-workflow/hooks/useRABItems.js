@@ -115,6 +115,8 @@ const useRABItems = (projectId, onDataChange) => {
         
         return {
           id: item.id,
+          code: `RAB-${item.id.substring(0, 8)}`, // Generate code for display
+          name: item.description || 'No description', // Add name field for ApprovalSection
           category: item.category || 'Unknown',
           description: item.description || 'No description',
           unit: item.unit || 'Unit',
@@ -122,11 +124,14 @@ const useRABItems = (projectId, onDataChange) => {
           unitPrice: parseFloat(item.unitPrice) || 0,
           total: parseFloat(item.totalPrice) || 0,
           totalPrice: parseFloat(item.totalPrice) || 0,
+          total_amount: parseFloat(item.totalPrice) || 0, // Add total_amount for ApprovalSection
           specifications: item.notes || '',
           status: item.isApproved ? 'approved' : 'draft',
+          approval_status: item.isApproved ? 'approved' : 'pending_approval', // Add approval_status field
           isApproved: item.isApproved || false,
           approvedBy: item.approvedBy,
           approvedAt: item.approvedAt,
+          created_at: item.createdAt, // Add created_at for ApprovalSection
           createdAt: item.createdAt,
           updatedAt: item.updatedAt
         };

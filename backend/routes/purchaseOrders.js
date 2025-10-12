@@ -567,4 +567,144 @@ router.post('/sync-finance', async (req, res) => {
   }
 });
 
+// @route   POST /api/purchase-orders/:id/approve
+// @desc    Approve a Purchase Order
+// @access  Private
+router.post('/:id/approve', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes, approval_date } = req.body;
+
+    // Find PO
+    const po = await PurchaseOrder.findOne({ where: { id } });
+    if (!po) {
+      return res.status(404).json({
+        success: false,
+        error: 'Purchase Order tidak ditemukan'
+      });
+    }
+
+    // Update approval fields
+    po.status = 'approved';
+    po.approvedBy = req.user.id;
+    po.approvedAt = approval_date || new Date();
+    if (notes) po.notes = notes;
+
+    await po.save();
+
+    res.json({
+      success: true,
+      message: 'Purchase Order berhasil diapprove',
+      data: po
+    });
+  } catch (error) {
+    console.error('Error approving PO:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Gagal approve Purchase Order',
+      details: error.message
+    });
+  }
+});
+
+// @route   POST /api/purchase-orders/:id/reject
+// @desc    Reject a Purchase Order
+// @access  Private
+router.post('/:id/reject', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason, rejection_date } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Alasan penolakan wajib diisi'
+      });
+    }
+
+    // Find PO
+    const po = await PurchaseOrder.findOne({ where: { id } });
+    if (!po) {
+      return res.status(404).json({
+        success: false,
+        error: 'Purchase Order tidak ditemukan'
+      });
+    }
+
+    // Update rejection fields
+    po.status = 'rejected';
+    po.notes = reason;
+    po.rejectedBy = req.user.id;
+    po.rejectedAt = rejection_date || new Date();
+
+    await po.save();
+
+    res.json({
+      success: true,
+      message: 'Purchase Order ditolak',
+      data: po
+    });
+  } catch (error) {
+    console.error('Error rejecting PO:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Gagal reject Purchase Order',
+      details: error.message
+    });
+  }
+});
+
+// @route   PATCH /api/purchase-orders/:id/status
+// @desc    Update Purchase Order approval status
+// @access  Private
+router.patch('/:id/status', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approval_status, notes } = req.body;
+
+    // Validate status
+    const validStatuses = ['draft', 'pending', 'approved', 'rejected', 'received', 'cancelled'];
+    if (!validStatuses.includes(approval_status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Status tidak valid'
+      });
+    }
+
+    // Find PO
+    const po = await PurchaseOrder.findOne({ where: { id } });
+    if (!po) {
+      return res.status(404).json({
+        success: false,
+        error: 'Purchase Order tidak ditemukan'
+      });
+    }
+
+    // Update status
+    po.status = approval_status;
+    if (notes) po.notes = notes;
+
+    // Set approval fields if approved
+    if (approval_status === 'approved') {
+      po.approvedBy = req.user.id;
+      po.approvedAt = new Date();
+    }
+
+    await po.save();
+
+    res.json({
+      success: true,
+      message: `Status Purchase Order diubah menjadi ${approval_status}`,
+      data: po
+    });
+  } catch (error) {
+    console.error('Error updating PO status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Gagal update status Purchase Order',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

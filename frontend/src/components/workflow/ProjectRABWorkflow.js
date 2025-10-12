@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import useRABItems from './rab-workflow/hooks/useRABItems';
 import useRABForm from './rab-workflow/hooks/useRABForm';
@@ -13,6 +13,8 @@ import RABStatistics from './rab-workflow/components/RABStatistics';
 import WorkflowActions from './rab-workflow/components/WorkflowActions';
 import EmptyState from './rab-workflow/components/EmptyState';
 import { canAddItems } from './rab-workflow/config/statusConfig';
+import useApprovalActions from '../../hooks/useApprovalActions';
+import api from '../../services/api';
 
 const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   console.log('=== ProjectRABWorkflow COMPONENT LOADED ===');
@@ -24,6 +26,13 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [isApproving, setIsApproving] = useState(false);
+  const [workflowStats, setWorkflowStats] = useState({
+    totalPOs: 0,
+    approvedPOs: 0,
+    totalReceipts: 0,
+    totalBAs: 0,
+    totalPayments: 0
+  });
 
   // Custom hooks
   const {
@@ -36,6 +45,22 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     approveRAB,
     refetch
   } = useRABItems(projectId, onDataChange);
+
+  // Approval actions hook
+  const {
+    approveItem,
+    rejectItem
+  } = useApprovalActions('rab', projectId, 
+    (data, action) => {
+      // On success callback
+      showNotification(`Item berhasil ${action === 'approved' ? 'diapprove' : 'ditolak'}`, 'success');
+      refetch(); // Refresh data
+    },
+    (error) => {
+      // On error callback
+      showNotification(error, 'error');
+    }
+  );
 
   // Form submission handler
   const handleFormSubmit = async (itemData) => {
@@ -72,6 +97,59 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
 
   // Sync with approval changes
   useRABSync(projectId, refetch);
+
+  // Fetch workflow statistics
+  useEffect(() => {
+    const fetchWorkflowStats = async () => {
+      try {
+        // Fetch POs
+        const poResponse = await api.get(`/api/projects/${projectId}/purchase-orders`);
+        const pos = poResponse.data?.data || [];
+        const approvedPOs = pos.filter(po => po.status === 'approved');
+
+        // Fetch Tanda Terima (Receipts)
+        let receipts = [];
+        try {
+          const receiptResponse = await api.get(`/api/projects/${projectId}/receipts`);
+          receipts = receiptResponse.data?.data || [];
+        } catch (err) {
+          console.log('Receipts endpoint not ready yet');
+        }
+
+        // Fetch Berita Acara
+        let bas = [];
+        try {
+          const baResponse = await api.get(`/api/projects/${projectId}/berita-acara`);
+          bas = baResponse.data?.data || [];
+        } catch (err) {
+          console.log('BA endpoint not ready yet');
+        }
+
+        // Fetch Progress Payments
+        let payments = [];
+        try {
+          const paymentResponse = await api.get(`/api/projects/${projectId}/progress-payments`);
+          payments = paymentResponse.data?.data || [];
+        } catch (err) {
+          console.log('Payment endpoint not ready yet');
+        }
+
+        setWorkflowStats({
+          totalPOs: pos.length,
+          approvedPOs: approvedPOs.length,
+          totalReceipts: receipts.length,
+          totalBAs: bas.length,
+          totalPayments: payments.length
+        });
+      } catch (error) {
+        console.error('Error fetching workflow stats:', error);
+      }
+    };
+
+    if (projectId && approvalStatus?.status === 'approved') {
+      fetchWorkflowStats();
+    }
+  }, [projectId, approvalStatus]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ show: true, message, type });
@@ -119,6 +197,40 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
           'success'
         );
       }
+    }
+  };
+
+  const handleApproveItem = async (item) => {
+    const result = await approveItem(item);
+    if (result.success) {
+      showNotification('Item RAB berhasil diapprove!', 'success');
+    }
+  };
+
+  const handleRejectItem = async (item) => {
+    const reason = prompt('Alasan penolakan:');
+    if (reason && reason.trim()) {
+      const result = await rejectItem(item, reason);
+      if (result.success) {
+        showNotification('Item RAB ditolak', 'warning');
+      }
+    }
+  };
+
+  const handleApproveAll = async () => {
+    const pendingItems = rabItems.filter(item => !item.isApproved);
+    if (pendingItems.length === 0) {
+      return;
+    }
+
+    // eslint-disable-next-line no-restricted-globals
+    if (confirm(`Approve ${pendingItems.length} item sekaligus?`)) {
+      let successCount = 0;
+      for (const item of pendingItems) {
+        const result = await approveItem(item);
+        if (result.success) successCount++;
+      }
+      showNotification(`${successCount} dari ${pendingItems.length} item berhasil diapprove`, 'success');
     }
   };
 
@@ -193,7 +305,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       {/* RAB Summary Card */}
       <RABSummaryCards rabItems={rabItems} approvalStatus={approvalStatus} />
 
-      {/* RAB Items Table */}
+      {/* RAB Items Table with Inline Approval */}
       <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
         <div className="px-4 py-3 border-b border-[#38383A]">
           <h3 className="text-base font-semibold text-white">Daftar Item RAB</h3>
@@ -218,6 +330,9 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
             rabItems={rabItems}
             onEdit={handleEditItem}
             onDelete={handleDeleteItem}
+            onApprove={handleApproveItem}
+            onReject={handleRejectItem}
+            onApproveAll={handleApproveAll}
           />
         ) : (
           <EmptyState onAddClick={handleAddClick} />
@@ -241,6 +356,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         rabItemsCount={rabItems.length}
         isSubmitting={isApproving}
         onApprove={handleApproveRAB}
+        workflowStats={workflowStats}
       />
     </div>
   );

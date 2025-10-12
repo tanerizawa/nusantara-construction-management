@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FileText } from 'lucide-react';
 
 // Custom Hooks
 import { usePurchaseOrders, useRABItems, usePOSync } from './hooks';
+import useApprovalActions from '../../../hooks/useApprovalActions';
 
 // Components
 import { POSummary } from './components';
@@ -64,6 +65,21 @@ const ProjectPurchaseOrders = ({
     broadcastPOChange, 
     setupPOListener 
   } = usePOSync(projectId, onDataChange);
+
+  // Approval actions hook
+  const { 
+    approveItem, 
+    rejectItem,
+    isLoading: approvalLoading,
+    error: approvalError
+  } = useApprovalActions('purchase-orders', projectId, onDataChange);
+
+  // Notification helper
+  const showNotification = useCallback((message, type = 'info') => {
+    window.dispatchEvent(new CustomEvent('show-notification', {
+      detail: { type, message, duration: 3000 }
+    }));
+  }, []);
 
   // Loading state
   const loading = poLoading || rabLoading;
@@ -159,17 +175,134 @@ const ProjectPurchaseOrders = ({
     return cleanup;
   }, [setupPOListener, fetchPurchaseOrders]);
 
-  // Auto-refresh data every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('[AUTO-REFRESH] Refreshing RAB and PO data...');
-      fetchRABItems();
-      fetchPurchaseOrders();
-    }, 30000);
+  /**
+   * Approval Handlers
+   */
+  const handleApprovePO = async (po) => {
+    try {
+      console.log('🔍 [APPROVE PO] Starting approval for:', po);
+      
+      // Transform PO to expected format
+      const approvalItem = {
+        id: po.id,
+        code: po.poNumber || po.po_number,
+        name: `PO - ${po.supplierName || po.supplier_name}`,
+        type: 'purchase-orders',
+        total_amount: po.totalAmount || po.total_amount || 0,
+        approval_status: po.status,
+        metadata: po
+      };
 
-    return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only setup interval once on mount
+      const result = await approveItem(approvalItem, 'purchase-orders');
+      
+      if (result.success) {
+        showNotification(`PO ${po.poNumber || po.po_number} berhasil diapprove!`, 'success');
+        await fetchPurchaseOrders(); // Refresh data
+        if (onDataChange) onDataChange();
+      } else {
+        showNotification(`Gagal approve PO: ${result.error}`, 'error');
+      }
+    } catch (error) {
+      console.error('❌ [APPROVE PO] Error:', error);
+      showNotification('Terjadi kesalahan saat approve PO', 'error');
+    }
+  };
+
+  const handleRejectPO = async (po) => {
+    try {
+      console.log('🔍 [REJECT PO] Starting rejection for:', po);
+      
+      const reason = prompt('Alasan penolakan PO:');
+      if (!reason || !reason.trim()) {
+        showNotification('Alasan penolakan wajib diisi', 'warning');
+        return;
+      }
+
+      // Transform PO to expected format
+      const approvalItem = {
+        id: po.id,
+        code: po.poNumber || po.po_number,
+        name: `PO - ${po.supplierName || po.supplier_name}`,
+        type: 'purchase-orders',
+        total_amount: po.totalAmount || po.total_amount || 0,
+        approval_status: po.status,
+        metadata: po
+      };
+
+      const result = await rejectItem(approvalItem, reason, 'purchase-orders');
+      
+      if (result.success) {
+        showNotification(`PO ${po.poNumber || po.po_number} ditolak`, 'warning');
+        await fetchPurchaseOrders(); // Refresh data
+        if (onDataChange) onDataChange();
+      } else {
+        showNotification(`Gagal reject PO: ${result.error}`, 'error');
+      }
+    } catch (error) {
+      console.error('❌ [REJECT PO] Error:', error);
+      showNotification('Terjadi kesalahan saat reject PO', 'error');
+    }
+  };
+
+  const handleApproveAllPO = async () => {
+    try {
+      const pendingPOs = purchaseOrders.filter(po => po.status === 'pending');
+      
+      if (pendingPOs.length === 0) {
+        showNotification('Tidak ada PO yang pending', 'info');
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Approve ${pendingPOs.length} Purchase Order sekaligus?\n\n` +
+        pendingPOs.map(po => `- ${po.poNumber || po.po_number} (${po.supplierName || po.supplier_name})`).join('\n')
+      );
+
+      if (!confirmed) return;
+
+      console.log('🚀 [APPROVE ALL PO] Approving', pendingPOs.length, 'POs...');
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const po of pendingPOs) {
+        const approvalItem = {
+          id: po.id,
+          code: po.poNumber || po.po_number,
+          name: `PO - ${po.supplierName || po.supplier_name}`,
+          type: 'purchase-orders',
+          total_amount: po.totalAmount || po.total_amount || 0,
+          approval_status: po.status,
+          metadata: po
+        };
+
+        const result = await approveItem(approvalItem, 'purchase-orders');
+        if (result.success) {
+          successCount++;
+        } else {
+          failCount++;
+          console.error('Failed to approve PO:', po.poNumber, result.error);
+        }
+      }
+
+      // Refresh data
+      await fetchPurchaseOrders();
+      if (onDataChange) onDataChange();
+
+      // Show result
+      if (failCount === 0) {
+        showNotification(`✅ ${successCount} PO berhasil diapprove!`, 'success');
+      } else {
+        showNotification(
+          `${successCount} PO berhasil, ${failCount} PO gagal diapprove`,
+          'warning'
+        );
+      }
+    } catch (error) {
+      console.error('❌ [APPROVE ALL PO] Error:', error);
+      showNotification('Terjadi kesalahan saat approve semua PO', 'error');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -238,6 +371,9 @@ const ProjectPurchaseOrders = ({
             projectAddress={projectAddress}
             projectId={projectId}
             loading={loading}
+            onApprovePO={handleApprovePO}
+            onRejectPO={handleRejectPO}
+            onApproveAllPO={handleApproveAllPO}
           />
         </>
       ) : (

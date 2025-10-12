@@ -118,7 +118,8 @@ export const useRABItems = (projectId) => {
           const recordCount = parseInt(purchaseData.recordCount ?? purchaseData.record_count ?? 0) || 0;
 
           const totalQty = parseFloat(item.quantity) || 0;
-          const remainingQuantity = Math.max(0, totalQty - totalPurchased);
+          // Use Math.floor to eliminate decimal issues like 0.01 difference
+          const remainingQuantity = Math.floor(Math.max(0, totalQty - totalPurchased));
           const availableQuantity = remainingQuantity;
 
           // Calculate remaining values (in Rupiah)

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, List, ShoppingCart } from 'lucide-react';
+import { Plus, List, ShoppingCart, Package } from 'lucide-react';
 import ProjectPurchaseOrders from './ProjectPurchaseOrders';
+import TandaTerimaContent from '../approval/components/TandaTerimaContent';
 
 /**
  * PurchaseOrdersManager - Wrapper with sub-tabs
- * Manages "Buat PO" and "Riwayat PO" tabs
+ * Manages "Buat PO", "Riwayat PO", and "Tanda Terima" tabs
  */
 const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
   // Sub-tab state (dari URL hash jika ada)
@@ -12,7 +13,7 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
     const hash = window.location.hash.replace('#', '');
     if (hash.includes(':')) {
       const subTab = hash.split(':')[1];
-      if (subTab === 'create' || subTab === 'history') {
+      if (subTab === 'create' || subTab === 'history' || subTab === 'receipts') {
         return subTab;
       }
     }
@@ -34,7 +35,7 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
       const hash = window.location.hash.replace('#', '');
       if (hash.includes(':')) {
         const subTab = hash.split(':')[1];
-        if ((subTab === 'create' || subTab === 'history') && subTab !== activeSubTab) {
+        if ((subTab === 'create' || subTab === 'history' || subTab === 'receipts') && subTab !== activeSubTab) {
           setActiveSubTab(subTab);
         }
       }
@@ -101,6 +102,20 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
             <Plus size={16} />
             Buat PO
           </button>
+          <button
+            onClick={() => setActiveSubTab('receipts')}
+            className={`
+              flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+              text-sm font-medium transition-all
+              ${activeSubTab === 'receipts'
+                ? 'bg-[#0A84FF] text-white shadow-lg'
+                : 'text-[#8E8E93] hover:text-white hover:bg-[#2C2C2E]'
+              }
+            `}
+          >
+            <Package size={16} />
+            Tanda Terima
+          </button>
         </div>
       </div>
 
@@ -123,6 +138,14 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
             onDataChange={onDataChange}
             mode="create"
             onComplete={handlePOCreated}
+          />
+        )}
+
+        {activeSubTab === 'receipts' && (
+          <TandaTerimaContent
+            projectId={projectId}
+            project={project}
+            onDataChange={onDataChange}
           />
         )}
       </div>

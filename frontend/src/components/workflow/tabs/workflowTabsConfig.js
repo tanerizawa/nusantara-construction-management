@@ -12,7 +12,8 @@ import {
   FileCheck,
   FolderOpen,
   Target,
-  Users
+  Users,
+  Clipboard
 } from 'lucide-react';
 
 /**
@@ -48,17 +49,34 @@ export const workflowTabsConfig = [
         path: 'purchase-orders',
         icon: ShoppingCart,
         description: 'Purchase Order Management'
-      },
+      }
+    ]
+  },
+  {
+    id: 'milestones',
+    label: 'Milestones',
+    icon: Target,
+    path: 'milestones',
+    description: 'Target dan pencapaian proyek',
+    hasChildren: false
+  },
+  {
+    id: 'ba-payments',
+    label: 'BA & Payments',
+    icon: Clipboard,
+    description: 'Berita Acara dan Progress Payment',
+    hasChildren: true,
+    children: [
       {
-        id: 'budget-monitoring',
-        label: 'Budget',
-        path: 'budget-monitoring',
-        icon: TrendingUp,
-        description: 'Budget Monitoring'
+        id: 'berita-acara',
+        label: 'Berita Acara',
+        path: 'berita-acara',
+        icon: FileCheck,
+        description: 'Berita Acara Pekerjaan'
       },
       {
         id: 'progress-payments',
-        label: 'Payments',
+        label: 'Progress Payments',
         path: 'progress-payments',
         icon: CreditCard,
         description: 'Progress Payments'
@@ -67,64 +85,42 @@ export const workflowTabsConfig = [
   },
   {
     id: 'documents',
-    label: 'Dokumen',
-    icon: FileText,
-    description: 'Dokumen proyek',
-    hasChildren: true,
-    children: [
-      {
-        id: 'approval-status',
-        label: 'Approvals',
-        path: 'approval-status',
-        icon: CheckSquare,
-        description: 'Status Persetujuan'
-      },
-      {
-        id: 'berita-acara',
-        label: 'Berita Acara',
-        path: 'berita-acara',
-        icon: FileCheck,
-        description: 'Berita Acara'
-      },
-      {
-        id: 'documents',
-        label: 'Files',
-        path: 'documents',
-        icon: FolderOpen,
-        description: 'Project Documents'
-      }
-    ]
+    label: 'Documents',
+    icon: FolderOpen,
+    path: 'documents',
+    description: 'Dokumen dan file proyek',
+    hasChildren: false
   },
   {
     id: 'operations',
-    label: 'Tugas',
-    icon: Settings,
-    description: 'Operasional proyek',
-    hasChildren: true,
-    children: [
-      {
-        id: 'milestones',
-        label: 'Milestones',
-        path: 'milestones',
-        icon: Target,
-        description: 'Project Milestones'
-      },
-      {
-        id: 'team',
-        label: 'Team',
-        path: 'team',
-        icon: Users,
-        description: 'Team Members'
-      }
-    ]
+    label: 'Team',
+    icon: Users,
+    path: 'team',
+    description: 'Tim proyek',
+    hasChildren: false
   },
   {
     id: 'analytics',
     label: 'Analytics',
     icon: BarChart3,
-    path: 'reports',
     description: 'Laporan dan analisis',
-    hasChildren: false
+    hasChildren: true,
+    children: [
+      {
+        id: 'budget-monitoring',
+        label: 'Budget Monitoring',
+        path: 'budget-monitoring',
+        icon: TrendingUp,
+        description: 'Monitoring Budget Proyek'
+      },
+      {
+        id: 'reports',
+        label: 'Reports',
+        path: 'reports',
+        icon: BarChart3,
+        description: 'Laporan & Analisis'
+      }
+    ]
   }
 ];
 

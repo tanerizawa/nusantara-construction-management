@@ -564,4 +564,162 @@ router.delete('/:id/rab', async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/projects/:id/rab/:rabId/approve
+ * @desc    Approve a RAB item
+ * @access  Private
+ */
+router.post('/:id/rab/:rabId/approve', async (req, res) => {
+  try {
+    const { id, rabId } = req.params;
+    const { notes, approval_date } = req.body;
+
+    const rabItem = await ProjectRAB.findOne({
+      where: { id: rabId, projectId: id }
+    });
+
+    if (!rabItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'RAB item not found'
+      });
+    }
+
+    // Update to approved status
+    rabItem.isApproved = true;
+    rabItem.approvedBy = req.user ? req.user.id : null;
+    rabItem.approvedAt = approval_date || new Date();
+    if (notes) {
+      rabItem.notes = notes;
+    }
+    
+    await rabItem.save();
+
+    res.json({
+      success: true,
+      data: rabItem,
+      message: 'RAB item approved successfully'
+    });
+  } catch (error) {
+    console.error('Error approving RAB item:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to approve RAB item',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/projects/:id/rab/:rabId/reject
+ * @desc    Reject a RAB item
+ * @access  Private
+ */
+router.post('/:id/rab/:rabId/reject', async (req, res) => {
+  try {
+    const { id, rabId } = req.params;
+    const { reason, rejection_date } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rejection reason is required'
+      });
+    }
+
+    const rabItem = await ProjectRAB.findOne({
+      where: { id: rabId, projectId: id }
+    });
+
+    if (!rabItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'RAB item not found'
+      });
+    }
+
+    // Update to rejected
+    rabItem.isApproved = false;
+    rabItem.approvedBy = null;
+    rabItem.approvedAt = null;
+    rabItem.notes = reason;
+    
+    await rabItem.save();
+
+    res.json({
+      success: true,
+      data: rabItem,
+      message: 'RAB item rejected successfully'
+    });
+  } catch (error) {
+    console.error('Error rejecting RAB item:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reject RAB item',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   PATCH /api/projects/:id/rab/:rabId/status
+ * @desc    Update RAB item status (for review/pending workflow)
+ * @access  Private
+ */
+router.patch('/:id/rab/:rabId/status', async (req, res) => {
+  try {
+    const { id, rabId } = req.params;
+    const { approval_status, notes } = req.body;
+
+    const validStatuses = ['draft', 'pending_approval', 'reviewed', 'approved', 'rejected'];
+    if (!validStatuses.includes(approval_status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const rabItem = await ProjectRAB.findOne({
+      where: { id: rabId, projectId: id }
+    });
+
+    if (!rabItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'RAB item not found'
+      });
+    }
+
+    // Update approval status
+    if (approval_status === 'approved') {
+      rabItem.isApproved = true;
+      rabItem.approvedBy = req.user ? req.user.id : null;
+      rabItem.approvedAt = new Date();
+    } else if (approval_status === 'rejected') {
+      rabItem.isApproved = false;
+      rabItem.approvedBy = null;
+      rabItem.approvedAt = null;
+    }
+
+    if (notes) {
+      rabItem.notes = notes;
+    }
+    
+    await rabItem.save();
+
+    res.json({
+      success: true,
+      data: rabItem,
+      message: `RAB item status updated to ${approval_status}`
+    });
+  } catch (error) {
+    console.error('Error updating RAB item status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update RAB item status',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

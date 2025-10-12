@@ -358,7 +358,7 @@ const RABSelectionView = ({
                   </td>
                   <td className="px-6 py-4 text-right whitespace-nowrap">
                     <span className="text-sm font-bold text-[#30D158]">
-                      {availableQty.toFixed(2)}
+                      {Math.floor(availableQty)}
                     </span>
                     <span className="text-xs text-[#8E8E93] ml-1">
                       {item.unit || item.satuan}

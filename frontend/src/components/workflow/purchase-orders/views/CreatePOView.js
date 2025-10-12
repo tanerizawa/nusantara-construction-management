@@ -20,7 +20,8 @@ const CreatePOView = ({
 }) => {
   const [poItems, setPOItems] = useState(
     selectedRABItems.map(item => {
-      const available = item.availableQuantity || item.remainingQuantity || 0;
+      // Use Math.floor to eliminate decimal issues
+      const available = Math.floor(item.availableQuantity || item.remainingQuantity || 0);
       // Set initial quantity to 1, or 0 if nothing available
       const initialQty = available > 0 ? Math.min(1, available) : 0;
       
@@ -43,7 +44,8 @@ const CreatePOView = ({
   const updateItemQuantity = useCallback((index, newQuantity) => {
     setPOItems(prevItems => {
       const updatedItems = [...prevItems];
-      const qty = parseFloat(newQuantity) || 0;
+      // Use Math.floor to ensure integer quantity
+      const qty = Math.floor(parseFloat(newQuantity) || 0);
       const item = updatedItems[index];
       
       // Validate quantity
@@ -382,7 +384,7 @@ const CreatePOView = ({
                 <div className="flex-1">
                   <h5 className="font-medium text-white mb-1">{item.itemName}</h5>
                   <p className="text-sm text-[#8E8E93]">
-                    Tersedia: <span className="font-medium text-[#30D158]">{item.availableQuantity.toFixed(2)} {item.unit}</span>
+                    Tersedia: <span className="font-medium text-[#30D158]">{Math.floor(item.availableQuantity)} {item.unit}</span>
                   </p>
                 </div>
                 <div className="text-right">

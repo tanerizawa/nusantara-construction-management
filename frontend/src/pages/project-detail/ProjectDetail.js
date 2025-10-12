@@ -14,8 +14,7 @@ import {
   QuickStatusBar,
   WorkflowTabsNavigation,
   ProjectRABWorkflow,
-  ProjectBudgetMonitoring,
-  ProfessionalApprovalDashboard
+  ProjectBudgetMonitoring
 } from '../../components/workflow';
 import { ReportGenerator } from '../../components/workflow/reports';
 import PurchaseOrdersManager from '../../components/workflow/purchase-orders/PurchaseOrdersManager';
@@ -146,10 +145,6 @@ const ProjectDetail = () => {
           
           {activeTab === 'rab-workflow' && project && (
             <ProjectRABWorkflow projectId={id} project={project} onDataChange={fetchProject} />
-          )}
-          
-          {activeTab === 'approval-status' && project && (
-            <ProfessionalApprovalDashboard projectId={id} project={project} onDataChange={fetchProject} />
           )}
           
           {activeTab === 'purchase-orders' && project && (

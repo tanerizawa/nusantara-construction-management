@@ -76,9 +76,9 @@ export const formatRABItemForPO = (rabItem) => {
     formattedTotalValue: formatCurrency(totalQty * unitPrice),
     formattedPurchasedValue: formatCurrency(purchased * unitPrice),
     formattedRemainingValue: formatCurrency(remaining * unitPrice),
-    formattedQuantity: `${totalQty.toFixed(2)} ${rabItem.unit || 'unit'}`,
-    formattedPurchased: `${purchased.toFixed(2)} ${rabItem.unit || 'unit'}`,
-    formattedRemaining: `${remaining.toFixed(2)} ${rabItem.unit || 'unit'}`,
+    formattedQuantity: `${Math.floor(totalQty)} ${rabItem.unit || 'unit'}`,
+    formattedPurchased: `${Math.floor(purchased)} ${rabItem.unit || 'unit'}`,
+    formattedRemaining: `${Math.floor(remaining)} ${rabItem.unit || 'unit'}`,
     progressPercentage: totalQty > 0 ? ((purchased / totalQty) * 100).toFixed(1) : 0
   };
 };
@@ -125,7 +125,7 @@ export const formatPOItemsSummary = (items) => {
     totalQuantity,
     totalAmount,
     formattedTotalAmount: formatCurrency(totalAmount),
-    formattedTotalQuantity: totalQuantity.toFixed(2)
+    formattedTotalQuantity: Math.floor(totalQuantity)
   };
 };
 

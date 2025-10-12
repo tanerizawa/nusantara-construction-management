@@ -212,7 +212,7 @@ const BeritaAcaraContent = ({ projectId, project, onDataChange }) => {
               {/* BA Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-sm">
                 <div className="flex items-start gap-2">
-                  <FileText size={16} className="text-[#8E8E93] mt-0.5" />
+                  <FileText size={16} className="text-[#0A84FF] mt-0.5" />
                   <div>
                     <div className="text-[#98989D]">Pekerjaan</div>
                     <div className="text-white">{ba.workDescription}</div>
@@ -220,7 +220,7 @@ const BeritaAcaraContent = ({ projectId, project, onDataChange }) => {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <Clock size={16} className="text-[#8E8E93] mt-0.5" />
+                  <Clock size={16} className="text-[#0A84FF] mt-0.5" />
                   <div>
                     <div className="text-[#98989D]">Progress</div>
                     <div className="text-white">{ba.completionPercentage}%</div>
@@ -229,7 +229,7 @@ const BeritaAcaraContent = ({ projectId, project, onDataChange }) => {
 
                 {ba.paymentAmount && (
                   <div className="flex items-start gap-2">
-                    <DollarSign size={16} className="text-[#8E8E93] mt-0.5" />
+                    <DollarSign size={16} className="text-[#30D158] mt-0.5" />
                     <div>
                       <div className="text-[#98989D]">Nilai Pembayaran</div>
                       <div className="text-white">{formatCurrency(ba.paymentAmount)}</div>
@@ -238,7 +238,7 @@ const BeritaAcaraContent = ({ projectId, project, onDataChange }) => {
                 )}
 
                 <div className="flex items-start gap-2">
-                  <User size={16} className="text-[#8E8E93] mt-0.5" />
+                  <User size={16} className="text-[#0A84FF] mt-0.5" />
                   <div>
                     <div className="text-[#98989D]">Diajukan Oleh</div>
                     <div className="text-white">{ba.submittedBy}</div>
@@ -246,7 +246,7 @@ const BeritaAcaraContent = ({ projectId, project, onDataChange }) => {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <Clock size={16} className="text-[#8E8E93] mt-0.5" />
+                  <Clock size={16} className="text-[#0A84FF] mt-0.5" />
                   <div>
                     <div className="text-[#98989D]">Tanggal Pengajuan</div>
                     <div className="text-white">{formatDate(ba.submittedAt)}</div>
@@ -254,7 +254,7 @@ const BeritaAcaraContent = ({ projectId, project, onDataChange }) => {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <Clock size={16} className="text-[#8E8E93] mt-0.5" />
+                  <Clock size={16} className="text-[#0A84FF] mt-0.5" />
                   <div>
                     <div className="text-[#98989D]">Tanggal Penyelesaian</div>
                     <div className="text-white">{formatDate(ba.completionDate)}</div>

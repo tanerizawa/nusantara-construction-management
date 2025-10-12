@@ -11,7 +11,7 @@ const CashFlowForecast = ({ forecast = [] }) => {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-white">Cash Flow Forecast</h3>
         <div className="flex items-center space-x-2">
-          <Calendar className="h-4 w-4 text-[#98989D]" />
+          <Calendar className="h-4 w-4 text-[#0A84FF]" />
           <span className="text-sm text-[#8E8E93]">Next 3 months</span>
         </div>
       </div>

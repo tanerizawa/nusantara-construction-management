@@ -147,6 +147,57 @@ router.get("/", async (req, res) => {
 });
 
 /**
+ * @route   GET /api/projects/preview-code/:subsidiaryCode
+ * @desc    Preview next project code for a subsidiary
+ * @access  Private
+ */
+router.get("/preview-code/:subsidiaryCode", async (req, res) => {
+  try {
+    const { subsidiaryCode } = req.params;
+
+    // Validate subsidiary code (should be 3 characters)
+    if (!subsidiaryCode || subsidiaryCode.length !== 3) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid subsidiary code. Must be 3 characters.",
+      });
+    }
+
+    // Generate next project code
+    const year = new Date().getFullYear();
+    
+    // Get count of existing projects for this year and subsidiary
+    const { count } = await Project.findAndCountAll({
+      where: {
+        id: {
+          [Op.like]: `${year}${subsidiaryCode}%`
+        }
+      }
+    });
+    
+    const sequence = String(count + 1).padStart(3, '0');
+    const nextProjectCode = `${year}${subsidiaryCode}${sequence}`;
+
+    res.json({
+      success: true,
+      data: {
+        nextProjectCode,
+        year,
+        subsidiaryCode,
+        sequence: count + 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error generating code preview:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate code preview",
+      details: error.message,
+    });
+  }
+});
+
+/**
  * @route   GET /api/projects/:id
  * @desc    Get single project by ID with full details
  * @access  Private

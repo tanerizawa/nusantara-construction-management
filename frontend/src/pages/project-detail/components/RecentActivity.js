@@ -6,21 +6,48 @@ import { formatDate } from '../utils';
  * Recent Activity Component
  * Displays recent project activities aggregated from multiple sources
  * 
- * UPDATED (Oct 10, 2025):
- * - Aggregates activities from RAB, PO, Delivery Receipts, and Berita Acara
+ * UPDATED (Oct 11, 2025):
+ * - Optimized: Uses insertion sort for top-5 activities (O(n) vs O(n log n))
  * - Shows latest 5 activities sorted by timestamp
  * - Uses proper icons and colors for each activity type
  */
 const RecentActivity = ({ project, workflowData }) => {
-  // Aggregate activities from multiple sources
+  // Optimized activity aggregation - maintains sorted top-5 list
   const activities = useMemo(() => {
-    const acts = [];
+    const maxActivities = 5;
+    const topActivities = []; // Keep only top 5 sorted
+    
+    // Helper to insert activity in sorted position (if within top 5)
+    const insertActivity = (activity) => {
+      if (!activity.timestamp) return;
+      
+      const timestamp = new Date(activity.timestamp).getTime();
+      
+      // Find insertion point
+      let insertIndex = topActivities.findIndex(
+        a => new Date(a.timestamp).getTime() < timestamp
+      );
+      
+      if (insertIndex === -1) {
+        // Newer than all existing, or list is empty
+        if (topActivities.length < maxActivities) {
+          topActivities.push(activity);
+        }
+      } else {
+        // Insert at position
+        topActivities.splice(insertIndex, 0, activity);
+        // Keep only top 5
+        if (topActivities.length > maxActivities) {
+          topActivities.pop();
+        }
+      }
+    };
     
     // Add RAB approvals
     if (Array.isArray(workflowData?.rabStatus?.data)) {
       workflowData.rabStatus.data.forEach(rab => {
-        if (rab.approvedAt) {
-          acts.push({
+        if (rab?.approvedAt) {
+          insertActivity({
             type: 'approval',
             title: 'RAB Item disetujui',
             description: rab.description || 'Item budget',
@@ -35,61 +62,64 @@ const RecentActivity = ({ project, workflowData }) => {
     // Add PO creations
     if (Array.isArray(workflowData?.purchaseOrders)) {
       workflowData.purchaseOrders.forEach(po => {
-        acts.push({
-          type: 'purchase',
-          title: 'Purchase Order dibuat',
-          description: `PO: ${po.poNumber || 'N/A'}`,
-          timestamp: po.createdAt,
-          icon: ShoppingCart,
-          color: '#0A84FF'
-        });
+        if (po?.createdAt) {
+          insertActivity({
+            type: 'purchase',
+            title: 'Purchase Order dibuat',
+            description: `PO: ${po.poNumber || 'N/A'}`,
+            timestamp: po.createdAt,
+            icon: ShoppingCart,
+            color: '#0A84FF'
+          });
+        }
       });
     }
     
     // Add delivery receipts
     if (Array.isArray(workflowData?.deliveryReceipts)) {
       workflowData.deliveryReceipts.forEach(dr => {
-        acts.push({
-          type: 'delivery',
-          title: 'Material diterima',
-          description: `${dr.items?.length || 0} items dari ${dr.supplier || 'supplier'}`,
-          timestamp: dr.createdAt,
-          icon: Package,
-          color: '#BF5AF2'
-        });
+        if (dr?.createdAt) {
+          insertActivity({
+            type: 'delivery',
+            title: 'Material diterima',
+            description: `${dr.items?.length || 0} items dari ${dr.supplier || 'supplier'}`,
+            timestamp: dr.createdAt,
+            icon: Package,
+            color: '#BF5AF2'
+          });
+        }
       });
     }
     
-    // Add Berita Acara if available
+    // Add Berita Acara
     if (Array.isArray(workflowData?.beritaAcara)) {
       workflowData.beritaAcara.forEach(ba => {
-        acts.push({
-          type: 'document',
-          title: 'Berita Acara dibuat',
-          description: ba.title || ba.description || 'Dokumen resmi',
-          timestamp: ba.createdAt,
-          icon: ClipboardCheck,
-          color: '#FF9F0A'
-        });
+        if (ba?.createdAt) {
+          insertActivity({
+            type: 'document',
+            title: 'Berita Acara dibuat',
+            description: ba.title || ba.description || 'Dokumen resmi',
+            timestamp: ba.createdAt,
+            icon: ClipboardCheck,
+            color: '#FF9F0A'
+          });
+        }
       });
     }
     
     // Add project creation
-    if (project.createdAt) {
-      acts.push({
+    if (project?.createdAt) {
+      insertActivity({
         type: 'creation',
         title: 'Proyek dibuat',
-        description: project.projectName,
+        description: project.projectName || project.name,
         timestamp: project.createdAt,
         icon: FileText,
         color: '#8E8E93'
       });
     }
     
-    // Sort by timestamp descending, take latest 5
-    return acts.sort((a, b) => 
-      new Date(b.timestamp) - new Date(a.timestamp)
-    ).slice(0, 5);
+    return topActivities;
   }, [project, workflowData]);
   
   return (
@@ -132,11 +162,11 @@ const RecentActivity = ({ project, workflowData }) => {
             })}
           </div>
         ) : (
-          <div className="text-center py-6">
-            <Activity className="h-12 w-12 mx-auto text-[#3A3A3C] mb-2" />
-            <p className="text-sm text-[#8E8E93]">Belum ada aktivitas</p>
-            <p className="text-xs text-[#98989D] mt-1">
-              Aktivitas akan muncul saat Anda membuat RAB, PO, atau menerima material
+          <div className="text-center py-8 px-4">
+            <Activity className="h-12 w-12 mx-auto text-[#636366] mb-3" />
+            <p className="text-white font-medium mb-1">Belum Ada Aktivitas</p>
+            <p className="text-sm text-[#8E8E93] leading-relaxed">
+              Aktivitas proyek akan muncul di sini
             </p>
           </div>
         )}

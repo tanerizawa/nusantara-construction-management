@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, BarChart3 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 
 /**
  * Quick action buttons di bagian bawah sidebar
@@ -8,13 +8,6 @@ export const QuickActions = ({ isCollapsed, onActionTrigger }) => {
   if (!isCollapsed) {
     return (
       <div className="space-y-2">
-        <button
-          className="w-full flex items-center px-3 py-2 text-sm text-[#98989D] hover:bg-[#3A3A3C] hover:text-white rounded-lg transition-colors"
-          onClick={() => onActionTrigger?.('open-files')}
-        >
-          <FolderOpen size={16} className="mr-2" />
-          Project Files
-        </button>
         <button
           className="w-full flex items-center px-3 py-2 text-sm text-[#98989D] hover:bg-[#3A3A3C] hover:text-white rounded-lg transition-colors"
           onClick={() => onActionTrigger?.('generate-report')}
@@ -29,11 +22,6 @@ export const QuickActions = ({ isCollapsed, onActionTrigger }) => {
   // Collapsed mode
   return (
     <div className="space-y-2">
-      <ActionButton
-        icon={FolderOpen}
-        title="Project Files"
-        onClick={() => onActionTrigger?.('open-files')}
-      />
       <ActionButton
         icon={BarChart3}
         title="Generate Report"

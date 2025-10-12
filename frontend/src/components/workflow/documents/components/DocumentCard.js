@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, Edit, Trash2, Lock, Unlock } from 'lucide-react';
+import { Eye, Edit, Trash2, Lock, Unlock } from 'lucide-react';
 import { formatDate } from '../../../../utils/formatters';
 import { documentCategories } from '../config';
 import { getStatusInfo } from '../config/statusConfig';
@@ -77,19 +77,22 @@ const DocumentCard = ({ doc, onDownload, onEdit, onDelete }) => {
         <button 
           onClick={() => onDownload(doc.id, doc.filename)}
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 text-sm"
+          title="View Document"
         >
-          <Download size={14} />
-          Download
+          <Eye size={14} />
+          View
         </button>
         <button 
           onClick={() => onEdit(doc)}
           className="px-3 py-2 bg-[#48484A] text-[#98989D] rounded-lg hover:bg-gray-300"
+          title="Edit"
         >
           <Edit size={14} />
         </button>
         <button 
           onClick={() => onDelete(doc.id)}
           className="px-3 py-2 bg-[#FF3B30]/20 text-[#FF3B30] rounded-lg hover:bg-red-200"
+          title="Delete"
         >
           <Trash2 size={14} />
         </button>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AlertTriangle, Building, ChevronRight, Home } from 'lucide-react';
 
@@ -11,12 +11,14 @@ import { createTabConfig } from './config';
 
 // Workflow components
 import {
+  QuickStatusBar,
+  WorkflowTabsNavigation,
   ProjectRABWorkflow,
   ProjectBudgetMonitoring,
-  ProjectWorkflowSidebar,
-  ProjectPurchaseOrders,
   ProfessionalApprovalDashboard
 } from '../../components/workflow';
+import { ReportGenerator } from '../../components/workflow/reports';
+import PurchaseOrdersManager from '../../components/workflow/purchase-orders/PurchaseOrdersManager';
 
 // Other components
 import ProjectMilestones from '../../components/ProjectMilestones';
@@ -31,59 +33,7 @@ import ProgressPaymentManager from '../../components/progress-payment/ProgressPa
  */
 const ProjectDetail = () => {
   const { id } = useParams();
-  
-  // Get initial tab from URL hash or localStorage
-  const getInitialTab = () => {
-    // Priority 1: URL hash (format: #approval-status or #approval-status:tandaTerima)
-    const hash = window.location.hash.replace('#', '');
-    if (hash) {
-      // Extract main tab (before colon if exists)
-      const mainTab = hash.split(':')[0];
-      if (mainTab) return mainTab;
-    }
-    
-    // Priority 2: localStorage
-    const saved = localStorage.getItem('projectDetail_activeTab');
-    if (saved) return saved;
-    
-    // Priority 3: default
-    return 'overview';
-  };
-  
-  const [activeTab, setActiveTab] = useState(getInitialTab);
-
-  // Sync activeTab with URL hash and localStorage
-  useEffect(() => {
-    // Get current sub-tab from hash if exists
-    const hash = window.location.hash.replace('#', '');
-    const subTab = hash.includes(':') ? hash.split(':')[1] : '';
-    
-    // Update URL hash with main tab and preserve sub-tab
-    if (subTab) {
-      window.location.hash = `${activeTab}:${subTab}`;
-    } else {
-      window.location.hash = activeTab;
-    }
-    
-    // Update localStorage as backup
-    localStorage.setItem('projectDetail_activeTab', activeTab);
-  }, [activeTab]);
-
-  // Listen for browser back/forward navigation
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash) {
-        const mainTab = hash.split(':')[0];
-        if (mainTab && mainTab !== activeTab) {
-          setActiveTab(mainTab);
-        }
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [activeTab]);
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Custom hooks
   const { project, loading, error, fetchProject } = useProjectDetail(id);
@@ -144,101 +94,69 @@ const ProjectDetail = () => {
 
   // Main render
   return (
-    <div className="min-h-screen bg-[#1C1C1E] flex">
-      {/* Workflow Sidebar - Fixed width */}
-      <div className="w-72 flex-shrink-0 border-r border-[#38383A] bg-[#2C2C2E]">
-        <ProjectWorkflowSidebar 
-          projectId={id}
-          project={project} 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          onActionTrigger={(actionType) => {
-            switch(actionType) {
-              case 'create-rab':
-                setActiveTab('rab-workflow');
-                break;
-              case 'create-po':
-                setActiveTab('create-purchase-order');
-                break;
-              case 'add-approval':
-                setActiveTab('approval-status');
-                break;
-              case 'assign-team':
-                setActiveTab('team');
-                break;
-              default:
-                break;
-            }
-          }}
-        />
-      </div>
-
-      {/* Main Content - Constrained width */}
-      <div className="flex-1 min-w-0 overflow-hidden">
-        {/* Breadcrumbs */}
-        <div className="border-b border-[#38383A] bg-[#2C2C2E]">
-          <div className="max-w-6xl mx-auto px-4 md:px-6 py-3">
-            <div className="flex items-center space-x-2 text-sm">
-              <Link 
-                to="/" 
-                className="text-[#8E8E93] hover:text-[#0A84FF] flex items-center transition-colors"
-              >
-                <Home className="w-4 h-4" />
-              </Link>
-              <ChevronRight className="w-4 h-4 text-[#636366]" />
-              <Link 
-                to="/projects" 
-                className="text-[#8E8E93] hover:text-[#0A84FF] transition-colors"
-              >
-                Proyek
-              </Link>
-              <ChevronRight className="w-4 h-4 text-[#636366]" />
-              <span className="text-white font-medium truncate max-w-md">
-                {project?.name || 'Detail Proyek'}
-              </span>
-            </div>
+    <div className="min-h-screen bg-[#1C1C1E]">
+      {/* Breadcrumbs */}
+      <div className="border-b border-[#38383A] bg-[#2C2C2E]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
+          <div className="flex items-center space-x-2 text-sm">
+            <Link 
+              to="/" 
+              className="text-[#8E8E93] hover:text-[#0A84FF] flex items-center transition-colors"
+            >
+              <Home className="w-4 h-4" />
+            </Link>
+            <ChevronRight className="w-4 h-4 text-[#636366]" />
+            <Link 
+              to="/projects" 
+              className="text-[#8E8E93] hover:text-[#0A84FF] transition-colors"
+            >
+              Proyek
+            </Link>
+            <ChevronRight className="w-4 h-4 text-[#636366]" />
+            <span className="text-white font-medium truncate max-w-md">
+              {project?.name || 'Detail Proyek'}
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Content Area */}
-        <div className="h-full overflow-y-auto p-4 md:p-6 max-w-6xl mx-auto">
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
+        {/* Quick Status Update Bar */}
+        <QuickStatusBar 
+          project={project}
+          onStatusUpdate={async (update) => {
+            console.log('Status update:', update);
+            // TODO: Implement status update API call
+            await fetchProject();
+          }}
+        />
+
+        {/* Workflow Tabs Navigation */}
+        <WorkflowTabsNavigation 
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {/* Tab Content */}
+        <div>
           {activeTab === 'overview' && project && (
             <ProjectOverview project={project} workflowData={workflowData} />
           )}
           
           {activeTab === 'rab-workflow' && project && (
-            <>
-              {console.log('=== PROJECT DETAIL RAB TAB RENDERED ===')}
-              {console.log('Project ID:', id)}
-              {console.log('Project Object:', project)}
-              {console.log('Project ID from object:', project?.id)}
-              {console.log('Project name:', project?.name)}
-              {console.log('RAB Items:', project?.rabItems)}
-              <ProjectRABWorkflow projectId={id} project={project} onDataChange={fetchProject} />
-            </>
+            <ProjectRABWorkflow projectId={id} project={project} onDataChange={fetchProject} />
           )}
           
           {activeTab === 'approval-status' && project && (
             <ProfessionalApprovalDashboard projectId={id} project={project} onDataChange={fetchProject} />
           )}
           
-          {activeTab === 'create-purchase-order' && project && (
-            <ProjectPurchaseOrders 
+          {activeTab === 'purchase-orders' && project && (
+            <PurchaseOrdersManager 
               projectId={id} 
               project={project} 
               onDataChange={fetchProject}
-              mode="create"
-              onComplete={() => setActiveTab('purchase-orders-history')}
-            />
-          )}
-          
-          {activeTab === 'purchase-orders-history' && project && (
-            <ProjectPurchaseOrders 
-              projectId={id} 
-              project={project} 
-              onDataChange={fetchProject}
-              mode="history"
-              onCreateNew={() => setActiveTab('create-purchase-order')}
             />
           )}
           
@@ -294,6 +212,13 @@ const ProjectDetail = () => {
           
           {activeTab === 'documents' && project && (
             <ProjectDocuments projectId={id} project={project} onUpdate={fetchProject} />
+          )}
+
+          {activeTab === 'reports' && project && (
+            <ReportGenerator 
+              projectId={id} 
+              project={project}
+            />
           )}
         </div>
       </div>

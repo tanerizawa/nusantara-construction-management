@@ -5,6 +5,10 @@ import { formatCurrency } from '../utils';
 /**
  * Financial Summary Component
  * Displays budget breakdown and financial metrics
+ * 
+ * UPDATED (Oct 11, 2025):
+ * - Added hover effects for better interactivity
+ * - Added tooltips for financial items
  */
 const FinancialSummary = ({ project, workflowData }) => {
   return (
@@ -17,25 +21,37 @@ const FinancialSummary = ({ project, workflowData }) => {
       </div>
       <div className="p-4">
         <div className="space-y-3">
-          <div className="flex justify-between items-center p-3 bg-[#1C1C1E] border border-[#38383A] rounded-lg">
+          <div 
+            className="flex justify-between items-center p-3 bg-[#1C1C1E] border border-[#38383A] rounded-lg hover:bg-[#38383A]/30 transition-colors cursor-default"
+            title="Total budget yang dialokasikan untuk proyek ini"
+          >
             <span className="text-sm font-medium text-[#8E8E93]">Total Budget</span>
             <span className="text-base font-bold text-white">
               {formatCurrency(project.totalBudget)}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-lg">
+          <div 
+            className="flex justify-between items-center p-3 bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-lg hover:bg-[#0A84FF]/20 transition-colors cursor-default"
+            title="Total RAB yang telah disetujui"
+          >
             <span className="text-sm font-medium text-[#8E8E93]">RAB Approved</span>
             <span className="text-base font-semibold text-[#0A84FF]">
               {formatCurrency(workflowData.budgetSummary?.approvedAmount || 0)}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-lg">
+          <div 
+            className="flex justify-between items-center p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-lg hover:bg-[#FF9F0A]/20 transition-colors cursor-default"
+            title="Total nilai Purchase Order yang telah dibuat"
+          >
             <span className="text-sm font-medium text-[#8E8E93]">PO Committed</span>
             <span className="text-base font-semibold text-[#FF9F0A]">
               {formatCurrency(workflowData.budgetSummary?.committedAmount || 0)}
             </span>
           </div>
-          <div className="flex justify-between items-center p-3 bg-[#30D158]/10 border border-[#30D158]/30 rounded-lg">
+          <div 
+            className="flex justify-between items-center p-3 bg-[#30D158]/10 border border-[#30D158]/30 rounded-lg hover:bg-[#30D158]/20 transition-colors cursor-default"
+            title="Total pengeluaran aktual yang telah dicatat"
+          >
             <span className="text-sm font-medium text-[#8E8E93]">Actual Spent</span>
             <span className="text-base font-semibold text-[#30D158]">
               {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}

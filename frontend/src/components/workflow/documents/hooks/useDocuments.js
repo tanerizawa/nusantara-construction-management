@@ -165,36 +165,41 @@ export const useDocuments = (project) => {
     setDocuments(docs => docs.filter(doc => doc.id !== documentId));
   };
 
-  // Download document
+  // Download document - View in new tab instead of download
   const downloadDocument = async (documentId, filename) => {
-    const response = await projectAPI.downloadDocument(project.id, documentId);
-    
-    // Create blob and download link
-    const blob = new Blob([response.data], { 
-      type: response.headers['content-type'] || 'application/octet-stream' 
-    });
-    
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    
-    // Cleanup
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(link);
-    
-    // Update download count in local state
-    setDocuments(docs => docs.map(doc => 
-      doc.id === documentId 
-        ? { 
-            ...doc, 
-            downloadCount: (doc.downloadCount || 0) + 1, 
-            lastAccessed: new Date().toISOString().split('T')[0] 
-          }
-        : doc
-    ));
+    try {
+      const response = await projectAPI.downloadDocument(project.id, documentId);
+      
+      // Create blob with proper mime type
+      const blob = new Blob([response.data], { 
+        type: response.headers['content-type'] || 'application/pdf' 
+      });
+      
+      // Create URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Open in new tab instead of downloading
+      window.open(url, '_blank');
+      
+      // Cleanup after a delay to ensure file is opened
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Update download count in local state
+      setDocuments(docs => docs.map(doc => 
+        doc.id === documentId 
+          ? { 
+              ...doc, 
+              downloadCount: (doc.downloadCount || 0) + 1, 
+              lastAccessed: new Date().toISOString().split('T')[0] 
+            }
+          : doc
+      ));
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      alert('Gagal membuka dokumen');
+    }
   };
 
   // Load documents on mount and when project changes

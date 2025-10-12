@@ -214,12 +214,14 @@ router.get("/:id", async (req, res) => {
 
     // Calculate budget summary
     const totalBudget = parseFloat(project.budget) || 0;
+    
+    // FIX: Use totalPrice instead of amount, and check both status AND isApproved
     const approvedRABAmount = rabItems
-      .filter((item) => item.status === "approved")
-      .reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      .filter((item) => item.status === "approved" || item.isApproved === true)
+      .reduce((sum, item) => sum + (parseFloat(item.totalPrice) || 0), 0);
     const pendingRABAmount = rabItems
       .filter((item) => item.status === "pending")
-      .reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+      .reduce((sum, item) => sum + (parseFloat(item.totalPrice) || 0), 0);
 
     // Fetch real Purchase Orders from database
     const purchaseOrders = await PurchaseOrder.findAll({
@@ -251,9 +253,18 @@ router.get("/:id", async (req, res) => {
       0
     );
 
-    // Mock actual spent (can be calculated from actual expense tracking)
-    const actualSpent =
-      ((totalBudget * (parseFloat(project.progress) || 0)) / 100) * 0.8;
+    // Calculate actual spent from delivery receipts that have been received
+    // When materials are received, they count as actual expenditure
+    const actualSpent = deliveryReceipts
+      .filter((dr) => dr.status === "received" || dr.status === "completed")
+      .reduce((sum, dr) => {
+        // Get PO to find the amount
+        const relatedPO = purchaseOrders.find(po => po.id === dr.purchaseOrderId);
+        if (relatedPO) {
+          return sum + (parseFloat(relatedPO.totalAmount) || 0);
+        }
+        return sum;
+      }, 0);
 
     // Transform data for API response
     const transformedProject = {
@@ -277,11 +288,16 @@ router.get("/:id", async (req, res) => {
       rabItems: rabItems.map((item) => ({
         id: item.id,
         description: item.description,
+        category: item.category,
         quantity: item.quantity,
         unit: item.unit,
         unitPrice: item.unitPrice,
-        amount: item.amount,
+        totalPrice: item.totalPrice,
+        amount: item.totalPrice, // Backward compatibility: map totalPrice to amount
         status: item.status,
+        isApproved: item.isApproved,
+        approvedBy: item.approvedBy,
+        approvedAt: item.approvedAt,
         createdAt: item.createdAt,
       })),
 

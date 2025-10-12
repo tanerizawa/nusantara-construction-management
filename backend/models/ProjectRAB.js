@@ -77,6 +77,16 @@ const ProjectRAB = sequelize.define('ProjectRAB', {
     beforeSave: (instance) => {
       // Auto-calculate total price
       instance.totalPrice = instance.quantity * instance.unitPrice;
+      
+      // Auto-sync isApproved with status for consistency
+      if (instance.status === 'approved') {
+        instance.isApproved = true;
+        if (!instance.approvedAt) {
+          instance.approvedAt = new Date();
+        }
+      } else if (instance.status === 'rejected') {
+        instance.isApproved = false;
+      }
     }
   }
 });

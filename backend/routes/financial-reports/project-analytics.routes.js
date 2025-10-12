@@ -49,7 +49,7 @@ router.get('/cost-analysis', async (req, res) => {
       });
     }
     
-    const result = await projectCostingService.generateCostAnalysis({
+    const result = await projectCostingService.generateProjectCostAnalysis({
       projectId: project_id,
       startDate: start_date ? new Date(start_date) : undefined,
       endDate: end_date ? new Date(end_date) : undefined,

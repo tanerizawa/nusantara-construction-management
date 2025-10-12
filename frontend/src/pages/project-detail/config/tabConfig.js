@@ -63,6 +63,12 @@ export const createTabConfig = (workflowData) => [
     description: 'File dan dokumen proyek'
   },
   {
+    id: 'reports',
+    label: 'Reports',
+    icon: BarChart3,
+    description: 'Generate laporan proyek'
+  },
+  {
     id: 'milestones',
     label: 'Milestone',
     icon: Calendar,

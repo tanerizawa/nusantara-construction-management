@@ -44,6 +44,11 @@ const calculateProjectStage = (projectData) => {
 /**
  * Custom hook untuk mengelola workflow data
  * Handles: RAB status, approval status, PO, budget summary, current stage
+ * 
+ * UPDATED (Oct 11, 2025):
+ * - Fixed to use actual backend data structure
+ * - Maps budgetSummary, purchaseOrders, deliveryReceipts from project object
+ * - Proper null safety checks
  */
 export const useWorkflowData = (project) => {
   const [workflowData, setWorkflowData] = useState({
@@ -58,41 +63,80 @@ export const useWorkflowData = (project) => {
   useMemo(() => {
     if (!project) return;
 
+    console.log('=== useWorkflowData: Processing project ===', {
+      projectId: project.id,
+      hasRabItems: !!project.rabItems,
+      rabItemsCount: project.rabItems?.length || 0,
+      hasBudgetSummary: !!project.budgetSummary,
+      hasPurchaseOrders: !!project.purchaseOrders,
+      purchaseOrdersCount: project.purchaseOrders?.length || 0
+    });
+
     const enhancedWorkflowData = {
+      // RAB Status - use rabItems from project
       rabStatus: {
         pendingApproval: project.rabItems?.filter(item => item.status === 'pending').length || 0,
         approved: project.rabItems?.some(item => item.status === 'approved') || false,
         data: project.rabItems || []
       },
-      approvalStatus: {
-        pending: project.pendingApprovals?.length || 0,
-        data: project.approvalHistory || []
+      
+      // Approval Status
+      approvalStatus: project.approvalStatus || {
+        pending: project.rabItems?.filter(item => item.status === 'pending').length || 0,
+        approved: project.rabItems?.filter(item => item.status === 'approved').length || 0,
+        rejected: project.rabItems?.filter(item => item.status === 'rejected').length || 0
       },
+      
+      // Purchase Orders - ALREADY in project from backend
       purchaseOrders: project.purchaseOrders || [],
-      deliveryReceipts: project.deliveryReceipts || [], // Added delivery receipts for execution tracking
-      budgetSummary: {
-        totalBudget: parseFloat(project.totalBudget) || 0,
+      
+      // Delivery Receipts - ALREADY in project from backend
+      deliveryReceipts: project.deliveryReceipts || [],
+      
+      // Budget Summary - ALREADY in project from backend
+      budgetSummary: project.budgetSummary || {
+        totalBudget: parseFloat(project.budget || project.totalBudget) || 0,
+        // FIX: Use totalPrice or amount (backend sends both for compatibility)
         approvedAmount: project.rabItems?.reduce((sum, item) => 
-          item.status === 'approved' ? sum + (parseFloat(item.amount) || 0) : sum, 0) || 0,
+          (item.status === 'approved' || item.isApproved === true) ? 
+          sum + (parseFloat(item.totalPrice || item.amount) || 0) : sum, 0) || 0,
         committedAmount: project.purchaseOrders?.reduce((sum, po) => 
-          po.status === 'approved' ? sum + (parseFloat(po.amount) || 0) : sum, 0) || 0,
-        actualSpent: project.actualExpenses?.reduce((sum, expense) => 
-          sum + (parseFloat(expense.amount) || 0), 0) || 0
+          (po.status === 'approved' || po.status === 'received') ? 
+          sum + (parseFloat(po.totalAmount) || 0) : sum, 0) || 0,
+        actualSpent: project.budgetSummary?.actualSpent || 0
       },
+      
+      // Current Stage
       currentStage: project.currentStage || calculateProjectStage(project),
+      
+      // Milestones
       milestones: {
-        pending: project.milestones?.filter(m => m.status === 'pending').length || 0,
-        data: project.milestones || []
+        pending: project.milestonesList?.filter(m => m.status === 'pending').length || 0,
+        data: project.milestonesList || []
       },
-      beritaAcara: project.beritaAcara || [], // Keep as array for activity feed
+      
+      // Berita Acara - ALREADY in project from backend
+      beritaAcara: project.beritaAcara || [],
       beritaAcaraStatus: {
         pending: project.beritaAcara?.filter(ba => ba.status === 'pending').length || 0
       },
+      
+      // Progress Payments
       progressPayments: {
         pending: project.progressPayments?.filter(pp => pp.status === 'pending').length || 0,
         data: project.progressPayments || []
       }
     };
+
+    console.log('=== useWorkflowData: Enhanced data ===', {
+      rabItemsCount: enhancedWorkflowData.rabStatus.data.length,
+      approvedAmount: enhancedWorkflowData.budgetSummary.approvedAmount,
+      committedAmount: enhancedWorkflowData.budgetSummary.committedAmount,
+      actualSpent: enhancedWorkflowData.budgetSummary.actualSpent,
+      purchaseOrdersCount: enhancedWorkflowData.purchaseOrders.length,
+      deliveryReceiptsCount: enhancedWorkflowData.deliveryReceipts.length,
+      pendingApprovals: enhancedWorkflowData.approvalStatus.pending
+    });
 
     setWorkflowData(enhancedWorkflowData);
   }, [project]);

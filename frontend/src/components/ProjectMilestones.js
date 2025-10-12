@@ -5,7 +5,6 @@ import MilestoneStatsCards from './milestones/components/MilestoneStatsCards';
 import MilestoneProgressOverview from './milestones/components/MilestoneProgressOverview';
 import MilestoneTimelineItem from './milestones/components/MilestoneTimelineItem';
 import MilestoneInlineForm from './milestones/components/MilestoneInlineForm';
-import MilestoneFormModal from './milestones/components/MilestoneFormModal';
 
 const ProjectMilestones = ({ project, onUpdate }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -52,7 +51,10 @@ const ProjectMilestones = ({ project, onUpdate }) => {
           <p className="text-[#8E8E93]">Kelola tonggak pencapaian proyek</p>
         </div>
         <button 
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => {
+            setShowAddForm(!showAddForm);
+            setEditingMilestone(null); // Close edit form when opening add form
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
         >
           {showAddForm ? (
@@ -84,6 +86,19 @@ const ProjectMilestones = ({ project, onUpdate }) => {
         />
       )}
 
+      {/* Inline Edit Form - Shows above Progress Overview */}
+      {editingMilestone && (
+        <MilestoneInlineForm
+          projectId={project.id}
+          milestone={editingMilestone}
+          onClose={() => setEditingMilestone(null)}
+          onSuccess={() => {
+            handleFormSuccess();
+            setEditingMilestone(null);
+          }}
+        />
+      )}
+
       {/* Progress Overview */}
       <MilestoneProgressOverview stats={stats} />
 
@@ -100,24 +115,16 @@ const ProjectMilestones = ({ project, onUpdate }) => {
               milestone={milestone}
               index={index}
               isLast={index === milestones.length - 1}
-              onEdit={() => setEditingMilestone(milestone)}
+              onEdit={() => {
+                setEditingMilestone(milestone);
+                setShowAddForm(false); // Close add form when opening edit form
+              }}
               onDelete={() => deleteMilestone(milestone.id)}
               onProgressUpdate={updateMilestoneProgress}
             />
           ))}
         </div>
       </div>
-
-      {/* Forms */}
-      {/* Edit Milestone Modal - Only for editing existing milestones */}
-      {editingMilestone && (
-        <MilestoneFormModal
-          projectId={project.id}
-          milestone={editingMilestone}
-          onClose={() => setEditingMilestone(null)}
-          onSuccess={handleFormSuccess}
-        />
-      )}
     </div>
   );
 };

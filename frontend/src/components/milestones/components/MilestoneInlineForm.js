@@ -4,9 +4,12 @@ import { useMilestoneForm } from '../hooks/useMilestoneForm';
 
 const MilestoneInlineForm = ({ 
   projectId,
+  milestone = null, // Add milestone prop for edit mode
   onClose,
   onSuccess
 }) => {
+  const isEditMode = !!milestone;
+  
   const {
     formData,
     setFormData,
@@ -14,7 +17,7 @@ const MilestoneInlineForm = ({
     addDeliverable,
     removeDeliverable,
     handleSubmit
-  } = useMilestoneForm(projectId, null, () => {
+  } = useMilestoneForm(projectId, milestone, () => {
     onSuccess();
     onClose();
   });
@@ -22,7 +25,9 @@ const MilestoneInlineForm = ({
   return (
     <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] p-6">
       <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-white">Tambah Milestone Baru</h4>
+        <h4 className="text-lg font-semibold text-white">
+          {isEditMode ? 'Edit Milestone' : 'Tambah Milestone Baru'}
+        </h4>
         <button
           onClick={onClose}
           className="text-[#8E8E93] hover:text-white transition-colors"
@@ -167,7 +172,7 @@ const MilestoneInlineForm = ({
             type="submit"
             className="px-6 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors font-medium"
           >
-            Simpan Milestone
+            {isEditMode ? 'Update Milestone' : 'Simpan Milestone'}
           </button>
           <button
             type="button"

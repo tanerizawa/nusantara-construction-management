@@ -43,6 +43,18 @@ const ProjectMilestone = sequelize.define('ProjectMilestone', {
       max: 100
     }
   },
+  budget: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Budget allocated for this milestone'
+  },
+  actualCost: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Actual cost spent on this milestone'
+  },
   deliverables: {
     type: DataTypes.JSON,
     allowNull: true

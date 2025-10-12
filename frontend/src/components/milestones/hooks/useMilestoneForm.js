@@ -7,6 +7,9 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
     description: '',
     targetDate: '',
     budget: 0,
+    priority: 'medium',
+    status: 'pending',
+    progress: 0,
     deliverables: [''],
     assignedTeam: [],
     dependencies: [],
@@ -20,7 +23,9 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
         ...milestone,
         deliverables: milestone.deliverables || [''],
         assignedTeam: milestone.assignedTeam || [],
-        dependencies: milestone.dependencies || []
+        dependencies: milestone.dependencies || [],
+        priority: milestone.priority || 'medium',
+        budget: milestone.budget || 0
       });
     }
   }, [milestone]);
@@ -55,6 +60,7 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
         title: formData.name || formData.title,
         description: formData.description || '',
         targetDate: formData.targetDate,
+        budget: formData.budget || 0,
         priority: formData.priority || 'medium',
         status: formData.status || 'pending',
         progress: formData.progress || 0

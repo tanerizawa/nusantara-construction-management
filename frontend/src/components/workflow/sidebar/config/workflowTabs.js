@@ -34,17 +34,10 @@ export const workflowTabs = [
     description: 'Rencana Anggaran Biaya'
   },
   {
-    id: 'create-purchase-order',
-    label: 'Buat PO',
+    id: 'purchase-orders',
+    label: 'Purchase Orders',
     icon: ShoppingCart,
-    description: 'Create New Purchase Order',
-    badge: 'create'
-  },
-  {
-    id: 'purchase-orders-history',
-    label: 'Riwayat PO',
-    icon: FileText,
-    description: 'Purchase Order History',
+    description: 'Buat PO baru dan riwayat purchase orders',
     showBadge: true
   },
   {

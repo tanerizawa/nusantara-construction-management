@@ -22,6 +22,8 @@ const milestoneSchema = Joi.object({
   priority: Joi.string().valid('low', 'medium', 'high', 'critical').default('medium'),
   status: Joi.string().valid('pending', 'in_progress', 'completed', 'cancelled').default('pending'),
   progress: Joi.number().min(0).max(100).default(0),
+  budget: Joi.number().min(0).optional(),
+  actualCost: Joi.number().min(0).optional(),
   deliverables: Joi.array().items(Joi.string()).optional(),
   dependencies: Joi.array().items(Joi.string()).optional(),
   notes: Joi.string().allow('').optional()

@@ -6,7 +6,7 @@ import {
   DocumentFilters,
   DocumentCard,
   DocumentListTable,
-  DocumentForm,
+  DocumentInlineForm,
   EmptyState
 } from './components';
 
@@ -17,7 +17,7 @@ import {
 const ProjectDocuments = ({ project, onUpdate }) => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [viewMode, setViewMode] = useState('list'); // 'grid' or 'list' - Default to list for table view
 
   // Custom hooks for data management
   const {
@@ -134,6 +134,18 @@ const ProjectDocuments = ({ project, onUpdate }) => {
 
       {!loading && (
         <>
+          {/* Inline Form - Shows at top when uploading or editing */}
+          {(showUploadForm || editingDocument) && (
+            <DocumentInlineForm
+              document={editingDocument}
+              onSave={handleSaveDocument}
+              onCancel={() => {
+                setShowUploadForm(false);
+                setEditingDocument(null);
+              }}
+            />
+          )}
+
           {/* Statistics Cards */}
           <DocumentStats stats={stats} />
 
@@ -172,22 +184,6 @@ const ProjectDocuments = ({ project, onUpdate }) => {
             <EmptyState
               searchTerm={searchTerm}
               filterCategory={filterCategory}
-            />
-          )}
-
-          {/* Forms */}
-          {showUploadForm && (
-            <DocumentForm
-              onSave={handleSaveDocument}
-              onCancel={() => setShowUploadForm(false)}
-            />
-          )}
-          
-          {editingDocument && (
-            <DocumentForm
-              document={editingDocument}
-              onSave={handleSaveDocument}
-              onCancel={() => setEditingDocument(null)}
             />
           )}
         </>

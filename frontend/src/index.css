@@ -490,6 +490,23 @@
   }
 }
 
+@keyframes slideRight {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideRight {
+  animation: slideRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Dark Mode Overrides - Apple HIG */
 .dark .card {
   background: var(--bg-secondary);

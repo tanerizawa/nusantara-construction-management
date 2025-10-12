@@ -28,11 +28,32 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
     const all_po_received = workflowData.purchaseOrders?.every(po => po.status === 'received');
     const procurement_completed = rab_completed && has_purchase_orders && all_po_received;
     
-    // Stage 4: Execution - Pelaksanaan (dimulai saat ada delivery receipt)
+    // Stage 4: Execution - Pelaksanaan (dimulai saat ada delivery receipt ATAU milestone aktif)
     // LOGIC BARU: Tidak perlu tunggu procurement selesai 100%
+    // Execution dimulai jika ada delivery receipt ATAU ada milestone yang sedang berjalan
     const has_delivery_receipts = workflowData.deliveryReceipts?.length > 0;
-    const execution_started = rab_completed && po_approved && has_delivery_receipts;
-    const execution_completed = execution_started && (project.status === 'active' || project.status === 'completed');
+    
+    // Debug milestone data
+    console.log('🔍 Execution Stage Debug:', {
+      milestones: workflowData.milestones,
+      milestonesData: workflowData.milestones?.data,
+      projectStatus: project.status
+    });
+    
+    const has_active_milestones = workflowData.milestones?.data?.some(m => {
+      console.log('Checking milestone:', m.title, 'status:', m.status);
+      return m.status === 'in_progress' || m.status === 'in-progress';
+    }) || false;
+    
+    console.log('✅ Execution Calculation:', {
+      has_delivery_receipts,
+      has_active_milestones,
+      rab_completed,
+      po_approved
+    });
+    
+    const execution_started = rab_completed && po_approved && (has_delivery_receipts || has_active_milestones);
+    const execution_completed = execution_started && project.status === 'completed'; // Only completed when project is completed
     
     // Stage 5: Completion - Penyelesaian proyek
     const completion_completed = execution_completed && project.status === 'completed';
@@ -176,7 +197,16 @@ const getStageDetails = (stageId, project, workflowData) => {
     case 'procurement':
       const totalPO = workflowData.purchaseOrders?.length || 0;
       const approvedPO = workflowData.purchaseOrders?.filter(po => po.status === 'approved' || po.status === 'received')?.length || 0;
-      const receivedPO = workflowData.purchaseOrders?.filter(po => po.status === 'received')?.length || 0;
+      
+      // Count PO that have delivery receipts (received status)
+      const receivedPO = workflowData.purchaseOrders?.filter(po => {
+        // Check if this PO has any delivery receipt with received/completed status
+        return workflowData.deliveryReceipts?.some(dr => 
+          dr.poNumber === po.id && (dr.status === 'received' || dr.status === 'completed')
+        );
+      })?.length || 0;
+      
+      const hasExecution = workflowData.deliveryReceipts?.length > 0;
       
       return (
         <div className="space-y-1">
@@ -185,9 +215,16 @@ const getStageDetails = (stageId, project, workflowData) => {
             <>
               <p>• Disetujui: {approvedPO} dari {totalPO} PO</p>
               <p>• Diterima: {receivedPO} dari {totalPO} PO</p>
-              <p className="text-[#FF9F0A] font-medium">
-                {receivedPO < totalPO ? '⚠️ Pengadaan berjalan parallel dengan eksekusi' : '✓ Semua material sudah diterima'}
-              </p>
+              {hasExecution && receivedPO < totalPO && (
+                <p className="text-[#0A84FF] font-medium mt-2">
+                  ℹ️ Material sedang diterima bertahap, eksekusi sudah dimulai
+                </p>
+              )}
+              {receivedPO === totalPO && (
+                <p className="text-[#30D158] font-medium mt-2">
+                  ✓ Semua material sudah diterima lengkap
+                </p>
+              )}
             </>
           )}
         </div>
@@ -195,6 +232,15 @@ const getStageDetails = (stageId, project, workflowData) => {
     case 'execution':
       const hasDeliveryReceipts = workflowData.deliveryReceipts?.length > 0;
       const deliveryCount = workflowData.deliveryReceipts?.length || 0;
+      const activeMilestones = workflowData.milestones?.data?.filter(m => 
+        m.status === 'in_progress' || m.status === 'in-progress'
+      ) || [];
+      const activeMilestoneCount = activeMilestones.length;
+      
+      // Calculate average progress from active milestones
+      const avgProgress = activeMilestones.length > 0
+        ? Math.round(activeMilestones.reduce((sum, m) => sum + (m.progress || 0), 0) / activeMilestones.length)
+        : 0;
       
       return (
         <div className="space-y-1">
@@ -203,17 +249,42 @@ const getStageDetails = (stageId, project, workflowData) => {
           ) : project.status === 'active' ? (
             <>
               <p>Dalam tahap pelaksanaan</p>
+              {activeMilestoneCount > 0 && (
+                <>
+                  <p>• {activeMilestoneCount} milestone sedang berjalan ({avgProgress}% rata-rata progress)</p>
+                  {activeMilestones.slice(0, 2).map((m, idx) => (
+                    <p key={idx} className="text-xs ml-4">
+                      ‣ {m.title}: {m.progress || 0}%
+                    </p>
+                  ))}
+                  {activeMilestones.length > 2 && (
+                    <p className="text-xs ml-4">‣ +{activeMilestones.length - 2} milestone lainnya</p>
+                  )}
+                </>
+              )}
               {hasDeliveryReceipts && (
                 <p>• {deliveryCount} tanda terima material sudah diterima</p>
               )}
             </>
-          ) : hasDeliveryReceipts ? (
+          ) : (hasDeliveryReceipts || activeMilestoneCount > 0) ? (
             <>
               <p className="text-[#30D158] font-medium">✓ Siap untuk eksekusi</p>
-              <p>• {deliveryCount} tanda terima material sudah diterima</p>
+              {activeMilestoneCount > 0 && (
+                <>
+                  <p>• {activeMilestoneCount} milestone sedang berjalan ({avgProgress}% rata-rata progress)</p>
+                  {activeMilestones.slice(0, 2).map((m, idx) => (
+                    <p key={idx} className="text-xs ml-4">
+                      ‣ {m.title}: {m.progress || 0}%
+                    </p>
+                  ))}
+                </>
+              )}
+              {hasDeliveryReceipts && (
+                <p>• {deliveryCount} tanda terima material sudah diterima</p>
+              )}
             </>
           ) : (
-            <p>Menunggu tanda terima material pertama (Delivery Receipt)</p>
+            <p>Menunggu tanda terima material pertama atau milestone dimulai</p>
           )}
         </div>
       );

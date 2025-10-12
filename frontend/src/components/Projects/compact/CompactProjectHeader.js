@@ -31,7 +31,7 @@ const CompactProjectHeader = ({ stats, onCreateProject, loading, error }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Building2 className="h-5 w-5 text-[#0A84FF]" />
-          <h1 className="text-xl font-bold text-white">Projects</h1>
+          <h1 className="text-xl font-bold text-white">Proyek</h1>
           <span className="text-[#636366]">·</span>
           <span className="text-[#8E8E93] text-sm">{total} total</span>
         </div>
@@ -41,7 +41,7 @@ const CompactProjectHeader = ({ stats, onCreateProject, loading, error }) => {
           size="sm" 
           className="h-9 px-4 bg-[#0A84FF] text-white hover:bg-[#0A84FF]/90 border border-[#0A84FF]/20"
         >
-          New Project
+          Buat Proyek Baru
         </Button>
       </div>
 
@@ -49,20 +49,20 @@ const CompactProjectHeader = ({ stats, onCreateProject, loading, error }) => {
       <div className="flex items-center gap-3 flex-wrap">
         <CompactStatBadge 
           icon={TrendingUp} 
-          label="Active" 
+          label="Aktif" 
           value={active} 
           color="blue" 
         />
         <CompactStatBadge 
           icon={Clock} 
-          label="Completed" 
+          label="Selesai" 
           value={completed} 
           color="green" 
         />
         {overdue > 0 && (
           <CompactStatBadge 
             icon={AlertTriangle} 
-            label="Overdue" 
+            label="Terlambat" 
             value={overdue} 
             color="red" 
           />

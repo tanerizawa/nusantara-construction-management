@@ -5,11 +5,17 @@ import CompactIconButton from './CompactIconButton';
 
 const CompactProjectTable = memo(({ 
   projects = [], 
+  selectedProjects = [],
+  onSelectProject,
+  onSelectAll,
   onView, 
   onEdit, 
   onArchive, 
   onDelete 
 }) => {
+  const isAllSelected = projects.length > 0 && selectedProjects.length === projects.length;
+  const isSomeSelected = selectedProjects.length > 0 && selectedProjects.length < projects.length;
+
   const formatCurrency = useCallback((amount) => {
     if (!amount) return 'N/A';
     return new Intl.NumberFormat('id-ID', {
@@ -35,15 +41,15 @@ const CompactProjectTable = memo(({
   }, []);
   
   const formatLocation = useCallback((location) => {
-    if (!location) return 'No location';
+    if (!location) return 'Lokasi tidak tersedia';
     if (typeof location === 'string') return location;
     if (typeof location === 'object') {
       const parts = [];
       if (location.city) parts.push(location.city);
       if (location.province) parts.push(location.province);
-      return parts.length > 0 ? parts.join(', ') : 'No location';
+      return parts.length > 0 ? parts.join(', ') : 'Lokasi tidak tersedia';
     }
-    return 'No location';
+    return 'Lokasi tidak tersedia';
   }, []);
 
   const getProgressColor = useCallback((progress) => {
@@ -56,7 +62,7 @@ const CompactProjectTable = memo(({
   if (!projects?.length) {
     return (
       <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-8 text-center">
-        <p className="text-[#8E8E93]">No projects found</p>
+        <p className="text-[#8E8E93]">Tidak ada proyek ditemukan</p>
       </div>
     );
   }
@@ -67,29 +73,66 @@ const CompactProjectTable = memo(({
         <table className="w-full text-sm">
           <thead className="bg-[#1C1C1E]">
             <tr className="border-b border-[#38383A]">
+              {/* Checkbox Column */}
+              {onSelectAll && (
+                <th className="px-4 py-2.5 text-center w-[50px]">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelected}
+                    ref={input => {
+                      if (input) {
+                        input.indeterminate = isSomeSelected;
+                      }
+                    }}
+                    onChange={(e) => onSelectAll(e.target.checked)}
+                    className="w-4 h-4 rounded border-[#636366] bg-[#2C2C2E] text-[#0A84FF] 
+                               focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-0
+                               cursor-pointer"
+                    aria-label="Pilih semua proyek"
+                  />
+                </th>
+              )}
               <th className="px-4 py-2.5 text-left text-xs font-medium text-[#636366] w-[30%]">
-                Project
+                Proyek
               </th>
               <th className="px-4 py-2.5 text-left text-xs font-medium text-[#636366] w-[20%]">
-                Client / Location
+                Klien / Lokasi
               </th>
               <th className="px-4 py-2.5 text-right text-xs font-medium text-[#636366] w-[18%]">
-                Budget / Timeline
+                Budget / Jadwal
               </th>
               <th className="px-4 py-2.5 text-center text-xs font-medium text-[#636366] w-[20%]">
                 Progress
               </th>
               <th className="px-4 py-2.5 text-center text-xs font-medium text-[#636366] w-[12%]">
-                Actions
+                Aksi
               </th>
             </tr>
           </thead>
           <tbody>
-            {projects.map((project) => (
+            {projects.map((project) => {
+              const isSelected = selectedProjects.includes(project.id);
+              
+              return (
               <tr 
                 key={project.id} 
-                className="border-b border-[#38383A] hover:bg-[#3A3A3C] transition-colors duration-150"
+                className={`border-b border-[#38383A] hover:bg-[#3A3A3C] transition-colors duration-150
+                           ${isSelected ? 'bg-[#0A84FF]/10' : ''}`}
               >
+                {/* Checkbox Column */}
+                {onSelectProject && (
+                  <td className="px-4 py-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => onSelectProject(project.id)}
+                      className="w-4 h-4 rounded border-[#636366] bg-[#2C2C2E] text-[#0A84FF] 
+                                 focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-0
+                                 cursor-pointer"
+                      aria-label={`Pilih proyek ${project.name}`}
+                    />
+                  </td>
+                )}
                 {/* Project Column */}
                 <td className="px-4 py-3">
                   <div className="flex items-start gap-2">
@@ -113,7 +156,7 @@ const CompactProjectTable = memo(({
                 {/* Client / Location Column */}
                 <td className="px-4 py-3">
                   <div className="text-sm text-[#98989D] truncate">
-                    {project.client?.company || project.client?.name || project.client || 'No client'}
+                    {project.client?.company || project.client?.name || project.client || project.clientName || 'Tidak ada klien'}
                   </div>
                   <div className="text-xs text-[#636366] truncate">
                     {formatLocation(project.location)}
@@ -177,7 +220,8 @@ const CompactProjectTable = memo(({
                   </div>
                 </td>
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

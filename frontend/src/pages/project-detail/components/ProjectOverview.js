@@ -1,6 +1,6 @@
 import React from 'react';
-import { DollarSign, Users, FileText, Calendar, MapPin } from 'lucide-react';
-import { formatCurrency, formatDate, calculateDaysDifference, calculateBudgetUtilization } from '../utils';
+import { DollarSign, Users, FileText, Calendar, MapPin, TrendingUp, Edit, ExternalLink } from 'lucide-react';
+import { formatCurrency, formatDate, calculateDaysDifference, calculateBudgetUtilization, calculateProjectProgress } from '../utils';
 import FinancialSummary from './FinancialSummary';
 import QuickStats from './QuickStats';
 import RecentActivity from './RecentActivity';
@@ -9,8 +9,36 @@ import WorkflowStagesCard from './WorkflowStagesCard';
 /**
  * ProjectOverview Component
  * Main overview display with project information, stats, and workflow stages
+ * 
+ * UPDATED (Oct 11, 2025):
+ * - Fixed budget calculation to use correct field names
+ * - Added debug logging for troubleshooting
+ * - Enhanced null safety checks
  */
 const ProjectOverview = ({ project, workflowData }) => {
+  // Debug logging
+  React.useEffect(() => {
+    if (project && workflowData) {
+      console.log('=== ProjectOverview Debug ===');
+      console.log('Project Budget:', project.budget || project.totalBudget);
+      console.log('Budget Summary:', workflowData.budgetSummary);
+      console.log('RAB Items Count:', project.rabItems?.length);
+      console.log('PO Count:', workflowData.purchaseOrders?.length);
+      
+      if (project.rabItems?.length > 0) {
+        const sampleRAB = project.rabItems[0];
+        console.log('Sample RAB Item:', {
+          id: sampleRAB.id,
+          description: sampleRAB.description,
+          totalPrice: sampleRAB.totalPrice,
+          amount: sampleRAB.amount,
+          status: sampleRAB.status,
+          isApproved: sampleRAB.isApproved
+        });
+      }
+    }
+  }, [project, workflowData]);
+
   // Safety check - if project is null/undefined, show loading or error state
   if (!project) {
     return (
@@ -25,13 +53,15 @@ const ProjectOverview = ({ project, workflowData }) => {
 
   const budgetUtilization = calculateBudgetUtilization(
     project.totalBudget,
-    workflowData.budgetSummary?.actualSpent
+    workflowData?.budgetSummary?.actualSpent || 0
   );
+
+  const projectProgress = calculateProjectProgress(workflowData, project);
 
   return (
     <div className="space-y-4">
       {/* Project Stats Cards - Responsive Grid - Compact */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Budget Card */}
         <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
           <div className="flex items-center justify-between">
@@ -46,10 +76,24 @@ const ProjectOverview = ({ project, workflowData }) => {
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-[#38383A]">
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <div className="w-full bg-[#38383A] rounded-full h-2 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    budgetUtilization > 90 ? 'bg-[#FF453A]' :
+                    budgetUtilization > 75 ? 'bg-[#FF9F0A]' :
+                    'bg-[#30D158]'
+                  }`}
+                  style={{ width: `${Math.min(budgetUtilization, 100)}%` }}
+                />
+              </div>
+            </div>
+            
             <div className="flex justify-between items-center">
               <span className="text-xs text-[#98989D]">Terpakai:</span>
               <span className="text-xs text-white font-medium">
-                {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
+                {formatCurrency(workflowData?.budgetSummary?.actualSpent || 0)}
               </span>
             </div>
             <div className="flex justify-between items-center mt-1">
@@ -58,6 +102,31 @@ const ProjectOverview = ({ project, workflowData }) => {
                 {formatCurrency(project.totalBudget || 0)}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Project Progress Card */}
+        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-[#0A84FF]/20 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-[#0A84FF]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#8E8E93]">Project Progress</p>
+                <p className="text-lg font-semibold text-white">{projectProgress}%</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-[#38383A]">
+            {/* Progress Bar */}
+            <div className="w-full bg-[#38383A] rounded-full h-2 overflow-hidden">
+              <div 
+                className="h-full bg-[#0A84FF] rounded-full transition-all duration-500"
+                style={{ width: `${projectProgress}%` }}
+              />
+            </div>
+            <p className="text-xs text-[#98989D] mt-2">Kelengkapan tahapan workflow</p>
           </div>
         </div>
 
@@ -146,16 +215,50 @@ const ProjectOverview = ({ project, workflowData }) => {
 
 /**
  * Project Information Card Component
- * Displays detailed project information
+ * Displays detailed project information with action buttons
+ * 
+ * UPDATED (Oct 11, 2025):
+ * - Added Edit Project and View Contract action buttons
+ * - Improved interactivity and navigation
  */
 const ProjectInformationCard = ({ project }) => {
+  const handleEditProject = () => {
+    // Navigate to project edit page
+    window.location.href = `/admin/projects/${project.id}/edit`;
+  };
+
+  const handleViewContract = () => {
+    // Navigate to contracts page
+    window.location.href = `/admin/contracts?project=${project.id}`;
+  };
+
   return (
     <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
       <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-        <h3 className="text-base font-semibold text-white flex items-center">
-          <Calendar className="h-4 w-4 mr-2 text-[#0A84FF]" />
-          Informasi Proyek
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold text-white flex items-center">
+            <Calendar className="h-4 w-4 mr-2 text-[#0A84FF]" />
+            Informasi Proyek
+          </h3>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleViewContract}
+              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-[#8E8E93] bg-[#2C2C2E] border border-[#38383A] rounded-lg hover:bg-[#38383A] hover:text-white transition-colors"
+              title="Lihat kontrak proyek"
+            >
+              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+              Kontrak
+            </button>
+            <button
+              onClick={handleEditProject}
+              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-[#0A84FF] rounded-lg hover:bg-[#0A84FF]/80 transition-colors"
+              title="Edit informasi proyek"
+            >
+              <Edit className="h-3.5 w-3.5 mr-1.5" />
+              Edit Proyek
+            </button>
+          </div>
+        </div>
       </div>
       <div className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

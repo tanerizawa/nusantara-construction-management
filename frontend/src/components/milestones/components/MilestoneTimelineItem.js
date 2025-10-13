@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Edit, Trash2, Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
+import { Edit, Trash2, Calendar, DollarSign, Package, TrendingUp, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import { getStatusInfo, isOverdue } from '../config/statusConfig';
 import MilestoneWorkflowProgress from '../MilestoneWorkflowProgress';
+import MilestoneDetailInline from '../MilestoneDetailInline';
 
 const MilestoneTimelineItem = ({ 
   milestone, 
@@ -10,11 +11,13 @@ const MilestoneTimelineItem = ({
   isLast,
   onEdit, 
   onDelete,
+  onApprove,
   onProgressUpdate 
 }) => {
   const statusInfo = getStatusInfo(isOverdue(milestone) ? 'overdue' : milestone.status);
   const Icon = statusInfo.icon;
   const [showWorkflowProgress, setShowWorkflowProgress] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
 
   // Check if milestone has category link
   const hasCategoryLink = milestone.category_link && milestone.category_link.enabled;
@@ -65,6 +68,22 @@ const MilestoneTimelineItem = ({
             
             {/* Right: Actions */}
             <div className="flex items-center gap-1 flex-shrink-0">
+              {milestone.status === 'pending' && onApprove && (
+                <button
+                  onClick={onApprove}
+                  className="p-1.5 text-[#30D158] hover:bg-[#30D158]/10 rounded transition-colors"
+                  title="Approve Milestone"
+                >
+                  <CheckCircle size={14} />
+                </button>
+              )}
+              <button
+                onClick={() => setShowDetail(!showDetail)}
+                className="p-1.5 text-[#0A84FF] hover:bg-[#0A84FF]/10 rounded transition-colors"
+                title={showDetail ? "Hide Detail" : "Show Detail"}
+              >
+                {showDetail ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
               <button
                 onClick={onEdit}
                 className="p-1.5 text-[#0A84FF] hover:bg-[#0A84FF]/10 rounded transition-colors"
@@ -151,6 +170,16 @@ const MilestoneTimelineItem = ({
       {/* Connection Line - Proportional */}
       {!isLast && (
         <div className="ml-3.5 mt-2.5 h-5 w-px bg-[#38383A]" />
+      )}
+
+      {/* Inline Detail Section */}
+      {showDetail && (
+        <div className="ml-[50px] mt-4 mb-6 animate-fadeIn">
+          <MilestoneDetailInline 
+            milestone={milestone}
+            projectId={milestone.project_id || milestone.projectId}
+          />
+        </div>
       )}
 
       {/* Workflow Progress Modal */}

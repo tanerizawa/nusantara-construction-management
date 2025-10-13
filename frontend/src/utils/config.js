@@ -33,9 +33,26 @@ export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const IS_PRODUCTION = NODE_ENV === 'production';
 export const IS_DEVELOPMENT = NODE_ENV === 'development';
 
+// Base URL untuk static files (images, uploads, etc) - tanpa /api suffix
+export const BASE_URL = (() => {
+  const hostname = window.location.hostname;
+  if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+    return 'https://nusantaragroup.co';
+  }
+  return 'http://localhost:5000'; // Backend port
+})();
+
+// Helper untuk image URLs
+export const getImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path; // Already full URL
+  return `${BASE_URL}${path}`;
+};
+
 // Logging untuk debugging
 console.log('📊 Config Summary:', {
   API_URL,
+  BASE_URL,
   NODE_ENV,
   hostname: window.location.hostname,
   envApiUrl: process.env.REACT_APP_API_URL

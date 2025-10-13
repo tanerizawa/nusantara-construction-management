@@ -123,8 +123,13 @@ const ProjectPurchaseOrders = ({
         // Broadcast change to other components
         broadcastPOChange(result.data, 'create');
         
+        // Wait a moment for tracking records to be created
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Refresh RAB items to update quantities
+        console.log('🔄 [CREATE PO] Refreshing RAB items...');
         await fetchRABItems();
+        console.log('✅ [CREATE PO] RAB items refreshed');
         
         // Reset form
         setCreatePOStep('rab-selection');
@@ -197,7 +202,16 @@ const ProjectPurchaseOrders = ({
       
       if (result.success) {
         showNotification(`PO ${po.poNumber || po.po_number} berhasil diapprove!`, 'success');
-        await fetchPurchaseOrders(); // Refresh data
+        
+        // Wait a moment for status update to propagate
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Refresh both PO list and RAB items (to update available quantities)
+        await Promise.all([
+          fetchPurchaseOrders(),
+          fetchRABItems()
+        ]);
+        
         if (onDataChange) onDataChange();
       } else {
         showNotification(`Gagal approve PO: ${result.error}`, 'error');
@@ -233,7 +247,17 @@ const ProjectPurchaseOrders = ({
       
       if (result.success) {
         showNotification(`PO ${po.poNumber || po.po_number} ditolak`, 'warning');
-        await fetchPurchaseOrders(); // Refresh data
+        
+        // Wait a moment for status update to propagate
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Refresh both PO list and RAB items (to update available quantities)
+        await Promise.all([
+          fetchPurchaseOrders(),
+          fetchRABItems()
+        ]);
+        
+        if (onDataChange) onDataChange();
         if (onDataChange) onDataChange();
       } else {
         showNotification(`Gagal reject PO: ${result.error}`, 'error');

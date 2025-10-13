@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, FileText, DollarSign, Receipt } from 'lucide-react';
+import { FileText, DollarSign, Receipt } from 'lucide-react';
+import { CalendarIconWhite } from '../../../../components/ui/CalendarIcon';
 import { ApprovalStatusBadge, ApprovalActions } from './';
 import { formatCurrency, formatDate } from '../../../../utils/formatters';
 
@@ -71,7 +72,7 @@ const ProgressPaymentContent = ({
             <div>
               <p className="text-xs text-[#8E8E93] mb-1">Invoice Date</p>
               <div className="flex items-center gap-1">
-                <Calendar size={14} className="text-[#0A84FF]" />
+                <CalendarIconWhite size={14} className="text-[#0A84FF]" />
                 <p className="text-sm text-white">
                   {payment.invoiceDate ? formatDate(payment.invoiceDate) : 'N/A'}
                 </p>
@@ -93,7 +94,7 @@ const ProgressPaymentContent = ({
             <div>
               <p className="text-xs text-[#8E8E93] mb-1">Due Date</p>
               <div className="flex items-center gap-1">
-                <Calendar size={14} className="text-[#0A84FF]" />
+                <CalendarIconWhite size={14} className="text-[#0A84FF]" />
                 <p className="text-sm text-white">
                   {formatDate(payment.dueDate)}
                 </p>

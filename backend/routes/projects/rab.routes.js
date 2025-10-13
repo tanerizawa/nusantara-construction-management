@@ -368,11 +368,14 @@ router.put('/:id/rab/:rabId/approve', async (req, res) => {
       });
     }
 
+    // Update with existing model fields
     await rabItem.update({
       status: 'approved',
+      isApproved: true,
       approvedBy,
       approvedAt: new Date(),
-      notes: notes || rabItem.notes
+      notes: notes || rabItem.notes,
+      updatedBy: approvedBy
     });
 
     res.json({ 
@@ -418,11 +421,11 @@ router.put('/:id/rab/:rabId/reject', async (req, res) => {
       });
     }
 
+    // Store rejection reason in notes field since rejectedBy/rejectionReason fields don't exist
     await rabItem.update({
       status: 'rejected',
-      rejectedBy,
-      rejectedAt: new Date(),
-      rejectionReason
+      notes: `Rejected by ${rejectedBy}: ${rejectionReason}`,
+      updatedBy: rejectedBy
     });
 
     res.json({

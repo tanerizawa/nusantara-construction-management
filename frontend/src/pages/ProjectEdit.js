@@ -5,7 +5,6 @@ import {
   ArrowLeft, 
   Save, 
   X,
-  Calendar, 
   DollarSign, 
   Building, 
   Users, 
@@ -14,6 +13,8 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
+import { CalendarIconWhite, DateInputWithIcon } from '../components/ui/CalendarIcon';
+import { CurrencyInput, PercentageInput } from '../components/ui/NumberInput';
 
 const ProjectEdit = () => {
   const { id } = useParams();
@@ -694,18 +695,17 @@ const ProjectEdit = () => {
                   <DollarSign className="w-4 h-4" />
                   Nilai Kontrak (IDR)
                 </label>
-                <input
-                  type="number"
+                <CurrencyInput
                   value={formData.budget.contractValue}
-                  onChange={(e) => handleInputChange('budget.contractValue', e.target.value)}
+                  onChange={(value) => handleInputChange('budget.contractValue', value)}
                   style={{
                     backgroundColor: '#2C2C2E',
                     border: '1px solid #38383A',
                     color: 'white'
                   }}
-                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  className="w-full pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
                   placeholder="0"
-                  min="0"
+                  min={0}
                   disabled={saving}
                 />
               </div>
@@ -714,67 +714,59 @@ const ProjectEdit = () => {
                 <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Progress (%)
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.progress}
-                    onChange={(e) => handleInputChange('progress', e.target.value)}
-                    style={{
-                      backgroundColor: '#2C2C2E',
-                      border: '1px solid #38383A',
-                      color: 'white'
-                    }}
-                    className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
-                    placeholder="0"
-                    disabled={saving}
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[#636366] pointer-events-none">
-                    %
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-[#98989D] mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Tanggal Mulai <span className="text-[#FF3B30]">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={formData.timeline.startDate}
-                  onChange={(e) => handleInputChange('timeline.startDate', e.target.value)}
+                <PercentageInput
+                  min={0}
+                  max={100}
+                  value={formData.progress}
+                  onChange={(value) => handleInputChange('progress', value)}
                   style={{
                     backgroundColor: '#2C2C2E',
                     border: '1px solid #38383A',
-                    color: 'white',
-                    colorScheme: 'dark'
+                    color: 'white'
                   }}
-                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
-                  required
+                  className="w-full pl-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+                  placeholder="0"
                   disabled={saving}
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-[#98989D] mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+                  <CalendarIconWhite size={16} />
+                  Tanggal Mulai <span className="text-[#FF3B30]">*</span>
+                </label>
+                <DateInputWithIcon
+                  value={formData.timeline.startDate}
+                  onChange={(e) => handleInputChange('timeline.startDate', e.target.value)}
+                  style={{
+                    backgroundColor: '#2C2C2E',
+                    border: '1px solid #38383A',
+                    color: 'white'
+                  }}
+                  className="w-full pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
+                  required
+                  disabled={saving}
+                  placeholder="Pilih Tanggal Mulai"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-[#98989D] mb-2 flex items-center gap-2">
+                  <CalendarIconWhite size={16} />
                   Tanggal Selesai <span className="text-[#FF3B30]">*</span>
                 </label>
-                <input
-                  type="date"
+                <DateInputWithIcon
                   value={formData.timeline.endDate}
                   onChange={(e) => handleInputChange('timeline.endDate', e.target.value)}
                   style={{
                     backgroundColor: '#2C2C2E',
                     border: '1px solid #38383A',
-                    color: 'white',
-                    colorScheme: 'dark'
+                    color: 'white'
                   }}
-                  className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
+                  className="w-full pr-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
                   required
                   disabled={saving}
+                  placeholder="Pilih Tanggal Selesai"
                 />
               </div>
               

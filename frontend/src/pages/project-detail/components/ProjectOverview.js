@@ -1,5 +1,6 @@
 import React from 'react';
-import { DollarSign, Users, FileText, Calendar, MapPin, TrendingUp, Edit, ExternalLink } from 'lucide-react';
+import { DollarSign, Users, FileText, MapPin, TrendingUp, Edit, ExternalLink } from 'lucide-react';
+import { CalendarIconWhite } from '../../../components/ui/CalendarIcon';
 import { formatCurrency, formatDate, calculateDaysDifference, calculateBudgetUtilization, calculateProjectProgress } from '../utils';
 import FinancialSummary from './FinancialSummary';
 import QuickStats from './QuickStats';
@@ -192,7 +193,7 @@ const ProjectOverview = ({ project, workflowData }) => {
           <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
             <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
               <h3 className="text-base font-semibold text-white flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-[#30D158]" />
+                <CalendarIconWhite size={16} className="mr-2 text-[#30D158]" />
                 Alur Tahapan Proyek
               </h3>
             </div>
@@ -237,7 +238,7 @@ const ProjectInformationCard = ({ project }) => {
       <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-white flex items-center">
-            <Calendar className="h-4 w-4 mr-2 text-[#0A84FF]" />
+            <CalendarIconWhite size={16} className="mr-2 text-[#0A84FF]" />
             Informasi Proyek
           </h3>
           <div className="flex items-center space-x-2">
@@ -301,7 +302,7 @@ const ProjectInformationCard = ({ project }) => {
             <div>
               <label className="block text-xs font-medium text-[#8E8E93] mb-1">Durasi Proyek</label>
               <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-[#8E8E93]" />
+                <CalendarIconWhite size={16} className="text-[#8E8E93]" />
                 <p className="text-sm text-white">
                   {project.startDate && project.endDate ? (
                     <>

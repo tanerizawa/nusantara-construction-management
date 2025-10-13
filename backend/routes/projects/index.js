@@ -16,6 +16,7 @@ router.use(verifyToken);
 const basicRoutes = require('./basic.routes');
 const rabRoutes = require('./rab.routes');
 const milestoneRoutes = require('./milestone.routes');
+const milestoneDetailRoutes = require('./milestoneDetail.routes');
 const teamRoutes = require('./team.routes');
 const documentRoutes = require('./document.routes');
 const beritaAcaraRoutes = require('./berita-acara.routes');
@@ -27,6 +28,7 @@ const budgetStatisticsRoutes = require('./budget-statistics.routes');
 router.use('/', basicRoutes);              // Basic CRUD: /, /:id
 router.use('/', rabRoutes);                 // RAB: /:id/rab
 router.use('/', milestoneRoutes);          // Milestones: /:id/milestones
+router.use('/', milestoneDetailRoutes);    // Milestone Detail: /:id/milestones/:milestoneId/photos|costs|activities
 router.use('/', teamRoutes);                // Team: /:id/team
 router.use('/', documentRoutes);            // Documents: /:id/documents
 router.use('/', beritaAcaraRoutes);        // Berita Acara: /:projectId/berita-acara

@@ -127,6 +127,12 @@ const MilestoneInlineForm = ({
                 enabled: true,
                 category_id: category.id || null,
                 category_name: category.name,
+                // Preserve full category data for display
+                name: category.name,
+                itemCount: category.itemCount || 0,
+                totalValue: category.totalValue || 0,
+                lastUpdated: category.lastUpdated,
+                source: category.source,
                 auto_generated: false
               } : null
             });
@@ -135,7 +141,7 @@ const MilestoneInlineForm = ({
             // Auto-populate fields when category selected
             if (category && !isEditMode) {
               // Estimate duration: 1 month per 100M rupiah
-              const estimatedMonths = Math.max(1, Math.ceil(category.totalValue / 100000000));
+              const estimatedMonths = Math.max(1, Math.ceil((category.totalValue || 0) / 100000000));
               const estimatedDays = estimatedMonths * 30;
               
               const startDate = new Date();
@@ -150,6 +156,12 @@ const MilestoneInlineForm = ({
                   enabled: true,
                   category_id: category.id || null,
                   category_name: category.name,
+                  // Preserve full category data for display
+                  name: category.name,
+                  itemCount: category.itemCount || 0,
+                  totalValue: category.totalValue || 0,
+                  lastUpdated: category.lastUpdated,
+                  source: category.source,
                   auto_generated: false
                 }
               });

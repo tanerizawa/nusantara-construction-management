@@ -244,6 +244,7 @@ export const projectAPI = {
   createMilestone: (projectId, data) => apiService.post(`/projects/${projectId}/milestones`, data),
   updateMilestone: (projectId, milestoneId, data) => apiService.put(`/projects/${projectId}/milestones/${milestoneId}`, data),
   deleteMilestone: (projectId, milestoneId) => apiService.delete(`/projects/${projectId}/milestones/${milestoneId}`),
+  approveMilestone: (projectId, milestoneId) => apiService.put(`/projects/${projectId}/milestones/${milestoneId}/approve`, {}),
   
   // Team management endpoints
   getTeamMembers: (projectId) => apiService.get(`/projects/${projectId}/team`),

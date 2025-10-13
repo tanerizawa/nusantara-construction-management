@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Save, X, Building, MapPin, Phone, Mail, Users, Calendar,
+  ArrowLeft, Save, X, Building, MapPin, Phone, Mail, Users,
   Plus, Trash2, DollarSign, Shield, User, Globe, Upload,
   FileText, Award
 } from 'lucide-react';
+import { CalendarIconWhite, DateInputWithIcon } from '../components/ui/CalendarIcon';
+import { NumberInput } from '../components/ui/NumberInput';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { subsidiaryAPI } from '../services/api';
@@ -718,19 +720,18 @@ const SubsidiaryEdit = () => {
 
                     <div>
                       <label className="block text-sm font-medium  mb-2 flex items-center" style={{ color: "#98989D" }}>
-                        <Calendar className="h-4 w-4 mr-1" />
+                        <CalendarIconWhite size={16} className="mr-1" />
                         Tahun Didirikan
                       </label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={formData.establishedYear}
-                        onChange={(e) => handleInputChange('establishedYear', e.target.value)}
-                        min="1900"
+                        onChange={(val) => handleInputChange('establishedYear', val)}
+                        min={1900}
                         max={new Date().getFullYear()}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           errors.establishedYear ? 'border-red-500' : 'border-gray-700'
                         }`}
-                        placeholder="2020"
+                        placeholder="Contoh: 2020"
                       />
                       {errors.establishedYear && <p className="mt-1 text-sm text-red-600">{errors.establishedYear}</p>}
                     </div>
@@ -740,15 +741,14 @@ const SubsidiaryEdit = () => {
                         <Users className="h-4 w-4 mr-1" />
                         Jumlah Karyawan
                       </label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={formData.employeeCount}
-                        onChange={(e) => handleInputChange('employeeCount', e.target.value)}
-                        min="0"
+                        onChange={(val) => handleInputChange('employeeCount', val)}
+                        min={0}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           errors.employeeCount ? 'border-red-500' : 'border-gray-700'
                         }`}
-                        placeholder="50"
+                        placeholder="Contoh: 50"
                       />
                       {errors.employeeCount && <p className="mt-1 text-sm text-red-600">{errors.employeeCount}</p>}
                     </div>
@@ -940,11 +940,11 @@ const SubsidiaryEdit = () => {
                         />
                       </div>
                       <div>
-                        <input
-                          type="date"
+                        <DateInputWithIcon
                           value={newDirector.appointmentDate}
                           onChange={(e) => setNewDirector(prev => ({ ...prev, appointmentDate: e.target.value }))}
-                          className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full pr-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Tanggal Pengangkatan"
                         />
                       </div>
                       <div className="flex items-center">
@@ -1120,19 +1120,19 @@ const SubsidiaryEdit = () => {
                         </select>
                       </div>
                       <div>
-                        <input
-                          type="date"
+                        <DateInputWithIcon
                           value={newPermit.issuedDate}
                           onChange={(e) => setNewPermit(prev => ({ ...prev, issuedDate: e.target.value }))}
-                          className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                          className="w-full pr-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                          placeholder="Tanggal Terbit"
                         />
                       </div>
                       <div>
-                        <input
-                          type="date"
+                        <DateInputWithIcon
                           value={newPermit.expiryDate}
                           onChange={(e) => setNewPermit(prev => ({ ...prev, expiryDate: e.target.value }))}
-                          className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                          className="w-full pr-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                          placeholder="Tanggal Kadaluarsa"
                         />
                       </div>
                     </div>
@@ -1273,27 +1273,25 @@ const SubsidiaryEdit = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Modal Dasar</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={formData.financialInfo.authorizedCapital}
-                        onChange={(e) => handleNestedInputChange('financialInfo', 'authorizedCapital', e.target.value)}
+                        onChange={(value) => handleNestedInputChange('financialInfo', 'authorizedCapital', value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           errors.authorizedCapital ? 'border-red-500' : 'border-gray-700'
                         }`}
-                        placeholder="1000000000"
+                        placeholder="1.000.000.000"
                       />
                       {errors.authorizedCapital && <p className="mt-1 text-sm text-red-600">{errors.authorizedCapital}</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Modal Disetor</label>
-                      <input
-                        type="number"
+                      <NumberInput
                         value={formData.financialInfo.paidUpCapital}
-                        onChange={(e) => handleNestedInputChange('financialInfo', 'paidUpCapital', e.target.value)}
+                        onChange={(value) => handleNestedInputChange('financialInfo', 'paidUpCapital', value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                           errors.paidUpCapital ? 'border-red-500' : 'border-gray-700'
                         }`}
-                        placeholder="500000000"
+                        placeholder="500.000.000"
                       />
                       {errors.paidUpCapital && <p className="mt-1 text-sm text-red-600">{errors.paidUpCapital}</p>}
                     </div>

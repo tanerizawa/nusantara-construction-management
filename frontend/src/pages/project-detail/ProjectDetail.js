@@ -125,9 +125,46 @@ const ProjectDetail = () => {
         <QuickStatusBar 
           project={project}
           onStatusUpdate={async (update) => {
-            console.log('Status update:', update);
-            // TODO: Implement status update API call
-            await fetchProject();
+            try {
+              console.log('Status update:', update);
+              // Call API to update project status
+              const response = await fetch(`/api/projects/${id}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  status: update.status,
+                  status_notes: update.notes
+                })
+              });
+
+              if (!response.ok) {
+                throw new Error('Failed to update status');
+              }
+
+              // Show success notification
+              window.dispatchEvent(new CustomEvent('show-notification', {
+                detail: {
+                  type: 'success',
+                  message: 'Status proyek berhasil diupdate',
+                  duration: 3000
+                }
+              }));
+
+              // Refresh project data
+              await fetchProject();
+            } catch (error) {
+              console.error('Failed to update status:', error);
+              // Show error notification
+              window.dispatchEvent(new CustomEvent('show-notification', {
+                detail: {
+                  type: 'error',
+                  message: 'Gagal mengupdate status proyek',
+                  duration: 5000
+                }
+              }));
+            }
           }}
         />
 

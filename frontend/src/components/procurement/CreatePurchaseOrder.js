@@ -7,12 +7,13 @@ import {
   Send, 
   Building, 
   User, 
-  Calendar, 
   Package,
   DollarSign,
   Truck,
   AlertTriangle
 } from 'lucide-react';
+import { CalendarIconWhite, DateInputWithIcon } from '../ui/CalendarIcon';
+import { NumberInput, QuantityInput, CurrencyInput } from '../ui/NumberInput';
 
 const CreatePurchaseOrder = ({ projectId, project, selectedRABItems = [], onBack, onSave }) => {
   const [formData, setFormData] = useState({
@@ -291,11 +292,11 @@ const CreatePurchaseOrder = ({ projectId, project, selectedRABItems = [], onBack
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tanggal Pengiriman *
               </label>
-              <input
-                type="date"
+              <DateInputWithIcon
                 value={formData.deliveryDate}
                 onChange={(e) => setFormData({ ...formData, deliveryDate: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full border border-gray-300 rounded-lg pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Pilih Tanggal Pengiriman"
               />
               {errors.deliveryDate && (
                 <p className="text-red-600 text-sm mt-1">{errors.deliveryDate}</p>
@@ -389,12 +390,12 @@ const CreatePurchaseOrder = ({ projectId, project, selectedRABItems = [], onBack
                       />
                     </td>
                     <td className="py-3 text-center">
-                      <input
-                        type="number"
-                        min="1"
+                      <QuantityInput
+                        min={1}
                         value={item.quantity}
-                        onChange={(e) => updateItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                        onChange={(value) => updateItem(item.id, 'quantity', value)}
                         className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm"
+                        allowDecimals={true}
                       />
                       {errors[`item_${index}_quantity`] && (
                         <p className="text-red-600 text-xs mt-1">{errors[`item_${index}_quantity`]}</p>
@@ -410,11 +411,10 @@ const CreatePurchaseOrder = ({ projectId, project, selectedRABItems = [], onBack
                       />
                     </td>
                     <td className="py-3 text-right">
-                      <input
-                        type="number"
-                        min="0"
+                      <NumberInput
+                        min={0}
                         value={item.unitPrice}
-                        onChange={(e) => updateItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                        onChange={(value) => updateItem(item.id, 'unitPrice', value)}
                         className="w-24 border border-gray-300 rounded px-2 py-1 text-right text-sm"
                         placeholder="0"
                       />

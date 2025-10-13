@@ -5,12 +5,13 @@ import {
   PieChart, 
   BarChart3,
   DollarSign,
-  Calendar,
   Download,
   Loader2,
   X,
   ChevronDown
 } from 'lucide-react';
+import { CalendarIconWhite } from '../../../components/ui/CalendarIcon';
+import { DateInputWithIcon } from '../../../components/ui/CalendarIcon';
 
 /**
  * ReportGenerator - Inline component untuk generate report dalam workflow
@@ -223,7 +224,7 @@ const ReportGenerator = ({
             {/* Date Range */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-white mb-3">
-                <Calendar size={16} className="inline mr-2" />
+                <CalendarIconWhite size={16} className="inline mr-2" />
                 Periode (Opsional)
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -231,28 +232,26 @@ const ReportGenerator = ({
                   <label className="block text-xs text-[#8E8E93] mb-2">
                     Tanggal Mulai
                   </label>
-                  <input
-                    type="date"
+                  <DateInputWithIcon
                     value={dateRange.startDate}
                     onChange={(e) => setDateRange(prev => ({
                       ...prev,
                       startDate: e.target.value
                     }))}
-                    className="w-full px-4 py-2.5 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all"
+                    className="w-full pr-4 py-2.5 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all"
                   />
                 </div>
                 <div>
                   <label className="block text-xs text-[#8E8E93] mb-2">
                     Tanggal Selesai
                   </label>
-                  <input
-                    type="date"
+                  <DateInputWithIcon
                     value={dateRange.endDate}
                     onChange={(e) => setDateRange(prev => ({
                       ...prev,
                       endDate: e.target.value
                     }))}
-                    className="w-full px-4 py-2.5 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all"
+                    className="w-full pr-4 py-2.5 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all"
                   />
                 </div>
               </div>
@@ -378,7 +377,7 @@ const ReportGenerator = ({
               {generatedReport?.data?.period && (
                 <div className="bg-[#2C2C2E] border border-[#38383A] rounded-xl p-4 mb-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <Calendar size={16} className="text-[#0A84FF]" />
+                    <CalendarIconWhite size={16} className="text-[#0A84FF]" />
                     <h4 className="text-sm font-semibold text-white">Periode Report</h4>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">

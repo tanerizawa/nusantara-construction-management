@@ -27,6 +27,8 @@ export const useMilestones = (projectId) => {
           dependencies: item.dependencies ? (typeof item.dependencies === 'string' ? JSON.parse(item.dependencies) : item.dependencies) : [],
           notes: item.notes || '',
           priority: item.priority || 'medium',
+          category_link: item.categoryLink || item.category_link || null,
+          project_id: item.projectId || projectId,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt
         }));
@@ -124,12 +126,34 @@ export const useMilestones = (projectId) => {
     }
   };
 
+  // Approve milestone
+  const approveMilestone = async (milestoneId) => {
+    if (!window.confirm('Approve milestone ini?')) return;
+    
+    try {
+      await projectAPI.approveMilestone(projectId, milestoneId);
+      
+      // Update local state
+      setMilestones(prev => prev.map(m => 
+        m.id === milestoneId ? { ...m, status: 'in_progress' } : m
+      ));
+      
+      alert('Milestone berhasil di-approve!');
+      return true;
+    } catch (error) {
+      console.error('Error approving milestone:', error);
+      alert('Gagal approve milestone. Silakan coba lagi.');
+      return false;
+    }
+  };
+
   return {
     milestones,
     loading,
     stats,
     updateMilestoneProgress,
     deleteMilestone,
+    approveMilestone,
     loadMilestones
   };
 };

@@ -110,13 +110,24 @@ const CategorySelector = ({ projectId, value, onChange, onCategorySelect }) => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-semibold text-white">{selectedCategory.name}</h4>
+                  <h4 className="font-semibold text-white">{selectedCategory.name || 'Unknown Category'}</h4>
                   <CheckCircle className="h-4 w-4 text-[#30D158]" />
                 </div>
                 <div className="text-sm text-[#8E8E93] space-y-1">
-                  <p>{selectedCategory.itemCount} items • {formatCurrency(selectedCategory.totalValue)}</p>
+                  {selectedCategory.itemCount > 0 || selectedCategory.totalValue > 0 ? (
+                    <p>
+                      {selectedCategory.itemCount || 0} items • {formatCurrency(selectedCategory.totalValue || 0)}
+                    </p>
+                  ) : (
+                    <p className="text-[#8E8E93]">Category selected (no budget details)</p>
+                  )}
                   {selectedCategory.lastUpdated && (
                     <p>Last updated: {new Date(selectedCategory.lastUpdated).toLocaleDateString()}</p>
+                  )}
+                  {selectedCategory.source && (
+                    <p className="text-xs">
+                      Source: {selectedCategory.source === 'rab' ? 'RAB Items' : 'Purchase Orders'}
+                    </p>
                   )}
                 </div>
               </div>
@@ -193,9 +204,18 @@ const CategorySelector = ({ projectId, value, onChange, onCategorySelect }) => {
                     <div className="flex-1">
                       <h4 className="font-medium text-white mb-1">{category.name}</h4>
                       <div className="text-xs text-[#8E8E93] space-y-0.5">
-                        <p>{category.itemCount} items • {formatCurrency(category.totalValue)}</p>
+                        {category.itemCount > 0 || category.totalValue > 0 ? (
+                          <p>{category.itemCount || 0} items • {formatCurrency(category.totalValue || 0)}</p>
+                        ) : (
+                          <p>No budget details</p>
+                        )}
                         {category.lastUpdated && (
                           <p>Updated: {new Date(category.lastUpdated).toLocaleDateString()}</p>
+                        )}
+                        {category.source && (
+                          <p className="text-[#0A84FF]">
+                            {category.source === 'rab' ? '📋 From RAB' : '📦 From POs'}
+                          </p>
                         )}
                       </div>
                     </div>

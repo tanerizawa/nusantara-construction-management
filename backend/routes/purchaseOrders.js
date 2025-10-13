@@ -55,6 +55,7 @@ const RABPurchaseTracking = sequelize.define(
   {
     tableName: "rab_purchase_tracking",
     timestamps: true,
+    underscored: true,
   }
 );
 
@@ -321,11 +322,22 @@ router.post('/', verifyToken, async (req, res) => {
         status: value.status || "pending",
       }));
       
+      console.log('📊 [CREATE PO] Creating tracking records:', {
+        count: trackingRecords.length,
+        records: trackingRecords.map(r => ({
+          rabItemId: r.rabItemId,
+          quantity: r.quantity,
+          status: r.status
+        }))
+      });
+      
       if (trackingRecords.length > 0) {
-        await RABPurchaseTracking.bulkCreate(trackingRecords);
+        const created = await RABPurchaseTracking.bulkCreate(trackingRecords);
+        console.log(`✅ [CREATE PO] Successfully created ${created.length} tracking records`);
       }
     } catch (trackingError) {
-      console.error('Failed to create tracking records:', trackingError.message);
+      console.error('❌ [CREATE PO] Failed to create tracking records:', trackingError.message);
+      console.error('❌ [CREATE PO] Tracking error stack:', trackingError.stack);
       // Don't fail the main PO creation
     }
 
@@ -570,10 +582,23 @@ router.post('/sync-finance', async (req, res) => {
 // @route   POST /api/purchase-orders/:id/approve
 // @desc    Approve a Purchase Order
 // @access  Private
-router.post('/:id/approve', verifyToken, async (req, res) => {
+// @route   PUT /api/purchase-orders/:id/approve
+// @desc    Approve a Purchase Order
+// @access  Private
+router.put('/:id/approve', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { notes, approval_date } = req.body;
+    const { approvedBy, notes, approval_date } = req.body;
+
+    // Validate approvedBy (can come from request body or token)
+    const approverId = approvedBy || req.user.id;
+    
+    if (!approverId) {
+      return res.status(400).json({
+        success: false,
+        error: 'approvedBy is required'
+      });
+    }
 
     // Find PO
     const po = await PurchaseOrder.findOne({ where: { id } });
@@ -586,7 +611,7 @@ router.post('/:id/approve', verifyToken, async (req, res) => {
 
     // Update approval fields
     po.status = 'approved';
-    po.approvedBy = req.user.id;
+    po.approvedBy = approverId;
     po.approvedAt = approval_date || new Date();
     if (notes) po.notes = notes;
 
@@ -607,18 +632,31 @@ router.post('/:id/approve', verifyToken, async (req, res) => {
   }
 });
 
-// @route   POST /api/purchase-orders/:id/reject
+// @route   PUT /api/purchase-orders/:id/reject
 // @desc    Reject a Purchase Order
 // @access  Private
-router.post('/:id/reject', verifyToken, async (req, res) => {
+router.put('/:id/reject', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { reason, rejection_date } = req.body;
+    const { rejectedBy, rejectionReason, reason, rejection_date } = req.body;
 
-    if (!reason || !reason.trim()) {
+    // Support both rejectionReason and reason for backward compatibility
+    const rejectReason = rejectionReason || reason;
+    
+    if (!rejectReason || !rejectReason.trim()) {
       return res.status(400).json({
         success: false,
         error: 'Alasan penolakan wajib diisi'
+      });
+    }
+
+    // Validate rejectedBy (can come from request body or token)
+    const rejecterId = rejectedBy || req.user.id;
+    
+    if (!rejecterId) {
+      return res.status(400).json({
+        success: false,
+        error: 'rejectedBy is required'
       });
     }
 
@@ -633,8 +671,8 @@ router.post('/:id/reject', verifyToken, async (req, res) => {
 
     // Update rejection fields
     po.status = 'rejected';
-    po.notes = reason;
-    po.rejectedBy = req.user.id;
+    po.notes = rejectReason;
+    po.rejectedBy = rejecterId;
     po.rejectedAt = rejection_date || new Date();
 
     await po.save();

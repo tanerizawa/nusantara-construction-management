@@ -8,10 +8,37 @@ const { sequelize } = require('../../config/database');
 class MilestoneIntegrationService {
   /**
    * Get RAB categories available for milestone linking
+   * 
+   * IMPROVED LOGIC:
+   * 1. First try to get from approved RAB items (ideal case)
+   * 2. If no RAB items, extract unique item names from POs as fallback
+   * 3. Filter out categories already used in existing milestones
+   * 4. This ensures categories are always available for milestone linking
    */
   async getAvailableRABCategories(projectId) {
     try {
-      const query = `
+      console.log(`\n📊 [GET RAB CATEGORIES] Project: ${projectId}`);
+      
+      // Get categories already used in milestones
+      const usedCategoriesQuery = `
+        SELECT DISTINCT
+          category_link->>'category_name' as category_name
+        FROM project_milestones
+        WHERE project_id = $1
+          AND category_link IS NOT NULL
+          AND category_link->>'category_name' IS NOT NULL
+      `;
+
+      const usedCategories = await sequelize.query(usedCategoriesQuery, {
+        bind: [projectId],
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      const usedCategoryNames = usedCategories.map(c => c.category_name);
+      console.log(`🚫 Found ${usedCategoryNames.length} categories already used:`, usedCategoryNames);
+      
+      // STEP 1: Try to get from approved RAB items (ideal)
+      const rabQuery = `
         SELECT DISTINCT
           category as name,
           COUNT(*) as item_count,
@@ -20,72 +47,440 @@ class MilestoneIntegrationService {
         FROM rab_items
         WHERE project_id = $1
           AND approval_status = 'approved'
+          AND category IS NOT NULL
+          AND category != ''
         GROUP BY category
         ORDER BY category
       `;
 
-      const results = await sequelize.query(query, {
+      const rabResults = await sequelize.query(rabQuery, {
         bind: [projectId],
         type: sequelize.QueryTypes.SELECT
       });
 
-      return results.map(cat => ({
-        name: cat.name,
-        itemCount: parseInt(cat.item_count),
-        totalValue: parseFloat(cat.total_value),
-        lastUpdated: cat.last_updated
-      }));
+      console.log(`✅ Found ${rabResults.length} categories from RAB items`);
+
+      if (rabResults.length > 0) {
+        // Filter out used categories
+        const availableCategories = rabResults
+          .filter(cat => !usedCategoryNames.includes(cat.name))
+          .map(cat => ({
+            name: cat.name,
+            itemCount: parseInt(cat.item_count),
+            totalValue: parseFloat(cat.total_value),
+            lastUpdated: cat.last_updated,
+            source: 'rab'
+          }));
+        
+        console.log(`✨ ${availableCategories.length} categories available (${rabResults.length - availableCategories.length} already used)`);
+        return availableCategories;
+      }
+
+      // STEP 2: Fallback - Extract from PO items
+      console.log('⚠️  No RAB categories found, trying PO items...');
+      
+      const poQuery = `
+        WITH po_items AS (
+          SELECT 
+            po.po_number,
+            jsonb_array_elements(po.items) AS item
+          FROM purchase_orders po
+          WHERE po.project_id = $1
+            AND po.status IN ('approved', 'received')
+        )
+        SELECT 
+          item->>'itemName' as item_name,
+          COUNT(DISTINCT po_number) as po_count,
+          SUM(CAST(item->>'totalPrice' AS DECIMAL)) as total_value
+        FROM po_items
+        WHERE item->>'itemName' IS NOT NULL
+        GROUP BY item->>'itemName'
+        ORDER BY item->>'itemName'
+      `;
+
+      const poResults = await sequelize.query(poQuery, {
+        bind: [projectId],
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      console.log(`ℹ️  Found ${poResults.length} unique items from POs`);
+
+      if (poResults.length > 0) {
+        // Group items into logical categories based on keywords
+        const categorizedItems = this.categorizePOItems(poResults);
+        
+        // Filter out used categories
+        const availableCategories = categorizedItems.filter(cat => !usedCategoryNames.includes(cat.name));
+        
+        console.log(`📂 Grouped into ${categorizedItems.length} categories, ${availableCategories.length} available`);
+        return availableCategories;
+      }
+
+      // STEP 3: No data at all
+      console.log('❌ No categories available from RAB or POs');
+      return [];
+
     } catch (error) {
       console.error('[MilestoneIntegrationService] Error getting RAB categories:', error);
+      console.error('Stack:', error.stack);
       throw error;
     }
   }
 
   /**
-   * Suggest milestones from approved RAB categories
+   * Helper: Categorize PO items into logical work categories
+   */
+  categorizePOItems(poItems) {
+    const categoryMap = {
+      'Pekerjaan Persiapan': ['urugan', 'galian', 'pembersihan', 'pasir', 'tanah'],
+      'Pekerjaan Struktur': ['besi', 'beton', 'cor', 'kolom', 'balok', 'plat'],
+      'Pekerjaan Dinding': ['bata', 'hebel', 'blok', 'dinding'],
+      'Pekerjaan Atap': ['rangka', 'genteng', 'atap', 'spandek'],
+      'Pekerjaan Plumbing': ['pipa', 'kran', 'closet', 'wastafel', 'air'],
+      'Pekerjaan Listrik': ['kabel', 'saklar', 'lampu', 'mcb', 'listrik'],
+      'Pekerjaan Finishing': ['cat', 'keramik', 'plafon', 'pintu', 'jendela', 'finishing']
+    };
+
+    const categories = new Map();
+
+    for (const item of poItems) {
+      const itemNameLower = item.item_name.toLowerCase();
+      let assigned = false;
+
+      // Try to match with predefined categories
+      for (const [categoryName, keywords] of Object.entries(categoryMap)) {
+        for (const keyword of keywords) {
+          if (itemNameLower.includes(keyword)) {
+            if (!categories.has(categoryName)) {
+              categories.set(categoryName, {
+                items: [],
+                totalValue: 0,
+                poCount: 0
+              });
+            }
+            const cat = categories.get(categoryName);
+            cat.items.push(item.item_name);
+            cat.totalValue += parseFloat(item.total_value || 0);
+            cat.poCount += parseInt(item.po_count || 0);
+            assigned = true;
+            break;
+          }
+        }
+        if (assigned) break;
+      }
+
+      // If not assigned, put in "Material Lainnya"
+      if (!assigned) {
+        if (!categories.has('Material Lainnya')) {
+          categories.set('Material Lainnya', {
+            items: [],
+            totalValue: 0,
+            poCount: 0
+          });
+        }
+        const cat = categories.get('Material Lainnya');
+        cat.items.push(item.item_name);
+        cat.totalValue += parseFloat(item.total_value || 0);
+        cat.poCount += parseInt(item.po_count || 0);
+      }
+    }
+
+    // Convert to array format
+    return Array.from(categories.entries()).map(([name, data]) => ({
+      name: name,
+      itemCount: data.items.length,
+      totalValue: data.totalValue,
+      lastUpdated: new Date().toISOString(),
+      source: 'po_items',
+      items: data.items.slice(0, 5) // Show first 5 items
+    }));
+  }
+
+  /**
+   * Suggest milestones from POs that have delivery receipts
+   * 
+   * BUSINESS LOGIC:
+   * 1. Find POs that have delivery receipts (status = 'received')
+   * 2. Extract categories from RAB items in those POs
+   * 3. Group by category - multiple POs with same category = one milestone
+   * 4. Purpose: Track work progress and material usage per category
+   * 
+   * RATIONALE:
+   * - POs with receipts = materials are on-site = work can start
+   * - Category-based tracking allows comprehensive monitoring
+   * - Multiple POs per category = better material tracking
    */
   async suggestMilestonesFromRAB(projectId) {
     try {
-      const categories = await this.getAvailableRABCategories(projectId);
-
-      // Get existing milestones to avoid duplicates
-      const existingQuery = `
-        SELECT category_link->>'category_name' as category_name
-        FROM project_milestones
-        WHERE "projectId" = $1
-          AND category_link IS NOT NULL
-          AND category_link->>'enabled' = 'true'
+      console.log(`\n🎯 [MILESTONE SUGGEST] Starting for project: ${projectId}`);
+      
+      // Step 1: Get POs that have delivery receipts (materials on-site)
+      const posWithReceiptsQuery = `
+        SELECT DISTINCT
+          po.id as po_id,
+          po.po_number,
+          po.supplier_name,
+          po.items,
+          po.total_amount,
+          po.status,
+          dr.receipt_number,
+          dr.received_date
+        FROM purchase_orders po
+        INNER JOIN delivery_receipts dr ON dr.purchase_order_id = po.po_number
+        WHERE po.project_id = $1
+          AND dr.status = 'received'
+          AND po.status IN ('received', 'approved')
+        ORDER BY dr.received_date DESC
       `;
-
-      const existingMilestones = await sequelize.query(existingQuery, {
+      
+      const posWithReceipts = await sequelize.query(posWithReceiptsQuery, {
         bind: [projectId],
         type: sequelize.QueryTypes.SELECT
       });
-
-      const existingCategories = new Set(
-        existingMilestones.map(m => m.category_name)
-      );
-
-      // Filter out categories that already have milestones
-      const suggestions = categories
-        .filter(cat => !existingCategories.has(cat.name))
-        .map((cat, index) => ({
-          category: cat.name,
-          itemCount: cat.itemCount,
-          totalValue: cat.totalValue,
-          suggestedTitle: `${cat.name} - Fase 1`,
-          suggestedDescription: `Implementasi ${cat.name} sesuai RAB yang telah disetujui`,
-          // Suggest timeline based on value (1 month per 100M)
-          estimatedDuration: Math.ceil(cat.totalValue / 100000000) * 30,
-          suggestedStartDate: this.calculateStartDate(index * 30), // Stagger by 30 days
-          suggestedEndDate: this.calculateEndDate(index * 30, Math.ceil(cat.totalValue / 100000000) * 30)
-        }));
-
-      return suggestions;
+      
+      console.log(`📦 Found ${posWithReceipts.length} POs with delivery receipts`);
+      
+      if (posWithReceipts.length === 0) {
+        console.log('⚠️  No POs with delivery receipts found');
+        return [];
+      }
+      
+      // Step 2: Extract RAB item IDs from PO items and get their categories
+      const rabItemIds = [];
+      const poItemsMap = new Map(); // Map rabItemId -> PO details
+      
+      for (const po of posWithReceipts) {
+        const items = po.items || [];
+        for (const item of items) {
+          if (item.inventoryId) {
+            rabItemIds.push(item.inventoryId);
+            if (!poItemsMap.has(item.inventoryId)) {
+              poItemsMap.set(item.inventoryId, []);
+            }
+            poItemsMap.get(item.inventoryId).push({
+              po_number: po.po_number,
+              po_id: po.po_id,
+              supplier: po.supplier_name,
+              quantity: item.quantity,
+              item_name: item.itemName,
+              total_price: item.totalPrice,
+              receipt_number: po.receipt_number,
+              received_date: po.received_date
+            });
+          }
+        }
+      }
+      
+      console.log(`🔍 Extracted ${rabItemIds.length} RAB item IDs from POs`);
+      
+      if (rabItemIds.length === 0) {
+        console.log('⚠️  No RAB items found in POs');
+        
+        // Alternative: Create suggestions from PO items directly (without RAB linkage)
+        const categoryGroups = new Map();
+        
+        for (const po of posWithReceipts) {
+          const items = po.items || [];
+          for (const item of items) {
+            // Use item name as category if no RAB link
+            const category = item.category || 'Material dari PO';
+            
+            if (!categoryGroups.has(category)) {
+              categoryGroups.set(category, {
+                category: category,
+                rabItems: [],
+                poDetails: [],
+                totalValue: 0,
+                totalQuantity: 0,
+                earliestReceived: null
+              });
+            }
+            
+            const group = categoryGroups.get(category);
+            group.totalValue += parseFloat(item.totalPrice || 0);
+            
+            // Add PO details
+            if (!group.poDetails.find(p => p.po_number === po.po_number)) {
+              group.poDetails.push({
+                po_number: po.po_number,
+                po_id: po.po_id,
+                supplier: po.supplier_name,
+                quantity: item.quantity,
+                item_name: item.itemName,
+                total_price: item.totalPrice,
+                receipt_number: po.receipt_number,
+                received_date: po.received_date
+              });
+              
+              if (!group.earliestReceived || new Date(po.received_date) < new Date(group.earliestReceived)) {
+                group.earliestReceived = po.received_date;
+              }
+            }
+            
+            // Store item info
+            group.rabItems.push({
+              description: item.itemName || item.description,
+              quantity: item.quantity,
+              unit: item.unit || 'unit',
+              unit_price: item.unitPrice,
+              total_value: item.totalPrice
+            });
+          }
+        }
+        
+        console.log(`📂 Grouped ${categoryGroups.size} categories from PO items directly`);
+        
+        // Skip to suggestion generation
+        return this.generateSuggestionsFromGroups(projectId, categoryGroups);
+      }
+      
+      // Step 3: Get categories from RAB items
+      const rabCategoriesQuery = `
+        SELECT 
+          id as rab_item_id,
+          category,
+          description,
+          quantity,
+          unit,
+          unit_price,
+          (CAST(quantity AS DECIMAL) * CAST(unit_price AS DECIMAL)) as total_value
+        FROM rab_items
+        WHERE id = ANY($1::uuid[])
+        ORDER BY category, description
+      `;
+      
+      const rabItems = await sequelize.query(rabCategoriesQuery, {
+        bind: [rabItemIds],
+        type: sequelize.QueryTypes.SELECT
+      });
+      
+      console.log(`📊 Found ${rabItems.length} RAB items with categories`);
+      
+      // Step 4: Group by category
+      const categoryGroups = new Map();
+      
+      for (const rabItem of rabItems) {
+        const category = rabItem.category || 'Uncategorized';
+        
+        if (!categoryGroups.has(category)) {
+          categoryGroups.set(category, {
+            category: category,
+            rabItems: [],
+            poDetails: [],
+            totalValue: 0,
+            totalQuantity: 0,
+            earliestReceived: null
+          });
+        }
+        
+        const group = categoryGroups.get(category);
+        group.rabItems.push(rabItem);
+        group.totalValue += parseFloat(rabItem.total_value || 0);
+        
+        // Add PO details for this RAB item
+        const poDetails = poItemsMap.get(rabItem.rab_item_id) || [];
+        for (const po of poDetails) {
+          // Avoid duplicates
+          if (!group.poDetails.find(p => p.po_number === po.po_number)) {
+            group.poDetails.push(po);
+            
+            // Track earliest received date
+            if (!group.earliestReceived || new Date(po.received_date) < new Date(group.earliestReceived)) {
+              group.earliestReceived = po.received_date;
+            }
+          }
+        }
+      }
+      
+      console.log(`📂 Grouped into ${categoryGroups.size} categories`);
+      
+      // Generate suggestions using helper method
+      return this.generateSuggestionsFromGroups(projectId, categoryGroups);
     } catch (error) {
       console.error('[MilestoneIntegrationService] Error suggesting milestones:', error);
+      console.error('Stack trace:', error.stack);
       throw error;
     }
+  }
+
+  /**
+   * Helper: Generate milestone suggestions from category groups
+   */
+  async generateSuggestionsFromGroups(projectId, categoryGroups) {
+    // Get existing milestones to avoid duplicates
+    const existingQuery = `
+      SELECT category_link->>'category_name' as category_name
+      FROM project_milestones
+      WHERE project_id = $1
+        AND category_link IS NOT NULL
+        AND category_link->>'enabled' = 'true'
+    `;
+
+    const existingMilestones = await sequelize.query(existingQuery, {
+      bind: [projectId],
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    const existingCategories = new Set(
+      existingMilestones.map(m => m.category_name).filter(Boolean)
+    );
+    
+    console.log(`✅ Found ${existingCategories.size} existing milestone categories`);
+    
+    // Create suggestions (filter out existing)
+    const suggestions = [];
+    let sequenceNumber = 1;
+    
+    for (const [category, group] of categoryGroups.entries()) {
+      if (existingCategories.has(category)) {
+        console.log(`⏭️  Skipping existing category: ${category}`);
+        continue;
+      }
+      
+      // Calculate estimated duration based on value (1 week per 50M IDR)
+      const estimatedWeeks = Math.max(1, Math.ceil(group.totalValue / 50000000));
+      const estimatedDays = estimatedWeeks * 7;
+      
+      // Use earliest received date as potential start
+      const startDate = group.earliestReceived 
+        ? new Date(group.earliestReceived)
+        : new Date();
+      
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + estimatedDays);
+      
+      suggestions.push({
+        sequence: sequenceNumber++,
+        category: category,
+        itemCount: group.rabItems.length,
+        poCount: group.poDetails.length,
+        totalValue: group.totalValue,
+        poNumbers: group.poDetails.map(po => po.po_number),
+        materials: group.rabItems.map(item => ({
+          name: item.description,
+          quantity: parseFloat(item.quantity || 0),
+          unit: item.unit
+        })),
+        suggestedTitle: `${category} - Fase 1`,
+        suggestedDescription: `Pelaksanaan ${category}. Material sudah diterima dari ${group.poDetails.length} PO (${group.poDetails.map(po => po.po_number).join(', ')}). Total nilai: Rp ${group.totalValue.toLocaleString('id-ID')}`,
+        estimatedDuration: estimatedDays,
+        suggestedStartDate: startDate.toISOString().split('T')[0],
+        suggestedEndDate: endDate.toISOString().split('T')[0],
+        earliestMaterialReceived: group.earliestReceived,
+        readyToStart: true, // Materials are on-site
+        metadata: {
+          po_count: group.poDetails.length,
+          material_count: group.rabItems.length,
+          total_value: group.totalValue,
+          has_delivery_receipt: true,
+          source: group.rabItems.length > 0 && group.rabItems[0].rab_item_id ? 'rab_linked' : 'po_direct'
+        }
+      });
+    }
+    
+    console.log(`✨ Generated ${suggestions.length} milestone suggestions\n`);
+    
+    return suggestions;
   }
 
   /**

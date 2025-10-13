@@ -6,12 +6,14 @@ import MilestoneProgressOverview from './milestones/components/MilestoneProgress
 import MilestoneTimelineItem from './milestones/components/MilestoneTimelineItem';
 import MilestoneInlineForm from './milestones/components/MilestoneInlineForm';
 import MilestoneSuggestionModal from './milestones/MilestoneSuggestionModal';
+import MilestoneDetailDrawer from './milestones/MilestoneDetailDrawer';
 import api from '../services/api';
 
 const ProjectMilestones = ({ project, onUpdate }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState(null); // For detail drawer
 
   // Custom hook for milestones management
   const {
@@ -20,6 +22,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
     stats,
     updateMilestoneProgress,
     deleteMilestone,
+    approveMilestone,
     loadMilestones
   } = useMilestones(project.id);
 
@@ -161,7 +164,9 @@ const ProjectMilestones = ({ project, onUpdate }) => {
                 setShowAddForm(false); // Close add form when opening edit form
               }}
               onDelete={() => deleteMilestone(milestone.id)}
+              onApprove={() => approveMilestone(milestone.id)}
               onProgressUpdate={updateMilestoneProgress}
+              onViewDetail={(milestone) => setSelectedMilestone(milestone)}
             />
           ))}
         </div>
@@ -173,6 +178,15 @@ const ProjectMilestones = ({ project, onUpdate }) => {
           projectId={project.id}
           onClose={() => setShowSuggestions(false)}
           onCreateMilestones={handleCreateFromSuggestions}
+        />
+      )}
+
+      {/* Milestone Detail Drawer */}
+      {selectedMilestone && (
+        <MilestoneDetailDrawer
+          milestone={selectedMilestone}
+          projectId={project.id}
+          onClose={() => setSelectedMilestone(null)}
         />
       )}
     </div>

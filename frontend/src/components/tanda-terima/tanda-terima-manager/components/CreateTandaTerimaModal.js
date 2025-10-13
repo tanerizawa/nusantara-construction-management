@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, PackageCheck, Calendar, MapPin, User } from 'lucide-react';
+import { X, PackageCheck, MapPin, User } from 'lucide-react';
+import { DateInputWithIcon } from '../../../ui/CalendarIcon';
 
 /**
  * CreateTandaTerimaModal Component
@@ -184,11 +185,9 @@ const CreateTandaTerimaModal = ({ isOpen, onClose, availablePOs, projectId, onSu
             {/* Delivery Date */}
             <div>
               <label className="block text-sm font-medium text-white mb-2">
-                <Calendar className="inline h-4 w-4 mr-1" />
                 Tanggal Penerimaan <span className="text-[#FF3B30]">*</span>
               </label>
-              <input
-                type="date"
+              <DateInputWithIcon
                 value={formData.deliveryDate}
                 onChange={(e) => setFormData({ ...formData, deliveryDate: e.target.value })}
                 required

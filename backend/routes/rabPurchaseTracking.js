@@ -48,7 +48,8 @@ const RABPurchaseTracking = sequelize.define('RABPurchaseTracking', {
   }
 }, {
   tableName: 'rab_purchase_tracking',
-  timestamps: true
+  timestamps: true,
+  underscored: true  // ✅ Convert camelCase to snake_case for DB columns
 });
 
 // Initialize the table (disabled to prevent conflicts with views)
@@ -71,19 +72,23 @@ router.get('/projects/:projectId/rab-items/:rabItemId/purchase-summary', async (
       order: [['purchaseDate', 'DESC']]
     });
 
-    // Calculate totals
-    const totalPurchased = purchaseRecords.reduce((sum, record) => {
+    // ✅ Filter active purchases (pending, approved, received - exclude draft and cancelled)
+    // This ensures quantity is reserved as soon as PO is submitted (pending status)
+    const activePurchases = purchaseRecords.filter(record => 
+      ['pending', 'approved', 'received'].includes(record.status)
+    );
+
+    // Calculate totals from active purchases only
+    const totalPurchased = activePurchases.reduce((sum, record) => {
       return sum + parseFloat(record.quantity || 0);
     }, 0);
 
-    const totalAmount = purchaseRecords.reduce((sum, record) => {
+    const totalAmount = activePurchases.reduce((sum, record) => {
       return sum + parseFloat(record.totalAmount || 0);
     }, 0);
 
-    // Count active POs (pending or approved)
-    const activePOCount = purchaseRecords.filter(record => 
-      ['pending', 'approved'].includes(record.status)
-    ).length;
+    // Count active POs
+    const activePOCount = activePurchases.length;
 
     // Get last purchase date
     const lastPurchaseDate = purchaseRecords.length > 0 ? 
@@ -221,12 +226,16 @@ router.put('/projects/:projectId/rab-items/:rabItemId/purchase-tracking/:trackin
 router.get('/projects/:projectId/purchase-summary', async (req, res) => {
   try {
     const { projectId } = req.params;
+    
+    console.log(`📊 [PURCHASE SUMMARY] Fetching for project: ${projectId}`);
 
     // Get all purchase records for this project
     const purchaseRecords = await RABPurchaseTracking.findAll({
       where: { projectId },
       order: [['rabItemId', 'ASC'], ['purchaseDate', 'DESC']]
     });
+    
+    console.log(`📊 [PURCHASE SUMMARY] Found ${purchaseRecords.length} purchase records`);
 
     // Group by RAB item ID
     const groupedByRABItem = purchaseRecords.reduce((acc, record) => {
@@ -237,13 +246,28 @@ router.get('/projects/:projectId/purchase-summary', async (req, res) => {
       acc[rabItemId].push(record);
       return acc;
     }, {});
+    
+    console.log(`📊 [PURCHASE SUMMARY] Grouped into ${Object.keys(groupedByRABItem).length} RAB items`);
 
     // Calculate summary for each RAB item
     const summary = Object.keys(groupedByRABItem).map(rabItemId => {
       const records = groupedByRABItem[rabItemId];
-      const totalPurchased = records.reduce((sum, record) => sum + parseFloat(record.quantity), 0);
-      const totalAmount = records.reduce((sum, record) => sum + parseFloat(record.totalAmount), 0);
-      const activePOCount = records.filter(record => ['pending', 'approved'].includes(record.status)).length;
+      
+      // ✅ Count pending, approved, and received POs (exclude draft and cancelled)
+      // This ensures quantity is reserved as soon as PO is submitted (pending status)
+      const activePurchases = records.filter(record => 
+        ['pending', 'approved', 'received'].includes(record.status)
+      );
+      
+      const totalPurchased = activePurchases.reduce((sum, record) => 
+        sum + parseFloat(record.quantity), 0
+      );
+      const totalAmount = activePurchases.reduce((sum, record) => 
+        sum + parseFloat(record.totalAmount), 0
+      );
+      const activePOCount = activePurchases.length;
+      
+      console.log(`📊 [PURCHASE SUMMARY] RAB ${rabItemId}: ${activePurchases.length} active POs, total qty: ${totalPurchased}`);
 
       return {
         rabItemId: rabItemId, // Keep as string (UUID)
@@ -254,6 +278,8 @@ router.get('/projects/:projectId/purchase-summary', async (req, res) => {
         recordCount: records.length
       };
     });
+    
+    console.log(`✅ [PURCHASE SUMMARY] Returning ${summary.length} RAB item summaries`);
 
     res.json({
       success: true,

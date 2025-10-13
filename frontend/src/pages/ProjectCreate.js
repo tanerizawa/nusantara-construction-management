@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Building2 } from 'lucide-react';
 import Button from '../components/ui/Button';
+import { DateInputWithIcon } from '../components/ui/CalendarIcon';
+import { CurrencyInput } from '../components/ui/NumberInput';
 import { projectAPI, apiClient } from '../services/api';
 import useSubsidiaries from '../hooks/useSubsidiaries';
 
@@ -626,13 +628,13 @@ const ProjectCreate = () => {
                 <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Tanggal Mulai *
                 </label>
-                <input
-                  type="date"
+                <DateInputWithIcon
                   value={formData.timeline.startDate}
                   onChange={(e) => handleInputChange('timeline.startDate', e.target.value)}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                  className={`w-full pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
                             ${errors['timeline.startDate'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
                             bg-[#1C1C1E] text-white`}
+                  placeholder="Pilih Tanggal Mulai"
                 />
                 {errors['timeline.startDate'] && (
                   <p className="mt-1 text-sm text-[#FF3B30]">{errors['timeline.startDate']}</p>
@@ -643,13 +645,13 @@ const ProjectCreate = () => {
                 <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Tanggal Selesai *
                 </label>
-                <input
-                  type="date"
+                <DateInputWithIcon
                   value={formData.timeline.endDate}
                   onChange={(e) => handleInputChange('timeline.endDate', e.target.value)}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                  className={`w-full pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
                             ${errors['timeline.endDate'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
                             bg-[#1C1C1E] text-white`}
+                  placeholder="Pilih Tanggal Selesai"
                 />
                 {errors['timeline.endDate'] && (
                   <p className="mt-1 text-sm text-[#FF3B30]">{errors['timeline.endDate']}</p>
@@ -660,21 +662,20 @@ const ProjectCreate = () => {
                 <label className="block text-sm font-medium text-[#98989D] mb-2">
                   Nilai Kontrak *
                 </label>
-                <input
-                  type="number"
+                <CurrencyInput
                   value={formData.budget.contractValue}
-                  onChange={(e) => handleInputChange('budget.contractValue', parseFloat(e.target.value) || 0)}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                  onChange={(value) => handleInputChange('budget.contractValue', value)}
+                  className={`w-full pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
                             ${errors['budget.contractValue'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
                             bg-[#1C1C1E] text-white`}
                   placeholder="0"
-                  min="1"
+                  min={1}
                 />
                 {errors['budget.contractValue'] && (
                   <p className="mt-1 text-sm text-[#FF3B30]">{errors['budget.contractValue']}</p>
                 )}
                 <p className="mt-1 text-sm text-gray-500">
-                  Masukkan nilai dalam Rupiah (contoh: 500000000 untuk 500 juta)
+                  Masukkan nilai dalam Rupiah (contoh: 500.000.000 untuk 500 juta)
                 </p>
               </div>
             </div>

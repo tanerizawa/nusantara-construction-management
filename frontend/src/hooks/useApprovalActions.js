@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * useApprovalActions Hook
@@ -15,14 +16,15 @@ import axios from 'axios';
 const useApprovalActions = (type, projectId, onSuccess, onError) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { user } = useAuth(); // Get current user
 
   // API endpoint mapping
   const endpoints = {
-    rab: `/projects/${projectId}/rab`,
+    rab: `/api/projects/${projectId}/rab`,
     po: `/api/purchase-orders`,  // PO routes are at root level
     'purchase-orders': `/api/purchase-orders`,  // Alternative name
-    ba: `/projects/${projectId}/berita-acara`,
-    tt: `/projects/${projectId}/tanda-terima`
+    ba: `/api/projects/${projectId}/berita-acara`,
+    tt: `/api/projects/${projectId}/tanda-terima`
   };
 
   const baseEndpoint = endpoints[type] || endpoints.rab;
@@ -77,7 +79,13 @@ const useApprovalActions = (type, projectId, onSuccess, onError) => {
     setError(null);
 
     try {
-      const response = await axios.post(`${baseEndpoint}/${item.id}/approve`, {
+      // Get user ID from auth context
+      if (!user || !user.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const response = await axios.put(`${baseEndpoint}/${item.id}/approve`, {
+        approvedBy: user.id,
         notes,
         approval_date: new Date().toISOString()
       });
@@ -127,7 +135,7 @@ const useApprovalActions = (type, projectId, onSuccess, onError) => {
     } finally {
       setIsLoading(false);
     }
-  }, [baseEndpoint, type, onSuccess, onError]);
+  }, [baseEndpoint, type, user, onSuccess, onError]);
 
   /**
    * Reject item
@@ -148,8 +156,14 @@ const useApprovalActions = (type, projectId, onSuccess, onError) => {
     setError(null);
 
     try {
-      const response = await axios.post(`${baseEndpoint}/${item.id}/reject`, {
-        reason,
+      // Get user ID from auth context
+      if (!user || !user.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const response = await axios.put(`${baseEndpoint}/${item.id}/reject`, {
+        rejectedBy: user.id,
+        rejectionReason: reason,
         rejection_date: new Date().toISOString()
       });
 
@@ -199,7 +213,7 @@ const useApprovalActions = (type, projectId, onSuccess, onError) => {
     } finally {
       setIsLoading(false);
     }
-  }, [baseEndpoint, type, onSuccess, onError]);
+  }, [baseEndpoint, type, user, onSuccess, onError]);
 
   /**
    * Bulk approve multiple items

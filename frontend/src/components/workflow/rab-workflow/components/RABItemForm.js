@@ -3,6 +3,7 @@ import { X, Save } from 'lucide-react';
 import { RAB_CATEGORIES } from '../config/rabCategories';
 import { formatCurrency } from '../../../../utils/formatters';
 import { calculateItemTotal } from '../utils/rabCalculations';
+import { QuantityInput, CurrencyInput } from '../../../../components/ui/NumberInput';
 
 /**
  * RABItemForm Component
@@ -90,12 +91,10 @@ const RABItemForm = ({
         {/* Quantity */}
         <div>
           <label className="block text-sm font-medium text-[#98989D] mb-1">Quantity</label>
-          <input
-            type="number"
-            step="0.01"
+          <QuantityInput
             value={formData.quantity}
-            onChange={(e) => onChange('quantity', e.target.value)}
-            className="w-full px-3 py-2 border border-[#38383A] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(rawValue) => onChange('quantity', rawValue)}
+            className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="0"
             required
           />
@@ -107,12 +106,10 @@ const RABItemForm = ({
         {/* Harga Satuan */}
         <div>
           <label className="block text-sm font-medium text-[#98989D] mb-1">Harga Satuan</label>
-          <input
-            type="number"
-            step="0.01"
+          <CurrencyInput
             value={formData.unitPrice}
-            onChange={(e) => onChange('unitPrice', e.target.value)}
-            className="w-full px-3 py-2 border border-[#38383A] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(rawValue) => onChange('unitPrice', rawValue)}
+            className="w-full pr-4 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="0"
             required
           />

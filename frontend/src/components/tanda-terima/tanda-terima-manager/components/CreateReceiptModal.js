@@ -2,6 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { DELIVERY_METHODS } from '../config/formConfig';
 import { formatCurrency } from '../utils/formatters';
+import { DateInputWithIcon } from '../../../ui/CalendarIcon';
 
 /**
  * CreateReceiptModal Component
@@ -56,8 +57,7 @@ const CreateReceiptModal = ({
                 <label className="block text-sm font-medium text-[#98989D] mb-1">
                   Tanggal Pengiriman <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
+                <DateInputWithIcon
                   value={formData.deliveryDate}
                   onChange={(e) => onInputChange('deliveryDate', e.target.value)}
                   className="w-full border border-[#38383A] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF]"

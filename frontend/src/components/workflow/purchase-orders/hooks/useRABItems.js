@@ -83,9 +83,16 @@ export const useRABItems = (projectId) => {
         const rabItemsData = result.data;
         
         // Then get purchase summary for all RAB items in this project
-        const summaryUrl = `/api/rab-tracking/projects/${projectId}/purchase-summary`;
+        // Add cache-busting timestamp to force fresh data after PO creation
+        const timestamp = new Date().getTime();
+        const summaryUrl = `/api/rab-tracking/projects/${projectId}/purchase-summary?_t=${timestamp}`;
         
-        const summaryResponse = await fetch(summaryUrl);
+        const summaryResponse = await fetch(summaryUrl, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
         let purchaseSummary = {};
         
         if (summaryResponse.ok) {

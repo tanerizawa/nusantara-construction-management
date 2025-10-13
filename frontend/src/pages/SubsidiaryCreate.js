@@ -10,9 +10,10 @@ import {
   Mail,
   Globe,
   Users,
-  Calendar,
   FileText
 } from 'lucide-react';
+import { CalendarIconWhite } from '../components/ui/CalendarIcon';
+import { NumberInput } from '../components/ui/NumberInput';
 import { subsidiaryAPI } from '../services/api';
 
 const SubsidiaryCreate = () => {
@@ -242,14 +243,14 @@ const SubsidiaryCreate = () => {
                 <label className="block text-sm font-medium mb-2" style={{ color: "#98989D" }}>
                   Tahun Berdiri
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   name="establishedYear"
                   value={formData.establishedYear}
-                  onChange={handleChange}
-                  min="1900"
+                  onChange={(value) => handleChange({ target: { name: 'establishedYear', value } })}
+                  min={1900}
                   max={new Date().getFullYear()}
-                  className="w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A", color: "#FFFFFF" }}
+                  className="w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A", color: "#FFFFFF" }}
                   placeholder="2020"
                 />
               </div>
@@ -258,13 +259,13 @@ const SubsidiaryCreate = () => {
                 <label className="block text-sm font-medium mb-2" style={{ color: "#98989D" }}>
                   Jumlah Karyawan
                 </label>
-                <input
-                  type="number"
+                <NumberInput
                   name="employeeCount"
                   value={formData.employeeCount}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A", color: "#FFFFFF" }}
+                  onChange={(value) => handleChange({ target: { name: 'employeeCount', value } })}
+                  min={0}
+                  className="w-full px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                  style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A", color: "#FFFFFF" }}
                   placeholder="50"
                 />
               </div>

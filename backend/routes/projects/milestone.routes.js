@@ -133,7 +133,7 @@ router.get('/:id/milestones/rab-categories', async (req, res) => {
 
 /**
  * @route   GET /api/projects/:id/milestones/suggest
- * @desc    Suggest milestones from approved RAB
+ * @desc    Auto-suggest feature (DISABLED - Use manual creation with category selector)
  * @access  Private
  * NOTE: Must be BEFORE /:milestoneId route to avoid treating 'suggest' as an ID
  */
@@ -150,21 +150,19 @@ router.get('/:id/milestones/suggest', async (req, res) => {
       });
     }
 
-    const suggestions = await milestoneIntegrationService.suggestMilestonesFromRAB(id);
-
+    // Feature disabled - return empty suggestions with helpful message
     res.json({
       success: true,
-      data: suggestions,
-      count: suggestions.length,
-      message: suggestions.length > 0 
-        ? `Found ${suggestions.length} milestone suggestions from RAB`
-        : 'No new milestone suggestions available'
+      data: [],
+      count: 0,
+      message: 'Auto-suggestion feature is disabled. Please create milestones manually using the form.',
+      hint: 'Use the "Link ke Kategori RAB" dropdown to connect your milestone to work categories.'
     });
   } catch (error) {
-    console.error('Error suggesting milestones:', error);
+    console.error('Error in suggest endpoint:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to suggest milestones',
+      error: 'Failed to process request',
       details: error.message
     });
   }
@@ -356,6 +354,55 @@ router.put('/:id/milestones/:milestoneId/complete', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to complete milestone',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/projects/:id/milestones/:milestoneId/approve
+ * @desc    Approve pending milestone
+ * @access  Private
+ */
+router.put('/:id/milestones/:milestoneId/approve', async (req, res) => {
+  try {
+    const { id, milestoneId } = req.params;
+    const { approvedBy, notes } = req.body;
+
+    const milestone = await ProjectMilestone.findOne({
+      where: { id: milestoneId, projectId: id }
+    });
+
+    if (!milestone) {
+      return res.status(404).json({
+        success: false,
+        error: 'Milestone not found'
+      });
+    }
+
+    if (milestone.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        error: 'Only pending milestones can be approved'
+      });
+    }
+
+    await milestone.update({
+      status: 'in_progress',
+      notes: notes || milestone.notes,
+      updatedBy: approvedBy
+    });
+
+    res.json({
+      success: true,
+      data: milestone,
+      message: 'Milestone approved successfully'
+    });
+  } catch (error) {
+    console.error('Error approving milestone:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to approve milestone',
       details: error.message
     });
   }

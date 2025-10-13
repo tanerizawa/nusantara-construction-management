@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { ArrowLeft, Save, Calendar, User, Building, Package } from 'lucide-react';
+import { ArrowLeft, Save, User, Building, Package } from 'lucide-react';
 import { formatCurrency } from '../../../../utils/formatters';
 import { calculatePOTotal } from '../utils/poCalculations';
+import { DateInputWithIcon } from '../../../../components/ui/CalendarIcon';
+import { QuantityInput } from '../../../../components/ui/NumberInput';
 
 /**
  * Create PO View
@@ -304,8 +306,7 @@ const CreatePOView = ({
             <label className="block text-sm font-medium text-[#98989D] mb-1">
               Tanggal Pengiriman <span className="text-[#FF3B30]">*</span>
             </label>
-            <input
-              type="date"
+            <DateInputWithIcon
               value={supplierInfo.deliveryDate}
               onChange={(e) => setSupplierInfo({ ...supplierInfo, deliveryDate: e.target.value })}
               style={{
@@ -314,7 +315,7 @@ const CreatePOView = ({
                 color: 'white',
                 colorScheme: 'dark'
               }}
-              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
+              className="w-full pr-4 py-2 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all"
               min={new Date().toISOString().split('T')[0]}
             />
           </div>
@@ -398,10 +399,9 @@ const CreatePOView = ({
                   <label className="block text-sm font-medium text-[#98989D] mb-1">
                     Jumlah ({item.unit})
                   </label>
-                  <input
-                    type="number"
+                  <QuantityInput
                     value={item.quantity}
-                    onChange={(e) => updateItemQuantity(index, e.target.value)}
+                    onChange={(rawValue) => updateItemQuantity(index, rawValue)}
                     max={item.availableQuantity}
                     min="0"
                     step="0.01"

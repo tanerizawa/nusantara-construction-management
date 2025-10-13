@@ -551,23 +551,26 @@ const SubsidiaryEdit = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#1C1C1E" }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Memuat data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: "#0A84FF" }}></div>
+          <p style={{ color: "#98989D" }}>Memuat data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-8" style={{ backgroundColor: "#1C1C1E" }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate('/admin/subsidiaries')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+            className="flex items-center mb-4 transition-colors"
+            style={{ color: "#98989D" }}
+            onMouseEnter={(e) => e.currentTarget.style.color = "#FFFFFF"}
+            onMouseLeave={(e) => e.currentTarget.style.color = "#98989D"}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Kembali ke Daftar
@@ -575,14 +578,14 @@ const SubsidiaryEdit = () => {
           
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <Building className="h-8 w-8 text-blue-600" />
+              <div className="p-3 rounded-lg" style={{ backgroundColor: "rgba(10, 132, 255, 0.1)" }}>
+                <Building className="h-8 w-8" style={{ color: "#0A84FF" }} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold" style={{ color: "#FFFFFF" }}>
                   {isEditing ? 'Edit Anak Usaha' : 'Tambah Anak Usaha'}
                 </h1>
-                <p className="text-gray-600">
+                <p style={{ color: "#98989D" }}>
                   {isEditing ? 'Perbarui informasi lengkap anak usaha' : 'Tambahkan anak usaha baru dengan informasi lengkap'}
                 </p>
               </div>
@@ -592,8 +595,8 @@ const SubsidiaryEdit = () => {
 
         <form onSubmit={handleSubmit}>
           {/* Tab Navigation */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
-            <div className="border-b border-gray-200">
+          <div className="rounded-lg shadow-sm mb-8" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+            <div style={{ borderBottom: "1px solid #38383A" }}>
               <nav className="-mb-px flex space-x-8 px-6">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -604,9 +607,18 @@ const SubsidiaryEdit = () => {
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                         activeTab === tab.id
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                          ? 'border-blue-500'
+                          : 'border-transparent'
                       }`}
+                      style={{ 
+                        color: activeTab === tab.id ? '#0A84FF' : '#98989D'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (activeTab !== tab.id) e.currentTarget.style.color = '#FFFFFF';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeTab !== tab.id) e.currentTarget.style.color = '#98989D';
+                      }}
                     >
                       <Icon className="h-4 w-4 mr-2" />
                       {tab.label}
@@ -622,7 +634,7 @@ const SubsidiaryEdit = () => {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                         Nama Perusahaan *
                       </label>
                       <input
@@ -638,7 +650,7 @@ const SubsidiaryEdit = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                         Kode Perusahaan *
                       </label>
                       <input
@@ -655,7 +667,7 @@ const SubsidiaryEdit = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                         Deskripsi
                       </label>
                       <textarea
@@ -668,7 +680,7 @@ const SubsidiaryEdit = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                         Spesialisasi
                       </label>
                       <select
@@ -691,7 +703,7 @@ const SubsidiaryEdit = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                         Status
                       </label>
                       <select
@@ -705,7 +717,7 @@ const SubsidiaryEdit = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                      <label className="block text-sm font-medium  mb-2 flex items-center" style={{ color: "#98989D" }}>
                         <Calendar className="h-4 w-4 mr-1" />
                         Tahun Didirikan
                       </label>
@@ -724,7 +736,7 @@ const SubsidiaryEdit = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                      <label className="block text-sm font-medium  mb-2 flex items-center" style={{ color: "#98989D" }}>
                         <Users className="h-4 w-4 mr-1" />
                         Jumlah Karyawan
                       </label>
@@ -744,7 +756,7 @@ const SubsidiaryEdit = () => {
 
                   {/* Certifications */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                       Sertifikasi
                     </label>
                     <div className="flex gap-2 mb-3">
@@ -764,8 +776,8 @@ const SubsidiaryEdit = () => {
                     {formData.certification.length > 0 && (
                       <div className="space-y-2">
                         {formData.certification.map((cert, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-900 flex items-center">
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                            <span className="text-sm text-white flex items-center">
                               <Award className="h-4 w-4 mr-2 text-blue-600" />
                               {cert}
                             </span>
@@ -789,13 +801,13 @@ const SubsidiaryEdit = () => {
                 <div className="space-y-8">
                   {/* Contact Information */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                       <Phone className="h-5 w-5 mr-2" />
                       Informasi Kontak
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                           Telepon
                         </label>
                         <input
@@ -808,7 +820,7 @@ const SubsidiaryEdit = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                           Email
                         </label>
                         <input
@@ -827,13 +839,13 @@ const SubsidiaryEdit = () => {
 
                   {/* Address */}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                       <MapPin className="h-5 w-5 mr-2" />
                       Alamat
                     </h3>
                     <div className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                           Alamat Lengkap
                         </label>
                         <textarea
@@ -847,7 +859,7 @@ const SubsidiaryEdit = () => {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                             Kota
                           </label>
                           <input
@@ -860,7 +872,7 @@ const SubsidiaryEdit = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>
                             Negara
                           </label>
                           <input
@@ -881,7 +893,7 @@ const SubsidiaryEdit = () => {
               {activeTab === 'directors' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <h3 className="text-lg font-semibold text-white flex items-center">
                       <User className="h-5 w-5 mr-2" />
                       Dewan Direksi
                     </h3>
@@ -955,16 +967,16 @@ const SubsidiaryEdit = () => {
                       <Card key={index} className="p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium text-gray-900">{director.name}</h4>
-                            <p className="text-sm text-gray-600">{director.position}</p>
+                            <h4 className="font-medium text-white">{director.name}</h4>
+                            <p className="text-sm text-gray-400">{director.position}</p>
                             {director.email && (
-                              <p className="text-sm text-gray-500 flex items-center mt-1">
+                              <p className="text-sm text-gray-400 flex items-center mt-1">
                                 <Mail className="h-3 w-3 mr-1" />
                                 {director.email}
                               </p>
                             )}
                             {director.phone && (
-                              <p className="text-sm text-gray-500 flex items-center mt-1">
+                              <p className="text-sm text-gray-400 flex items-center mt-1">
                                 <Phone className="h-3 w-3 mr-1" />
                                 {director.phone}
                               </p>
@@ -996,13 +1008,13 @@ const SubsidiaryEdit = () => {
               {/* Legal Information Tab */}
               {activeTab === 'legal' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <h3 className="text-lg font-semibold text-white flex items-center">
                     <Shield className="h-5 w-5 mr-2" />
                     Informasi Legalitas
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nomor Akta Pendirian</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Nomor Akta Pendirian</label>
                       <input
                         type="text"
                         value={formData.legalInfo.companyRegistrationNumber}
@@ -1012,7 +1024,7 @@ const SubsidiaryEdit = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">NPWP</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>NPWP</label>
                       <input
                         type="text"
                         value={formData.legalInfo.taxIdentificationNumber}
@@ -1022,7 +1034,7 @@ const SubsidiaryEdit = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nomor Izin Usaha</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Nomor Izin Usaha</label>
                       <input
                         type="text"
                         value={formData.legalInfo.businessLicenseNumber}
@@ -1032,7 +1044,7 @@ const SubsidiaryEdit = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">NPPKP</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>NPPKP</label>
                       <input
                         type="text"
                         value={formData.legalInfo.vatRegistrationNumber}
@@ -1042,7 +1054,7 @@ const SubsidiaryEdit = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Anggaran Dasar</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Anggaran Dasar</label>
                       <input
                         type="text"
                         value={formData.legalInfo.articlesOfIncorporation}
@@ -1059,7 +1071,7 @@ const SubsidiaryEdit = () => {
               {activeTab === 'permits' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <h3 className="text-lg font-semibold text-white flex items-center">
                       <Award className="h-5 w-5 mr-2" />
                       Perizinan & Lisensi
                     </h3>
@@ -1151,7 +1163,7 @@ const SubsidiaryEdit = () => {
                     {formData.permits.map((permit, index) => (
                       <Card key={index} className="p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium text-gray-900">{permit.name}</h4>
+                          <h4 className="font-medium text-white">{permit.name}</h4>
                           <div className="flex items-center space-x-2">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                               permit.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -1173,16 +1185,16 @@ const SubsidiaryEdit = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           <div>
-                            <label className="block text-gray-500">Nomor</label>
-                            <p className="text-gray-900">{permit.number}</p>
+                            <label className="block text-gray-400">Nomor</label>
+                            <p className="text-white">{permit.number}</p>
                           </div>
                           <div>
-                            <label className="block text-gray-500">Penerbit</label>
-                            <p className="text-gray-900">{permit.issuedBy}</p>
+                            <label className="block text-gray-400">Penerbit</label>
+                            <p className="text-white">{permit.issuedBy}</p>
                           </div>
                           <div>
-                            <label className="block text-gray-500">Berlaku Hingga</label>
-                            <p className="text-gray-900">
+                            <label className="block text-gray-400">Berlaku Hingga</label>
+                            <p className="text-white">
                               {permit.expiryDate 
                                 ? new Date(permit.expiryDate).toLocaleDateString('id-ID')
                                 : '-'
@@ -1196,7 +1208,7 @@ const SubsidiaryEdit = () => {
 
                   {/* Legal & Permit Documents */}
                   <div className="space-y-4">
-                    <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <h4 className="text-lg font-semibold text-white flex items-center">
                       <FileText className="h-5 w-5 mr-2" />
                       Dokumen Legalitas & Perizinan
                     </h4>
@@ -1208,7 +1220,7 @@ const SubsidiaryEdit = () => {
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center space-x-2">
                                 <FileText className="h-4 w-4 text-blue-600" />
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className="text-sm font-medium text-white">
                                   {getCategoryLabel(attachment.category)}
                                 </span>
                               </div>
@@ -1220,11 +1232,11 @@ const SubsidiaryEdit = () => {
                                 <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
-                            <p className="text-sm text-gray-600 mb-2">{attachment.originalName}</p>
+                            <p className="text-sm text-gray-400 mb-2">{attachment.originalName}</p>
                             {attachment.description && (
-                              <p className="text-xs text-gray-500 mb-2">{attachment.description}</p>
+                              <p className="text-xs text-gray-400 mb-2">{attachment.description}</p>
                             )}
-                            <div className="flex items-center justify-between text-xs text-gray-500">
+                            <div className="flex items-center justify-between text-xs text-gray-400">
                               <span>{new Date(attachment.uploadedAt).toLocaleDateString('id-ID')}</span>
                               <a
                                 href={`/api/subsidiaries/${id}/documents/${attachment.id}`}
@@ -1241,7 +1253,7 @@ const SubsidiaryEdit = () => {
                     ) : (
                       <Card className="p-6 text-center">
                         <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500">Belum ada dokumen yang diupload</p>
+                        <p className="text-gray-400">Belum ada dokumen yang diupload</p>
                         <p className="text-sm text-gray-400 mt-2">
                           Klik tombol "Upload Dokumen" untuk menambahkan dokumen legalitas dan perizinan
                         </p>
@@ -1254,13 +1266,13 @@ const SubsidiaryEdit = () => {
               {/* Financial Information Tab */}
               {activeTab === 'financial' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <h3 className="text-lg font-semibold text-white flex items-center">
                     <DollarSign className="h-5 w-5 mr-2" />
                     Informasi Keuangan
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Modal Dasar</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Modal Dasar</label>
                       <input
                         type="number"
                         value={formData.financialInfo.authorizedCapital}
@@ -1273,7 +1285,7 @@ const SubsidiaryEdit = () => {
                       {errors.authorizedCapital && <p className="mt-1 text-sm text-red-600">{errors.authorizedCapital}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Modal Disetor</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Modal Disetor</label>
                       <input
                         type="number"
                         value={formData.financialInfo.paidUpCapital}
@@ -1286,7 +1298,7 @@ const SubsidiaryEdit = () => {
                       {errors.paidUpCapital && <p className="mt-1 text-sm text-red-600">{errors.paidUpCapital}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Mata Uang</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Mata Uang</label>
                       <select
                         value={formData.financialInfo.currency}
                         onChange={(e) => handleNestedInputChange('financialInfo', 'currency', e.target.value)}
@@ -1298,7 +1310,7 @@ const SubsidiaryEdit = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Akhir Tahun Fiskal</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Akhir Tahun Fiskal</label>
                       <select
                         value={formData.financialInfo.fiscalYearEnd}
                         onChange={(e) => handleNestedInputChange('financialInfo', 'fiscalYearEnd', e.target.value)}
@@ -1318,13 +1330,13 @@ const SubsidiaryEdit = () => {
               {/* Company Profile Tab */}
               {activeTab === 'profile' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <h3 className="text-lg font-semibold text-white flex items-center">
                     <Globe className="h-5 w-5 mr-2" />
                     Profil Perusahaan
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Website</label>
                       <input
                         type="url"
                         value={formData.profileInfo.website}
@@ -1337,7 +1349,7 @@ const SubsidiaryEdit = () => {
                       {errors.website && <p className="mt-1 text-sm text-red-600">{errors.website}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Skala Perusahaan</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Skala Perusahaan</label>
                       <select
                         value={formData.profileInfo.companySize}
                         onChange={(e) => handleNestedInputChange('profileInfo', 'companySize', e.target.value)}
@@ -1350,7 +1362,7 @@ const SubsidiaryEdit = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Klasifikasi Industri</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Klasifikasi Industri</label>
                       <input
                         type="text"
                         value={formData.profileInfo.industryClassification}
@@ -1360,7 +1372,7 @@ const SubsidiaryEdit = () => {
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi Bisnis</label>
+                      <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Deskripsi Bisnis</label>
                       <textarea
                         value={formData.profileInfo.businessDescription}
                         onChange={(e) => handleNestedInputChange('profileInfo', 'businessDescription', e.target.value)}
@@ -1377,18 +1389,30 @@ const SubsidiaryEdit = () => {
 
           {/* Actions */}
           <div className="flex justify-end space-x-4 pb-8">
-            <Button
+            <button
               type="button"
-              variant="outline"
               onClick={() => navigate('/admin/subsidiaries')}
               disabled={saving}
+              className="px-6 py-2 rounded-lg transition-colors"
+              style={{
+                backgroundColor: "#2C2C2E",
+                border: "1px solid #38383A",
+                color: "#FFFFFF",
+                opacity: saving ? 0.5 : 1,
+                cursor: saving ? 'not-allowed' : 'pointer'
+              }}
             >
               Batal
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="px-6 py-2 rounded-lg text-white transition-all flex items-center"
+              style={{
+                background: saving ? '#38383A' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                opacity: saving ? 0.7 : 1,
+                cursor: saving ? 'not-allowed' : 'pointer'
+              }}
             >
               {saving ? (
                 <>
@@ -1401,7 +1425,7 @@ const SubsidiaryEdit = () => {
                   {isEditing ? 'Perbarui' : 'Simpan'}
                 </>
               )}
-            </Button>
+            </button>
           </div>
         </form>
       </div>
@@ -1409,9 +1433,9 @@ const SubsidiaryEdit = () => {
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upload Dokumen Legalitas</h3>
+              <h3 className="text-lg font-semibold text-white">Upload Dokumen Legalitas</h3>
               <button
                 onClick={() => {
                   setIsUploadModalOpen(false);
@@ -1419,7 +1443,7 @@ const SubsidiaryEdit = () => {
                   setUploadCategory('');
                   setUploadDescription('');
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-400"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1427,7 +1451,7 @@ const SubsidiaryEdit = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kategori Dokumen</label>
+                <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Kategori Dokumen</label>
                 <select
                   value={uploadCategory}
                   onChange={(e) => setUploadCategory(e.target.value)}
@@ -1449,20 +1473,20 @@ const SubsidiaryEdit = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Pilih File</label>
+                <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Pilih File</label>
                 <input
                   type="file"
                   onChange={(e) => setUploadFile(e.target.files[0])}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-400 mt-1">
                   Format: PDF, DOC, DOCX, JPG, PNG (Max: 10MB)
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Deskripsi (Opsional)</label>
+                <label className="block text-sm font-medium  mb-2" style={{ color: "#98989D" }}>Deskripsi (Opsional)</label>
                 <textarea
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}

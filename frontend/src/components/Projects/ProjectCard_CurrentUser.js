@@ -38,9 +38,9 @@ const ProjectCard = memo(({
         color: 'bg-slate-100 text-slate-700 border-slate-200',
         dot: 'bg-slate-500'
       },
-      in_progress: { 
+      active: { 
         variant: 'primary', 
-        text: 'Berlangsung',
+        text: 'Aktif / Berlangsung',
         color: 'bg-blue-100 text-blue-700 border-blue-200',
         dot: 'bg-blue-500'
       },

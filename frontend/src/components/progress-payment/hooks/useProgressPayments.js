@@ -105,7 +105,8 @@ export const useProgressPayments = (projectId, onPaymentChange) => {
 
     try {
       // Both approval and rejection use the same /status endpoint
-      const endpoint = `/projects/${projectId}/progress-payments/${paymentId}/status`;
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const endpoint = `${API_BASE_URL}/projects/${projectId}/progress-payments/${paymentId}/status`;
       
       // Prepare request body
       const body = {
@@ -146,70 +147,6 @@ export const useProgressPayments = (projectId, onPaymentChange) => {
     }
   }, [projectId, fetchProgressPayments, onPaymentChange]);
 
-  const sendInvoice = useCallback(async (paymentId) => {
-    try {
-      const endpoint = `/projects/${projectId}/progress-payments/${paymentId}/status`;
-      
-      const response = await fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: 'processing' }) // Set to processing (pending)
-      });
-
-      if (response.ok) {
-        await fetchProgressPayments();
-        if (onPaymentChange) onPaymentChange();
-        return { success: true, message: 'Invoice berhasil dikirim' };
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Gagal mengirim invoice');
-      }
-    } catch (error) {
-      console.error('Error sending invoice:', error);
-      return { 
-        success: false, 
-        message: error.message || 'Gagal mengirim invoice' 
-      };
-    }
-  }, [projectId, fetchProgressPayments, onPaymentChange]);
-
-  const markAsPaid = useCallback(async (paymentId) => {
-    if (!window.confirm('Yakin ingin menandai invoice ini sebagai sudah dibayar?')) {
-      return { success: false, cancelled: true };
-    }
-
-    try {
-      const endpoint = `/projects/${projectId}/progress-payments/${paymentId}/status`;
-      
-      const response = await fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: 'paid' })
-      });
-
-      if (response.ok) {
-        await fetchProgressPayments();
-        if (onPaymentChange) onPaymentChange();
-        return { success: true, message: 'Invoice berhasil ditandai sebagai sudah dibayar' };
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Gagal menandai invoice sebagai paid');
-      }
-    } catch (error) {
-      console.error('Error marking as paid:', error);
-      return { 
-        success: false, 
-        message: error.message || 'Gagal menandai invoice sebagai paid' 
-      };
-    }
-  }, [projectId, fetchProgressPayments, onPaymentChange]);
-
   useEffect(() => {
     fetchProgressPayments();
   }, [fetchProgressPayments]);
@@ -221,8 +158,6 @@ export const useProgressPayments = (projectId, onPaymentChange) => {
     error,
     createPayment,
     approvePayment,
-    sendInvoice,
-    markAsPaid,
     refreshPayments: fetchProgressPayments
   };
 };

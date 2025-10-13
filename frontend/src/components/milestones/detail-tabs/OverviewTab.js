@@ -121,11 +121,11 @@ const OverviewTab = ({ milestone, projectId }) => {
           </div>
           
           <div className="space-y-3">
-            {/* Planned */}
+            {/* Milestone Budget (Planned) */}
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#8E8E93]">Planned Budget</span>
+              <span className="text-sm text-[#8E8E93]">Milestone Budget</span>
               <span className="text-sm font-medium text-white">
-                {formatCurrency(summary.totalPlanned || 0)}
+                {formatCurrency(summary.budget || milestone.budget || 0)}
               </span>
             </div>
 
@@ -134,14 +134,6 @@ const OverviewTab = ({ milestone, projectId }) => {
               <span className="text-sm text-[#8E8E93]">Actual Cost</span>
               <span className="text-sm font-medium text-white">
                 {formatCurrency(summary.totalActual || 0)}
-              </span>
-            </div>
-
-            {/* Contingency */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-[#8E8E93]">Contingency</span>
-              <span className="text-sm font-medium text-[#FF9F0A]">
-                {formatCurrency(summary.totalContingency || 0)}
               </span>
             </div>
 

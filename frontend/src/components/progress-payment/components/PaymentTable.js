@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, CheckCircle, FileText, Calendar, Plus } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, FileText, Calendar, Plus } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 
 /**
@@ -114,13 +114,30 @@ const PaymentTable = ({ payments, onViewPayment, onApprovePayment, onCreatePayme
                       <Eye size={14} />
                     </button>
                     {payment.status === 'pending_approval' && (
-                      <button
-                        onClick={() => onApprovePayment(payment.id)}
-                        className="p-1.5 text-[#30D158] hover:bg-[#30D158]/10 rounded-lg transition-colors"
-                        title="Approve Payment"
-                      >
-                        <CheckCircle size={14} />
-                      </button>
+                      <>
+                        <button
+                          onClick={() => onApprovePayment(payment.id, 'approved')}
+                          className="p-1.5 text-[#30D158] hover:bg-[#30D158]/10 rounded-lg transition-colors"
+                          title="Approve Payment"
+                        >
+                          <CheckCircle size={14} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const reason = window.prompt(
+                              'Alasan penolakan pembayaran:\n\n' +
+                              '(Masukkan alasan mengapa pembayaran ini ditolak)'
+                            );
+                            if (reason !== null && reason.trim()) {
+                              onApprovePayment(payment.id, 'rejected', reason.trim());
+                            }
+                          }}
+                          className="p-1.5 text-[#FF3B30] hover:bg-[#FF3B30]/10 rounded-lg transition-colors"
+                          title="Reject Payment"
+                        >
+                          <XCircle size={14} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </td>

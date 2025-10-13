@@ -6,10 +6,17 @@ import { workflowStages } from '../config';
  * WorkflowStagesCard Component
  * Displays the sequential workflow stages with status indicators
  * 
- * UPDATED LOGIC (Oct 9, 2025):
+ * UPDATED LOGIC (Oct 13, 2025):
  * - Procurement dapat berjalan parallel dengan Execution
- * - Execution dimulai ketika ada Delivery Receipt (tanda terima PO)
- * - Procurement tidak perlu 100% selesai untuk mulai Execution
+ * - Execution dimulai ketika:
+ *   1. Ada Delivery Receipt (tanda terima PO), ATAU
+ *   2. Ada milestone yang sedang berjalan, ATAU
+ *   3. Procurement selesai (semua PO diterima)
+ * - Execution tidak perlu tunggu Procurement 100% selesai
+ * - Execution dianggap SELESAI ketika:
+ *   1. Semua milestone mencapai 100% progress, ATAU
+ *   2. Semua milestone berstatus 'completed'
+ * - Status project 'completed' sebagai fallback jika tidak ada milestone
  */
 const WorkflowStagesCard = ({ workflowData, project }) => {
   // Calculate stages based on real project data with parallel workflow logic
@@ -24,13 +31,15 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
     
     // Stage 3: Procurement - Pengadaan material (dapat berjalan parallel)
     const has_purchase_orders = workflowData.purchaseOrders?.length > 0;
-    const po_approved = workflowData.purchaseOrders?.some(po => po.status === 'approved');
+    const po_approved = workflowData.purchaseOrders?.some(po => 
+      po.status === 'approved' || po.status === 'received'
+    ); // Check both approved AND received
     const all_po_received = workflowData.purchaseOrders?.every(po => po.status === 'received');
     const procurement_completed = rab_completed && has_purchase_orders && all_po_received;
     
     // Stage 4: Execution - Pelaksanaan (dimulai saat ada delivery receipt ATAU milestone aktif)
     // LOGIC BARU: Tidak perlu tunggu procurement selesai 100%
-    // Execution dimulai jika ada delivery receipt ATAU ada milestone yang sedang berjalan
+    // Execution dimulai jika ada delivery receipt ATAU ada milestone yang sedang berjalan ATAU procurement completed
     const has_delivery_receipts = workflowData.deliveryReceipts?.length > 0;
     
     // Debug milestone data
@@ -45,15 +54,38 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
       return m.status === 'in_progress' || m.status === 'in-progress';
     }) || false;
     
+    // Check if all milestones are completed (100% progress or completed status)
+    const milestones = workflowData.milestones?.data || [];
+    const has_milestones = milestones.length > 0;
+    const all_milestones_completed = has_milestones && milestones.every(m => 
+      m.status === 'completed' || m.progress === 100
+    );
+    
+    // Check if execution should start
+    // Fixed: Use procurement_completed OR po_approved (not require both)
+    // ALSO: If there are milestones (even completed ones), execution must have started
+    const execution_started = rab_completed && (
+      procurement_completed || 
+      po_approved || 
+      has_delivery_receipts || 
+      has_active_milestones ||
+      has_milestones  // If milestones exist, execution must have started
+    );
+    
     console.log('✅ Execution Calculation:', {
       has_delivery_receipts,
       has_active_milestones,
       rab_completed,
-      po_approved
+      po_approved,
+      procurement_completed,
+      execution_started,
+      has_milestones,
+      all_milestones_completed,
+      milestones: milestones.map(m => ({ title: m.title, status: m.status, progress: m.progress }))
     });
     
-    const execution_started = rab_completed && po_approved && (has_delivery_receipts || has_active_milestones);
-    const execution_completed = execution_started && project.status === 'completed'; // Only completed when project is completed
+    // Execution completed when all milestones reach 100% OR project status is completed
+    const execution_completed = execution_started && (all_milestones_completed || project.status === 'completed');
     
     // Stage 5: Completion - Penyelesaian proyek
     const completion_completed = execution_completed && project.status === 'completed';
@@ -68,11 +100,12 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
         stage.id === 'completion' ? completion_completed :
         false,
       // Track if stage is active (in progress but not completed)
+      // FIXED: Execution should NEVER go back to "waiting" once started
       active:
         stage.id === 'planning' ? !planning_completed :
         stage.id === 'rab-approval' ? (planning_completed && !rab_completed) :
         stage.id === 'procurement' ? (rab_completed && !procurement_completed) :
-        stage.id === 'execution' ? (execution_started && !execution_completed) :
+        stage.id === 'execution' ? (execution_started && !execution_completed) : // Active only if started but not completed
         stage.id === 'completion' ? (execution_completed && !completion_completed) :
         false
     }));
@@ -232,59 +265,85 @@ const getStageDetails = (stageId, project, workflowData) => {
     case 'execution':
       const hasDeliveryReceipts = workflowData.deliveryReceipts?.length > 0;
       const deliveryCount = workflowData.deliveryReceipts?.length || 0;
-      const activeMilestones = workflowData.milestones?.data?.filter(m => 
+      
+      // Get all milestones
+      const allMilestones = workflowData.milestones?.data || [];
+      const totalMilestoneCount = allMilestones.length;
+      
+      // Separate milestones by status
+      const completedMilestones = allMilestones.filter(m => 
+        m.status === 'completed' || m.progress === 100
+      );
+      const activeMilestones = allMilestones.filter(m => 
         m.status === 'in_progress' || m.status === 'in-progress'
-      ) || [];
+      );
+      const pendingMilestones = allMilestones.filter(m => 
+        m.status === 'pending' && m.progress < 100
+      );
+      
+      const completedMilestoneCount = completedMilestones.length;
       const activeMilestoneCount = activeMilestones.length;
+      
+      // Calculate overall progress from all milestones
+      const overallProgress = totalMilestoneCount > 0
+        ? Math.round(allMilestones.reduce((sum, m) => sum + (m.progress || 0), 0) / totalMilestoneCount)
+        : 0;
       
       // Calculate average progress from active milestones
       const avgProgress = activeMilestones.length > 0
         ? Math.round(activeMilestones.reduce((sum, m) => sum + (m.progress || 0), 0) / activeMilestones.length)
         : 0;
       
+      // Check if all milestones are complete
+      const allMilestonesComplete = totalMilestoneCount > 0 && completedMilestoneCount === totalMilestoneCount;
+      
       return (
         <div className="space-y-1">
-          {project.status === 'completed' ? (
-            <p>✓ Eksekusi selesai</p>
-          ) : project.status === 'active' ? (
+          {allMilestonesComplete ? (
             <>
-              <p>Dalam tahap pelaksanaan</p>
-              {activeMilestoneCount > 0 && (
-                <>
-                  <p>• {activeMilestoneCount} milestone sedang berjalan ({avgProgress}% rata-rata progress)</p>
-                  {activeMilestones.slice(0, 2).map((m, idx) => (
-                    <p key={idx} className="text-xs ml-4">
-                      ‣ {m.title}: {m.progress || 0}%
-                    </p>
-                  ))}
-                  {activeMilestones.length > 2 && (
-                    <p className="text-xs ml-4">‣ +{activeMilestones.length - 2} milestone lainnya</p>
-                  )}
-                </>
-              )}
-              {hasDeliveryReceipts && (
-                <p>• {deliveryCount} tanda terima material sudah diterima</p>
-              )}
+              <p className="text-[#30D158] font-medium">✓ Eksekusi selesai - Semua milestone 100%</p>
+              <p>• {completedMilestoneCount} dari {totalMilestoneCount} milestone selesai</p>
             </>
-          ) : (hasDeliveryReceipts || activeMilestoneCount > 0) ? (
+          ) : totalMilestoneCount > 0 ? (
             <>
-              <p className="text-[#30D158] font-medium">✓ Siap untuk eksekusi</p>
+              <p className="font-medium">Dalam tahap pelaksanaan ({overallProgress}% keseluruhan)</p>
+              <p>• Progress: {completedMilestoneCount} selesai, {activeMilestoneCount} berjalan, {pendingMilestones.length} menunggu</p>
+              
               {activeMilestoneCount > 0 && (
-                <>
-                  <p>• {activeMilestoneCount} milestone sedang berjalan ({avgProgress}% rata-rata progress)</p>
-                  {activeMilestones.slice(0, 2).map((m, idx) => (
+                <div className="mt-2 space-y-1">
+                  <p className="text-[#0A84FF] font-medium">Milestone sedang berjalan:</p>
+                  {activeMilestones.slice(0, 3).map((m, idx) => (
                     <p key={idx} className="text-xs ml-4">
                       ‣ {m.title}: {m.progress || 0}%
                     </p>
                   ))}
-                </>
+                  {activeMilestones.length > 3 && (
+                    <p className="text-xs ml-4">‣ +{activeMilestones.length - 3} milestone lainnya</p>
+                  )}
+                </div>
               )}
+              
+              {completedMilestoneCount > 0 && (
+                <div className="mt-2">
+                  <p className="text-[#30D158] text-xs">✓ {completedMilestoneCount} milestone sudah selesai</p>
+                </div>
+              )}
+              
               {hasDeliveryReceipts && (
-                <p>• {deliveryCount} tanda terima material sudah diterima</p>
+                <p className="text-xs mt-2">• {deliveryCount} tanda terima material</p>
               )}
             </>
           ) : (
-            <p>Menunggu tanda terima material pertama atau milestone dimulai</p>
+            <>
+              <p className="text-[#FF9500] font-medium">⚠️ Siap untuk eksekusi</p>
+              <p className="text-xs">Belum ada milestone dibuat</p>
+              {hasDeliveryReceipts && (
+                <p className="text-xs">• {deliveryCount} tanda terima material sudah diterima</p>
+              )}
+              <p className="text-xs text-[#0A84FF] mt-2">
+                💡 Buat milestone untuk mulai tracking progress eksekusi
+              </p>
+            </>
           )}
         </div>
       );

@@ -6,13 +6,13 @@ import { ChevronDown } from 'lucide-react';
  * Allows quick project status changes with optional notes
  */
 const QuickStatusBar = ({ project, onStatusUpdate }) => {
-  const [selectedStatus, setSelectedStatus] = useState(project?.status || 'in_progress');
+  const [selectedStatus, setSelectedStatus] = useState(project?.status || 'active');
   const [notes, setNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
   const statusOptions = [
     { value: 'planning', label: 'Perencanaan', color: '#FF9500' },
-    { value: 'in_progress', label: 'Dalam Pengerjaan', color: '#0A84FF' },
+    { value: 'active', label: 'Aktif / Dalam Pengerjaan', color: '#0A84FF' },
     { value: 'on_hold', label: 'Terhenti', color: '#FF3B30' },
     { value: 'completed', label: 'Selesai', color: '#34C759' },
     { value: 'cancelled', label: 'Dibatalkan', color: '#636366' }

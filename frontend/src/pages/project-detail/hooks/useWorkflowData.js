@@ -69,7 +69,12 @@ export const useWorkflowData = (project) => {
       rabItemsCount: project.rabItems?.length || 0,
       hasBudgetSummary: !!project.budgetSummary,
       hasPurchaseOrders: !!project.purchaseOrders,
-      purchaseOrdersCount: project.purchaseOrders?.length || 0
+      purchaseOrdersCount: project.purchaseOrders?.length || 0,
+      hasMilestonesList: !!project.milestonesList,
+      milestonesListCount: project.milestonesList?.length || 0,
+      hasMilestones: !!project.milestones,
+      milestonesCount: project.milestones?.length || 0,
+      milestonesSample: project.milestonesList?.[0] || project.milestones?.[0] || 'No milestones'
     });
 
     const enhancedWorkflowData = {
@@ -109,10 +114,10 @@ export const useWorkflowData = (project) => {
       // Current Stage
       currentStage: project.currentStage || calculateProjectStage(project),
       
-      // Milestones
+      // Milestones - Support both milestonesList (backend) and milestones (fallback)
       milestones: {
-        pending: project.milestonesList?.filter(m => m.status === 'pending').length || 0,
-        data: project.milestonesList || []
+        pending: (project.milestonesList || project.milestones || []).filter(m => m.status === 'pending').length || 0,
+        data: project.milestonesList || project.milestones || []
       },
       
       // Berita Acara - ALREADY in project from backend
@@ -135,7 +140,14 @@ export const useWorkflowData = (project) => {
       actualSpent: enhancedWorkflowData.budgetSummary.actualSpent,
       purchaseOrdersCount: enhancedWorkflowData.purchaseOrders.length,
       deliveryReceiptsCount: enhancedWorkflowData.deliveryReceipts.length,
-      pendingApprovals: enhancedWorkflowData.approvalStatus.pending
+      pendingApprovals: enhancedWorkflowData.approvalStatus.pending,
+      milestonesDataCount: enhancedWorkflowData.milestones.data.length,
+      milestonesData: enhancedWorkflowData.milestones.data.map(m => ({
+        id: m.id,
+        title: m.title,
+        status: m.status,
+        progress: m.progress
+      }))
     });
 
     setWorkflowData(enhancedWorkflowData);

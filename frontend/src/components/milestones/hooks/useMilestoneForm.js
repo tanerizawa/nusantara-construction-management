@@ -66,6 +66,12 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
         progress: formData.progress || 0
       };
 
+      // If RAB is linked, use RAB total value as budget (override manual input)
+      if (formData.rabLink?.enabled && formData.rabLink?.totalValue) {
+        milestoneItemData.budget = formData.rabLink.totalValue;
+        console.log('[useMilestoneForm] Using RAB total value as budget:', formData.rabLink.totalValue);
+      }
+
       // Only add optional fields if they have values
       if (formData.assignedTeam?.[0]) {
         milestoneItemData.assignedTo = formData.assignedTeam[0];
@@ -90,6 +96,13 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
           milestoneItemData.dependencies = validDependencies;
         }
       }
+
+      // Add RAB link if exists (new field to replace category_link)
+      if (formData.rabLink) {
+        milestoneItemData.rab_link = formData.rabLink;
+      }
+
+      console.log('[useMilestoneForm] Submitting milestone data:', milestoneItemData);
 
       if (milestone) {
         // Update existing milestone

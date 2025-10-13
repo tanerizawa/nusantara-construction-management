@@ -445,11 +445,12 @@ router.get('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       raw: true
     });
 
-    // Enrich with user names
+    // Enrich with user names and account info
     const enrichedCosts = await Promise.all(
       costs.map(async (cost) => {
         let recordedByName = null;
         let approvedByName = null;
+        let account = null;
 
         if (cost.recorded_by) {
           try {
@@ -483,10 +484,28 @@ router.get('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
           }
         }
 
+        // Fetch account info if accountId exists
+        if (cost.account_id) {
+          try {
+            const accountData = await sequelize.query(
+              "SELECT id, account_code, account_name, account_type FROM chart_of_accounts WHERE id = :accountId LIMIT 1",
+              { 
+                replacements: { accountId: cost.account_id },
+                type: sequelize.QueryTypes.SELECT,
+                plain: true
+              }
+            );
+            account = accountData || null;
+          } catch (err) {
+            console.log('Could not fetch account:', err.message);
+          }
+        }
+
         return {
           ...cost,
           recorded_by_name: recordedByName,
-          approved_by_name: approvedByName
+          approved_by_name: approvedByName,
+          account: account
         };
       })
     );
@@ -620,7 +639,7 @@ router.get('/:projectId/milestones/:milestoneId/costs/summary', async (req, res)
 router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
   try {
     const { milestoneId } = req.params;
-    const { costCategory, costType, amount, description, referenceNumber } = req.body;
+    const { costCategory, costType, amount, description, referenceNumber, accountId } = req.body;
     const recordedBy = req.user?.id || null;
 
     if (!costCategory || !amount) {
@@ -630,13 +649,38 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       });
     }
 
+    // Validate accountId if provided
+    if (accountId) {
+      const [account] = await sequelize.query(`
+        SELECT id, account_type FROM chart_of_accounts 
+        WHERE id = :accountId AND is_active = true
+      `, {
+        replacements: { accountId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (!account) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid account ID'
+        });
+      }
+
+      if (account.account_type !== 'EXPENSE') {
+        return res.status(400).json({
+          success: false,
+          error: 'Account must be of type EXPENSE'
+        });
+      }
+    }
+
     const [cost] = await sequelize.query(`
       INSERT INTO milestone_costs (
         milestone_id, cost_category, cost_type, amount, description,
-        reference_number, recorded_by, recorded_at, created_at, updated_at
+        reference_number, account_id, recorded_by, recorded_at, created_at, updated_at
       ) VALUES (
         :milestoneId, :costCategory, :costType, :amount, :description,
-        :referenceNumber, :recordedBy, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        :referenceNumber, :accountId, :recordedBy, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       ) RETURNING *
     `, {
       replacements: {
@@ -646,6 +690,7 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
         amount,
         description,
         referenceNumber,
+        accountId: accountId || null,
         recordedBy
       },
       type: sequelize.QueryTypes.INSERT
@@ -694,7 +739,32 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
 router.put('/:projectId/milestones/:milestoneId/costs/:costId', async (req, res) => {
   try {
     const { costId } = req.params;
-    const { amount, description, referenceNumber, costCategory, costType } = req.body;
+    const { amount, description, referenceNumber, costCategory, costType, accountId } = req.body;
+
+    // Validate accountId if provided
+    if (accountId) {
+      const [account] = await sequelize.query(`
+        SELECT id, account_type FROM chart_of_accounts 
+        WHERE id = :accountId AND is_active = true
+      `, {
+        replacements: { accountId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (!account) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid account ID'
+        });
+      }
+
+      if (account.account_type !== 'EXPENSE') {
+        return res.status(400).json({
+          success: false,
+          error: 'Account must be of type EXPENSE'
+        });
+      }
+    }
 
     await sequelize.query(`
       UPDATE milestone_costs SET
@@ -703,10 +773,11 @@ router.put('/:projectId/milestones/:milestoneId/costs/:costId', async (req, res)
         amount = COALESCE(:amount, amount),
         description = COALESCE(:description, description),
         reference_number = COALESCE(:referenceNumber, reference_number),
+        account_id = COALESCE(:accountId, account_id),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = :costId
     `, {
-      replacements: { costId, costCategory, costType, amount, description, referenceNumber },
+      replacements: { costId, costCategory, costType, amount, description, referenceNumber, accountId },
       type: sequelize.QueryTypes.UPDATE
     });
 

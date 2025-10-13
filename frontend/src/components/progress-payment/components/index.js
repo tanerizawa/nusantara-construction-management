@@ -9,3 +9,4 @@ export { default as PaymentDetailModal } from './PaymentDetailModal';
 export { default as PaymentDetailView } from './PaymentDetailView';
 export { default as InvoiceManager } from './InvoiceManager';
 export { default as InvoiceDetailView } from './InvoiceDetailView';
+export { default as PaymentWorkflowGuide } from './PaymentWorkflowGuide';

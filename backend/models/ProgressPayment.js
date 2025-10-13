@@ -48,7 +48,7 @@ const ProgressPayment = sequelize.define('ProgressPayment', {
   
   // Payment status workflow
   status: {
-    type: DataTypes.ENUM('pending_ba', 'ba_approved', 'payment_approved', 'processing', 'paid', 'cancelled'),
+    type: DataTypes.ENUM('pending_ba', 'ba_approved', 'payment_approved', 'approved', 'invoice_sent', 'processing', 'paid', 'overdue', 'cancelled'),
     defaultValue: 'pending_ba'
   },
   
@@ -85,6 +85,47 @@ const ProgressPayment = sequelize.define('ProgressPayment', {
   },
   invoiceDate: {
     type: DataTypes.DATE,
+    allowNull: true
+  },
+  invoiceSent: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+  },
+  invoiceSentAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  invoiceSentBy: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  invoiceSentNotes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  invoiceRecipient: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  deliveryMethod: {
+    type: DataTypes.ENUM('courier', 'post', 'hand_delivery', 'other'),
+    allowNull: true
+  },
+  deliveryEvidence: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  paymentEvidence: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  paymentReceivedBank: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  paymentConfirmation: {
+    type: DataTypes.TEXT,
     allowNull: true
   },
   paymentReference: {

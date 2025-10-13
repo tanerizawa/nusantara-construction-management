@@ -5,7 +5,9 @@ import {
   Eye,
   Edit,
   Trash2,
-  Send
+  Send,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { getStatusConfig, getBATypeConfig } from '../config/baStatusConfig';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -19,7 +21,9 @@ const BACard = ({
   onView, 
   onEdit, 
   onSubmit, 
-  onDelete 
+  onDelete,
+  onApprove,
+  onReject
 }) => {
   const statusConfig = getStatusConfig(ba.status);
   const typeConfig = getBATypeConfig(ba.baType);
@@ -124,6 +128,25 @@ const BACard = ({
                 title="Delete BA"
               >
                 <Trash2 size={14} />
+              </button>
+            </>
+          )}
+          
+          {ba.status === 'submitted' && onApprove && onReject && (
+            <>
+              <button
+                onClick={() => onApprove(ba.id)}
+                className="p-1.5 text-[#30D158] hover:bg-[#30D158]/10 rounded transition-colors"
+                title="Approve BA"
+              >
+                <CheckCircle size={14} />
+              </button>
+              <button
+                onClick={() => onReject(ba.id)}
+                className="p-1.5 text-[#FF3B30] hover:bg-[#FF3B30]/10 rounded transition-colors"
+                title="Reject BA"
+              >
+                <XCircle size={14} />
               </button>
             </>
           )}

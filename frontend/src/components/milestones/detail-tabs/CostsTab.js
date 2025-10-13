@@ -1,21 +1,91 @@
 // Costs Tab - Cost tracking and budget management
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, TrendingUp, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { useMilestoneCosts } from '../hooks/useMilestoneCosts';
 import { COST_CATEGORIES, COST_TYPES } from '../services/milestoneDetailAPI';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
+import api from '../../../services/api';
 
 const CostsTab = ({ milestone, projectId }) => {
   const { costs, summary, loading, addCost, updateCost, deleteCost } = useMilestoneCosts(projectId, milestone.id);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCost, setEditingCost] = useState(null);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
+  const [loadingPOs, setLoadingPOs] = useState(false);
+  const [expenseAccounts, setExpenseAccounts] = useState([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [formData, setFormData] = useState({
     costCategory: 'materials',
     costType: 'actual',
     amount: '',
     description: '',
-    referenceNumber: ''
+    referenceNumber: '',
+    accountId: ''
   });
+
+  // Fetch Purchase Orders when component mounts
+  useEffect(() => {
+    if (projectId) {
+      fetchPurchaseOrders();
+      fetchExpenseAccounts();
+    }
+  }, [projectId]);
+
+  const fetchPurchaseOrders = async () => {
+    try {
+      setLoadingPOs(true);
+      const response = await api.get(`/projects/${projectId}`);
+      
+      // Extract POs from project data
+      if (response?.data?.purchaseOrders) {
+        setPurchaseOrders(response.data.purchaseOrders);
+        console.log('[CostsTab] Loaded POs:', response.data.purchaseOrders.length);
+      } else {
+        setPurchaseOrders([]);
+      }
+    } catch (error) {
+      console.error('[CostsTab] Error fetching POs:', error);
+      setPurchaseOrders([]);
+    } finally {
+      setLoadingPOs(false);
+    }
+  };
+
+  const fetchExpenseAccounts = async () => {
+    try {
+      setLoadingAccounts(true);
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      
+      // Fetch EXPENSE type accounts from Chart of Accounts
+      const response = await fetch(`${API_BASE_URL}/chart-of-accounts?account_type=EXPENSE&is_active=true`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch expense accounts');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Filter for operational expense accounts (level >= 2)
+        const accounts = result.data.filter(account => {
+          return (
+            account.accountType === 'EXPENSE' && 
+            account.level >= 2 && 
+            !account.isControlAccount
+          );
+        });
+        
+        console.log('[CostsTab] Loaded expense accounts:', accounts.length);
+        setExpenseAccounts(accounts);
+      }
+    } catch (error) {
+      console.error('[CostsTab] Error fetching expense accounts:', error);
+      // Fallback: create default expense accounts if none exist
+      setExpenseAccounts([]);
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
 
   // Handle form submit
   const handleSubmit = async (e) => {
@@ -39,7 +109,8 @@ const CostsTab = ({ milestone, projectId }) => {
         costType: 'actual',
         amount: '',
         description: '',
-        referenceNumber: ''
+        referenceNumber: '',
+        accountId: ''
       });
       setShowAddForm(false);
     } catch (error) {
@@ -56,7 +127,8 @@ const CostsTab = ({ milestone, projectId }) => {
       costType: cost.costType,
       amount: cost.amount.toString(),
       description: cost.description || '',
-      referenceNumber: cost.referenceNumber || ''
+      referenceNumber: cost.referenceNumber || '',
+      accountId: cost.accountId || ''
     });
     setShowAddForm(true);
   };
@@ -81,7 +153,8 @@ const CostsTab = ({ milestone, projectId }) => {
       costType: 'actual',
       amount: '',
       description: '',
-      referenceNumber: ''
+      referenceNumber: '',
+      accountId: ''
     });
   };
 
@@ -297,13 +370,78 @@ const CostsTab = ({ milestone, projectId }) => {
 
             <div>
               <label className="block text-xs text-[#8E8E93] mb-1">Reference Number (Optional)</label>
-              <input
-                type="text"
+              <select
                 value={formData.referenceNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, referenceNumber: e.target.value }))}
-                placeholder="PO-001, INV-123, etc."
-                className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded text-sm text-white placeholder-[#636366] focus:border-[#0A84FF] focus:outline-none"
-              />
+                className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded text-sm text-white focus:border-[#0A84FF] focus:outline-none"
+                disabled={loadingPOs}
+              >
+                <option value="">-- Select PO (Optional) --</option>
+                {loadingPOs ? (
+                  <option disabled>Loading POs...</option>
+                ) : purchaseOrders.length === 0 ? (
+                  <option disabled>No POs available</option>
+                ) : (
+                  purchaseOrders.map((po) => (
+                    <option key={po.id || po.poNumber} value={po.poNumber}>
+                      {po.poNumber} - {po.supplierName} - {formatCurrency(po.totalAmount)}
+                    </option>
+                  ))
+                )}
+              </select>
+              {formData.referenceNumber && (
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Selected: {formData.referenceNumber}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-xs text-[#8E8E93] mb-1">Sumber Dana *</label>
+              <select
+                value={formData.accountId}
+                onChange={(e) => {
+                  console.log('Account selected:', e.target.value);
+                  setFormData(prev => ({ ...prev, accountId: e.target.value }));
+                }}
+                required
+                className={`w-full px-3 py-2 bg-[#1C1C1E] border rounded text-sm text-white focus:border-[#0A84FF] focus:outline-none ${
+                  !formData.accountId ? 'border-[#FF453A]' : 'border-[#38383A]'
+                }`}
+                disabled={loadingAccounts}
+              >
+                <option value="">
+                  {loadingAccounts ? 'Loading accounts...' : '-- Pilih Sumber Dana --'}
+                </option>
+                
+                {expenseAccounts.length > 0 ? (
+                  expenseAccounts.map(account => (
+                    <option key={account.id} value={account.id}>
+                      {account.accountCode} - {account.accountName}
+                    </option>
+                  ))
+                ) : (
+                  !loadingAccounts && <option disabled>No expense accounts found</option>
+                )}
+              </select>
+              
+              {!formData.accountId && (
+                <p className="text-xs text-[#FF453A] mt-1">
+                  Sumber dana wajib dipilih
+                </p>
+              )}
+              
+              {formData.accountId && expenseAccounts.length > 0 && (
+                <p className="text-xs text-[#30D158] mt-1">
+                  ✓ {expenseAccounts.find(a => a.id === formData.accountId)?.accountName}
+                </p>
+              )}
+              
+              {expenseAccounts.length > 0 && !formData.accountId && (
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  {expenseAccounts.length} expense accounts available
+                </p>
+              )}
             </div>
 
             <div className="flex gap-2 pt-2">

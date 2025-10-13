@@ -102,6 +102,50 @@ const BeritaAcaraManager = ({ projectId, project, activeBA, onBAChange }) => {
     }
   };
 
+  // Handle BA approval
+  const handleApproveBA = async (baId) => {
+    const confirmed = window.confirm(
+      'Apakah Anda yakin ingin menyetujui Berita Acara ini?\n\n' +
+      'BA yang disetujui akan dapat digunakan untuk membuat Progress Payment.'
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      await projectAPI.approveBeritaAcara(projectId, baId);
+      alert('Berita Acara berhasil disetujui!');
+      refreshData();
+      if (onBAChange) onBAChange();
+    } catch (error) {
+      console.error('Error approving BA:', error);
+      alert('Gagal menyetujui Berita Acara: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  // Handle BA rejection
+  const handleRejectBA = async (baId) => {
+    const reason = window.prompt(
+      'Alasan penolakan Berita Acara:\n\n' +
+      '(Masukkan alasan mengapa BA ini ditolak)'
+    );
+    
+    if (reason === null) return; // User cancelled
+    if (!reason.trim()) {
+      alert('Alasan penolakan harus diisi!');
+      return;
+    }
+
+    try {
+      await projectAPI.rejectBeritaAcara(projectId, baId, { reason: reason.trim() });
+      alert('Berita Acara berhasil ditolak!');
+      refreshData();
+      if (onBAChange) onBAChange();
+    } catch (error) {
+      console.error('Error rejecting BA:', error);
+      alert('Gagal menolak Berita Acara: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
   // Handle form save
   const handleFormSave = () => {
     refreshData();
@@ -154,6 +198,8 @@ const BeritaAcaraManager = ({ projectId, project, activeBA, onBAChange }) => {
         onEdit={handleEditBA}
         onSubmit={handleSubmitBA}
         onDelete={handleDeleteBA}
+        onApprove={handleApproveBA}
+        onReject={handleRejectBA}
         onCreateBA={handleCreateBA}
       />
       

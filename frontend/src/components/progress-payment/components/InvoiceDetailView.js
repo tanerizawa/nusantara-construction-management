@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Receipt, DollarSign, FileText, Building, User, CheckCircle, XCircle, Clock, Send } from 'lucide-react';
+import { X, Receipt, DollarSign, FileText, Building, User, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import { formatAddress } from '../../../utils/locationUtils';
 
@@ -13,8 +13,6 @@ const InvoiceDetailView = ({
   projectInfo,
   onApprove,
   onReject,
-  onSend,
-  onMarkAsPaid,
   canApprove = false
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
@@ -38,21 +36,9 @@ const InvoiceDetailView = ({
   const isPaid = invoice.paymentStatus === 'paid';
   const isRejected = invoice.paymentStatus === 'rejected';
 
-  const handleSend = () => {
-    if (onSend) {
-      onSend(invoice);
-    }
-  };
-
   const handleApprove = () => {
     if (onApprove) {
       onApprove(invoice);
-    }
-  };
-
-  const handleMarkAsPaid = () => {
-    if (onMarkAsPaid) {
-      onMarkAsPaid(invoice);
     }
   };
 
@@ -119,18 +105,7 @@ const InvoiceDetailView = ({
 
           {/* Action Buttons based on status */}
           <div className="flex gap-2">
-            {/* Draft: Show Send button */}
-            {isDraft && (
-              <button
-                onClick={handleSend}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
-              >
-                <Send size={16} />
-                Kirim Invoice
-              </button>
-            )}
-
-            {/* Pending: Show Approve/Reject buttons */}
+            {/* Pending: Show Approve/Reject buttons (for payment approval) */}
             {canApprove && isPending && (
               <>
                 <button
@@ -138,27 +113,24 @@ const InvoiceDetailView = ({
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90 transition-colors"
                 >
                   <CheckCircle size={16} />
-                  Approve
+                  Approve Payment
                 </button>
                 <button
                   onClick={handleRejectClick}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#FF3B30] text-white rounded-lg hover:bg-[#FF3B30]/90 transition-colors"
                 >
                   <XCircle size={16} />
-                  Reject
+                  Reject Payment
                 </button>
               </>
             )}
 
-            {/* Approved: Show Mark as Paid button */}
-            {canApprove && isApproved && (
-              <button
-                onClick={handleMarkAsPaid}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90 transition-colors"
-              >
-                <CheckCircle size={16} />
-                Mark as Paid
-              </button>
+            {/* Info: Actions available in main invoice list */}
+            {(isDraft || isApproved) && (
+              <div className="text-xs text-[#8E8E93] px-3 py-2 bg-[#1C1C1E] rounded-lg border border-[#38383A]">
+                {isDraft && 'Menunggu payment approval'}
+                {isApproved && 'Gunakan tombol di tabel invoice untuk download PDF & mark as sent'}
+              </div>
             )}
           </div>
         </div>

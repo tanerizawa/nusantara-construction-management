@@ -33,6 +33,7 @@ const projectSchema = Joi.object({
   status: Joi.string()
     .valid("planning", "active", "on_hold", "completed", "cancelled")
     .default("planning"),
+  status_notes: Joi.string().allow("").optional(), // For quick status update notes
   priority: Joi.string()
     .valid("low", "medium", "high", "urgent")
     .default("medium"),
@@ -42,6 +43,15 @@ const projectSchema = Joi.object({
     code: Joi.string().optional(),
     name: Joi.string().optional(),
   }).optional(),
+});
+
+// Validation schema for quick status update (only status and notes)
+const statusUpdateSchema = Joi.object({
+  status: Joi.string()
+    .valid("planning", "active", "on_hold", "completed", "cancelled")
+    .required(),
+  status_notes: Joi.string().allow("").optional(), // Frontend sends status_notes
+  notes: Joi.string().allow("").optional(), // Database uses notes column
 });
 
 /**
@@ -262,6 +272,7 @@ router.get("/:id", async (req, res) => {
     const rabItems = project.rabItemsList || [];
     const teamMembers = project.teamMembersList || [];
     const documents = project.documentsList || [];
+    const milestones = project.milestonesList || []; // Add milestones
 
     // Calculate budget summary
     const totalBudget = parseFloat(project.budget) || 0;
@@ -425,6 +436,22 @@ router.get("/:id", async (req, res) => {
         createdAt: ba.createdAt,
       })),
 
+      // Milestones - Add to response
+      milestonesList: milestones.map((milestone) => ({
+        id: milestone.id,
+        title: milestone.title,
+        description: milestone.description,
+        status: milestone.status,
+        progress: milestone.progress,
+        budget: milestone.budget,
+        actualCost: milestone.actualCost,
+        targetDate: milestone.targetDate,
+        completedDate: milestone.completedDate,
+        priority: milestone.priority,
+        createdAt: milestone.createdAt,
+        updatedAt: milestone.updatedAt,
+      })),
+
       metadata: project.metadata || {},
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
@@ -523,17 +550,89 @@ router.post("/", verifyToken, async (req, res) => {
 });
 
 /**
+ * @route   PATCH /api/projects/:id/status
+ * @desc    Quick status update (dedicated endpoint)
+ * @access  Private
+ */
+router.patch("/:id/status", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('[PATCH /projects/:id/status] Request body:', req.body);
+
+    // Validate request body
+    const { error, value } = statusUpdateSchema.validate(req.body);
+    
+    if (error) {
+      console.error('[PATCH /projects/:id/status] Validation error:', error.details);
+      return res.status(400).json({
+        success: false,
+        error: "Validation error",
+        details: error.details.map((d) => d.message),
+      });
+    }
+
+    // Find project
+    const project = await Project.findByPk(id);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found",
+      });
+    }
+
+    // Prepare update data - map status_notes to notes
+    const updateData = {
+      status: value.status,
+      updated_by: req.user?.id,
+    };
+
+    // Map status_notes to notes column if provided
+    if (value.status_notes !== undefined) {
+      updateData.notes = value.status_notes;
+    } else if (value.notes !== undefined) {
+      updateData.notes = value.notes;
+    }
+
+    console.log('[PATCH /projects/:id/status] Updating project:', id, 'Data:', updateData);
+
+    await project.update(updateData);
+
+    res.json({
+      success: true,
+      message: "Status updated successfully",
+      data: project,
+    });
+  } catch (error) {
+    console.error("[PATCH /projects/:id/status] Error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update status",
+      details: error.message,
+    });
+  }
+});
+
+/**
  * @route   PUT /api/projects/:id
- * @desc    Update project
+ * @desc    Update project (full update or quick status update)
  * @access  Private
  */
 router.put("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate request body
-    const { error, value } = projectSchema.validate(req.body);
+    // Check if this is a quick status update (only status and/or status_notes)
+    const isQuickStatusUpdate = Object.keys(req.body).every(key => 
+      ['status', 'status_notes', 'notes'].includes(key)
+    );
+
+    // Use appropriate validation schema
+    const schema = isQuickStatusUpdate ? statusUpdateSchema : projectSchema;
+    const { error, value } = schema.validate(req.body);
+    
     if (error) {
+      console.error('[PUT /projects/:id] Validation error:', error.details);
       return res.status(400).json({
         success: false,
         error: "Validation error",
@@ -550,16 +649,31 @@ router.put("/:id", verifyToken, async (req, res) => {
       });
     }
 
-    await project.update({
+    // Prepare update data
+    const updateData = {
       ...value,
-      subsidiaryId: value.subsidiary?.id,
-      subsidiaryInfo: value.subsidiary,
       updated_by: req.user?.id,
-    });
+    };
+
+    // Map status_notes to notes column if provided (for quick status update)
+    if (isQuickStatusUpdate && value.status_notes !== undefined) {
+      updateData.notes = value.status_notes;
+      delete updateData.status_notes; // Remove status_notes as it doesn't exist in DB
+    }
+
+    // For full update, include subsidiary info
+    if (!isQuickStatusUpdate && value.subsidiary) {
+      updateData.subsidiaryId = value.subsidiary.id;
+      updateData.subsidiaryInfo = value.subsidiary;
+    }
+
+    console.log('[PUT /projects/:id] Updating project:', id, 'Data:', updateData, 'Quick update:', isQuickStatusUpdate);
+
+    await project.update(updateData);
 
     res.json({
       success: true,
-      message: "Project updated successfully",
+      message: isQuickStatusUpdate ? "Status updated successfully" : "Project updated successfully",
       data: project,
     });
   } catch (error) {

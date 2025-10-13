@@ -445,6 +445,70 @@ router.patch('/:projectId/berita-acara/:baId/approve', checkProjectAccess, check
 });
 
 /**
+ * @route   PATCH /api/projects/:projectId/berita-acara/:baId/reject
+ * @desc    Reject Berita Acara
+ * @access  Private - Requires approve permission (client/admin only)
+ */
+router.patch('/:projectId/berita-acara/:baId/reject', checkProjectAccess, checkBAPermission('approve'), async (req, res) => {
+  try {
+    const { projectId, baId } = req.params;
+    const { reason, rejectedBy } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rejection reason is required'
+      });
+    }
+
+    const beritaAcara = await BeritaAcara.findOne({
+      where: { id: baId, projectId }
+    });
+
+    if (!beritaAcara) {
+      return res.status(404).json({
+        success: false,
+        error: 'Berita Acara not found'
+      });
+    }
+
+    if (beritaAcara.status === 'rejected') {
+      return res.status(400).json({
+        success: false,
+        error: 'Berita Acara is already rejected'
+      });
+    }
+
+    await beritaAcara.update({
+      status: 'rejected',
+      rejectionReason: reason.trim(),
+      clientApprovalNotes: `Rejected: ${reason.trim()}`,
+      updatedBy: rejectedBy || req.user?.email || 'system'
+    });
+
+    // Add to status history
+    await beritaAcara.addStatusHistory(
+      'rejected',
+      rejectedBy || req.user?.email || 'system',
+      `BA rejected: ${reason.trim()}`
+    );
+
+    res.json({
+      success: true,
+      data: beritaAcara,
+      message: 'Berita Acara rejected successfully'
+    });
+  } catch (error) {
+    console.error('Error rejecting Berita Acara:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reject Berita Acara',
+      details: error.message
+    });
+  }
+});
+
+/**
  * @route   DELETE /api/projects/:projectId/berita-acara/:baId
  * @desc    Delete Berita Acara
  * @access  Private - Requires delete permission (admin/pm/site_manager only)

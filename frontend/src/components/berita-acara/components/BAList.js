@@ -12,6 +12,8 @@ const BAList = ({
   onEdit, 
   onSubmit, 
   onDelete,
+  onApprove,
+  onReject,
   onCreateBA 
 }) => {
   if (baList.length === 0) {
@@ -48,6 +50,8 @@ const BAList = ({
             onEdit={onEdit}
             onSubmit={onSubmit}
             onDelete={onDelete}
+            onApprove={onApprove}
+            onReject={onReject}
           />
         ))}
       </div>

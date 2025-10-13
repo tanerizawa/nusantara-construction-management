@@ -31,8 +31,10 @@ const ProjectControls = ({
   const statusOptions = [
     { value: '', label: 'Semua Status' },
     { value: 'planning', label: 'Perencanaan' },
-    { value: 'in_progress', label: 'Berjalan' },
-    { value: 'completed', label: 'Selesai' }
+    { value: 'active', label: 'Aktif / Berjalan' },
+    { value: 'on_hold', label: 'Terhenti' },
+    { value: 'completed', label: 'Selesai' },
+    { value: 'cancelled', label: 'Dibatalkan' }
   ];
 
   const priorityOptions = [

@@ -197,6 +197,115 @@ class MilestoneIntegrationService {
   }
 
   /**
+   * Get COMPLETE RAB summary for project (NOT per-category!)
+   * 
+   * PURPOSE: Link milestones to TOTAL project RAB, not partial categories
+   * 
+   * BUSINESS LOGIC:
+   * - RAB = Total project budget baseline (e.g., 1 Billion)
+   * - Each milestone tracks % of TOTAL budget (not per category)
+   * - Budget variance = Actual vs RAB total
+   * - This ensures accurate financial tracking
+   * 
+   * RETURNS:
+   * {
+   *   totalValue: 1000000000,  // Total RAB (1B)
+   *   totalItems: 150,          // All RAB items
+   *   approvedDate: "2025-01-15",
+   *   hasRAB: true,
+   *   categories: [             // Breakdown for reference only
+   *     {category: "Struktur", value: 500M, items: 50},
+   *     {category: "Finishing", value: 300M, items: 60},
+   *     {category: "MEP", value: 200M, items: 40}
+   *   ]
+   * }
+   */
+  async getProjectRABSummary(projectId) {
+    try {
+      console.log(`\n📊 [GET RAB SUMMARY] Project: ${projectId}`);
+      
+      // Get TOTAL RAB for project (all approved items)
+      const summaryQuery = `
+        SELECT 
+          COUNT(*) as total_items,
+          COALESCE(SUM(CAST(quantity AS DECIMAL) * CAST(unit_price AS DECIMAL)), 0) as total_value,
+          MAX(approved_at) as approved_date,
+          MIN(created_at) as created_date
+        FROM project_rab
+        WHERE project_id = $1
+          AND status = 'approved'
+      `;
+
+      const summaryResult = await sequelize.query(summaryQuery, {
+        bind: [projectId],
+        type: sequelize.QueryTypes.SELECT,
+        plain: true
+      });
+
+      const totalItems = parseInt(summaryResult.total_items) || 0;
+      const totalValue = parseFloat(summaryResult.total_value) || 0;
+
+      console.log(`✅ Total RAB: Rp ${totalValue.toLocaleString('id-ID')} (${totalItems} items)`);
+
+      if (totalItems === 0) {
+        console.log('❌ No approved RAB found');
+        return {
+          totalValue: 0,
+          totalItems: 0,
+          approvedDate: null,
+          hasRAB: false,
+          categories: []
+        };
+      }
+
+      // Get category breakdown (for reference only)
+      const categoriesQuery = `
+        SELECT 
+          category,
+          COUNT(*) as item_count,
+          COALESCE(SUM(CAST(quantity AS DECIMAL) * CAST(unit_price AS DECIMAL)), 0) as total_value
+        FROM project_rab
+        WHERE project_id = $1
+          AND status = 'approved'
+          AND category IS NOT NULL
+          AND category != ''
+        GROUP BY category
+        ORDER BY total_value DESC
+      `;
+
+      const categories = await sequelize.query(categoriesQuery, {
+        bind: [projectId],
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      const categoriesBreakdown = categories.map(cat => ({
+        category: cat.category,
+        itemCount: parseInt(cat.item_count),
+        totalValue: parseFloat(cat.total_value),
+        percentage: ((parseFloat(cat.total_value) / totalValue) * 100).toFixed(2)
+      }));
+
+      console.log(`📂 Categories breakdown:`, categoriesBreakdown.map(c => 
+        `${c.category}: ${c.percentage}%`
+      ).join(', '));
+
+      return {
+        totalValue: totalValue,
+        totalItems: totalItems,
+        approvedDate: summaryResult.approved_date,
+        createdDate: summaryResult.created_date,
+        hasRAB: true,
+        categories: categoriesBreakdown
+      };
+
+    } catch (error) {
+      console.error('[MilestoneIntegrationService] Error getting RAB summary:', error);
+      console.error('Stack:', error.stack);
+      throw error;
+    }
+  }
+
+  /**
    * Suggest milestones from POs that have delivery receipts
    * 
    * BUSINESS LOGIC:

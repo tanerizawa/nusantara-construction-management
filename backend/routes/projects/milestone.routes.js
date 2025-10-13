@@ -27,7 +27,15 @@ const milestoneSchema = Joi.object({
   actualCost: Joi.number().min(0).optional(),
   deliverables: Joi.array().items(Joi.string()).optional(),
   dependencies: Joi.array().items(Joi.string()).optional(),
-  notes: Joi.string().allow('').optional()
+  notes: Joi.string().allow('').optional(),
+  // RAB link (new field to replace category_link)
+  rab_link: Joi.object({
+    enabled: Joi.boolean().required(),
+    totalValue: Joi.number().min(0).required(),
+    totalItems: Joi.number().integer().min(0).required(),
+    approvedDate: Joi.date().allow(null).optional(),
+    linkedAt: Joi.date().required()
+  }).optional()
 });
 
 /**
@@ -132,6 +140,41 @@ router.get('/:id/milestones/rab-categories', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/projects/:id/milestones/rab-summary
+ * @desc    Get COMPLETE RAB summary for milestone linking (NOT per-category!)
+ * @access  Private
+ * NOTE: Must be BEFORE /:milestoneId route to avoid treating 'rab-summary' as an ID
+ */
+router.get('/:id/milestones/rab-summary', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if project exists
+    const project = await Project.findByPk(id);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: 'Project not found'
+      });
+    }
+
+    const summary = await milestoneIntegrationService.getProjectRABSummary(id);
+
+    res.json({
+      success: true,
+      data: summary
+    });
+  } catch (error) {
+    console.error('Error getting RAB summary:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get RAB summary',
+      details: error.message
+    });
+  }
+});
+
+/**
  * @route   GET /api/projects/:id/milestones/suggest
  * @desc    Auto-suggest feature (DISABLED - Use manual creation with category selector)
  * @access  Private
@@ -217,6 +260,9 @@ router.post('/:id/milestones', async (req, res) => {
   try {
     const { id } = req.params;
 
+    console.log('[POST /milestones] Received request body:', JSON.stringify(req.body, null, 2));
+    console.log('[POST /milestones] Budget value:', req.body.budget, 'Type:', typeof req.body.budget);
+
     // Check if project exists
     const project = await Project.findByPk(id);
     if (!project) {
@@ -229,6 +275,7 @@ router.post('/:id/milestones', async (req, res) => {
     // Validate request body
     const { error, value } = milestoneSchema.validate(req.body);
     if (error) {
+      console.error('[POST /milestones] Validation error:', error.details);
       return res.status(400).json({
         success: false,
         error: 'Validation error',
@@ -236,11 +283,16 @@ router.post('/:id/milestones', async (req, res) => {
       });
     }
 
+    console.log('[POST /milestones] Validated value:', JSON.stringify(value, null, 2));
+    console.log('[POST /milestones] Validated budget:', value.budget, 'Type:', typeof value.budget);
+
     const milestone = await ProjectMilestone.create({
       projectId: id,
       ...value,
       createdBy: req.body.createdBy
     });
+
+    console.log('[POST /milestones] Created milestone:', JSON.stringify(milestone.toJSON(), null, 2));
 
     res.status(201).json({
       success: true,

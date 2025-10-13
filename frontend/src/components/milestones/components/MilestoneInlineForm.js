@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useMilestoneForm } from '../hooks/useMilestoneForm';
-import CategorySelector from '../CategorySelector';
+import RABSelector from '../RABSelector';
 
 const MilestoneInlineForm = ({ 
   projectId,
@@ -83,7 +83,29 @@ const MilestoneInlineForm = ({
           />
         </div>
 
-        {/* Row 3: Budget dan Priority */}
+        {/* Row 3: RAB Link (Complete Project RAB) - MOVED UP */}
+        <RABSelector
+          projectId={projectId}
+          value={formData.rabLink}
+          onChange={(rabData) => {
+            console.log('[MilestoneInlineForm] RAB data changed:', rabData);
+            
+            // Auto-populate budget from RAB total value when linked
+            const newFormData = { 
+              ...formData, 
+              rabLink: rabData
+            };
+            
+            if (rabData && rabData.enabled && rabData.totalValue) {
+              console.log('[MilestoneInlineForm] Auto-setting budget from RAB:', rabData.totalValue);
+              newFormData.budget = rabData.totalValue;
+            }
+            
+            setFormData(newFormData);
+          }}
+        />
+
+        {/* Row 4: Budget dan Priority */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-[#8E8E93] mb-1">
@@ -96,7 +118,14 @@ const MilestoneInlineForm = ({
               className="w-full bg-[#1C1C1E] border border-[#38383A] rounded-lg px-3 py-2 text-white placeholder-[#98989D] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
               placeholder="50000000"
               required
+              readOnly={formData.rabLink?.enabled}
+              title={formData.rabLink?.enabled ? 'Budget diambil dari total nilai RAB yang di-link' : 'Masukkan budget milestone'}
             />
+            {formData.rabLink?.enabled && (
+              <p className="text-xs text-[#0A84FF] mt-1">
+                ✓ Budget diambil dari total RAB proyek
+              </p>
+            )}
           </div>
 
           <div>
@@ -115,59 +144,6 @@ const MilestoneInlineForm = ({
             </select>
           </div>
         </div>
-
-        {/* Row 3.5: RAB Category Link */}
-        <CategorySelector
-          projectId={projectId}
-          value={formData.categoryLink}
-          onChange={(category) => {
-            setFormData({ 
-              ...formData, 
-              categoryLink: category ? {
-                enabled: true,
-                category_id: category.id || null,
-                category_name: category.name,
-                // Preserve full category data for display
-                name: category.name,
-                itemCount: category.itemCount || 0,
-                totalValue: category.totalValue || 0,
-                lastUpdated: category.lastUpdated,
-                source: category.source,
-                auto_generated: false
-              } : null
-            });
-          }}
-          onCategorySelect={(category) => {
-            // Auto-populate fields when category selected
-            if (category && !isEditMode) {
-              // Estimate duration: 1 month per 100M rupiah
-              const estimatedMonths = Math.max(1, Math.ceil((category.totalValue || 0) / 100000000));
-              const estimatedDays = estimatedMonths * 30;
-              
-              const startDate = new Date();
-              const endDate = new Date();
-              endDate.setDate(endDate.getDate() + estimatedDays);
-              
-              setFormData({
-                ...formData,
-                name: formData.name || `${category.name} - Fase 1`,
-                budget: category.totalValue || formData.budget,
-                categoryLink: {
-                  enabled: true,
-                  category_id: category.id || null,
-                  category_name: category.name,
-                  // Preserve full category data for display
-                  name: category.name,
-                  itemCount: category.itemCount || 0,
-                  totalValue: category.totalValue || 0,
-                  lastUpdated: category.lastUpdated,
-                  source: category.source,
-                  auto_generated: false
-                }
-              });
-            }
-          }}
-        />
 
         {/* Row 4: Deliverables */}
         <div>

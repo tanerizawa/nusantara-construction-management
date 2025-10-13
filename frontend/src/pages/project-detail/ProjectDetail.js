@@ -9,6 +9,9 @@ import { useProjectDetail, useWorkflowData } from './hooks';
 import { ProjectOverview } from './components';
 import { createTabConfig } from './config';
 
+// API Service
+import { projectAPI } from '../../services/api';
+
 // Workflow components
 import {
   QuickStatusBar,
@@ -127,20 +130,15 @@ const ProjectDetail = () => {
           onStatusUpdate={async (update) => {
             try {
               console.log('Status update:', update);
-              // Call API to update project status
-              const response = await fetch(`/api/projects/${id}`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  status: update.status,
-                  status_notes: update.notes
-                })
+              
+              // Use projectAPI.updateStatus with dedicated endpoint
+              const response = await projectAPI.updateStatus(id, {
+                status: update.status,
+                status_notes: update.notes
               });
 
-              if (!response.ok) {
-                throw new Error('Failed to update status');
+              if (!response.success) {
+                throw new Error(response.error || 'Failed to update status');
               }
 
               // Show success notification
@@ -160,7 +158,7 @@ const ProjectDetail = () => {
               window.dispatchEvent(new CustomEvent('show-notification', {
                 detail: {
                   type: 'error',
-                  message: 'Gagal mengupdate status proyek',
+                  message: error.message || 'Gagal mengupdate status proyek',
                   duration: 5000
                 }
               }));

@@ -28,7 +28,7 @@ const ProjectCategories = ({
         }
         
         // Active projects (in progress) are more critical
-        if (project.status === 'active' || project.status === 'in_progress') {
+        if (project.status === 'active') {
           criticalScore += 2;
         }
         
@@ -58,7 +58,7 @@ const ProjectCategories = ({
         const endDate = new Date(p.endDate);
         return (endDate - now) <= oneMonth && endDate > now;
       }).length,
-      inProgress: projects.filter(p => p.status === 'in_progress').length,
+      inProgress: projects.filter(p => p.status === 'active').length,
       completed: projects.filter(p => p.status === 'completed').length,
       planning: projects.filter(p => p.status === 'planning').length
     };
@@ -100,8 +100,8 @@ const ProjectCategories = ({
       hoverColor: 'hover:bg-amber-100 dark:hover:bg-amber-900/30'
     },
     {
-      id: 'in_progress',
-      label: 'Berjalan',
+      id: 'active',
+      label: 'Aktif / Berjalan',
       count: stats.inProgress,
       icon: <PlayCircle className="h-4 w-4" />,
       color: 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',

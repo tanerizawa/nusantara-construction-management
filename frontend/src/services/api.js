@@ -218,6 +218,7 @@ export const projectAPI = {
   getById: (id) => apiService.get(`/projects/${id}`),
   create: (data) => apiService.post('/projects', data),
   update: (id, data) => apiService.put(`/projects/${id}`, data),
+  updateStatus: (id, data) => apiService.patch(`/projects/${id}/status`, data), // New: Quick status update
   delete: (id) => apiService.delete(`/projects/${id}`),
   getStatistics: () => apiService.get('/projects/statistics'),
   getByStatus: (status) => apiService.get(`/projects?status=${status}`),
@@ -280,7 +281,8 @@ export const projectAPI = {
   updateBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}`, data),
   deleteBeritaAcara: (projectId, baId) => apiService.delete(`/projects/${projectId}/berita-acara/${baId}`),
   submitBeritaAcara: (projectId, baId, data) => apiService.post(`/projects/${projectId}/berita-acara/${baId}/submit`, data),
-  approveBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}/approve`, data),
+  approveBeritaAcara: (projectId, baId, data = {}) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}/approve`, data),
+  rejectBeritaAcara: (projectId, baId, data) => apiService.patch(`/projects/${projectId}/berita-acara/${baId}/reject`, data),
 };
 
 export const subsidiaryAPI = {

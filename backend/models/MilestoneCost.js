@@ -41,6 +41,12 @@ const MilestoneCost = sequelize.define('MilestoneCost', {
     allowNull: true,
     field: 'reference_number'
   },
+  accountId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'account_id',
+    comment: 'Sumber dana/rekening untuk pengeluaran (from Chart of Accounts)'
+  },
   recordedBy: {
     type: DataTypes.UUID,
     allowNull: true,

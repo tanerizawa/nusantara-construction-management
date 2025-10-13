@@ -10,7 +10,8 @@ import {
   PaymentErrorState,
   PaymentCreateForm,
   PaymentDetailView,
-  InvoiceManager
+  InvoiceManager,
+  PaymentWorkflowGuide
 } from './components';
 
 /**
@@ -28,8 +29,7 @@ const ProgressPaymentManager = ({ projectId, project, onPaymentChange }) => {
     error,
     createPayment,
     approvePayment,
-    sendInvoice,
-    markAsPaid
+    refreshPayments
   } = useProgressPayments(projectId, onPaymentChange);
 
   const { beritaAcaraList } = useApprovedBA(projectId);
@@ -134,6 +134,9 @@ const ProgressPaymentManager = ({ projectId, project, onPaymentChange }) => {
       {/* Tab Content */}
       {activeTab === 'payments' && (
         <div className="space-y-6">
+          {/* Workflow Guide - Collapsible Info Card */}
+          <PaymentWorkflowGuide />
+          
           {/* Summary Cards */}
           <PaymentSummaryCards summary={summary} />
 
@@ -159,7 +162,10 @@ const ProgressPaymentManager = ({ projectId, project, onPaymentChange }) => {
 
           {/* Payments List */}
           {payments.length === 0 ? (
-            <PaymentEmptyState hasApprovedBA={hasApprovedBA} />
+            <PaymentEmptyState 
+              hasApprovedBA={hasApprovedBA} 
+              onCreatePayment={hasApprovedBA ? openCreateForm : null}
+            />
           ) : (
             <PaymentTable
               payments={payments}
@@ -179,8 +185,7 @@ const ProgressPaymentManager = ({ projectId, project, onPaymentChange }) => {
           payments={payments}
           project={project}
           onApprovePayment={handleApprovePayment}
-          onSendInvoice={sendInvoice}
-          onMarkAsPaid={markAsPaid}
+          onRefresh={refreshPayments}
         />
       )}
     </div>

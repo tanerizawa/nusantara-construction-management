@@ -48,33 +48,29 @@ const Button = ({
 
   const variants = {
     primary: [
-      'bg-primary-600',
-      'hover:bg-primary-700',
-      'active:bg-primary-800',
       'text-white',
       'border-transparent',
       'hover:shadow-md',
       'hover:-translate-y-0.5',
       'active:translate-y-0',
-      'focus:ring-primary-500'
+      'focus:ring-blue-500'
     ].join(' '),
     
     secondary: [
-      'bg-white',
-      'hover:bg-gray-50',
-      'active:bg-gray-100',
-      'text-gray-700',
-      'border-gray-300',
-      'hover:border-gray-400',
       'hover:shadow-sm',
       'hover:-translate-y-0.5',
       'active:translate-y-0',
-      'focus:ring-primary-500'
+      'focus:ring-blue-500'
+    ].join(' '),
+    
+    outline: [
+      'hover:shadow-sm',
+      'hover:-translate-y-0.5',
+      'active:translate-y-0',
+      'focus:ring-blue-500'
     ].join(' '),
     
     danger: [
-      'bg-error',
-      'hover:brightness-95',
       'text-white',
       'border-transparent',
       'hover:shadow-md',
@@ -85,11 +81,8 @@ const Button = ({
     
     ghost: [
       'bg-transparent',
-      'hover:bg-gray-100',
-      'active:bg-gray-200',
-      'text-gray-700',
       'border-transparent',
-      'focus:ring-primary-500'
+      'focus:ring-blue-500'
     ].join(' ')
   };
 
@@ -155,9 +148,45 @@ const Button = ({
     xl: 20
   };
 
+  // Dark theme inline styles
+  const getButtonStyle = () => {
+    const baseStyle = {
+      transition: 'all 0.15s ease-out'
+    };
+
+    switch(variant) {
+      case 'primary':
+        return {
+          ...baseStyle,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        };
+      case 'secondary':
+      case 'outline':
+        return {
+          ...baseStyle,
+          backgroundColor: '#2C2C2E',
+          borderColor: '#38383A',
+          color: '#FFFFFF'
+        };
+      case 'danger':
+        return {
+          ...baseStyle,
+          backgroundColor: '#EF4444',
+        };
+      case 'ghost':
+        return {
+          ...baseStyle,
+          color: '#98989D'
+        };
+      default:
+        return baseStyle;
+    }
+  };
+
   return (
     <button
       className={classes}
+      style={getButtonStyle()}
       disabled={disabled || loading}
       {...props}
     >
@@ -189,6 +218,7 @@ const Button = ({
 // Button variants for convenience
 export const PrimaryButton = (props) => <Button variant="primary" {...props} />;
 export const SecondaryButton = (props) => <Button variant="secondary" {...props} />;
+export const OutlineButton = (props) => <Button variant="outline" {...props} />;
 export const DangerButton = (props) => <Button variant="danger" {...props} />;
 export const GhostButton = (props) => <Button variant="ghost" {...props} />;
 

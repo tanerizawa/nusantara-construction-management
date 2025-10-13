@@ -3,11 +3,13 @@ import AnalyticsCharts from '../components/AnalyticsCharts';
 
 const Analytics = () => {
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Analytics Dashboard</h1>
-        <p className="text-gray-600 mb-6">Comprehensive analytics and reporting for your construction projects.</p>
-        <AnalyticsCharts />
+    <div className="min-h-screen py-8" style={{ backgroundColor: "#1C1C1E" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+          <h1 className="text-2xl font-bold mb-4" style={{ color: "#FFFFFF" }}>Analytics Dashboard</h1>
+          <p className="mb-6" style={{ color: "#98989D" }}>Comprehensive analytics and reporting for your construction projects.</p>
+          <AnalyticsCharts />
+        </div>
       </div>
     </div>
   );

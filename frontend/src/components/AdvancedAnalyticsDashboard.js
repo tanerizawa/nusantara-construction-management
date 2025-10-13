@@ -1,31 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Chip,
-  IconButton,
-  Button,
-  CircularProgress,
-  LinearProgress,
-  Divider,
-  Alert,
-  Stack
-} from '@mui/material';
-import {
   TrendingUp,
   TrendingDown,
-  Schedule,
+  Clock,
   CheckCircle,
-  Pending,
-  Cancel,
-  AttachMoney,
-  Assignment,
-  Speed,
-  Refresh
-} from '@mui/icons-material';
+  AlertCircle,
+  XCircle,
+  DollarSign,
+  FileText,
+  Zap,
+  RefreshCw,
+  BarChart3,
+  Activity,
+  Target
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const AdvancedAnalyticsDashboard = () => {
@@ -119,20 +107,37 @@ const AdvancedAnalyticsDashboard = () => {
 
   if (loading && !analyticsData) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress size={60} />
-      </Box>
+      <div className="flex justify-center items-center min-h-screen" style={{ backgroundColor: '#1C1C1E' }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4" style={{ borderColor: '#0A84FF' }}></div>
+          <p style={{ color: '#98989D' }}>Loading analytics...</p>
+        </div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        Error loading analytics: {error}
-        <Button onClick={fetchAnalyticsData} sx={{ ml: 2 }}>
-          Retry
-        </Button>
-      </Alert>
+      <div className="p-6" style={{ backgroundColor: '#1C1C1E', minHeight: '100vh' }}>
+        <div className="rounded-lg p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <div className="flex items-center gap-3 mb-4">
+            <AlertCircle className="h-6 w-6" style={{ color: '#FF453A' }} />
+            <h3 className="text-lg font-semibold" style={{ color: '#FFFFFF' }}>Error Loading Analytics</h3>
+          </div>
+          <p className="mb-4" style={{ color: '#98989D' }}>{error}</p>
+          <button
+            onClick={fetchAnalyticsData}
+            className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: '#FFFFFF'
+            }}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -143,327 +148,307 @@ const AdvancedAnalyticsDashboard = () => {
     : '0';
 
   return (
-    <Box sx={{ p: 3 }}>
+    <div className="min-h-screen p-6" style={{ backgroundColor: '#1C1C1E' }}>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          📊 Advanced Analytics Dashboard
-        </Typography>
-        <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="body2" color="text.secondary">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-3 mb-2" style={{ color: '#FFFFFF' }}>
+            <BarChart3 className="h-8 w-8" style={{ color: '#0A84FF' }} />
+            Advanced Analytics Dashboard
+          </h1>
+          <p style={{ color: '#98989D' }}>
             Last updated: {lastUpdated.toLocaleTimeString('id-ID')}
-          </Typography>
-          <IconButton onClick={fetchAnalyticsData} disabled={loading}>
-            <Refresh />
-          </IconButton>
-        </Box>
-      </Box>
+          </p>
+        </div>
+        <button
+          onClick={fetchAnalyticsData}
+          disabled={loading}
+          className="p-3 rounded-lg transition-colors"
+          style={{
+            backgroundColor: '#2C2C2E',
+            border: '1px solid #38383A',
+            color: loading ? '#636366' : '#0A84FF',
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
 
-      {loading && <LinearProgress sx={{ mb: 2 }} />}
+      {/* Loading Bar */}
+      {loading && (
+        <div className="h-1 mb-6 rounded-full overflow-hidden" style={{ backgroundColor: '#38383A' }}>
+          <div className="h-full animate-pulse" style={{ backgroundColor: '#0A84FF', width: '60%' }}></div>
+        </div>
+      )}
 
       {/* Real-time Dashboard Metrics */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Today's Activity */}
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Assignment color="primary" />
-                <Box>
-                  <Typography variant="h6">
-                    {dashboard?.today_submissions || 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Today's Submissions
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(10, 132, 255, 0.1)' }}>
+              <FileText className="h-6 w-6" style={{ color: '#0A84FF' }} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold" style={{ color: '#FFFFFF' }}>
+                {dashboard?.today_submissions || 0}
+              </h3>
+              <p className="text-sm" style={{ color: '#98989D' }}>Today's Submissions</p>
+            </div>
+          </div>
+        </div>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" gap={2}>
-                <CheckCircle color="success" />
-                <Box>
-                  <Typography variant="h6">
-                    {dashboard?.today_completions || 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Today's Completions
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(48, 209, 88, 0.1)' }}>
+              <CheckCircle className="h-6 w-6" style={{ color: '#30D158' }} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold" style={{ color: '#FFFFFF' }}>
+                {dashboard?.today_completions || 0}
+              </h3>
+              <p className="text-sm" style={{ color: '#98989D' }}>Today's Completions</p>
+            </div>
+          </div>
+        </div>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Pending color="warning" />
-                <Box>
-                  <Typography variant="h6">
-                    {dashboard?.total_pending || 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Pending Approvals
-                  </Typography>
-                </Box>
-              </Box>
-              {dashboard?.overdue_pending > 0 && (
-                <Chip 
-                  label={`${dashboard.overdue_pending} Overdue`}
-                  color="error"
-                  size="small"
-                  sx={{ mt: 1 }}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(255, 159, 10, 0.1)' }}>
+              <Clock className="h-6 w-6" style={{ color: '#FF9F0A' }} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold" style={{ color: '#FFFFFF' }}>
+                {dashboard?.total_pending || 0}
+              </h3>
+              <p className="text-sm" style={{ color: '#98989D' }}>Pending Approvals</p>
+            </div>
+          </div>
+          {dashboard?.overdue_pending > 0 && (
+            <div className="mt-3 px-3 py-1 rounded-full inline-block text-xs font-medium" style={{ backgroundColor: 'rgba(255, 69, 58, 0.1)', color: '#FF453A' }}>
+              {dashboard.overdue_pending} Overdue
+            </div>
+          )}
+        </div>
 
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" gap={2}>
-                <AttachMoney color="success" />
-                <Box>
-                  <Typography variant="h6">
-                    {formatCurrency(dashboard?.today_approved_amount || 0)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Today's Approved Amount
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(48, 209, 88, 0.1)' }}>
+              <DollarSign className="h-6 w-6" style={{ color: '#30D158' }} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold" style={{ color: '#FFFFFF' }}>
+                {formatCurrency(dashboard?.today_approved_amount || 0)}
+              </h3>
+              <p className="text-sm" style={{ color: '#98989D' }}>Today's Approved Amount</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Financial Overview */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                💰 Financial Overview
-              </Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <Box>
-                    <Typography variant="h4" color="primary">
-                      {formatNumber(overview.total_approvals || 0)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total RAB Submissions
-                    </Typography>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={12} sm={6}>
-                  <Box>
-                    <Typography variant="h4" color="success.main">
-                      {formatCurrency(overview.approved_amount || 0)}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Approved Amount
-                    </Typography>
-                  </Box>
-                </Grid>
+      {/* Financial Overview & Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Financial Overview */}
+        <div className="lg:col-span-2 rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+            <DollarSign className="h-5 w-5" style={{ color: '#30D158' }} />
+            Financial Overview
+          </h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-3xl font-bold" style={{ color: '#0A84FF' }}>
+                {formatNumber(overview.total_approvals || 0)}
+              </h3>
+              <p className="text-sm" style={{ color: '#98989D' }}>Total RAB Submissions</p>
+            </div>
+            
+            <div>
+              <h3 className="text-3xl font-bold" style={{ color: '#30D158' }}>
+                {formatCurrency(overview.approved_amount || 0)}
+              </h3>
+              <p className="text-sm" style={{ color: '#98989D' }}>Total Approved Amount</p>
+            </div>
 
-                <Grid item xs={12} sm={6}>
-                  <Box>
-                    <Typography variant="h4">
-                      {approvalRate}%
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Approval Rate
-                    </Typography>
-                    <Chip 
-                      label={approvalRate >= 80 ? 'Excellent' : approvalRate >= 60 ? 'Good' : 'Needs Improvement'}
-                      color={getApprovalRateColor(approvalRate)}
-                      size="small"
-                      sx={{ mt: 1 }}
-                    />
-                  </Box>
-                </Grid>
+            <div>
+              <h3 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>
+                {approvalRate}%
+              </h3>
+              <p className="text-sm mb-2" style={{ color: '#98989D' }}>Approval Rate</p>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium`} style={{
+                backgroundColor: approvalRate >= 80 ? 'rgba(48, 209, 88, 0.1)' : approvalRate >= 60 ? 'rgba(255, 159, 10, 0.1)' : 'rgba(255, 69, 58, 0.1)',
+                color: approvalRate >= 80 ? '#30D158' : approvalRate >= 60 ? '#FF9F0A' : '#FF453A'
+              }}>
+                {approvalRate >= 80 ? 'Excellent' : approvalRate >= 60 ? 'Good' : 'Needs Improvement'}
+              </span>
+            </div>
 
-                <Grid item xs={12} sm={6}>
-                  <Box>
-                    <Typography variant="h4">
-                      {safeToFixed(overview.avg_approval_time_hours, 1)}h
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Average Approval Time
-                    </Typography>
-                    <Chip 
-                      label={overview.avg_approval_time_hours <= 2 ? 'Fast' : overview.avg_approval_time_hours <= 8 ? 'Normal' : 'Slow'}
-                      color={getEfficiencyColor(overview.avg_approval_time_hours)}
-                      size="small"
-                      sx={{ mt: 1 }}
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+            <div>
+              <h3 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>
+                {safeToFixed(overview.avg_approval_time_hours, 1)}h
+              </h3>
+              <p className="text-sm mb-2" style={{ color: '#98989D' }}>Average Approval Time</p>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium`} style={{
+                backgroundColor: overview.avg_approval_time_hours <= 2 ? 'rgba(48, 209, 88, 0.1)' : overview.avg_approval_time_hours <= 8 ? 'rgba(255, 159, 10, 0.1)' : 'rgba(255, 69, 58, 0.1)',
+                color: overview.avg_approval_time_hours <= 2 ? '#30D158' : overview.avg_approval_time_hours <= 8 ? '#FF9F0A' : '#FF453A'
+              }}>
+                {overview.avg_approval_time_hours <= 2 ? 'Fast' : overview.avg_approval_time_hours <= 8 ? 'Normal' : 'Slow'}
+              </span>
+            </div>
+          </div>
+        </div>
 
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📈 Status Breakdown
-              </Typography>
-              
-              <Stack spacing={2}>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <CheckCircle color="success" fontSize="small" />
-                    <Typography variant="body2">Approved</Typography>
-                  </Box>
-                  <Typography variant="body1" fontWeight="bold">
-                    {overview.approved_count || 0}
-                  </Typography>
-                </Box>
+        {/* Status Breakdown */}
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+            <Activity className="h-5 w-5" style={{ color: '#0A84FF' }} />
+            Status Breakdown
+          </h2>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" style={{ color: '#30D158' }} />
+                <span style={{ color: '#98989D' }}>Approved</span>
+              </div>
+              <span className="text-xl font-bold" style={{ color: '#FFFFFF' }}>
+                {overview.approved_count || 0}
+              </span>
+            </div>
 
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Pending color="warning" fontSize="small" />
-                    <Typography variant="body2">Pending</Typography>
-                  </Box>
-                  <Typography variant="body1" fontWeight="bold">
-                    {overview.pending_count || 0}
-                  </Typography>
-                </Box>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5" style={{ color: '#FF9F0A' }} />
+                <span style={{ color: '#98989D' }}>Pending</span>
+              </div>
+              <span className="text-xl font-bold" style={{ color: '#FFFFFF' }}>
+                {overview.pending_count || 0}
+              </span>
+            </div>
 
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Cancel color="error" fontSize="small" />
-                    <Typography variant="body2">Rejected</Typography>
-                  </Box>
-                  <Typography variant="body1" fontWeight="bold">
-                    {overview.rejected_count || 0}
-                  </Typography>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <XCircle className="h-5 w-5" style={{ color: '#FF453A' }} />
+                <span style={{ color: '#98989D' }}>Rejected</span>
+              </div>
+              <span className="text-xl font-bold" style={{ color: '#FFFFFF' }}>
+                {overview.rejected_count || 0}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Category Performance */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                🏗️ Category Performance
-              </Typography>
-              
-              {financial?.categoryBreakdown?.map((category, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="body1" fontWeight="medium">
-                      {category.category}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {category.count} items
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="success.main" gutterBottom>
-                    {formatCurrency(category.approved_amount || 0)}
-                  </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={category.approved_amount ? Math.min((category.approved_amount / 1000000000) * 10, 100) : 0}
-                    sx={{ height: 6, borderRadius: 3 }}
-                  />
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
-        </Grid>
+      {/* Category Performance & Step Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+            <Target className="h-5 w-5" style={{ color: '#0A84FF' }} />
+            Category Performance
+          </h2>
+          
+          {financial?.categoryBreakdown?.map((category, index) => (
+            <div key={index} className="mb-6 last:mb-0">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium" style={{ color: '#FFFFFF' }}>
+                  {category.category}
+                </span>
+                <span className="text-sm" style={{ color: '#98989D' }}>
+                  {category.count} items
+                </span>
+              </div>
+              <p className="text-sm mb-2" style={{ color: '#30D158' }}>
+                {formatCurrency(category.approved_amount || 0)}
+              </p>
+              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#38383A' }}>
+                <div 
+                  className="h-full rounded-full transition-all"
+                  style={{ 
+                    backgroundColor: '#0A84FF',
+                    width: `${category.approved_amount ? Math.min((category.approved_amount / 1000000000) * 10, 100) : 0}%`
+                  }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                ⚡ Step Performance Analysis
-              </Typography>
-              
-              {efficiency?.stepPerformance?.map((step, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="body1" fontWeight="medium">
-                      {step.step_name}
-                    </Typography>
-                    <Chip 
-                      label={step.required_role}
-                      size="small"
-                      variant="outlined"
-                    />
-                  </Box>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="body2" color="text.secondary">
-                      {step.approved_steps}/{step.total_steps} approved
-                    </Typography>
-                    <Typography variant="body2" color="primary">
-                      {step.avg_processing_hours ? `${safeToFixed(step.avg_processing_hours, 1)}h avg` : 'N/A'}
-                    </Typography>
-                  </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={step.total_steps > 0 ? (step.approved_steps / step.total_steps) * 100 : 0}
-                    color={step.approved_steps === step.total_steps ? 'success' : 'primary'}
-                    sx={{ mt: 1, height: 6, borderRadius: 3 }}
-                  />
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+            <Zap className="h-5 w-5" style={{ color: '#FF9F0A' }} />
+            Step Performance Analysis
+          </h2>
+          
+          {efficiency?.stepPerformance?.map((step, index) => (
+            <div key={index} className="mb-6 last:mb-0">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium" style={{ color: '#FFFFFF' }}>
+                  {step.step_name}
+                </span>
+                <span className="px-2 py-1 rounded text-xs font-medium" style={{ 
+                  backgroundColor: 'rgba(10, 132, 255, 0.1)',
+                  color: '#0A84FF',
+                  border: '1px solid rgba(10, 132, 255, 0.2)'
+                }}>
+                  {step.required_role}
+                </span>
+              </div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm" style={{ color: '#98989D' }}>
+                  {step.approved_steps}/{step.total_steps} approved
+                </span>
+                <span className="text-sm" style={{ color: '#0A84FF' }}>
+                  {step.avg_processing_hours ? `${safeToFixed(step.avg_processing_hours, 1)}h avg` : 'N/A'}
+                </span>
+              </div>
+              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#38383A' }}>
+                <div 
+                  className="h-full rounded-full transition-all"
+                  style={{ 
+                    backgroundColor: step.approved_steps === step.total_steps ? '#30D158' : '#0A84FF',
+                    width: `${step.total_steps > 0 ? (step.approved_steps / step.total_steps) * 100 : 0}%`
+                  }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Efficiency Metrics */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            📊 Approval Efficiency by Amount Range
-          </Typography>
-          
-          <Grid container spacing={3}>
-            {efficiency?.approvalRatesByAmount?.map((range, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Box textAlign="center" p={2}>
-                  <Typography variant="h4" color="primary">
-                    {range.approval_rate_percent}%
-                  </Typography>
-                  <Typography variant="body1" fontWeight="medium" gutterBottom>
-                    {range.amount_range}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {range.approved_count}/{range.total_count} approved
-                  </Typography>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={range.approval_rate_percent}
-                    color={getApprovalRateColor(range.approval_rate_percent)}
-                    sx={{ mt: 2, height: 8, borderRadius: 4 }}
-                  />
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </CardContent>
-      </Card>
-    </Box>
+      <div className="rounded-xl p-6" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2" style={{ color: '#FFFFFF' }}>
+          <BarChart3 className="h-5 w-5" style={{ color: '#0A84FF' }} />
+          Approval Efficiency by Amount Range
+        </h2>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {efficiency?.approvalRatesByAmount?.map((range, index) => (
+            <div key={index} className="text-center p-4 rounded-lg" style={{ backgroundColor: 'rgba(10, 132, 255, 0.05)', border: '1px solid #38383A' }}>
+              <h3 className="text-3xl font-bold" style={{ color: '#0A84FF' }}>
+                {range.approval_rate_percent}%
+              </h3>
+              <p className="font-medium my-2" style={{ color: '#FFFFFF' }}>
+                {range.amount_range}
+              </p>
+              <p className="text-sm mb-3" style={{ color: '#98989D' }}>
+                {range.approved_count}/{range.total_count} approved
+              </p>
+              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#38383A' }}>
+                <div 
+                  className="h-full rounded-full transition-all"
+                  style={{ 
+                    backgroundColor: range.approval_rate_percent >= 80 ? '#30D158' : range.approval_rate_percent >= 60 ? '#FF9F0A' : '#FF453A',
+                    width: `${range.approval_rate_percent}%`
+                  }}
+                ></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 

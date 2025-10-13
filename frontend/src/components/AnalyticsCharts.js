@@ -38,11 +38,14 @@ const StockMovementChart = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <AreaChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip formatter={(value) => new Intl.NumberFormat('id-ID').format(value)} />
-        <Legend />
+        <CartesianGrid strokeDasharray="3 3" stroke="#38383A" />
+        <XAxis dataKey="name" stroke="#98989D" />
+        <YAxis stroke="#98989D" />
+        <Tooltip 
+          formatter={(value) => new Intl.NumberFormat('id-ID').format(value)}
+          contentStyle={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A', borderRadius: '8px', color: '#FFFFFF' }}
+        />
+        <Legend wrapperStyle={{ color: '#98989D' }} />
         <Area type="monotone" dataKey="stockIn" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.8} />
         <Area type="monotone" dataKey="stockOut" stackId="1" stroke="#EF4444" fill="#EF4444" fillOpacity={0.8} />
       </AreaChart>
@@ -80,7 +83,10 @@ const CategoryDistributionChart = ({ data }) => {
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+        <Tooltip 
+          formatter={(value, name) => [`${value}%`, name]}
+          contentStyle={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A', borderRadius: '8px', color: '#FFFFFF' }}
+        />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -100,11 +106,11 @@ const SupplierPerformanceChart = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-        <YAxis />
-        <Tooltip />
-        <Legend />
+        <CartesianGrid strokeDasharray="3 3" stroke="#38383A" />
+        <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} stroke="#98989D" />
+        <YAxis stroke="#98989D" />
+        <Tooltip contentStyle={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A', borderRadius: '8px', color: '#FFFFFF' }} />
+        <Legend wrapperStyle={{ color: '#98989D' }} />
         <Bar dataKey="orders" fill="#3B82F6" name="Total Orders" />
         <Bar dataKey="onTime" fill="#10B981" name="On Time Delivery" />
       </BarChart>
@@ -126,11 +132,14 @@ const WarehouseUtilizationChart = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={chartData} layout="horizontal">
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis type="number" domain={[0, 100]} />
-        <YAxis dataKey="name" type="category" width={80} />
-        <Tooltip formatter={(value) => `${value}%`} />
-        <Legend />
+        <CartesianGrid strokeDasharray="3 3" stroke="#38383A" />
+        <XAxis type="number" domain={[0, 100]} stroke="#98989D" />
+        <YAxis dataKey="name" type="category" width={80} stroke="#98989D" />
+        <Tooltip 
+          formatter={(value) => `${value}%`}
+          contentStyle={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A', borderRadius: '8px', color: '#FFFFFF' }}
+        />
+        <Legend wrapperStyle={{ color: '#98989D' }} />
         <Bar dataKey="utilization" fill="#8884D8" name="Utilization %" />
       </BarChart>
     </ResponsiveContainer>
@@ -153,10 +162,10 @@ const PurchaseOrderTrendChart = ({ data }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis yAxisId="left" />
-        <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value)} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#38383A" />
+        <XAxis dataKey="month" stroke="#98989D" />
+        <YAxis yAxisId="left" stroke="#98989D" />
+        <YAxis yAxisId="right" orientation="right" stroke="#98989D" tickFormatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value)} />
         <Tooltip 
           formatter={(value, name) => {
             if (name === 'value') {
@@ -164,8 +173,9 @@ const PurchaseOrderTrendChart = ({ data }) => {
             }
             return [value, 'Total Orders'];
           }}
+          contentStyle={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A', borderRadius: '8px', color: '#FFFFFF' }}
         />
-        <Legend />
+        <Legend wrapperStyle={{ color: '#98989D' }} />
         <Bar yAxisId="left" dataKey="orders" fill="#3B82F6" name="Orders Count" />
         <Line yAxisId="right" type="monotone" dataKey="value" stroke="#EF4444" strokeWidth={3} name="Total Value" />
       </LineChart>
@@ -180,14 +190,14 @@ const AnalyticsCharts = () => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Category Distribution */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Category Distribution</h3>
+        <div className="p-6 rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Category Distribution</h3>
           <CategoryDistributionChart />
         </div>
 
         {/* Warehouse Utilization */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Warehouse Utilization</h3>
+        <div className="p-6 rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Warehouse Utilization</h3>
           <WarehouseUtilizationChart />
         </div>
       </div>
@@ -195,14 +205,14 @@ const AnalyticsCharts = () => {
       {/* Additional Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Supplier Performance */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Supplier Performance</h3>
+        <div className="p-6 rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Supplier Performance</h3>
           <SupplierPerformanceChart />
         </div>
 
         {/* Purchase Order Trend */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Purchase Order Trend</h3>
+        <div className="p-6 rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Purchase Order Trend</h3>
           <PurchaseOrderTrendChart />
         </div>
       </div>

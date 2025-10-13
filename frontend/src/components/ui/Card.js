@@ -27,9 +27,7 @@ const Card = ({
   ...props 
 }) => {
   const baseClasses = [
-    'bg-white',
     'border',
-    'border-gray-200/70',
     'transition-all',
     'duration-200',
     'ease-out'
@@ -61,7 +59,6 @@ const Card = ({
 
   const hoverClasses = hover ? [
     'hover:shadow-md',
-    'hover:border-gray-300',
     'hover:-translate-y-0.5',
     'cursor-pointer'
   ].join(' ') : '';
@@ -78,6 +75,11 @@ const Card = ({
   return (
     <Component
       className={classes}
+      style={{
+        backgroundColor: '#2C2C2E',
+        borderColor: '#38383A',
+        ...props.style
+      }}
       {...props}
     >
       {children}
@@ -101,11 +103,11 @@ export const KPICard = ({
         <div className="animate-pulse">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <div className="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
-              <div className="h-8 bg-gray-200 rounded mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="h-4 rounded mb-2 w-3/4" style={{ backgroundColor: '#38383A' }}></div>
+              <div className="h-8 rounded mb-2" style={{ backgroundColor: '#38383A' }}></div>
+              <div className="h-3 rounded w-1/2" style={{ backgroundColor: '#38383A' }}></div>
             </div>
-            <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+            <div className="w-12 h-12 rounded-lg" style={{ backgroundColor: '#38383A' }}></div>
           </div>
         </div>
       </Card>
@@ -116,28 +118,28 @@ export const KPICard = ({
     <Card hover {...props}>
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-600 truncate">
+          <p className="text-sm font-medium truncate" style={{ color: '#98989D' }}>
             {title}
           </p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">
+          <p className="text-2xl font-bold mt-1" style={{ color: '#FFFFFF' }}>
             {value}
           </p>
           {change && (
-            <p className={`text-sm mt-1 ${
-              trend === 'up' 
-                ? 'text-success' 
+            <p className={`text-sm mt-1`} style={{ 
+              color: trend === 'up' 
+                ? '#10B981' 
                 : trend === 'down' 
-                ? 'text-error' 
-                : 'text-gray-500'
-            }`}>
+                ? '#EF4444' 
+                : '#98989D'
+            }}>
               {change}
             </p>
           )}
         </div>
         {Icon && (
           <div className="ml-4 flex-shrink-0">
-            <div className="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center">
-              <Icon className="w-6 h-6 text-primary-600" />
+            <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(10, 132, 255, 0.1)' }}>
+              <Icon className="w-6 h-6" style={{ color: '#0A84FF' }} />
             </div>
           </div>
         )}

@@ -642,7 +642,7 @@ const SubsidiaryEdit = () => {
                         value={formData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.name ? 'border-red-500' : 'border-gray-300'
+                          errors.name ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="Masukkan nama perusahaan"
                       />
@@ -658,7 +658,7 @@ const SubsidiaryEdit = () => {
                         value={formData.code}
                         onChange={(e) => handleInputChange('code', e.target.value.toUpperCase())}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.code ? 'border-red-500' : 'border-gray-300'
+                          errors.code ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="Masukkan kode (2-10 karakter)"
                         maxLength={10}
@@ -674,7 +674,7 @@ const SubsidiaryEdit = () => {
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Deskripsi perusahaan..."
                       />
                     </div>
@@ -686,7 +686,7 @@ const SubsidiaryEdit = () => {
                       <select
                         value={formData.specialization}
                         onChange={(e) => handleInputChange('specialization', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="general">Konstruksi Umum</option>
                         <option value="residential">Bangunan Gedung Tempat Tinggal</option>
@@ -709,7 +709,7 @@ const SubsidiaryEdit = () => {
                       <select
                         value={formData.status}
                         onChange={(e) => handleInputChange('status', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="active">Aktif</option>
                         <option value="inactive">Nonaktif</option>
@@ -728,7 +728,7 @@ const SubsidiaryEdit = () => {
                         min="1900"
                         max={new Date().getFullYear()}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.establishedYear ? 'border-red-500' : 'border-gray-300'
+                          errors.establishedYear ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="2020"
                       />
@@ -746,7 +746,7 @@ const SubsidiaryEdit = () => {
                         onChange={(e) => handleInputChange('employeeCount', e.target.value)}
                         min="0"
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.employeeCount ? 'border-red-500' : 'border-gray-300'
+                          errors.employeeCount ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="50"
                       />
@@ -765,7 +765,7 @@ const SubsidiaryEdit = () => {
                         value={newCertification}
                         onChange={(e) => setNewCertification(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCertification())}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="flex-1 px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Tambah sertifikasi..."
                       />
                       <Button type="button" onClick={addCertification} variant="outline">
@@ -776,15 +776,15 @@ const SubsidiaryEdit = () => {
                     {formData.certification.length > 0 && (
                       <div className="space-y-2">
                         {formData.certification.map((cert, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                          <div key={index} className="flex items-center justify-between p-3  rounded-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
                             <span className="text-sm text-white flex items-center">
-                              <Award className="h-4 w-4 mr-2 text-blue-600" />
+                              <Award className="h-4 w-4 mr-2 " />
                               {cert}
                             </span>
                             <button
                               type="button"
                               onClick={() => removeCertification(index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="transition-colors" style={{ color: "#EF4444" }} onMouseEnter={(e) => e.currentTarget.style.color = "#DC2626"} onMouseLeave={(e) => e.currentTarget.style.color = "#EF4444"}
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -814,7 +814,7 @@ const SubsidiaryEdit = () => {
                           type="tel"
                           value={formData.contactInfo.phone}
                           onChange={(e) => handleNestedInputChange('contactInfo', 'phone', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="+62-21-xxx-xxxx"
                         />
                       </div>
@@ -828,7 +828,7 @@ const SubsidiaryEdit = () => {
                           value={formData.contactInfo.email}
                           onChange={(e) => handleNestedInputChange('contactInfo', 'email', e.target.value)}
                           className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            errors.email ? 'border-red-500' : 'border-gray-300'
+                            errors.email ? 'border-red-500' : 'border-gray-700'
                           }`}
                           placeholder="email@perusahaan.com"
                         />
@@ -852,7 +852,7 @@ const SubsidiaryEdit = () => {
                           value={formData.address.street}
                           onChange={(e) => handleNestedInputChange('address', 'street', e.target.value)}
                           rows={2}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="Jalan, nomor, kompleks..."
                         />
                       </div>
@@ -866,7 +866,7 @@ const SubsidiaryEdit = () => {
                             type="text"
                             value={formData.address.city}
                             onChange={(e) => handleNestedInputChange('address', 'city', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Jakarta"
                           />
                         </div>
@@ -879,7 +879,7 @@ const SubsidiaryEdit = () => {
                             type="text"
                             value={formData.address.country}
                             onChange={(e) => handleNestedInputChange('address', 'country', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Indonesia"
                           />
                         </div>
@@ -993,7 +993,7 @@ const SubsidiaryEdit = () => {
                             <button
                               type="button"
                               onClick={() => removeDirector(index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="transition-colors" style={{ color: "#EF4444" }} onMouseEnter={(e) => e.currentTarget.style.color = "#DC2626"} onMouseLeave={(e) => e.currentTarget.style.color = "#EF4444"}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -1019,7 +1019,7 @@ const SubsidiaryEdit = () => {
                         type="text"
                         value={formData.legalInfo.companyRegistrationNumber}
                         onChange={(e) => handleNestedInputChange('legalInfo', 'companyRegistrationNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nomor akta pendirian"
                       />
                     </div>
@@ -1029,7 +1029,7 @@ const SubsidiaryEdit = () => {
                         type="text"
                         value={formData.legalInfo.taxIdentificationNumber}
                         onChange={(e) => handleNestedInputChange('legalInfo', 'taxIdentificationNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nomor NPWP"
                       />
                     </div>
@@ -1039,7 +1039,7 @@ const SubsidiaryEdit = () => {
                         type="text"
                         value={formData.legalInfo.businessLicenseNumber}
                         onChange={(e) => handleNestedInputChange('legalInfo', 'businessLicenseNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nomor izin usaha"
                       />
                     </div>
@@ -1049,7 +1049,7 @@ const SubsidiaryEdit = () => {
                         type="text"
                         value={formData.legalInfo.vatRegistrationNumber}
                         onChange={(e) => handleNestedInputChange('legalInfo', 'vatRegistrationNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Nomor NPPKP"
                       />
                     </div>
@@ -1059,7 +1059,7 @@ const SubsidiaryEdit = () => {
                         type="text"
                         value={formData.legalInfo.articlesOfIncorporation}
                         onChange={(e) => handleNestedInputChange('legalInfo', 'articlesOfIncorporation', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Referensi anggaran dasar"
                       />
                     </div>
@@ -1150,7 +1150,7 @@ const SubsidiaryEdit = () => {
                         type="button"
                         onClick={() => setIsUploadModalOpen(true)}
                         variant="outline"
-                        className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                        className="border-blue-300  hover:bg-blue-50"
                       >
                         <Upload className="h-4 w-4 mr-2" />
                         Upload Dokumen
@@ -1177,7 +1177,7 @@ const SubsidiaryEdit = () => {
                             <button
                               type="button"
                               onClick={() => removePermit(index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="transition-colors" style={{ color: "#EF4444" }} onMouseEnter={(e) => e.currentTarget.style.color = "#DC2626"} onMouseLeave={(e) => e.currentTarget.style.color = "#EF4444"}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -1219,7 +1219,7 @@ const SubsidiaryEdit = () => {
                           <Card key={attachment.id} className="p-4">
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center space-x-2">
-                                <FileText className="h-4 w-4 text-blue-600" />
+                                <FileText className="h-4 w-4 " />
                                 <span className="text-sm font-medium text-white">
                                   {getCategoryLabel(attachment.category)}
                                 </span>
@@ -1227,7 +1227,7 @@ const SubsidiaryEdit = () => {
                               <button
                                 type="button"
                                 onClick={() => removeAttachment(attachment.id)}
-                                className="text-red-600 hover:text-red-800"
+                                className="transition-colors" style={{ color: "#EF4444" }} onMouseEnter={(e) => e.currentTarget.style.color = "#DC2626"} onMouseLeave={(e) => e.currentTarget.style.color = "#EF4444"}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -1242,7 +1242,7 @@ const SubsidiaryEdit = () => {
                                 href={`/api/subsidiaries/${id}/documents/${attachment.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800"
+                                className=" hover:text-blue-800"
                               >
                                 Lihat
                               </a>
@@ -1278,7 +1278,7 @@ const SubsidiaryEdit = () => {
                         value={formData.financialInfo.authorizedCapital}
                         onChange={(e) => handleNestedInputChange('financialInfo', 'authorizedCapital', e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.authorizedCapital ? 'border-red-500' : 'border-gray-300'
+                          errors.authorizedCapital ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="1000000000"
                       />
@@ -1291,7 +1291,7 @@ const SubsidiaryEdit = () => {
                         value={formData.financialInfo.paidUpCapital}
                         onChange={(e) => handleNestedInputChange('financialInfo', 'paidUpCapital', e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.paidUpCapital ? 'border-red-500' : 'border-gray-300'
+                          errors.paidUpCapital ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="500000000"
                       />
@@ -1302,7 +1302,7 @@ const SubsidiaryEdit = () => {
                       <select
                         value={formData.financialInfo.currency}
                         onChange={(e) => handleNestedInputChange('financialInfo', 'currency', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="IDR">IDR (Rupiah)</option>
                         <option value="USD">USD (US Dollar)</option>
@@ -1314,7 +1314,7 @@ const SubsidiaryEdit = () => {
                       <select
                         value={formData.financialInfo.fiscalYearEnd}
                         onChange={(e) => handleNestedInputChange('financialInfo', 'fiscalYearEnd', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Pilih bulan</option>
                         <option value="December">Desember</option>
@@ -1342,7 +1342,7 @@ const SubsidiaryEdit = () => {
                         value={formData.profileInfo.website}
                         onChange={(e) => handleNestedInputChange('profileInfo', 'website', e.target.value)}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                          errors.website ? 'border-red-500' : 'border-gray-300'
+                          errors.website ? 'border-red-500' : 'border-gray-700'
                         }`}
                         placeholder="https://www.perusahaan.com"
                       />
@@ -1353,7 +1353,7 @@ const SubsidiaryEdit = () => {
                       <select
                         value={formData.profileInfo.companySize}
                         onChange={(e) => handleNestedInputChange('profileInfo', 'companySize', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="">Pilih skala</option>
                         <option value="small">Kecil (1-50 karyawan)</option>
@@ -1367,7 +1367,7 @@ const SubsidiaryEdit = () => {
                         type="text"
                         value={formData.profileInfo.industryClassification}
                         onChange={(e) => handleNestedInputChange('profileInfo', 'industryClassification', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="KBLI atau klasifikasi industri"
                       />
                     </div>
@@ -1377,7 +1377,7 @@ const SubsidiaryEdit = () => {
                         value={formData.profileInfo.businessDescription}
                         onChange={(e) => handleNestedInputChange('profileInfo', 'businessDescription', e.target.value)}
                         rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Deskripsi detail tentang bisnis dan layanan perusahaan..."
                       />
                     </div>
@@ -1433,7 +1433,7 @@ const SubsidiaryEdit = () => {
       {/* Upload Modal */}
       {isUploadModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+          <div className=" rounded-lg p-6 w-full max-w-md mx-4" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">Upload Dokumen Legalitas</h3>
               <button
@@ -1455,7 +1455,7 @@ const SubsidiaryEdit = () => {
                 <select
                   value={uploadCategory}
                   onChange={(e) => setUploadCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Pilih kategori...</option>
                   <option value="siujk">SIUJK (Surat Izin Usaha Jasa Konstruksi)</option>
@@ -1478,7 +1478,7 @@ const SubsidiaryEdit = () => {
                   type="file"
                   onChange={(e) => setUploadFile(e.target.files[0])}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-gray-400 mt-1">
                   Format: PDF, DOC, DOCX, JPG, PNG (Max: 10MB)
@@ -1491,7 +1491,7 @@ const SubsidiaryEdit = () => {
                   value={uploadDescription}
                   onChange={(e) => setUploadDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Deskripsi atau catatan dokumen..."
                 />
               </div>

@@ -31,13 +31,13 @@ const FinancialReportsView = ({
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-lg shadow p-6">
+          <div key={i} className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
             <div className="animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 rounded w-3/4 mb-4" style={{ backgroundColor: '#38383A' }}></div>
               <div className="space-y-2">
-                <div className="h-3 bg-gray-200 rounded"></div>
-                <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                <div className="h-3 bg-gray-200 rounded w-4/6"></div>
+                <div className="h-3 rounded" style={{ backgroundColor: '#38383A' }}></div>
+                <div className="h-3 rounded w-5/6" style={{ backgroundColor: '#38383A' }}></div>
+                <div className="h-3 rounded w-4/6" style={{ backgroundColor: '#38383A' }}></div>
               </div>
             </div>
           </div>
@@ -51,10 +51,10 @@ const FinancialReportsView = ({
       {/* Report Summary Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Income Statement Card */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Income Statement</h3>
-            <Receipt className="w-5 h-5 text-gray-400" />
+            <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Income Statement</h3>
+            <Receipt className="w-5 h-5" style={{ color: '#636366' }} />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -76,34 +76,37 @@ const FinancialReportsView = ({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Indirect Costs</span>
-              <span className="font-semibold text-red-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Indirect Costs</span>
+              <span className="font-semibold" style={{ color: "#FF453A" }}>
                 ({formatCurrency(incomeStatement?.indirectCosts || 0)})
               </span>
             </div>
-            <div className="flex justify-between border-t pt-3 font-bold">
-              <span className="text-gray-900">Net Income</span>
-              <span className={`${(incomeStatement?.netIncome || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <div className="flex justify-between pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
+              <span style={{ color: "#FFFFFF" }}>Net Income</span>
+              <span style={{ color: (incomeStatement?.netIncome || 0) >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(incomeStatement?.netIncome || 0)}
               </span>
             </div>
           </div>
           <button 
             onClick={() => onToggleDetailedReport('income')}
-            className={`mt-4 w-full py-2 rounded-lg transition-colors text-sm font-medium ${
-              activeDetailedReport === 'income' 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-            }`}
+            className="mt-4 w-full py-2 rounded-lg transition-colors text-sm font-medium"
+            style={{
+              background: activeDetailedReport === 'income' 
+                ? 'linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)'
+                : 'rgba(10, 132, 255, 0.15)',
+              color: activeDetailedReport === 'income' ? '#FFFFFF' : '#0A84FF',
+              border: activeDetailedReport === 'income' ? 'none' : '1px solid rgba(10, 132, 255, 0.3)'
+            }}
           >
             {activeDetailedReport === 'income' ? 'Hide Detailed Report' : 'View Detailed Report'}
           </button>
         </div>
 
         {/* Balance Sheet Card */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Balance Sheet</h3>
+            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Balance Sheet</h3>
             <Building2 className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-3">
@@ -114,46 +117,49 @@ const FinancialReportsView = ({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Current Assets</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-sm" style={{ color: "#98989D" }}>Current Assets</span>
+              <span className="font-medium" style={{ color: "#FFFFFF" }}>
                 {formatCurrency(balanceSheet?.currentAssets || 0)}
               </span>
             </div>
-            <div className="flex justify-between border-t pt-3">
-              <span className="text-sm text-gray-600">Total Liabilities</span>
-              <span className="font-semibold text-red-600">
+            <div className="flex justify-between pt-3" style={{ borderTop: "1px solid #38383A" }}>
+              <span className="text-sm" style={{ color: "#98989D" }}>Total Liabilities</span>
+              <span className="font-semibold" style={{ color: "#FF453A" }}>
                 {formatCurrency(balanceSheet?.totalLiabilities || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Current Liabilities</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-sm" style={{ color: "#98989D" }}>Current Liabilities</span>
+              <span className="font-medium" style={{ color: "#FFFFFF" }}>
                 {formatCurrency(balanceSheet?.currentLiabilities || 0)}
               </span>
             </div>
-            <div className="flex justify-between border-t pt-3 font-bold">
-              <span className="text-gray-900">Equity</span>
-              <span className="text-emerald-600">
+            <div className="flex justify-between pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
+              <span style={{ color: "#FFFFFF" }}>Equity</span>
+              <span style={{ color: "#30D158" }}>
                 {formatCurrency(balanceSheet?.equity || 0)}
               </span>
             </div>
           </div>
           <button 
             onClick={() => onToggleDetailedReport('balance')}
-            className={`mt-4 w-full py-2 rounded-lg transition-colors text-sm font-medium ${
-              activeDetailedReport === 'balance' 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-            }`}
+            className="mt-4 w-full py-2 rounded-lg transition-colors text-sm font-medium"
+            style={{
+              background: activeDetailedReport === 'balance' 
+                ? 'linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)'
+                : 'rgba(10, 132, 255, 0.15)',
+              color: activeDetailedReport === 'balance' ? '#FFFFFF' : '#0A84FF',
+              border: activeDetailedReport === 'balance' ? 'none' : '1px solid rgba(10, 132, 255, 0.3)'
+            }}
           >
             {activeDetailedReport === 'balance' ? 'Hide Detailed Report' : 'View Detailed Report'}
           </button>
         </div>
 
         {/* Cash Flow Card */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Cash Flow Statement</h3>
+            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Cash Flow Statement</h3>
             <Activity className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-3">
@@ -170,31 +176,34 @@ const FinancialReportsView = ({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Financing Activities</span>
-              <span className={`font-semibold ${(cashFlow?.financing || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <span className="text-sm" style={{ color: "#98989D" }}>Financing Activities</span>
+              <span className="font-semibold" style={{ color: (cashFlow?.financing || 0) >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(cashFlow?.financing || 0)}
               </span>
             </div>
-            <div className="flex justify-between border-t pt-3 font-bold">
-              <span className="text-gray-900">Net Cash Flow</span>
-              <span className={`${(cashFlow?.netCashFlow || 0) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            <div className="flex justify-between pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
+              <span style={{ color: "#FFFFFF" }}>Net Cash Flow</span>
+              <span style={{ color: (cashFlow?.netCashFlow || 0) >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(cashFlow?.netCashFlow || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Cash Balance</span>
-              <span className="font-semibold text-blue-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Cash Balance</span>
+              <span className="font-semibold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(cashFlow?.endingBalance || 0)}
               </span>
             </div>
           </div>
           <button 
             onClick={() => onToggleDetailedReport('cashflow')}
-            className={`mt-4 w-full py-2 rounded-lg transition-colors text-sm font-medium ${
-              activeDetailedReport === 'cashflow' 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-            }`}
+            className="mt-4 w-full py-2 rounded-lg transition-colors text-sm font-medium"
+            style={{
+              background: activeDetailedReport === 'cashflow' 
+                ? 'linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)'
+                : 'rgba(10, 132, 255, 0.15)',
+              color: activeDetailedReport === 'cashflow' ? '#FFFFFF' : '#0A84FF',
+              border: activeDetailedReport === 'cashflow' ? 'none' : '1px solid rgba(10, 132, 255, 0.3)'
+            }}
           >
             {activeDetailedReport === 'cashflow' ? 'Hide Detailed Report' : 'View Detailed Report'}
           </button>
@@ -203,9 +212,9 @@ const FinancialReportsView = ({
 
       {/* Detailed Reports */}
       {activeDetailedReport === 'income' && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">Detailed Income Statement</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Detailed Income Statement</h3>
             {onExport && (
               <button
                 onClick={() => onExport('income')}
@@ -221,9 +230,9 @@ const FinancialReportsView = ({
       )}
 
       {activeDetailedReport === 'balance' && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">Detailed Balance Sheet</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Detailed Balance Sheet</h3>
             {onExport && (
               <button
                 onClick={() => onExport('balance')}
@@ -239,9 +248,9 @@ const FinancialReportsView = ({
       )}
 
       {activeDetailedReport === 'cashflow' && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">Detailed Cash Flow Statement</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Detailed Cash Flow Statement</h3>
             {onExport && (
               <button
                 onClick={() => onExport('cashflow')}
@@ -258,24 +267,24 @@ const FinancialReportsView = ({
 
       {/* Summary Information */}
       {summary && Object.keys(summary).length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
+        <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Financial Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <p className="text-sm text-blue-900 font-medium mb-1">Total Income</p>
-              <p className="text-2xl font-bold text-blue-600">
+            <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(10, 132, 255, 0.2) 0%, rgba(10, 132, 255, 0.1) 100%)", border: "1px solid rgba(10, 132, 255, 0.3)" }}>
+              <p className="text-sm font-medium mb-1" style={{ color: "#0A84FF" }}>Total Income</p>
+              <p className="text-2xl font-bold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(summary.totalIncome || 0)}
               </p>
             </div>
-            <div className="bg-red-50 rounded-lg p-4">
-              <p className="text-sm text-red-900 font-medium mb-1">Total Expenses</p>
-              <p className="text-2xl font-bold text-red-600">
+            <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(255, 69, 58, 0.2) 0%, rgba(255, 69, 58, 0.1) 100%)", border: "1px solid rgba(255, 69, 58, 0.3)" }}>
+              <p className="text-sm font-medium mb-1" style={{ color: "#FF453A" }}>Total Expenses</p>
+              <p className="text-2xl font-bold" style={{ color: "#FF453A" }}>
                 {formatCurrency(summary.totalExpense || 0)}
               </p>
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <p className="text-sm text-green-900 font-medium mb-1">Net Balance</p>
-              <p className="text-2xl font-bold text-green-600">
+            <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(48, 209, 88, 0.2) 0%, rgba(48, 209, 88, 0.1) 100%)", border: "1px solid rgba(48, 209, 88, 0.3)" }}>
+              <p className="text-sm font-medium mb-1" style={{ color: "#30D158" }}>Net Balance</p>
+              <p className="text-2xl font-bold" style={{ color: "#30D158" }}>
                 {formatCurrency(summary.balance || 0)}
               </p>
             </div>

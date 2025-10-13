@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depreciation Tracker - Inline Schedule</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1C1C1E;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #FF9F0A, #30D158);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #30D158;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .comparison-card {
+            background: #2C2C2E;
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .comparison-card.before {
+            border-color: #FF453A;
+        }
+
+        .comparison-card.after {
+            border-color: #30D158;
+        }
+
+        .comparison-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comparison-card.before h3 {
+            color: #FF453A;
+        }
+
+        .comparison-card.after h3 {
+            color: #30D158;
+        }
+
+        .demo-section {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .demo-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: #FF9F0A;
+        }
+
+        .table-container {
+            background: #1C1C1E;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 40px 2fr 1.5fr 1.5fr 1.5fr 1.5fr 1.5fr;
+            padding: 16px;
+            border-bottom: 1px solid #38383A;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-row.header {
+            background: #1C1C1E;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #98989D;
+            font-weight: 600;
+        }
+
+        .table-row.data {
+            background: #2C2C2E;
+        }
+
+        .table-row.data:hover {
+            background: #38383A;
+        }
+
+        .chevron {
+            width: 24px;
+            height: 24px;
+            color: #98989D;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .chevron:hover {
+            color: white;
+        }
+
+        .expanded-schedule {
+            background: rgba(28, 28, 30, 0.8);
+            padding: 24px;
+            margin: 0 16px 16px;
+            border-radius: 8px;
+            border: 1px solid #FF9F0A;
+        }
+
+        .schedule-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .schedule-table {
+            width: 100%;
+            background: #2C2C2E;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .schedule-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            padding: 12px 16px;
+            border-bottom: 1px solid #38383A;
+            gap: 12px;
+        }
+
+        .schedule-row.header {
+            background: #2C2C2E;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #98989D;
+            font-weight: 600;
+        }
+
+        .schedule-row.data {
+            background: transparent;
+        }
+
+        .schedule-row.data:hover {
+            background: rgba(56, 56, 58, 0.3);
+        }
+
+        .benefit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .benefit-card {
+            background: linear-gradient(135deg, rgba(255, 159, 10, 0.1), rgba(48, 209, 88, 0.1));
+            border: 1px solid rgba(255, 159, 10, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .benefit-card h4 {
+            color: #FF9F0A;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .benefit-card p {
+            color: #98989D;
+            line-height: 1.6;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background: #1C1C1E;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .url-box {
+            background: #2C2C2E;
+            border: 2px solid #FF9F0A;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .url-box h3 {
+            margin-bottom: 12px;
+            color: #FF9F0A;
+        }
+
+        .url-box a {
+            color: #FF9F0A;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-row {
+                grid-template-columns: 1fr;
+            }
+
+            .schedule-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">✅ INLINE SCHEDULE IMPLEMENTED</div>
+            <h1>Depreciation Tracker</h1>
+            <p>Modal Dialog → Inline Expandable Schedule</p>
+        </div>
+
+        <!-- Before vs After -->
+        <div class="comparison-grid">
+            <div class="comparison-card before">
+                <h3>❌ BEFORE (Modal)</h3>
+                <ul class="feature-list">
+                    <li>
+                        <span>❌</span>
+                        <span>Modal popup untuk jadwal depresiasi</span>
+                    </li>
+                    <li>
+                        <span>❌</span>
+                        <span>Icon Eye di kolom Aksi</span>
+                    </li>
+                    <li>
+                        <span>❌</span>
+                        <span>Overlay covers page content</span>
+                    </li>
+                    <li>
+                        <span>❌</span>
+                        <span>Context loss saat modal buka</span>
+                    </li>
+                    <li>
+                        <span>❌</span>
+                        <span>Extra click untuk tutup modal</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="comparison-card after">
+                <h3>✅ AFTER (Inline)</h3>
+                <ul class="feature-list">
+                    <li>
+                        <span>✅</span>
+                        <span>Jadwal inline expandable</span>
+                    </li>
+                    <li>
+                        <span>✅</span>
+                        <span>Chevron di kolom pertama</span>
+                    </li>
+                    <li>
+                        <span>✅</span>
+                        <span>No overlay, stays in context</span>
+                    </li>
+                    <li>
+                        <span>✅</span>
+                        <span>Context always preserved</span>
+                    </li>
+                    <li>
+                        <span>✅</span>
+                        <span>Single click toggle</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Live Demo -->
+        <div class="demo-section">
+            <h2>📊 Live Example: Inline Schedule</h2>
+            
+            <div class="table-container">
+                <!-- Header -->
+                <div class="table-row header">
+                    <div></div>
+                    <div>ASET</div>
+                    <div>METODE</div>
+                    <div>HARGA BELI</div>
+                    <div>AKUMULASI</div>
+                    <div>NILAI BUKU</div>
+                    <div>PER TAHUN</div>
+                </div>
+
+                <!-- Data Row -->
+                <div class="table-row data">
+                    <div class="chevron">▼</div>
+                    <div>
+                        <div style="font-weight: 600;">Excavator CAT 320D</div>
+                        <div style="font-size: 0.75rem; color: #636366;">AST-001</div>
+                    </div>
+                    <div>
+                        <div>Garis Lurus</div>
+                        <div style="font-size: 0.75rem; color: #98989D;">5 tahun</div>
+                    </div>
+                    <div>Rp 2.500.000.000</div>
+                    <div style="color: #FF9F0A;">Rp 500.000.000</div>
+                    <div style="color: #30D158; font-weight: 600;">Rp 2.000.000.000</div>
+                    <div>Rp 500.000.000</div>
+                </div>
+
+                <!-- Expanded Schedule -->
+                <div class="expanded-schedule">
+                    <div class="schedule-title">Jadwal Depresiasi - Excavator CAT 320D</div>
+                    
+                    <div class="schedule-table">
+                        <!-- Schedule Header -->
+                        <div class="schedule-row header">
+                            <div>TAHUN</div>
+                            <div>DEPRESIASI</div>
+                            <div>AKUMULASI</div>
+                            <div>NILAI BUKU</div>
+                        </div>
+
+                        <!-- Schedule Data -->
+                        <div class="schedule-row data">
+                            <div style="color: white;">Tahun 1 (2025)</div>
+                            <div style="color: #FF9F0A;">Rp 500.000.000</div>
+                            <div style="color: #FF453A;">Rp 500.000.000</div>
+                            <div style="color: #30D158; font-weight: 600;">Rp 2.000.000.000</div>
+                        </div>
+
+                        <div class="schedule-row data">
+                            <div style="color: white;">Tahun 2 (2026)</div>
+                            <div style="color: #FF9F0A;">Rp 500.000.000</div>
+                            <div style="color: #FF453A;">Rp 1.000.000.000</div>
+                            <div style="color: #30D158; font-weight: 600;">Rp 1.500.000.000</div>
+                        </div>
+
+                        <div class="schedule-row data">
+                            <div style="color: white;">Tahun 3 (2027)</div>
+                            <div style="color: #FF9F0A;">Rp 500.000.000</div>
+                            <div style="color: #FF453A;">Rp 1.500.000.000</div>
+                            <div style="color: #30D158; font-weight: 600;">Rp 1.000.000.000</div>
+                        </div>
+
+                        <div class="schedule-row data">
+                            <div style="color: white;">Tahun 4 (2028)</div>
+                            <div style="color: #FF9F0A;">Rp 500.000.000</div>
+                            <div style="color: #FF453A;">Rp 2.000.000.000</div>
+                            <div style="color: #30D158; font-weight: 600;">Rp 500.000.000</div>
+                        </div>
+
+                        <div class="schedule-row data">
+                            <div style="color: white;">Tahun 5 (2029)</div>
+                            <div style="color: #FF9F0A;">Rp 500.000.000</div>
+                            <div style="color: #FF453A;">Rp 2.500.000.000</div>
+                            <div style="color: #30D158; font-weight: 600;">Rp 0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: rgba(48, 209, 88, 0.1); border: 1px solid rgba(48, 209, 88, 0.3); padding: 16px; border-radius: 8px; margin-top: 20px;">
+                <p style="color: #30D158; font-weight: 600;">✅ Notice: Jadwal depresiasi muncul inline di bawah row, tidak ada modal popup!</p>
+            </div>
+        </div>
+
+        <!-- Benefits -->
+        <div class="demo-section">
+            <h2>🎉 Benefits</h2>
+            
+            <div class="benefit-grid">
+                <div class="benefit-card">
+                    <h4>🎯 Better Context</h4>
+                    <p>Schedule stays within page. No overlay interruption. Easy to reference main table data.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <h4>⚡ Faster Workflow</h4>
+                    <p>One click to expand/collapse. No modal open/close. Quick asset comparison.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <h4>📱 Mobile Friendly</h4>
+                    <p>Inline content flows naturally. No modal scroll issues. Better touch targets.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <h4>🧹 Cleaner Code</h4>
+                    <p>-3 states, -1 function, -80 lines modal code. Simpler and more maintainable.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <h4>🎨 Consistent Design</h4>
+                    <p>Matches Asset Registry pattern. All tabs use same inline approach.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <h4>🚀 Better Performance</h4>
+                    <p>No modal render overhead. Faster interaction. Lighter bundle size.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="demo-section">
+            <h2>📖 Cara Menggunakan</h2>
+            
+            <div style="background: #1C1C1E; padding: 24px; border-radius: 8px;">
+                <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #38383A;">
+                    <h3 style="color: #FF9F0A; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span>▼</span> View Schedule
+                    </h3>
+                    <p style="color: #98989D; line-height: 1.6;">
+                        Klik icon <strong style="color: white;">chevron (▼)</strong> di kolom paling kiri untuk expand jadwal depresiasi. 
+                        Jadwal akan muncul <strong style="color: #30D158;">inline di bawah row</strong>, menampilkan breakdown per tahun.
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #38383A;">
+                    <h3 style="color: #FF9F0A; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span>▲</span> Hide Schedule
+                    </h3>
+                    <p style="color: #98989D; line-height: 1.6;">
+                        Klik icon <strong style="color: white;">chevron (▲)</strong> lagi untuk collapse jadwal. 
+                        Row akan kembali ke ukuran normal.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 style="color: #FF9F0A; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span>📊</span> Compare Assets
+                    </h3>
+                    <p style="color: #98989D; line-height: 1.6;">
+                        Expand satu asset, lihat jadwalnya. Lalu expand asset lain - 
+                        <strong style="color: #30D158;">schedule pertama auto-collapse</strong>. 
+                        Mudah untuk compare depreciation antar asset.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Legend -->
+        <div class="demo-section">
+            <h2>🎨 Color Code</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div style="padding: 20px; background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; color: #FF9F0A; margin-bottom: 8px;">Rp XXX</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">Depresiasi (Orange)</div>
+                </div>
+
+                <div style="padding: 20px; background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.3); border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; color: #FF453A; margin-bottom: 8px;">Rp XXX</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">Akumulasi (Red)</div>
+                </div>
+
+                <div style="padding: 20px; background: rgba(48, 209, 88, 0.1); border: 1px solid rgba(48, 209, 88, 0.3); border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2rem; color: #30D158; margin-bottom: 8px;">Rp XXX</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">Nilai Buku (Green)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="demo-section">
+            <h2>📊 Code Improvements</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                <div style="padding: 20px; background: #1C1C1E; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5rem; color: #30D158; margin-bottom: 8px;">-40</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">Lines Removed</div>
+                </div>
+                <div style="padding: 20px; background: #1C1C1E; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5rem; color: #30D158; margin-bottom: 8px;">-3</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">States Removed</div>
+                </div>
+                <div style="padding: 20px; background: #1C1C1E; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5rem; color: #30D158; margin-bottom: 8px;">-1</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">Function Removed</div>
+                </div>
+                <div style="padding: 20px; background: #1C1C1E; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2.5rem; color: #30D158; margin-bottom: 8px;">100%</div>
+                    <div style="color: #98989D; font-size: 0.9rem;">Modal Eliminated</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- URL Box -->
+        <div class="url-box">
+            <h3>🌐 Test Sekarang:</h3>
+            <a href="https://nusantaragroup.co/assets" target="_blank">https://nusantaragroup.co/assets</a>
+            <p style="color: #98989D; margin-top: 12px;">Tab: Depreciation</p>
+            <p style="color: #30D158; margin-top: 8px; font-weight: 600;">✅ Verified: Inline schedule, no modal!</p>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 60px; padding-top: 40px; border-top: 1px solid #38383A;">
+            <p style="color: #98989D; font-size: 0.9rem;">
+                Depreciation Tracker - Inline Schedule Implementation<br>
+                October 12, 2025 | Nusantara Construction Management
+            </p>
+        </div>
+    </div>
+</body>
+</html>

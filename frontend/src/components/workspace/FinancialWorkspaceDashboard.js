@@ -272,10 +272,10 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+      <div className="rounded-xl p-8 shadow-lg" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">Loading Financial Data...</span>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#0A84FF' }}></div>
+          <span className="ml-3" style={{ color: '#98989D' }}>Loading Financial Data...</span>
         </div>
       </div>
     );
@@ -286,22 +286,27 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <div className="flex justify-between items-center">
+      <div className="rounded-xl p-6 shadow-lg" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Banknote className="w-8 h-8 mr-3 text-blue-600" />
+            <h2 className="text-2xl font-bold flex items-center" style={{ color: '#FFFFFF' }}>
+              <Banknote className="w-8 h-8 mr-3" style={{ color: '#0A84FF' }} />
               Financial Workspace Dashboard
             </h2>
-            <p className="text-gray-600 mt-1">
+            <p className="mt-1" style={{ color: '#98989D' }}>
               Comprehensive financial analysis & PSAK compliance monitoring
             </p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-3">
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2"
+              style={{
+                backgroundColor: '#1C1C1E',
+                color: '#FFFFFF',
+                border: '1px solid #38383A'
+              }}
             >
               <option value="monthly">Monthly</option>
               <option value="quarterly">Quarterly</option>
@@ -310,12 +315,24 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="flex items-center px-3 py-2 text-sm rounded-lg transition-all duration-200 disabled:opacity-50"
+              style={{
+                backgroundColor: 'rgba(10, 132, 255, 0.15)',
+                color: '#0A84FF',
+                border: '1px solid rgba(10, 132, 255, 0.3)'
+              }}
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
-            <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+            <button 
+              className="flex items-center px-4 py-2 rounded-lg text-sm transition-all duration-200"
+              style={{
+                backgroundColor: 'rgba(10, 132, 255, 0.15)',
+                color: '#0A84FF',
+                border: '1px solid rgba(10, 132, 255, 0.3)'
+              }}
+            >
               <Download className="w-4 h-4 mr-2" />
               Export Report
             </button>
@@ -326,69 +343,78 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
       {/* KPI Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Total Revenue */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-lg transition-transform hover:scale-105" style={{
+          background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.15), rgba(48, 209, 88, 0.05))',
+          border: '1px solid rgba(48, 209, 88, 0.3)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-600 mt-1">
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Total Revenue</p>
+              <p className="text-2xl font-bold mt-1" style={{ color: '#30D158' }}>
                 {formatCurrency(incomeStatement?.statement?.revenues?.total)}
               </p>
               <div className="flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">+12.5% from last period</span>
+                <TrendingUp className="w-4 h-4 mr-1" style={{ color: '#30D158' }} />
+                <span className="text-sm" style={{ color: '#30D158' }}>+12.5% from last period</span>
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-green-50">
-              <DollarSign className="w-6 h-6 text-green-600" />
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(48, 209, 88, 0.2)' }}>
+              <DollarSign className="w-6 h-6" style={{ color: '#30D158' }} />
             </div>
           </div>
         </div>
 
         {/* Net Profit */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-lg transition-transform hover:scale-105" style={{
+          background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
+          border: '1px solid rgba(10, 132, 255, 0.3)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Net Profit</p>
-              <p className="text-2xl font-bold text-blue-600 mt-1">
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Net Profit</p>
+              <p className="text-2xl font-bold mt-1" style={{ color: '#0A84FF' }}>
                 {formatCurrency(incomeStatement?.statement?.netIncome)}
               </p>
               <div className="flex items-center mt-2">
-                <Target className="w-4 h-4 text-blue-500 mr-1" />
-                <span className="text-sm text-blue-600">
+                <Target className="w-4 h-4 mr-1" style={{ color: '#0A84FF' }} />
+                <span className="text-sm" style={{ color: '#0A84FF' }}>
                   {incomeStatement?.statement?.netProfitMargin?.toFixed(1)}% margin
                 </span>
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-blue-50">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(10, 132, 255, 0.2)' }}>
+              <TrendingUp className="w-6 h-6" style={{ color: '#0A84FF' }} />
             </div>
           </div>
         </div>
 
         {/* Cash Position */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-lg transition-transform hover:scale-105" style={{
+          background: 'linear-gradient(135deg, rgba(175, 82, 222, 0.15), rgba(175, 82, 222, 0.05))',
+          border: '1px solid rgba(175, 82, 222, 0.3)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Cash Position</p>
-              <p className="text-2xl font-bold text-purple-600 mt-1">
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Cash Position</p>
+              <p className="text-2xl font-bold mt-1" style={{ color: '#AF52DE' }}>
                 {formatCurrency(balanceSheet?.assets?.current?.cash)}
               </p>
               <div className="flex items-center mt-2">
-                <Activity className="w-4 h-4 text-purple-500 mr-1" />
-                <span className="text-sm text-purple-600">Strong liquidity</span>
+                <Activity className="w-4 h-4 mr-1" style={{ color: '#AF52DE' }} />
+                <span className="text-sm" style={{ color: '#AF52DE' }}>Strong liquidity</span>
               </div>
             </div>
-            <div className="p-3 rounded-lg bg-purple-50">
-              <Wallet className="w-6 h-6 text-purple-600" />
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(175, 82, 222, 0.2)' }}>
+              <Wallet className="w-6 h-6" style={{ color: '#AF52DE' }} />
             </div>
           </div>
         </div>
 
         {/* PSAK Compliance */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">PSAK Compliance</p>
+              <p className="text-sm font-medium" style={{ color: "#98989D" }}>PSAK Compliance</p>
               <p className="text-2xl font-bold text-emerald-600 mt-1">
                 {compliance?.overallScore?.toFixed(1)}%
               </p>
@@ -407,16 +433,16 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Financial Trends Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="lg:col-span-2 rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Revenue & Profit Trends</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Revenue & Profit Trends</h3>
             <div className="flex items-center space-x-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs" style={{ backgroundColor: "rgba(10, 132, 255, 0.15)", color: "#0A84FF" }}>
+                <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: "#0A84FF" }}></div>
                 Revenue
               </span>
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs" style={{ backgroundColor: "rgba(48, 209, 88, 0.15)", color: "#30D158" }}>
+                <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: "#30D158" }}></div>
                 Profit
               </span>
             </div>
@@ -449,10 +475,10 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         </div>
 
         {/* Expense Breakdown */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Cost Breakdown</h3>
-            <Eye className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Cost Breakdown</h3>
+            <Eye className="w-5 h-5 cursor-pointer" style={{ color: "#98989D" }} />
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -481,9 +507,9 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
                     className="w-3 h-3 rounded-full mr-2" 
                     style={{ backgroundColor: item.color }}
                   ></div>
-                  <span className="text-gray-600">{item.name}</span>
+                  <span style={{ color: "#98989D" }}>{item.name}</span>
                 </div>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium" style={{ color: "#FFFFFF" }}>
                   {formatCurrency(item.value)}
                 </span>
               </div>
@@ -495,39 +521,39 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
       {/* Financial Statements Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Income Statement Summary */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Income Statement</h3>
-            <Receipt className="w-5 h-5 text-gray-400" />
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Income Statement</h3>
+            <Receipt className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Revenue</span>
-              <span className="font-semibold text-green-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Revenue</span>
+              <span className="font-semibold" style={{ color: "#30D158" }}>
                 {formatCurrency(incomeStatement?.statement?.revenues?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Direct Costs</span>
-              <span className="font-semibold text-red-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Direct Costs</span>
+              <span className="font-semibold" style={{ color: "#FF453A" }}>
                 ({formatCurrency(incomeStatement?.statement?.directCosts?.total)})
               </span>
             </div>
-            <div className="flex justify-between items-center border-t pt-3">
-              <span className="text-sm text-gray-600">Gross Profit</span>
-              <span className="font-semibold text-blue-600">
+            <div className="flex justify-between items-center pt-3" style={{ borderTop: "1px solid #38383A" }}>
+              <span className="text-sm" style={{ color: "#98989D" }}>Gross Profit</span>
+              <span className="font-semibold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(incomeStatement?.statement?.grossProfit)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Indirect Costs</span>
-              <span className="font-semibold text-red-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Indirect Costs</span>
+              <span className="font-semibold" style={{ color: "#FF453A" }}>
                 ({formatCurrency(incomeStatement?.statement?.indirectCosts?.total)})
               </span>
             </div>
-            <div className="flex justify-between items-center border-t pt-3 font-bold">
-              <span className="text-gray-900">Net Income</span>
-              <span className="text-emerald-600">
+            <div className="flex justify-between items-center pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
+              <span style={{ color: "#FFFFFF" }}>Net Income</span>
+              <span style={{ color: "#30D158" }}>
                 {formatCurrency(incomeStatement?.statement?.netIncome)}
               </span>
             </div>
@@ -535,25 +561,25 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         </div>
 
         {/* Balance Sheet Summary */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Balance Sheet</h3>
-            <Building2 className="w-5 h-5 text-gray-400" />
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Balance Sheet</h3>
+            <Building2 className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Assets</span>
-                <span className="font-semibold text-blue-600">
+                <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Assets</span>
+                <span className="font-semibold" style={{ color: "#0A84FF" }}>
                   {formatCurrency(balanceSheet?.assets?.total)}
                 </span>
               </div>
               <div className="ml-2 space-y-1">
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-xs" style={{ color: "#98989D" }}>
                   <span>• Current Assets</span>
                   <span>{formatCurrency(balanceSheet?.assets?.current?.total)}</span>
                 </div>
-                <div className="flex justify-between text-xs text-gray-600">
+                <div className="flex justify-between text-xs" style={{ color: "#98989D" }}>
                   <span>• Fixed Assets</span>
                   <span>{formatCurrency(balanceSheet?.assets?.fixed?.total)}</span>
                 </div>
@@ -561,16 +587,16 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
             </div>
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Liabilities</span>
-                <span className="font-semibold text-red-600">
+                <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Liabilities</span>
+                <span className="font-semibold" style={{ color: "#FF453A" }}>
                   {formatCurrency(balanceSheet?.liabilities?.total)}
                 </span>
               </div>
             </div>
-            <div className="border-t pt-3">
+            <div className="pt-3" style={{ borderTop: "1px solid #38383A" }}>
               <div className="flex justify-between items-center font-bold">
-                <span className="text-gray-900">Equity</span>
-                <span className="text-emerald-600">
+                <span style={{ color: "#FFFFFF" }}>Equity</span>
+                <span style={{ color: "#30D158" }}>
                   {formatCurrency(balanceSheet?.equity?.total)}
                 </span>
               </div>
@@ -579,33 +605,33 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         </div>
 
         {/* Cash Flow Summary */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Cash Flow</h3>
-            <Activity className="w-5 h-5 text-gray-400" />
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Cash Flow</h3>
+            <Activity className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Operating</span>
-              <span className="font-semibold text-green-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Operating</span>
+              <span className="font-semibold" style={{ color: "#30D158" }}>
                 {formatCurrency(cashFlow?.operating?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Investing</span>
-              <span className="font-semibold text-red-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Investing</span>
+              <span className="font-semibold" style={{ color: "#FF453A" }}>
                 {formatCurrency(cashFlow?.investing?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Financing</span>
-              <span className="font-semibold text-blue-600">
+              <span className="text-sm" style={{ color: "#98989D" }}>Financing</span>
+              <span className="font-semibold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(cashFlow?.financing?.total)}
               </span>
             </div>
-            <div className="flex justify-between items-center border-t pt-3 font-bold">
-              <span className="text-gray-900">Net Change</span>
-              <span className={`${cashFlow?.netChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="flex justify-between items-center pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
+              <span style={{ color: "#FFFFFF" }}>Net Change</span>
+              <span style={{ color: cashFlow?.netChange >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(cashFlow?.netChange)}
               </span>
             </div>
@@ -616,12 +642,12 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
       {/* Compliance & Action Items */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* PSAK Compliance Details */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">PSAK Compliance Status</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>PSAK Compliance Status</h3>
             <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 text-emerald-500 mr-2" />
-              <span className="text-sm text-emerald-600">{compliance?.complianceLevel}</span>
+              <CheckCircle className="w-5 h-5 mr-2" style={{ color: "#30D158" }} />
+              <span className="text-sm" style={{ color: "#30D158" }}>{compliance?.complianceLevel}</span>
             </div>
           </div>
           <div className="space-y-3">
@@ -629,14 +655,14 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
               <div key={key} className="flex items-center justify-between">
                 <div className="flex items-center">
                   {check.passed ? 
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" /> :
-                    <AlertTriangle className="w-4 h-4 text-amber-500 mr-2" />
+                    <CheckCircle className="w-4 h-4 mr-2" style={{ color: "#30D158" }} /> :
+                    <AlertTriangle className="w-4 h-4 mr-2" style={{ color: "#FF9F0A" }} />
                   }
-                  <span className="text-sm text-gray-700 capitalize">
+                  <span className="text-sm capitalize" style={{ color: "#FFFFFF" }}>
                     {key.replace(/([A-Z])/g, ' $1').trim()}
                   </span>
                 </div>
-                <span className={`text-sm font-medium ${check.passed ? 'text-green-600' : 'text-amber-600'}`}>
+                <span className="text-sm font-medium" style={{ color: check.passed ? '#30D158' : '#FF9F0A' }}>
                   {check.score}%
                 </span>
               </div>
@@ -645,35 +671,35 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         </div>
 
         {/* Key Actions & Alerts */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Action Items</h3>
-            <Clock className="w-5 h-5 text-gray-400" />
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Action Items</h3>
+            <Clock className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
-            <div className="flex items-center p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <AlertTriangle className="w-4 h-4 text-amber-600 mr-3" />
+            <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: "rgba(255, 159, 10, 0.15)", border: "1px solid rgba(255, 159, 10, 0.3)" }}>
+              <AlertTriangle className="w-4 h-4 mr-3" style={{ color: "#FF9F0A" }} />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-800">Review Construction Accounting</p>
-                <p className="text-xs text-amber-600">PSAK compliance needs attention</p>
+                <p className="text-sm font-medium" style={{ color: "#FF9F0A" }}>Review Construction Accounting</p>
+                <p className="text-xs" style={{ color: "#98989D" }}>PSAK compliance needs attention</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-amber-600" />
+              <ChevronRight className="w-4 h-4" style={{ color: "#FF9F0A" }} />
             </div>
-            <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <Info className="w-4 h-4 text-blue-600 mr-3" />
+            <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: "rgba(10, 132, 255, 0.15)", border: "1px solid rgba(10, 132, 255, 0.3)" }}>
+              <Info className="w-4 h-4 mr-3" style={{ color: "#0A84FF" }} />
               <div className="flex-1">
-                <p className="text-sm font-medium text-blue-800">Monthly Tax Filing Due</p>
-                <p className="text-xs text-blue-600">Due in 5 days</p>
+                <p className="text-sm font-medium" style={{ color: "#0A84FF" }}>Monthly Tax Filing Due</p>
+                <p className="text-xs" style={{ color: "#98989D" }}>Due in 5 days</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-blue-600" />
+              <ChevronRight className="w-4 h-4" style={{ color: "#0A84FF" }} />
             </div>
-            <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200">
-              <CheckCircle className="w-4 h-4 text-green-600 mr-3" />
+            <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: "rgba(48, 209, 88, 0.15)", border: "1px solid rgba(48, 209, 88, 0.3)" }}>
+              <CheckCircle className="w-4 h-4 mr-3" style={{ color: "#30D158" }} />
               <div className="flex-1">
-                <p className="text-sm font-medium text-green-800">All invoices processed</p>
-                <p className="text-xs text-green-600">Financial records up to date</p>
+                <p className="text-sm font-medium" style={{ color: "#30D158" }}>All invoices processed</p>
+                <p className="text-xs" style={{ color: "#98989D" }}>Financial records up to date</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-green-600" />
+              <ChevronRight className="w-4 h-4" style={{ color: "#30D158" }} />
             </div>
           </div>
         </div>

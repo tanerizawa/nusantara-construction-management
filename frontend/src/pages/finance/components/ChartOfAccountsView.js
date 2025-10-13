@@ -43,13 +43,14 @@ const ChartOfAccountsView = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
-          <BookOpen className="w-7 h-7 mr-3 text-blue-600" />
+        <h2 className="text-2xl font-semibold flex items-center" style={{ color: "#FFFFFF" }}>
+          <BookOpen className="w-7 h-7 mr-3" style={{ color: "#0A84FF" }} />
           Chart of Accounts (PSAK Compliant)
         </h2>
         <button
           onClick={handleExportCOA}
-          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+          style={{ background: "linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)", color: "#FFFFFF" }}
         >
           <Download className="w-4 h-4" />
           <span>Export to CSV</span>
@@ -57,22 +58,22 @@ const ChartOfAccountsView = ({
       </div>
 
       {/* Chart of Accounts Component */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
         <ChartOfAccounts 
           subsidiaryId={selectedSubsidiary !== 'all' ? selectedSubsidiary : null}
         />
       </div>
 
       {/* Info Panel */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-gray-900 mb-2">
+      <div className="rounded-lg p-4" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+        <h3 className="text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
           About Chart of Accounts
         </h3>
-        <p className="text-sm text-gray-700 mb-2">
+        <p className="text-sm mb-2" style={{ color: "#98989D" }}>
           The Chart of Accounts (COA) is structured according to PSAK (Indonesian Financial 
           Accounting Standards) requirements, ensuring compliance with local regulations.
         </p>
-        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+        <ul className="text-sm list-disc list-inside space-y-1" style={{ color: "#98989D" }}>
           <li>Asset accounts (1000-1999)</li>
           <li>Liability accounts (2000-2999)</li>
           <li>Equity accounts (3000-3999)</li>

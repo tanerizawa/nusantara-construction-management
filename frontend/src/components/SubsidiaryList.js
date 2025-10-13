@@ -70,12 +70,12 @@ const SubsidiaryList = () => {
 
   // Handle view subsidiary details
   const handleViewDetails = (subsidiary) => {
-    navigate(`/admin/subsidiaries/${subsidiary.id}`);
+    navigate(`/subsidiaries/${subsidiary.id}`);
   };
 
   // Handle edit subsidiary
   const handleEditSubsidiary = (subsidiary) => {
-    navigate(`/admin/subsidiaries/${subsidiary.id}/edit`);
+    navigate(`/subsidiaries/${subsidiary.id}/edit`);
   };
 
   // Handle delete subsidiary
@@ -186,7 +186,7 @@ const SubsidiaryList = () => {
             Kelola {subsidiaries.length} perusahaan dalam grup konstruksi YK
           </p>
         </div>
-        <Button onClick={() => navigate('/admin/subsidiaries/create')}>
+        <Button onClick={() => navigate('/subsidiaries/create')}>
           <Plus className="h-4 w-4 mr-2" />
           Tambah Anak Usaha
         </Button>

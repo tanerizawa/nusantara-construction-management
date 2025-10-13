@@ -34,14 +34,19 @@ const TransactionFilters = ({
       <select 
         value={selectedSubsidiary} 
         onChange={(e) => onSubsidiaryChange(e.target.value)}
-        className={`border border-gray-300 rounded-lg px-3 py-2 ${compact ? 'text-xs' : 'text-sm'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+        className={`rounded-lg px-4 py-2 ${compact ? 'text-xs' : 'text-sm'} font-medium transition-all duration-200 focus:outline-none focus:ring-2`}
+        style={{
+          backgroundColor: '#2C2C2E',
+          color: '#FFFFFF',
+          border: '1px solid #38383A'
+        }}
         disabled={loadingSubsidiaries}
       >
-        <option value="all">
+        <option value="all" style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
           {loadingSubsidiaries ? 'Loading...' : 'Semua Anak Perusahaan'}
         </option>
         {subsidiaries.map(sub => (
-          <option key={sub.id} value={sub.id}>
+          <option key={sub.id} value={sub.id} style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
             {sub.name}
           </option>
         ))}
@@ -51,14 +56,19 @@ const TransactionFilters = ({
       <select 
         value={selectedProject} 
         onChange={(e) => onProjectChange(e.target.value)}
-        className={`border border-gray-300 rounded-lg px-3 py-2 ${compact ? 'text-xs' : 'text-sm'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+        className={`rounded-lg px-4 py-2 ${compact ? 'text-xs' : 'text-sm'} font-medium transition-all duration-200 focus:outline-none focus:ring-2`}
+        style={{
+          backgroundColor: '#2C2C2E',
+          color: '#FFFFFF',
+          border: '1px solid #38383A'
+        }}
         disabled={loadingProjects}
       >
-        <option value="all">
+        <option value="all" style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
           {loadingProjects ? 'Loading Projects...' : 'All Projects'}
         </option>
         {projects.map(project => (
-          <option key={project.id} value={project.id}>
+          <option key={project.id} value={project.id} style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
             {project.name}
           </option>
         ))}

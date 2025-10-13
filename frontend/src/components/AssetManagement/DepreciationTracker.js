@@ -1,155 +1,63 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  TrendingDown, 
-  Calculator, 
-  Calendar, 
-  DollarSign,
-  BarChart3,
-  FileText,
-  RefreshCw,
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  Download,
-  Filter,
-  Search
+  TrendingDown, Calculator, RefreshCw, Package, X, ChevronDown, ChevronUp
 } from 'lucide-react';
 import axios from 'axios';
 
-/**
- * Depreciation Tracker Component
- * 
- * Comprehensive depreciation management for construction assets
- * Features:
- * - Multiple depreciation methods (Straight Line, Declining Balance, etc.)
- * - Depreciation schedule visualization
- * - Monthly/Annual depreciation calculations
- * - Integration with Chart of Accounts
- * - Depreciation reports and analytics
- */
 const DepreciationTracker = () => {
   const [assets, setAssets] = useState([]);
-  const [filteredAssets, setFilteredAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterMethod, setFilterMethod] = useState('');
-  const [selectedAsset, setSelectedAsset] = useState(null);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [depreciationSchedule, setDepreciationSchedule] = useState([]);
-  const [totalDepreciation, setTotalDepreciation] = useState({
-    totalCost: 0,
-    totalAccumulated: 0,
-    totalNetBook: 0,
-    monthlyDepreciation: 0
-  });
+  const [expandedRow, setExpandedRow] = useState(null);
 
   const depreciationMethods = {
     STRAIGHT_LINE: 'Garis Lurus',
     DECLINING_BALANCE: 'Saldo Menurun',
-    DOUBLE_DECLINING: 'Saldo Menurun Berganda',
-    UNITS_OF_PRODUCTION: 'Unit Produksi',
-    SUM_OF_YEARS_DIGITS: 'Jumlah Angka Tahun'
+    DOUBLE_DECLINING: 'Saldo Menurun Berganda'
   };
 
-  // Fetch assets with depreciation data
   const fetchAssetsWithDepreciation = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Fetch assets from database
       const response = await axios.get('/api/reports/fixed-asset/list');
       
       if (response.data.success) {
-        const rawAssets = response.data.assets || [];
+        const rawAssets = response.data.data || [];
         
-        // Calculate depreciation for each asset
         const assetsWithDepreciation = rawAssets.map(asset => {
-          const purchasePrice = parseFloat(asset.purchase_price) || 0;
-          const salvageValue = parseFloat(asset.salvage_value) || 0;
-          const usefulLife = parseInt(asset.useful_life) || 5;
-          const purchaseDate = new Date(asset.purchase_date);
+          const purchasePrice = parseFloat(asset.purchasePrice) || 0;
+          const salvageValue = parseFloat(asset.salvageValue) || 0;
+          const usefulLife = parseInt(asset.usefulLife) || 5;
+          const purchaseDate = new Date(asset.purchaseDate);
           const currentDate = new Date();
           
-          // Default depreciation method to straight line if not specified
-          const depreciationMethod = asset.depreciation_method || 'STRAIGHT_LINE';
-          
-          // Calculate months elapsed since purchase
           const monthsElapsed = (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
                                (currentDate.getMonth() - purchaseDate.getMonth());
           
-          let accumulatedDepreciation = 0;
-          let monthlyDepreciation = 0;
-          let annualDepreciation = 0;
-          
-          // Calculate depreciation based on method
-          if (depreciationMethod === 'STRAIGHT_LINE') {
-            const depreciableAmount = purchasePrice - salvageValue;
-            annualDepreciation = depreciableAmount / usefulLife;
-            monthlyDepreciation = annualDepreciation / 12;
-            accumulatedDepreciation = Math.min(monthlyDepreciation * monthsElapsed, depreciableAmount);
-          } else if (depreciationMethod === 'DECLINING_BALANCE') {
-            const depreciationRate = 2 / usefulLife; // Double declining balance
-            let bookValue = purchasePrice;
-            accumulatedDepreciation = 0;
-            
-            for (let month = 0; month < monthsElapsed && bookValue > salvageValue; month++) {
-              const currentMonthlyDepreciation = (bookValue * depreciationRate) / 12;
-              if (bookValue - currentMonthlyDepreciation < salvageValue) {
-                accumulatedDepreciation += bookValue - salvageValue;
-                break;
-              }
-              accumulatedDepreciation += currentMonthlyDepreciation;
-              bookValue -= currentMonthlyDepreciation;
-            }
-            
-            monthlyDepreciation = monthsElapsed > 0 ? accumulatedDepreciation / monthsElapsed : 0;
-            annualDepreciation = monthlyDepreciation * 12;
-          }
-          
+          const depreciableAmount = purchasePrice - salvageValue;
+          const annualDepreciation = depreciableAmount / usefulLife;
+          const monthlyDepreciation = annualDepreciation / 12;
+          const accumulatedDepreciation = Math.min(monthlyDepreciation * monthsElapsed, depreciableAmount);
           const netBookValue = purchasePrice - accumulatedDepreciation;
-          const depreciationRate = purchasePrice > 0 ? (accumulatedDepreciation / purchasePrice) * 100 : 0;
-          const remainingLife = usefulLife - (monthsElapsed / 12);
           
           return {
-            id: asset.id,
-            assetCode: asset.asset_code,
-            assetName: asset.asset_name,
-            assetCategory: asset.asset_category,
-            purchasePrice: purchasePrice,
-            purchaseDate: asset.purchase_date,
-            depreciationMethod: depreciationMethod,
-            usefulLife: usefulLife,
-            salvageValue: salvageValue,
-            depreciationStartDate: asset.purchase_date,
-            accumulatedDepreciation: Math.round(accumulatedDepreciation),
-            netBookValue: Math.round(netBookValue),
-            monthlyDepreciation: Math.round(monthlyDepreciation),
-            annualDepreciation: Math.round(annualDepreciation),
-            depreciationRate: Math.round(depreciationRate * 100) / 100,
-            remainingLife: Math.max(0, Math.round(remainingLife * 100) / 100),
-            lastDepreciationDate: currentDate.toISOString().split('T')[0]
+            ...asset,
+            depreciableAmount,
+            annualDepreciation,
+            monthlyDepreciation,
+            accumulatedDepreciation,
+            netBookValue,
+            depreciationMethod: 'STRAIGHT_LINE',
+            usefulLife
           };
         });
-
+        
         setAssets(assetsWithDepreciation);
-        setFilteredAssets(assetsWithDepreciation);
-
-        // Calculate totals
-        const totals = assetsWithDepreciation.reduce((acc, asset) => ({
-          totalCost: acc.totalCost + asset.purchasePrice,
-          totalAccumulated: acc.totalAccumulated + asset.accumulatedDepreciation,
-          totalNetBook: acc.totalNetBook + asset.netBookValue,
-          monthlyDepreciation: acc.monthlyDepreciation + asset.monthlyDepreciation
-        }), { totalCost: 0, totalAccumulated: 0, totalNetBook: 0, monthlyDepreciation: 0 });
-
-        setTotalDepreciation(totals);
-      } else {
-        setError('Failed to fetch assets data');
       }
     } catch (error) {
       console.error('Error fetching depreciation data:', error);
-      setError('Failed to load depreciation data');
+      setError('Gagal memuat data depresiasi');
     } finally {
       setLoading(false);
     }
@@ -159,374 +67,258 @@ const DepreciationTracker = () => {
     fetchAssetsWithDepreciation();
   }, [fetchAssetsWithDepreciation]);
 
-  // Filter assets
-  useEffect(() => {
-    let filtered = assets;
-
-    if (searchTerm) {
-      filtered = filtered.filter(asset =>
-        asset.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        asset.assetCode.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filterMethod) {
-      filtered = filtered.filter(asset => asset.depreciationMethod === filterMethod);
-    }
-
-    setFilteredAssets(filtered);
-  }, [searchTerm, filterMethod, assets]);
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
-      minimumFractionDigits: 0
+      maximumFractionDigits: 0
     }).format(amount);
-  };
-
-  const formatPercentage = (value) => {
-    return `${value.toFixed(2)}%`;
-  };
-
-  const getMethodColor = (method) => {
-    const colors = {
-      STRAIGHT_LINE: 'bg-blue-100 text-blue-800',
-      DECLINING_BALANCE: 'bg-green-100 text-green-800',
-      DOUBLE_DECLINING: 'bg-purple-100 text-purple-800',
-      UNITS_OF_PRODUCTION: 'bg-orange-100 text-orange-800',
-      SUM_OF_YEARS_DIGITS: 'bg-red-100 text-red-800'
-    };
-    return colors[method] || 'bg-gray-100 text-gray-800';
   };
 
   const generateDepreciationSchedule = (asset) => {
     const schedule = [];
-    const startDate = new Date(asset.depreciationStartDate);
-    const annualDepreciation = asset.annualDepreciation;
+    const startYear = new Date(asset.purchaseDate).getFullYear();
     
     for (let year = 1; year <= asset.usefulLife; year++) {
-      const scheduleYear = startDate.getFullYear() + year - 1;
-      const accumulated = annualDepreciation * year;
-      const netBookValue = asset.purchasePrice - Math.min(accumulated, asset.purchasePrice - asset.salvageValue);
+      const yearlyDepreciation = asset.annualDepreciation;
+      const accumulated = yearlyDepreciation * year;
+      const netBookValue = asset.purchasePrice - Math.min(accumulated, asset.depreciableAmount);
       
       schedule.push({
-        year: scheduleYear,
+        year: startYear + year - 1,
         yearNumber: year,
-        depreciation: annualDepreciation,
-        accumulated: Math.min(accumulated, asset.purchasePrice - asset.salvageValue),
-        netBookValue: Math.max(netBookValue, asset.salvageValue)
+        depreciation: yearlyDepreciation,
+        accumulated: Math.min(accumulated, asset.depreciableAmount),
+        netBookValue: Math.max(netBookValue, asset.salvageValue || 0)
       });
     }
     
     return schedule;
   };
 
-  const viewDepreciationSchedule = (asset) => {
-    const schedule = generateDepreciationSchedule(asset);
-    setDepreciationSchedule(schedule);
-    setSelectedAsset(asset);
-    setShowScheduleModal(true);
+  const toggleRowExpand = (assetId) => {
+    setExpandedRow(expandedRow === assetId ? null : assetId);
   };
 
+  const filteredAssets = assets.filter(asset =>
+    asset.assetName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    asset.assetCode?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const stats = {
+    totalAssets: assets.length,
+    totalCost: assets.reduce((sum, a) => sum + (parseFloat(a.purchasePrice) || 0), 0),
+    totalDepreciation: assets.reduce((sum, a) => sum + (a.accumulatedDepreciation || 0), 0),
+    totalNetBook: assets.reduce((sum, a) => sum + (a.netBookValue || 0), 0)
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-[#1C1C1E]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A84FF]"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-              <TrendingDown className="mr-3 text-blue-600" size={32} />
-              Depreciation Tracker
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Tracking dan management penyusutan aset - Multiple methods & schedule visualization
-            </p>
+    <div className="p-6 bg-[#1C1C1E] min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#98989D] mb-1">Total Aset</p>
+                <p className="text-2xl font-bold text-white">{stats.totalAssets}</p>
+              </div>
+              <div className="w-12 h-12 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-[#0A84FF]" />
+              </div>
+            </div>
           </div>
-          <div className="flex space-x-3">
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center transition-colors">
-              <Calculator size={20} className="mr-2" />
-              Calculate Depreciation
+
+          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#98989D] mb-1">Total Biaya</p>
+                <p className="text-lg font-bold text-white">{formatCurrency(stats.totalCost)}</p>
+              </div>
+              <div className="w-12 h-12 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
+                <Calculator className="h-6 w-6 text-[#0A84FF]" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#98989D] mb-1">Akumulasi Depresiasi</p>
+                <p className="text-lg font-bold text-[#FF9F0A]">{formatCurrency(stats.totalDepreciation)}</p>
+              </div>
+              <div className="w-12 h-12 bg-[#FF9F0A]/20 rounded-xl flex items-center justify-center">
+                <TrendingDown className="h-6 w-6 text-[#FF9F0A]" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-[#98989D] mb-1">Nilai Buku Bersih</p>
+                <p className="text-lg font-bold text-[#30D158]">{formatCurrency(stats.totalNetBook)}</p>
+              </div>
+              <div className="w-12 h-12 bg-[#30D158]/20 rounded-xl flex items-center justify-center">
+                <Calculator className="h-6 w-6 text-[#30D158]" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
+              <X className="h-4 w-4" />
             </button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center transition-colors">
-              <Download size={20} className="mr-2" />
-              Export Report
-            </button>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Asset Cost</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(totalDepreciation.totalCost)}
-              </p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <DollarSign className="text-blue-600" size={24} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Accumulated Depreciation</p>
-              <p className="text-2xl font-bold text-red-600">
-                {formatCurrency(totalDepreciation.totalAccumulated)}
-              </p>
-            </div>
-            <div className="p-3 bg-red-100 rounded-full">
-              <TrendingDown className="text-red-600" size={24} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Net Book Value</p>
-              <p className="text-2xl font-bold text-green-600">
-                {formatCurrency(totalDepreciation.totalNetBook)}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <CheckCircle className="text-green-600" size={24} />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Monthly Depreciation</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {formatCurrency(totalDepreciation.monthlyDepreciation)}
-              </p>
-            </div>
-            <div className="p-3 bg-orange-100 rounded-full">
-              <Calendar className="text-orange-600" size={24} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        {/* Search */}
+        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] p-4">
+          <div className="flex gap-4">
             <input
               type="text"
-              placeholder="Cari asset..."
+              placeholder="Cari aset..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-4 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-lg text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
             />
+            <button
+              onClick={fetchAssetsWithDepreciation}
+              className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-all"
+            >
+              <RefreshCw className="h-5 w-5" />
+              Refresh
+            </button>
           </div>
-
-          <select
-            value={filterMethod}
-            onChange={(e) => setFilterMethod(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">Semua Metode</option>
-            {Object.entries(depreciationMethods).map(([key, value]) => (
-              <option key={key} value={key}>{value}</option>
-            ))}
-          </select>
-
-          <button
-            onClick={fetchAssetsWithDepreciation}
-            disabled={loading}
-            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 flex items-center transition-colors disabled:opacity-50"
-          >
-            <RefreshCw size={20} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
-        </div>
-      </div>
-
-      {/* Depreciation Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Asset Depreciation Summary ({filteredAssets.length} assets)
-          </h3>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <RefreshCw className="animate-spin text-blue-600" size={32} />
-            <span className="ml-3 text-gray-600">Loading depreciation data...</span>
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center py-12">
-            <AlertCircle className="text-red-600" size={32} />
-            <span className="ml-3 text-red-600">{error}</span>
-          </div>
-        ) : (
+        {/* Assets Table */}
+        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="w-full">
+              <thead className="bg-[#1C1C1E] border-b border-[#38383A]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Asset
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Purchase Cost
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Method
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Accumulated Depreciation
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Net Book Value
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Monthly Depreciation
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Remaining Life
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase w-8"></th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Aset</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Metode</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Harga Beli</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Akumulasi</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Nilai Buku</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Per Tahun</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAssets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {asset.assetName}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {asset.assetCode}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(asset.purchasePrice)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMethodColor(asset.depreciationMethod)}`}>
-                        {depreciationMethods[asset.depreciationMethod]}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-red-600">
-                        {formatCurrency(asset.accumulatedDepreciation)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {formatPercentage(asset.depreciationRate)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                      {formatCurrency(asset.netBookValue)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(asset.monthlyDepreciation)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {asset.remainingLife.toFixed(1)} years
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => viewDepreciationSchedule(asset)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View Schedule"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          className="text-green-600 hover:text-green-900"
-                          title="Calculate"
-                        >
-                          <Calculator size={16} />
-                        </button>
-                        <button
-                          className="text-purple-600 hover:text-purple-900"
-                          title="Generate Report"
-                        >
-                          <FileText size={16} />
-                        </button>
-                      </div>
+              <tbody className="divide-y divide-[#38383A]">
+                {filteredAssets.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-6 py-12 text-center">
+                      <Package className="h-12 w-12 text-[#636366] mx-auto mb-3" />
+                      <p className="text-[#98989D]">Tidak ada data aset</p>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredAssets.map((asset) => (
+                    <React.Fragment key={asset.id}>
+                      <tr className="hover:bg-[#38383A]/30 transition-colors">
+                        <td className="px-3 py-3">
+                          <button
+                            onClick={() => toggleRowExpand(asset.id)}
+                            className="text-[#98989D] hover:text-white transition-colors"
+                            title={expandedRow === asset.id ? "Tutup Jadwal" : "Lihat Jadwal"}
+                          >
+                            {expandedRow === asset.id ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="text-sm font-medium text-white">{asset.assetName}</div>
+                          <div className="text-xs text-[#636366] mt-0.5">{asset.assetCode}</div>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="text-sm text-white">{depreciationMethods[asset.depreciationMethod]}</div>
+                          <div className="text-xs text-[#98989D] mt-0.5">{asset.usefulLife} tahun</div>
+                        </td>
+                        <td className="px-3 py-3 text-sm text-white">
+                          {formatCurrency(asset.purchasePrice || 0)}
+                        </td>
+                        <td className="px-3 py-3 text-sm text-[#FF9F0A]">
+                          {formatCurrency(asset.accumulatedDepreciation || 0)}
+                        </td>
+                        <td className="px-3 py-3 text-sm text-[#30D158] font-medium">
+                          {formatCurrency(asset.netBookValue || 0)}
+                        </td>
+                        <td className="px-3 py-3 text-sm text-white">
+                          {formatCurrency(asset.annualDepreciation || 0)}
+                        </td>
+                      </tr>
+
+                      {/* Inline Schedule */}
+                      {expandedRow === asset.id && (
+                        <tr className="bg-[#1C1C1E]/80">
+                          <td colSpan="7" className="px-6 py-4">
+                            <div className="space-y-3">
+                              <h4 className="text-sm font-semibold text-white mb-3">
+                                Jadwal Depresiasi - {asset.assetName}
+                              </h4>
+                              
+                              <div className="overflow-x-auto">
+                                <table className="w-full">
+                                  <thead className="bg-[#2C2C2E]">
+                                    <tr>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Tahun</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Depresiasi</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Akumulasi</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Nilai Buku</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-[#38383A]">
+                                    {generateDepreciationSchedule(asset).map((item) => (
+                                      <tr key={item.year} className="hover:bg-[#38383A]/30">
+                                        <td className="px-4 py-2 text-sm text-white">
+                                          Tahun {item.yearNumber} ({item.year})
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-[#FF9F0A]">
+                                          {formatCurrency(item.depreciation)}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-[#FF453A]">
+                                          {formatCurrency(item.accumulated)}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-[#30D158] font-medium">
+                                          {formatCurrency(item.netBookValue)}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
-
-      {/* Depreciation Schedule Modal */}
-      {showScheduleModal && selectedAsset && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Depreciation Schedule - {selectedAsset.assetName}
-              </h2>
-              <button
-                onClick={() => setShowScheduleModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Purchase Price</p>
-                <p className="text-lg font-semibold">{formatCurrency(selectedAsset.purchasePrice)}</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Salvage Value</p>
-                <p className="text-lg font-semibold">{formatCurrency(selectedAsset.salvageValue)}</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Useful Life</p>
-                <p className="text-lg font-semibold">{selectedAsset.usefulLife} years</p>
-              </div>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Depreciation</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Accumulated</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Net Book Value</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {depreciationSchedule.map((item) => (
-                    <tr key={item.year} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{item.year}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900">{formatCurrency(item.depreciation)}</td>
-                      <td className="px-4 py-3 text-sm text-red-600">{formatCurrency(item.accumulated)}</td>
-                      <td className="px-4 py-3 text-sm text-green-600">{formatCurrency(item.netBookValue)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         </div>
-      )}
+
+      </div>
     </div>
   );
 };

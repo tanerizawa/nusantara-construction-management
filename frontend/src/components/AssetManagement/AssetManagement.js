@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HardHat, Package, TrendingDown, Wrench, PieChart } from 'lucide-react';
+import { Package, TrendingDown, Wrench, PieChart } from 'lucide-react';
 
 // Import existing components
 import AssetRegistry from './AssetRegistry';
@@ -19,19 +19,19 @@ const AssetManagement = () => {
     },
     {
       id: 'depreciation',
-      label: 'Depreciation Tracker',
+      label: 'Depreciation',
       icon: TrendingDown,
       component: DepreciationTracker
     },
     {
       id: 'maintenance',
-      label: 'Maintenance Schedule',
+      label: 'Maintenance',
       icon: Wrench,
       component: MaintenanceScheduler
     },
     {
       id: 'analytics',
-      label: 'Asset Analytics',
+      label: 'Analytics',
       icon: PieChart,
       component: AssetAnalytics
     }
@@ -40,22 +40,19 @@ const AssetManagement = () => {
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#1C1C1E]">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="px-6 py-4">
-          <div className="flex items-center space-x-3">
-            <HardHat className="h-8 w-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Asset Management</h1>
-              <p className="text-sm text-gray-600">Manage your construction assets and equipment</p>
-            </div>
+      <div className="bg-[#2C2C2E] border-b border-[#38383A]">
+        <div className="px-6 py-6">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Asset Management</h1>
+            <p className="text-[#98989D] mt-2">Kelola aset konstruksi dan peralatan proyek</p>
           </div>
         </div>
 
         {/* Tab Navigation */}
         <div className="px-6">
-          <nav className="flex space-x-8" aria-label="Tabs">
+          <nav className="flex space-x-2" aria-label="Tabs">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -64,15 +61,11 @@ const AssetManagement = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`${
                     activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600 bg-blue-50'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } group inline-flex items-center px-4 py-3 border-b-2 font-medium text-sm rounded-t-lg transition-all duration-200`}
+                      ? 'bg-[#0A84FF] text-white'
+                      : 'text-[#98989D] hover:text-white hover:bg-[#38383A]/30'
+                  } inline-flex items-center px-4 py-2.5 font-medium text-sm rounded-t-lg transition-all duration-200`}
                 >
-                  <Icon
-                    className={`${
-                      activeTab === tab.id ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                    } -ml-0.5 mr-2 h-4 w-4`}
-                  />
+                  <Icon className="mr-2 h-4 w-4" />
                   <span>{tab.label}</span>
                 </button>
               );

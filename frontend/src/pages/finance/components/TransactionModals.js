@@ -11,13 +11,16 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
   if (!transaction) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Transaction Details</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+      <div className="rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+        <div className="p-6 flex justify-between items-center" style={{ borderBottom: '1px solid #38383A' }}>
+          <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Transaction Details</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="transition-colors"
+            style={{ color: '#636366' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#98989D'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#636366'}
           >
             <X className="w-5 h-5" />
           </button>
@@ -26,22 +29,40 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
         <div className="p-6 space-y-4">
           {/* Transaction Type Badge */}
           <div className="flex items-center space-x-2">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-              transaction.type === 'income' ? 'bg-green-100 text-green-800' :
-              transaction.type === 'expense' ? 'bg-red-100 text-red-800' :
-              'bg-blue-100 text-blue-800'
-            }`}>
+            <span 
+              className="px-3 py-1 rounded-full text-sm font-medium"
+              style={{
+                backgroundColor: transaction.type === 'income' 
+                  ? 'rgba(48, 209, 88, 0.15)' 
+                  : transaction.type === 'expense'
+                  ? 'rgba(255, 69, 58, 0.15)'
+                  : 'rgba(10, 132, 255, 0.15)',
+                color: transaction.type === 'income'
+                  ? '#30D158'
+                  : transaction.type === 'expense'
+                  ? '#FF453A'
+                  : '#0A84FF',
+                border: transaction.type === 'income'
+                  ? '1px solid rgba(48, 209, 88, 0.3)'
+                  : transaction.type === 'expense'
+                  ? '1px solid rgba(255, 69, 58, 0.3)'
+                  : '1px solid rgba(10, 132, 255, 0.3)'
+              }}
+            >
               {transaction.type === 'income' ? 'Income' :
                transaction.type === 'expense' ? 'Expense' : 'Transfer'}
             </span>
           </div>
 
           {/* Amount */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600 mb-1">Amount</p>
-            <p className={`text-2xl font-bold ${
-              transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-            }`}>
+          <div className="rounded-lg p-4" style={{ backgroundColor: '#1C1C1E' }}>
+            <p className="text-sm mb-1" style={{ color: '#98989D' }}>Amount</p>
+            <p 
+              className="text-2xl font-bold"
+              style={{ 
+                color: transaction.type === 'income' ? '#30D158' : '#FF453A'
+              }}
+            >
               {formatCurrency(transaction.amount)}
             </p>
           </div>
@@ -49,57 +70,57 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Category</p>
-              <p className="font-medium text-gray-900">{transaction.category}</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Category</p>
+              <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.category}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Date</p>
-              <p className="font-medium text-gray-900">{formatDate(transaction.date, true)}</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Date</p>
+              <p className="font-medium" style={{ color: '#FFFFFF' }}>{formatDate(transaction.date, true)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Payment Method</p>
-              <p className="font-medium text-gray-900">
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Payment Method</p>
+              <p className="font-medium" style={{ color: '#FFFFFF' }}>
                 {getPaymentMethodLabel(transaction.paymentMethod)}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Reference Number</p>
-              <p className="font-medium text-gray-900">{transaction.referenceNumber || '-'}</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Reference Number</p>
+              <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.referenceNumber || '-'}</p>
             </div>
           </div>
 
           {/* Subsidiary Info */}
           {subsidiaryInfo && (
             <div>
-              <p className="text-sm text-gray-600 mb-1">Subsidiary</p>
-              <p className="font-medium text-gray-900">{subsidiaryInfo.name}</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Subsidiary</p>
+              <p className="font-medium" style={{ color: '#FFFFFF' }}>{subsidiaryInfo.name}</p>
             </div>
           )}
 
           {/* Project Info */}
           {transaction.projectId && (
             <div>
-              <p className="text-sm text-gray-600 mb-1">Project</p>
-              <p className="font-medium text-gray-900">{transaction.projectName || transaction.projectId}</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Project</p>
+              <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.projectName || transaction.projectId}</p>
             </div>
           )}
 
           {/* Description */}
           <div>
-            <p className="text-sm text-gray-600 mb-1">Description</p>
-            <p className="text-gray-900">{transaction.description}</p>
+            <p className="text-sm mb-1" style={{ color: '#98989D' }}>Description</p>
+            <p style={{ color: '#FFFFFF' }}>{transaction.description}</p>
           </div>
 
           {/* Notes */}
           {transaction.notes && (
             <div>
-              <p className="text-sm text-gray-600 mb-1">Notes</p>
-              <p className="text-gray-700 text-sm bg-gray-50 rounded p-3">{transaction.notes}</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Notes</p>
+              <p className="text-sm rounded p-3" style={{ color: '#98989D', backgroundColor: '#1C1C1E' }}>{transaction.notes}</p>
             </div>
           )}
 
           {/* Metadata */}
-          <div className="pt-4 border-t border-gray-200 text-xs text-gray-500">
+          <div className="pt-4 text-xs" style={{ borderTop: '1px solid #38383A', color: '#636366' }}>
             <p>Transaction ID: {transaction.id}</p>
             {transaction.createdAt && (
               <p>Created: {formatDate(transaction.createdAt, true)}</p>
@@ -107,10 +128,15 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
           </div>
         </div>
 
-        <div className="p-6 border-t border-gray-200 flex justify-end">
+        <div className="p-6 flex justify-end" style={{ borderTop: '1px solid #38383A' }}>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 rounded-lg transition-all duration-200"
+            style={{
+              backgroundColor: 'rgba(10, 132, 255, 0.15)',
+              color: '#0A84FF',
+              border: '1px solid rgba(10, 132, 255, 0.3)'
+            }}
           >
             Close
           </button>
@@ -129,42 +155,55 @@ const DeleteTransactionModal = ({ transaction, onConfirm, onCancel, isDeleting }
   if (!transaction) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-md w-full">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
+      <div className="rounded-lg max-w-md w-full" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 69, 58, 0.15)' }}>
+              <AlertTriangle className="w-5 h-5" style={{ color: '#FF453A' }} />
             </div>
-            <h3 className="text-lg font-medium text-gray-900">Delete Transaction</h3>
+            <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Delete Transaction</h3>
           </div>
           
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4" style={{ color: '#98989D' }}>
             Are you sure you want to delete this transaction? This action cannot be undone.
           </p>
 
-          <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm">
-            <p className="text-gray-600">Transaction Details:</p>
-            <p className="font-medium text-gray-900 mt-1">{transaction.description}</p>
-            <p className={`font-semibold mt-1 ${
-              transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-            }`}>
+          <div className="rounded-lg p-3 mb-4 text-sm" style={{ backgroundColor: '#1C1C1E' }}>
+            <p style={{ color: '#98989D' }}>Transaction Details:</p>
+            <p className="font-medium mt-1" style={{ color: '#FFFFFF' }}>{transaction.description}</p>
+            <p 
+              className="font-semibold mt-1"
+              style={{ 
+                color: transaction.type === 'income' ? '#30D158' : '#FF453A'
+              }}
+            >
               {formatCurrency(transaction.amount)}
             </p>
-            <p className="text-gray-600 mt-1">{formatDate(transaction.date)}</p>
+            <p className="mt-1" style={{ color: '#98989D' }}>{formatDate(transaction.date)}</p>
           </div>
 
           <div className="flex items-center justify-end space-x-3">
             <button
               onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 rounded-lg transition-all duration-200"
+              style={{
+                backgroundColor: 'rgba(152, 152, 157, 0.15)',
+                color: '#98989D',
+                border: '1px solid rgba(152, 152, 157, 0.3)'
+              }}
               disabled={isDeleting}
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: 'rgba(255, 69, 58, 0.15)',
+                color: '#FF453A',
+                border: '1px solid rgba(255, 69, 58, 0.3)'
+              }}
               disabled={isDeleting}
             >
               {isDeleting ? (

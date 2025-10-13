@@ -55,57 +55,65 @@ const TransactionList = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="rounded-xl shadow-lg overflow-hidden" style={{
+      backgroundColor: '#2C2C2E',
+      border: '1px solid #38383A'
+    }}>
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <table className="min-w-full">
+          <thead>
+            <tr style={{ backgroundColor: '#1C1C1E' }}>
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Type
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Description
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Amount
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Payment Method
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {loading ? (
               <tr>
                 <td colSpan="7" className="px-6 py-12 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading transactions...</p>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: '#0A84FF' }}></div>
+                  <p className="mt-2" style={{ color: '#98989D' }}>Loading transactions...</p>
                 </td>
               </tr>
             ) : transactions.length === 0 ? (
               <tr>
                 <td colSpan="7" className="px-6 py-12 text-center">
-                  <div className="text-gray-400 mb-4">
+                  <div className="mb-4" style={{ color: '#636366' }}>
                     <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Transactions Found</h3>
-                  <p className="text-gray-600 mb-4">Get started by creating your first financial transaction.</p>
+                  <h3 className="text-lg font-medium mb-2" style={{ color: '#FFFFFF' }}>No Transactions Found</h3>
+                  <p className="mb-4" style={{ color: '#98989D' }}>Get started by creating your first financial transaction.</p>
                   {onAddNew && (
                     <button 
                       onClick={onAddNew}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-150 inline-flex items-center space-x-2"
+                      className="px-4 py-2 rounded-lg transition-all duration-200 inline-flex items-center space-x-2"
+                      style={{
+                        backgroundColor: 'rgba(10, 132, 255, 0.15)',
+                        color: '#0A84FF',
+                        border: '1px solid rgba(10, 132, 255, 0.3)'
+                      }}
                     >
                       <span>Add First Transaction</span>
                     </button>
@@ -114,27 +122,57 @@ const TransactionList = ({
               </tr>
             ) : (
               transactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr 
+                  key={transaction.id} 
+                  className="transition-colors duration-150"
+                  style={{
+                    borderBottom: '1px solid #38383A'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(56, 56, 58, 0.3)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: '#FFFFFF' }}>
                     {formatDate(transaction.date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getTypeBadge(transaction.type)}`}>
+                    <span 
+                      className="px-2 py-1 text-xs rounded-full font-medium"
+                      style={{
+                        backgroundColor: transaction.type === 'income' 
+                          ? 'rgba(48, 209, 88, 0.15)' 
+                          : transaction.type === 'expense'
+                          ? 'rgba(255, 69, 58, 0.15)'
+                          : 'rgba(10, 132, 255, 0.15)',
+                        color: transaction.type === 'income'
+                          ? '#30D158'
+                          : transaction.type === 'expense'
+                          ? '#FF453A'
+                          : '#0A84FF',
+                        border: transaction.type === 'income'
+                          ? '1px solid rgba(48, 209, 88, 0.3)'
+                          : transaction.type === 'expense'
+                          ? '1px solid rgba(255, 69, 58, 0.3)'
+                          : '1px solid rgba(10, 132, 255, 0.3)'
+                      }}
+                    >
                       {getTypeLabel(transaction.type)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: '#FFFFFF' }}>
                     {transaction.category}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                  <td className="px-6 py-4 text-sm max-w-xs truncate" style={{ color: '#98989D' }}>
                     {transaction.description}
                   </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-semibold ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <td 
+                    className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold"
+                    style={{ 
+                      color: transaction.type === 'income' ? '#30D158' : '#FF453A'
+                    }}
+                  >
                     {transaction.type === 'income' ? '+' : '-'} {formatCurrency(transaction.amount)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: '#98989D' }}>
                     {transaction.paymentMethod || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -142,7 +180,13 @@ const TransactionList = ({
                       {onView && (
                         <button
                           onClick={() => onView(transaction)}
-                          className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded transition-colors"
+                          className="p-1.5 rounded transition-all duration-200"
+                          style={{
+                            color: '#0A84FF',
+                            backgroundColor: 'transparent'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(10, 132, 255, 0.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
@@ -151,7 +195,13 @@ const TransactionList = ({
                       {onEdit && (
                         <button
                           onClick={() => onEdit(transaction)}
-                          className="text-green-600 hover:text-green-900 p-1 hover:bg-green-50 rounded transition-colors"
+                          className="p-1.5 rounded transition-all duration-200"
+                          style={{
+                            color: '#30D158',
+                            backgroundColor: 'transparent'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(48, 209, 88, 0.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           title="Edit Transaction"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -160,7 +210,13 @@ const TransactionList = ({
                       {onDelete && (
                         <button
                           onClick={() => onDelete(transaction)}
-                          className="text-red-600 hover:text-red-900 p-1 hover:bg-red-50 rounded transition-colors"
+                          className="p-1.5 rounded transition-all duration-200"
+                          style={{
+                            color: '#FF453A',
+                            backgroundColor: 'transparent'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 69, 58, 0.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                           title="Delete Transaction"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -177,22 +233,35 @@ const TransactionList = ({
 
       {/* Pagination */}
       {!loading && transactions.length > 0 && totalPages > 1 && (
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+        <div 
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ borderTop: '1px solid #38383A' }}
+        >
+          <div className="text-sm" style={{ color: '#98989D' }}>
             Page {currentPage} of {totalPages}
           </div>
           <div className="flex space-x-2">
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: currentPage === 1 ? 'rgba(56, 56, 58, 0.3)' : 'rgba(10, 132, 255, 0.15)',
+                color: currentPage === 1 ? '#636366' : '#0A84FF',
+                border: currentPage === 1 ? '1px solid #38383A' : '1px solid rgba(10, 132, 255, 0.3)'
+              }}
             >
               Previous
             </button>
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: currentPage === totalPages ? 'rgba(56, 56, 58, 0.3)' : 'rgba(10, 132, 255, 0.15)',
+                color: currentPage === totalPages ? '#636366' : '#0A84FF',
+                border: currentPage === totalPages ? '1px solid #38383A' : '1px solid rgba(10, 132, 255, 0.3)'
+              }}
             >
               Next
             </button>

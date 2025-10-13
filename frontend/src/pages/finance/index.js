@@ -139,56 +139,79 @@ const Finance = () => {
       case 'transactions':
         return (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold text-gray-900">Transaction Management</h2>
-              <div className="flex space-x-3">
-                <TransactionFilters
-                  selectedSubsidiary={financeData.selectedSubsidiary}
-                  onSubsidiaryChange={(value) => {
-                    financeData.handleSubsidiaryChange(value);
-                    transactions.setCurrentPage(1);
-                  }}
-                  subsidiaries={financeData.subsidiaries}
-                  loadingSubsidiaries={financeData.loadingSubsidiaries}
-                  selectedProject={financeData.selectedProject}
-                  onProjectChange={(value) => {
-                    financeData.handleProjectChange(value);
-                    transactions.setCurrentPage(1);
-                  }}
-                  projects={financeData.filteredProjects}
-                  loadingProjects={financeData.loadingProjects}
-                />
-                <button
-                  onClick={() => transactions.setShowTransactionForm(!transactions.showTransactionForm)}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-150 flex items-center space-x-2 ${
-                    transactions.showTransactionForm
-                      ? 'bg-gray-600 hover:bg-gray-700 text-white'
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  }`}
-                >
-                  <span>{transactions.showTransactionForm ? 'Cancel' : 'New Transaction'}</span>
-                </button>
+            <div className="rounded-xl p-6" style={{
+              backgroundColor: '#2C2C2E',
+              border: '1px solid #38383A'
+            }}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
+                  Transaction Management
+                </h2>
+                <div className="flex flex-wrap gap-3">
+                  <TransactionFilters
+                    selectedSubsidiary={financeData.selectedSubsidiary}
+                    onSubsidiaryChange={(value) => {
+                      financeData.handleSubsidiaryChange(value);
+                      transactions.setCurrentPage(1);
+                    }}
+                    subsidiaries={financeData.subsidiaries}
+                    loadingSubsidiaries={financeData.loadingSubsidiaries}
+                    selectedProject={financeData.selectedProject}
+                    onProjectChange={(value) => {
+                      financeData.handleProjectChange(value);
+                      transactions.setCurrentPage(1);
+                    }}
+                    projects={financeData.filteredProjects}
+                    loadingProjects={financeData.loadingProjects}
+                  />
+                  <button
+                    onClick={() => transactions.setShowTransactionForm(!transactions.showTransactionForm)}
+                    className="px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
+                    style={{
+                      backgroundColor: transactions.showTransactionForm ? 'rgba(255, 69, 58, 0.15)' : 'rgba(10, 132, 255, 0.15)',
+                      color: transactions.showTransactionForm ? '#FF453A' : '#0A84FF',
+                      border: transactions.showTransactionForm ? '1px solid rgba(255, 69, 58, 0.3)' : '1px solid rgba(10, 132, 255, 0.3)'
+                    }}
+                  >
+                    <span>{transactions.showTransactionForm ? 'Cancel' : 'New Transaction'}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Transaction Summary */}
             {!transactions.showTransactionForm && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-green-50 rounded-lg p-4">
-                  <p className="text-sm text-green-900 font-medium">Total Income</p>
-                  <p className="text-2xl font-bold text-green-600">
+                <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
+                  background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.15), rgba(48, 209, 88, 0.05))',
+                  border: '1px solid rgba(48, 209, 88, 0.3)'
+                }}>
+                  <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
+                    Total Income
+                  </p>
+                  <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.income)}
                   </p>
                 </div>
-                <div className="bg-red-50 rounded-lg p-4">
-                  <p className="text-sm text-red-900 font-medium">Total Expenses</p>
-                  <p className="text-2xl font-bold text-red-600">
+                <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
+                  background: 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 69, 58, 0.05))',
+                  border: '1px solid rgba(255, 69, 58, 0.3)'
+                }}>
+                  <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
+                    Total Expenses
+                  </p>
+                  <p className="text-2xl font-bold" style={{ color: '#FF453A' }}>
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.expense)}
                   </p>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <p className="text-sm text-blue-900 font-medium">Net Balance</p>
-                  <p className="text-2xl font-bold text-blue-600">
+                <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
+                  background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
+                  border: '1px solid rgba(10, 132, 255, 0.3)'
+                }}>
+                  <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
+                    Net Balance
+                  </p>
+                  <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.balance)}
                   </p>
                 </div>
@@ -247,18 +270,25 @@ const Finance = () => {
       case 'reports':
         return (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold text-gray-900">Financial Reports (PSAK Compliant)</h2>
-              <TransactionFilters
-                selectedSubsidiary={financeData.selectedSubsidiary}
-                onSubsidiaryChange={financeData.handleSubsidiaryChange}
-                subsidiaries={financeData.subsidiaries}
-                loadingSubsidiaries={financeData.loadingSubsidiaries}
-                selectedProject={financeData.selectedProject}
-                onProjectChange={financeData.handleProjectChange}
-                projects={financeData.filteredProjects}
-                loadingProjects={financeData.loadingProjects}
-              />
+            <div className="rounded-xl p-6" style={{
+              backgroundColor: '#2C2C2E',
+              border: '1px solid #38383A'
+            }}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
+                  Financial Reports (PSAK Compliant)
+                </h2>
+                <TransactionFilters
+                  selectedSubsidiary={financeData.selectedSubsidiary}
+                  onSubsidiaryChange={financeData.handleSubsidiaryChange}
+                  subsidiaries={financeData.subsidiaries}
+                  loadingSubsidiaries={financeData.loadingSubsidiaries}
+                  selectedProject={financeData.selectedProject}
+                  onProjectChange={financeData.handleProjectChange}
+                  projects={financeData.filteredProjects}
+                  loadingProjects={financeData.loadingProjects}
+                />
+              </div>
             </div>
 
             <FinancialReportsView
@@ -291,18 +321,25 @@ const Finance = () => {
       case 'projects':
         return (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-semibold text-gray-900">Project Finance</h2>
-              <TransactionFilters
-                selectedSubsidiary={financeData.selectedSubsidiary}
-                onSubsidiaryChange={financeData.handleSubsidiaryChange}
-                subsidiaries={financeData.subsidiaries}
-                loadingSubsidiaries={financeData.loadingSubsidiaries}
-                selectedProject={financeData.selectedProject}
-                onProjectChange={financeData.handleProjectChange}
-                projects={financeData.filteredProjects}
-                loadingProjects={financeData.loadingProjects}
-              />
+            <div className="rounded-xl p-6" style={{
+              backgroundColor: '#2C2C2E',
+              border: '1px solid #38383A'
+            }}>
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
+                  Project Finance
+                </h2>
+                <TransactionFilters
+                  selectedSubsidiary={financeData.selectedSubsidiary}
+                  onSubsidiaryChange={financeData.handleSubsidiaryChange}
+                  subsidiaries={financeData.subsidiaries}
+                  loadingSubsidiaries={financeData.loadingSubsidiaries}
+                  selectedProject={financeData.selectedProject}
+                  onProjectChange={financeData.handleProjectChange}
+                  projects={financeData.filteredProjects}
+                  loadingProjects={financeData.loadingProjects}
+                />
+              </div>
             </div>
 
             <ProjectFinanceView
@@ -321,26 +358,34 @@ const Finance = () => {
 
       default:
         return (
-          <div className="text-center py-12">
-            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Select a tab to view content</p>
+          <div className="rounded-xl p-12 text-center" style={{
+            backgroundColor: '#2C2C2E',
+            border: '1px solid #38383A'
+          }}>
+            <FileText className="w-16 h-16 mx-auto mb-4" style={{ color: '#636366' }} />
+            <p style={{ color: '#98989D' }}>Select a tab to view content</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-4 lg:p-8 space-y-8">
+    <div className="min-h-screen" style={{ backgroundColor: '#1C1C1E' }}>
+      <div className="max-w-7xl mx-auto p-4 lg:p-8 space-y-6">
         {/* Header Section */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm">
+        <div className="rounded-xl p-6 lg:p-8 shadow-lg" style={{ 
+          backgroundColor: '#2C2C2E',
+          border: '1px solid #38383A'
+        }}>
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <div className="flex items-center mb-4">
-                <Banknote className="w-10 h-10 text-blue-600 mr-4" />
+              <div className="flex items-center mb-3">
+                <Banknote className="w-10 h-10 mr-4" style={{ color: '#0A84FF' }} />
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Financial Management System</h1>
-                  <p className="text-gray-600 mt-1">
+                  <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>
+                    Financial Management System
+                  </h1>
+                  <p className="mt-1" style={{ color: '#98989D', fontSize: '0.95rem' }}>
                     PSAK-compliant financial management for Nusantara Construction Group
                   </p>
                 </div>
@@ -349,22 +394,36 @@ const Finance = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4">
+              <div className="rounded-xl p-4 transition-transform hover:scale-105" style={{
+                background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
+                border: '1px solid rgba(10, 132, 255, 0.3)'
+              }}>
                 <div className="flex items-center">
-                  <DollarSign className="w-8 h-8 text-blue-600" />
+                  <DollarSign className="w-8 h-8" style={{ color: '#0A84FF' }} />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-blue-900">Total Revenue</p>
-                    <p className="text-2xl font-bold text-blue-600">Rp 125.8B</p>
+                    <p className="text-xs font-medium" style={{ color: '#98989D' }}>
+                      Total Revenue
+                    </p>
+                    <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
+                      Rp 125.8B
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-green-50 rounded-lg p-4">
+              <div className="rounded-xl p-4 transition-transform hover:scale-105" style={{
+                background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.15), rgba(48, 209, 88, 0.05))',
+                border: '1px solid rgba(48, 209, 88, 0.3)'
+              }}>
                 <div className="flex items-center">
-                  <TrendingUp className="w-8 h-8 text-green-600" />
+                  <TrendingUp className="w-8 h-8" style={{ color: '#30D158' }} />
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-green-900">Net Profit</p>
-                    <p className="text-2xl font-bold text-green-600">Rp 28.5B</p>
+                    <p className="text-xs font-medium" style={{ color: '#98989D' }}>
+                      Net Profit
+                    </p>
+                    <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
+                      Rp 28.5B
+                    </p>
                   </div>
                 </div>
               </div>
@@ -373,33 +432,38 @@ const Finance = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8 overflow-x-auto">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-150 whitespace-nowrap ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                    title={tab.description}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
+        <div className="rounded-xl p-2" style={{
+          backgroundColor: '#2C2C2E',
+          border: '1px solid #38383A'
+        }}>
+          <div className="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className="flex items-center space-x-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap"
+                  style={{
+                    backgroundColor: isActive ? 'rgba(10, 132, 255, 0.15)' : 'transparent',
+                    color: isActive ? '#0A84FF' : '#98989D',
+                    border: isActive ? '1px solid rgba(10, 132, 255, 0.3)' : '1px solid transparent'
+                  }}
+                  title={tab.description}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Tab Content */}
-        {renderTabContent()}
+        <div className="animate-fadeIn">
+          {renderTabContent()}
+        </div>
       </div>
     </div>
   );

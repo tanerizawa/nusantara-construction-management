@@ -19,14 +19,14 @@ const ProjectFinanceView = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
-          <Building2 className="w-7 h-7 mr-3 text-blue-600" />
+        <h2 className="text-2xl font-semibold flex items-center" style={{ color: "#FFFFFF" }}>
+          <Building2 className="w-7 h-7 mr-3" style={{ color: "#0A84FF" }} />
           Project Finance Integration
         </h2>
       </div>
 
       {/* Project Finance Dashboard */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
         <ProjectFinanceIntegrationDashboard
           selectedSubsidiary={selectedSubsidiary}
           selectedProject={selectedProject}
@@ -35,11 +35,11 @@ const ProjectFinanceView = ({
       </div>
 
       {/* Additional Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-blue-900 mb-2">
+      <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(10, 132, 255, 0.2) 0%, rgba(10, 132, 255, 0.1) 100%)", border: "1px solid rgba(10, 132, 255, 0.3)" }}>
+        <h3 className="text-sm font-medium mb-2" style={{ color: "#0A84FF" }}>
           About Project Finance Integration
         </h3>
-        <p className="text-sm text-blue-800">
+        <p className="text-sm" style={{ color: "#98989D" }}>
           This dashboard integrates financial data with project management, 
           providing real-time insights into project costs, budget utilization, 
           and financial performance across all construction projects.

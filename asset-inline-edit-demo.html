@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Management - Inline Detail & Edit Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1C1C1E;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #0A84FF, #30D158);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #98989D;
+            font-size: 1.1rem;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: #30D158;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 12px;
+            padding: 24px;
+            transition: transform 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: #0A84FF;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #0A84FF, #0A84FF99);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: #98989D;
+            line-height: 1.6;
+        }
+
+        .demo-section {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 40px;
+        }
+
+        .demo-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: #0A84FF;
+        }
+
+        .table-demo {
+            background: #1C1C1E;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 40px 2fr 2fr 1.5fr 100px 100px 120px;
+            padding: 16px;
+            border-bottom: 1px solid #38383A;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-row.header {
+            background: #1C1C1E;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #98989D;
+            font-weight: 600;
+        }
+
+        .table-row.data {
+            background: #2C2C2E;
+        }
+
+        .table-row.data:hover {
+            background: #38383A;
+        }
+
+        .expanded-detail {
+            background: #1C1C1E;
+            padding: 24px;
+            margin: 0 16px 16px;
+            border-radius: 8px;
+            border: 1px solid #0A84FF;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .detail-item {
+            padding: 12px;
+            background: #2C2C2E;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #98989D;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            color: white;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid;
+        }
+
+        .badge.active {
+            background: rgba(48, 209, 88, 0.2);
+            color: #30D158;
+            border-color: rgba(48, 209, 88, 0.3);
+        }
+
+        .badge.good {
+            background: rgba(10, 132, 255, 0.2);
+            color: #0A84FF;
+            border-color: rgba(10, 132, 255, 0.3);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .icon-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn.edit {
+            background: rgba(10, 132, 255, 0.1);
+            color: #0A84FF;
+        }
+
+        .icon-btn.edit:hover {
+            background: rgba(10, 132, 255, 0.2);
+        }
+
+        .icon-btn.view {
+            background: rgba(48, 209, 88, 0.1);
+            color: #30D158;
+        }
+
+        .icon-btn.view:hover {
+            background: rgba(48, 209, 88, 0.2);
+        }
+
+        .icon-btn.delete {
+            background: rgba(255, 69, 58, 0.1);
+            color: #FF453A;
+        }
+
+        .icon-btn.delete:hover {
+            background: rgba(255, 69, 58, 0.2);
+        }
+
+        .chevron {
+            width: 24px;
+            height: 24px;
+            color: #98989D;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .chevron:hover {
+            color: white;
+        }
+
+        .edit-form {
+            background: #1C1C1E;
+            padding: 24px;
+            margin: 0 16px 16px;
+            border-radius: 8px;
+            border: 2px solid #0A84FF;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.75rem;
+            color: #98989D;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0A84FF;
+            box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid #38383A;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn.primary {
+            background: #0A84FF;
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: #0066CC;
+        }
+
+        .btn.secondary {
+            background: #38383A;
+            color: white;
+        }
+
+        .btn.secondary:hover {
+            background: #505050;
+        }
+
+        .steps {
+            counter-reset: step;
+        }
+
+        .step {
+            background: #2C2C2E;
+            border: 1px solid #38383A;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            padding-left: 80px;
+        }
+
+        .step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0A84FF, #30D158);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .step h4 {
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .step p {
+            color: #98989D;
+        }
+
+        .url-box {
+            background: #2C2C2E;
+            border: 2px solid #0A84FF;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .url-box h3 {
+            margin-bottom: 12px;
+            color: #0A84FF;
+        }
+
+        .url-box a {
+            color: #0A84FF;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .url-box a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .table-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .detail-grid,
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-badge">✅ IMPLEMENTATION COMPLETE</div>
+            <h1>Asset Management</h1>
+            <p>Inline Detail View & Edit Implementation</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">▼</div>
+                <h3>Inline Detail Toggle</h3>
+                <p>Klik icon chevron untuk expand/collapse detail asset langsung di bawah row. Tidak perlu popup!</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">✏️</div>
+                <h3>Inline Edit Mode</h3>
+                <p>Klik icon Edit untuk langsung edit asset di tempat. Form muncul inline dengan semua field yang bisa diedit.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💾</div>
+                <h3>Real-time Update</h3>
+                <p>Perubahan langsung disimpan ke backend melalui API. Auto-refresh setelah save berhasil.</p>
+            </div>
+        </div>
+
+        <!-- Demo Section: View Mode -->
+        <div class="demo-section">
+            <h2>📋 Demo: Inline Detail View</h2>
+            
+            <div class="table-demo">
+                <div class="table-row header">
+                    <div></div>
+                    <div>ASET</div>
+                    <div>KATEGORI & LOKASI</div>
+                    <div>HARGA</div>
+                    <div>STATUS</div>
+                    <div>KONDISI</div>
+                    <div>AKSI</div>
+                </div>
+
+                <div class="table-row data">
+                    <div class="chevron">▼</div>
+                    <div>
+                        <div style="font-weight: 600;">Excavator CAT 320D</div>
+                        <div style="font-size: 0.75rem; color: #636366;">AST-001</div>
+                    </div>
+                    <div>
+                        <div>Alat Berat</div>
+                        <div style="font-size: 0.75rem; color: #98989D;">Jakarta Warehouse</div>
+                    </div>
+                    <div>Rp 2.500.000.000</div>
+                    <div style="text-align: center;">
+                        <span class="badge active">Aktif</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span class="badge good">Baik</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="icon-btn edit">✏️</button>
+                        <button class="icon-btn view">👁</button>
+                        <button class="icon-btn delete">🗑</button>
+                    </div>
+                </div>
+
+                <div class="expanded-detail">
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Nama Aset</div>
+                            <div class="detail-value">Excavator CAT 320D</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Kode Aset</div>
+                            <div class="detail-value">AST-001</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Kategori</div>
+                            <div class="detail-value">Alat Berat</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Lokasi</div>
+                            <div class="detail-value">Jakarta Warehouse</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Harga Pembelian</div>
+                            <div class="detail-value">Rp 2.500.000.000</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Tanggal Pembelian</div>
+                            <div class="detail-value">12 Oktober 2025</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value"><span class="badge active">Aktif</span></div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Kondisi</div>
+                            <div class="detail-value"><span class="badge good">Baik</span></div>
+                        </div>
+                        <div class="detail-item" style="grid-column: span 1;">
+                            <div class="detail-label">Deskripsi</div>
+                            <div class="detail-value">Heavy-duty excavator untuk konstruksi besar</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Section: Edit Mode -->
+        <div class="demo-section">
+            <h2>✏️ Demo: Inline Edit Mode</h2>
+            
+            <div class="table-demo">
+                <div class="table-row header">
+                    <div></div>
+                    <div>ASET</div>
+                    <div>KATEGORI & LOKASI</div>
+                    <div>HARGA</div>
+                    <div>STATUS</div>
+                    <div>KONDISI</div>
+                    <div>AKSI</div>
+                </div>
+
+                <div class="table-row data" style="background: rgba(10, 132, 255, 0.1);">
+                    <div class="chevron">▲</div>
+                    <div>
+                        <div style="font-weight: 600;">Excavator CAT 320D</div>
+                        <div style="font-size: 0.75rem; color: #636366;">AST-001</div>
+                    </div>
+                    <div>
+                        <div>Alat Berat</div>
+                        <div style="font-size: 0.75rem; color: #98989D;">Jakarta Warehouse</div>
+                    </div>
+                    <div>Rp 2.500.000.000</div>
+                    <div style="text-align: center;">
+                        <span class="badge active">Aktif</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <span class="badge good">Baik</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="icon-btn edit" style="background: rgba(10, 132, 255, 0.3);">✏️</button>
+                        <button class="icon-btn view">👁</button>
+                        <button class="icon-btn delete">🗑</button>
+                    </div>
+                </div>
+
+                <div class="edit-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nama Aset *</label>
+                            <input type="text" value="Excavator CAT 320D" />
+                        </div>
+                        <div class="form-group">
+                            <label>Kode Aset</label>
+                            <input type="text" value="AST-001" />
+                        </div>
+                        <div class="form-group">
+                            <label>Kategori *</label>
+                            <select>
+                                <option selected>Alat Berat</option>
+                                <option>Kendaraan</option>
+                                <option>Bangunan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lokasi</label>
+                            <input type="text" value="Jakarta Warehouse" />
+                        </div>
+                        <div class="form-group">
+                            <label>Harga Pembelian</label>
+                            <input type="number" value="2500000000" />
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select>
+                                <option selected>Aktif</option>
+                                <option>Perawatan</option>
+                                <option>Tidak Digunakan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi</label>
+                            <select>
+                                <option>Sangat Baik</option>
+                                <option selected>Baik</option>
+                                <option>Cukup</option>
+                                <option>Buruk</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Deskripsi</label>
+                            <textarea rows="2">Heavy-duty excavator untuk konstruksi besar</textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn secondary">Batal</button>
+                        <button class="btn primary">Simpan Perubahan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="demo-section">
+            <h2>📖 Cara Menggunakan</h2>
+            
+            <div class="steps">
+                <div class="step">
+                    <h4>Lihat Detail Asset</h4>
+                    <p>Klik icon ▼ chevron di kolom paling kiri untuk membuka detail lengkap asset. Detail akan muncul di bawah row. Klik lagi untuk menutup.</p>
+                </div>
+
+                <div class="step">
+                    <h4>Edit Asset Inline</h4>
+                    <p>Klik icon ✏️ Edit berwarna biru di kolom Aksi. Form edit akan muncul inline dengan semua field yang bisa diedit. Row akan otomatis expand.</p>
+                </div>
+
+                <div class="step">
+                    <h4>Ubah Data</h4>
+                    <p>Edit field yang ingin diubah. Field dengan tanda * adalah required. Form sudah terisi dengan data saat ini.</p>
+                </div>
+
+                <div class="step">
+                    <h4>Simpan atau Batal</h4>
+                    <p>Klik "Simpan Perubahan" untuk menyimpan ke database. Klik "Batal" untuk kembali ke mode view tanpa menyimpan perubahan.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Icon Legend -->
+        <div class="demo-section">
+            <h2>🎨 Icon Actions</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="padding: 16px; background: rgba(10, 132, 255, 0.1); border-radius: 8px; border: 1px solid rgba(10, 132, 255, 0.3);">
+                    <button class="icon-btn edit" style="margin-bottom: 12px;">✏️</button>
+                    <h4 style="margin-bottom: 8px; color: #0A84FF;">Edit</h4>
+                    <p style="color: #98989D; font-size: 0.9rem;">Buka form edit inline untuk mengubah data asset</p>
+                </div>
+
+                <div style="padding: 16px; background: rgba(48, 209, 88, 0.1); border-radius: 8px; border: 1px solid rgba(48, 209, 88, 0.3);">
+                    <button class="icon-btn view" style="margin-bottom: 12px;">👁</button>
+                    <h4 style="margin-bottom: 8px; color: #30D158;">View</h4>
+                    <p style="color: #98989D; font-size: 0.9rem;">Buka modal popup untuk melihat detail lengkap</p>
+                </div>
+
+                <div style="padding: 16px; background: rgba(255, 69, 58, 0.1); border-radius: 8px; border: 1px solid rgba(255, 69, 58, 0.3);">
+                    <button class="icon-btn delete" style="margin-bottom: 12px;">🗑</button>
+                    <h4 style="margin-bottom: 8px; color: #FF453A;">Delete</h4>
+                    <p style="color: #98989D; font-size: 0.9rem;">Hapus asset dari database (dengan konfirmasi)</p>
+                </div>
+
+                <div style="padding: 16px; background: rgba(152, 152, 157, 0.1); border-radius: 8px; border: 1px solid rgba(152, 152, 157, 0.3);">
+                    <div class="chevron" style="margin-bottom: 12px; width: 28px; height: 28px;">▼/▲</div>
+                    <h4 style="margin-bottom: 8px; color: #98989D;">Toggle Detail</h4>
+                    <p style="color: #98989D; font-size: 0.9rem;">Buka/tutup detail view inline (non-edit mode)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- URL Box -->
+        <div class="url-box">
+            <h3>🌐 Test Sekarang:</h3>
+            <a href="https://nusantaragroup.co/assets" target="_blank">https://nusantaragroup.co/assets</a>
+            <p style="color: #98989D; margin-top: 12px;">Tab: Asset Registry</p>
+        </div>
+
+        <!-- Technical Details -->
+        <div class="demo-section">
+            <h2>⚙️ Technical Details</h2>
+            
+            <div style="display: grid; gap: 12px;">
+                <div style="padding: 12px; background: #1C1C1E; border-radius: 8px; display: flex; justify-content: space-between;">
+                    <span style="color: #98989D;">API Endpoint (Update):</span>
+                    <span style="color: #0A84FF; font-family: monospace;">PUT /api/reports/fixed-asset/:id</span>
+                </div>
+                <div style="padding: 12px; background: #1C1C1E; border-radius: 8px; display: flex; justify-content: space-between;">
+                    <span style="color: #98989D;">Frontend Component:</span>
+                    <span style="color: #30D158; font-family: monospace;">AssetRegistry.js</span>
+                </div>
+                <div style="padding: 12px; background: #1C1C1E; border-radius: 8px; display: flex; justify-content: space-between;">
+                    <span style="color: #98989D;">New Icons:</span>
+                    <span style="color: white;">Edit2, ChevronDown, ChevronUp</span>
+                </div>
+                <div style="padding: 12px; background: #1C1C1E; border-radius: 8px; display: flex; justify-content: space-between;">
+                    <span style="color: #98989D;">Compilation Status:</span>
+                    <span style="color: #30D158; font-weight: 600;">✓ webpack compiled successfully</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 60px; padding-top: 40px; border-top: 1px solid #38383A;">
+            <p style="color: #98989D; font-size: 0.9rem;">
+                Asset Management - Inline Detail & Edit Implementation Complete<br>
+                October 12, 2025 | Nusantara Construction Management
+            </p>
+        </div>
+    </div>
+</body>
+</html>

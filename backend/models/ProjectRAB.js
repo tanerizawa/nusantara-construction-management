@@ -73,6 +73,7 @@ const ProjectRAB = sequelize.define('ProjectRAB', {
 }, {
   tableName: 'project_rab',
   timestamps: true,
+  underscored: true,
   hooks: {
     beforeSave: (instance) => {
       // Auto-calculate total price

@@ -86,6 +86,7 @@ const Manpower = sequelize.define('Manpower', {
 }, {
   tableName: 'manpower',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   underscored: false

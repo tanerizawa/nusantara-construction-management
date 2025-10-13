@@ -77,6 +77,7 @@ const ApprovalStep = sequelize.define('ApprovalStep', {
 }, {
   tableName: 'approval_steps',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'
 });

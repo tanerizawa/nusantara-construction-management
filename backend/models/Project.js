@@ -154,6 +154,7 @@ const Project = sequelize.define('Project', {
 }, {
   tableName: 'projects',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['status']

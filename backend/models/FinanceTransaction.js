@@ -119,6 +119,7 @@ const FinanceTransaction = sequelize.define('FinanceTransaction', {
 }, {
   tableName: 'finance_transactions',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['type']

@@ -62,6 +62,7 @@ const ApprovalNotification = sequelize.define('ApprovalNotification', {
 }, {
   tableName: 'approval_notifications',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'
 });

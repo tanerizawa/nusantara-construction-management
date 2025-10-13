@@ -402,10 +402,15 @@ const Finance = () => {
                   <DollarSign className="w-8 h-8" style={{ color: '#0A84FF' }} />
                   <div className="ml-3">
                     <p className="text-xs font-medium" style={{ color: '#98989D' }}>
-                      Total Revenue
+                      Total Income
                     </p>
                     <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
-                      Rp 125.8B
+                      {new Intl.NumberFormat('id-ID', { 
+                        style: 'currency', 
+                        currency: 'IDR', 
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      }).format(transactions.transactionSummary.income)}
                     </p>
                   </div>
                 </div>
@@ -419,10 +424,15 @@ const Finance = () => {
                   <TrendingUp className="w-8 h-8" style={{ color: '#30D158' }} />
                   <div className="ml-3">
                     <p className="text-xs font-medium" style={{ color: '#98989D' }}>
-                      Net Profit
+                      Net Balance
                     </p>
                     <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
-                      Rp 28.5B
+                      {new Intl.NumberFormat('id-ID', { 
+                        style: 'currency', 
+                        currency: 'IDR', 
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      }).format(transactions.transactionSummary.balance)}
                     </p>
                   </div>
                 </div>

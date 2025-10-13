@@ -146,6 +146,7 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'fixed_assets',
     timestamps: true,
+  underscored: true,
     indexes: [
       {
         fields: ['asset_code']

@@ -109,7 +109,8 @@ const ProjectDocument = sequelize.define('ProjectDocument', {
   }
 }, {
   tableName: 'project_documents',
-  timestamps: true
+  timestamps: true,
+  underscored: true,
 });
 
 module.exports = ProjectDocument;

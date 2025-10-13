@@ -196,6 +196,7 @@ const DeliveryReceipt = sequelize.define('DeliveryReceipt', {
 }, {
   tableName: 'delivery_receipts',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['receipt_number'],

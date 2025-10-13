@@ -82,6 +82,7 @@ const JournalEntry = sequelize.define('JournalEntry', {
 }, {
   tableName: 'journal_entries',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['entry_number'],

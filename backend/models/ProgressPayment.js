@@ -140,6 +140,7 @@ const ProgressPayment = sequelize.define('ProgressPayment', {
 }, {
   tableName: 'progress_payments',
   timestamps: true,
+  underscored: true,
   
   hooks: {
     beforeCreate: async (progressPayment, options) => {

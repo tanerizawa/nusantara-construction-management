@@ -108,6 +108,7 @@ const PurchaseOrder = sequelize.define('PurchaseOrder', {
 }, {
   tableName: 'purchase_orders',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['po_number'],

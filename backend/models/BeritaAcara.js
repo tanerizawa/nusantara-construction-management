@@ -175,6 +175,7 @@ const BeritaAcara = sequelize.define('BeritaAcara', {
 }, {
   tableName: 'berita_acara',
   timestamps: true,
+  underscored: true,
   
   // Add hooks for business logic
   hooks: {

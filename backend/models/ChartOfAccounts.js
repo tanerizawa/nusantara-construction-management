@@ -100,6 +100,7 @@ const ChartOfAccounts = sequelize.define('ChartOfAccounts', {
 }, {
   tableName: 'chart_of_accounts',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at',
   indexes: [

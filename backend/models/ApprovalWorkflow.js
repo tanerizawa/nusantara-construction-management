@@ -43,6 +43,7 @@ const ApprovalWorkflow = sequelize.define('ApprovalWorkflow', {
 }, {
   tableName: 'approval_workflows',
   timestamps: true,
+  underscored: true,
   createdAt: 'created_at',
   updatedAt: 'updated_at'
 });

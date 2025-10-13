@@ -49,6 +49,7 @@ const Entity = sequelize.define('Entity', {
 }, {
   tableName: 'entities',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['entity_code']

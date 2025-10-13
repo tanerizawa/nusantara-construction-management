@@ -78,7 +78,8 @@ const ProjectTeamMember = sequelize.define('ProjectTeamMember', {
   }
 }, {
   tableName: 'project_team_members',
-  timestamps: true
+  timestamps: true,
+  underscored: true,
 });
 
 module.exports = ProjectTeamMember;

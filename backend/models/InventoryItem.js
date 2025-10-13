@@ -119,6 +119,7 @@ const InventoryItem = sequelize.define('InventoryItem', {
 }, {
   tableName: 'inventory_items',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['category']

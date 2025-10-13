@@ -155,6 +155,7 @@ const Subsidiary = sequelize.define('Subsidiary', {
 }, {
   tableName: 'subsidiaries',
   timestamps: true,
+  underscored: true,
   paranoid: true, // Soft deletes
   indexes: [
     {

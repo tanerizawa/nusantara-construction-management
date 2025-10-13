@@ -100,6 +100,7 @@ const TaxRecord = sequelize.define('TaxRecord', {
 }, {
   tableName: 'tax_records',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       fields: ['type']

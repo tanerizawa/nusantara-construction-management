@@ -368,6 +368,11 @@ const Finance = () => {
               taxRecords.resetTaxForm();
             }}
             isSubmitting={taxRecords.isSubmittingTax}
+            onDelete={taxRecords.handleDeleteTax}
+            selectedTax={taxRecords.selectedTax}
+            showDeleteModal={taxRecords.showDeleteModal}
+            onConfirmDelete={taxRecords.confirmDeleteTax}
+            onCancelDelete={taxRecords.cancelDeleteTax}
           />
         );
 

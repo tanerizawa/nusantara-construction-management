@@ -29,7 +29,12 @@ const TaxManagement = ({
   onChange,
   onSubmit,
   onCancel,
-  isSubmitting = false
+  isSubmitting = false,
+  onDelete,
+  selectedTax,
+  showDeleteModal,
+  onConfirmDelete,
+  onCancelDelete
 }) => {
   const [errors, setErrors] = React.useState({});
 
@@ -126,13 +131,18 @@ const TaxManagement = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Tax Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                   Tax Type *
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => handleChange('type', e.target.value)}
-                  className={`w-full border ${errors.type ? 'border-red-500' : 'border-gray-300'} rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: errors.type ? "1px solid #FF453A" : "1px solid #38383A"
+                  }}
                   required
                 >
                   <option value="pajak_penghasilan">PPh (Pajak Penghasilan)</option>
@@ -143,56 +153,71 @@ const TaxManagement = ({
                   <option value="other">Other Tax</option>
                 </select>
                 {errors.type && (
-                  <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                  <p className="mt-1 text-sm" style={{ color: "#FF453A" }}>{errors.type}</p>
                 )}
               </div>
 
               {/* Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                   Tax Amount (IDR) *
                 </label>
                 <input
                   type="number"
                   value={formData.amount}
                   onChange={(e) => handleChange('amount', e.target.value)}
-                  className={`w-full border ${errors.amount ? 'border-red-500' : 'border-gray-300'} rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: errors.amount ? "1px solid #FF453A" : "1px solid #38383A"
+                  }}
                   placeholder="0"
                   min="0"
                   step="0.01"
                   required
                 />
                 {errors.amount && (
-                  <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
+                  <p className="mt-1 text-sm" style={{ color: "#FF453A" }}>{errors.amount}</p>
                 )}
               </div>
 
               {/* Period */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                   Tax Period (Month-Year) *
                 </label>
                 <input
                   type="month"
                   value={formData.period}
                   onChange={(e) => handleChange('period', e.target.value)}
-                  className={`w-full border ${errors.period ? 'border-red-500' : 'border-gray-300'} rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: errors.period ? "1px solid #FF453A" : "1px solid #38383A"
+                  }}
                   required
                 />
                 {errors.period && (
-                  <p className="mt-1 text-sm text-red-600">{errors.period}</p>
+                  <p className="mt-1 text-sm" style={{ color: "#FF453A" }}>{errors.period}</p>
                 )}
               </div>
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                   Payment Status *
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => handleChange('status', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   required
                 >
                   <option value="draft">Draft</option>
@@ -205,27 +230,37 @@ const TaxManagement = ({
 
               {/* Due Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                   Due Date
                 </label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => handleChange('dueDate', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                 />
               </div>
 
               {/* Tax Rate */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                   Tax Rate (%)
                 </label>
                 <input
                   type="number"
                   value={formData.taxRate}
                   onChange={(e) => handleChange('taxRate', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   placeholder="0"
                   min="0"
                   max="100"
@@ -236,32 +271,42 @@ const TaxManagement = ({
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                 Description *
               </label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
-                className={`w-full border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                style={{
+                  backgroundColor: "#1C1C1E",
+                  color: "#FFFFFF",
+                  border: errors.description ? "1px solid #FF453A" : "1px solid #38383A"
+                }}
                 placeholder="Enter tax description or notes"
                 required
               />
               {errors.description && (
-                <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+                <p className="mt-1 text-sm" style={{ color: "#FF453A" }}>{errors.description}</p>
               )}
             </div>
 
             {/* Reference */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
                 Reference Number
               </label>
               <input
                 type="text"
                 value={formData.reference}
                 onChange={(e) => handleChange('reference', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                style={{
+                  backgroundColor: "#1C1C1E",
+                  color: "#FFFFFF",
+                  border: "1px solid #38383A"
+                }}
                 placeholder="SPT number, NTPN, or other reference"
               />
             </div>
@@ -321,19 +366,22 @@ const TaxManagement = ({
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
                   Due Date
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody style={{ backgroundColor: "#2C2C2E" }}>
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center">
+                  <td colSpan="7" className="px-6 py-12 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: "#0A84FF" }}></div>
                     <p className="mt-2" style={{ color: "#98989D" }}>Loading tax records...</p>
                   </td>
                 </tr>
               ) : taxRecords.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center">
+                  <td colSpan="7" className="px-6 py-12 text-center">
                     <Calculator className="w-12 h-12 mx-auto mb-3" style={{ color: "#636366" }} />
                     <h3 className="text-lg font-medium mb-2" style={{ color: "#FFFFFF" }}>No Tax Records Found</h3>
                     <p className="mb-4" style={{ color: "#98989D" }}>No tax filings have been recorded yet.</p>
@@ -370,6 +418,19 @@ const TaxManagement = ({
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {tax.dueDate ? new Date(tax.dueDate).toLocaleDateString('id-ID') : '-'}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={() => onDelete(tax)}
+                        className="px-3 py-1.5 rounded-lg transition-colors duration-150 hover:bg-opacity-25"
+                        style={{ 
+                          backgroundColor: 'rgba(255, 69, 58, 0.15)', 
+                          border: '1px solid #FF453A', 
+                          color: '#FF453A' 
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -377,6 +438,83 @@ const TaxManagement = ({
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation - Inline */}
+      {showDeleteModal && selectedTax && (
+        <div className="mt-6 rounded-lg p-6 shadow-lg border-l-4 animate-fadeIn" 
+             style={{ 
+               backgroundColor: "#2C2C2E", 
+               border: "1px solid #FF453A",
+               borderLeftColor: "#FF453A",
+               borderLeftWidth: "4px"
+             }}>
+          <div className="flex items-start space-x-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" 
+                   style={{ backgroundColor: "rgba(255, 69, 58, 0.15)" }}>
+                <svg className="w-6 h-6" style={{ color: "#FF453A" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold mb-2" style={{ color: "#FFFFFF" }}>
+                Confirm Delete Tax Record
+              </h3>
+              <p className="mb-4" style={{ color: "#98989D" }}>
+                Are you sure you want to delete this tax record? This action cannot be undone.
+              </p>
+              <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A" }}>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Tax Type</p>
+                    <p className="font-semibold" style={{ color: "#FFFFFF" }}>
+                      {getTaxTypeLabel(selectedTax.type)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Amount</p>
+                    <p className="font-semibold" style={{ color: "#FFFFFF" }}>
+                      {formatCurrency(selectedTax.amount)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Period</p>
+                    <p className="font-semibold" style={{ color: "#FFFFFF" }}>
+                      {selectedTax.period}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Reference</p>
+                    <p className="font-semibold" style={{ color: "#FFFFFF" }}>
+                      {selectedTax.reference || selectedTax.id}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={onCancelDelete}
+                  className="px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-opacity-20"
+                  style={{ backgroundColor: "rgba(152, 152, 157, 0.15)", border: "1px solid #38383A", color: "#98989D" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onConfirmDelete}
+                  className="px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-opacity-25 flex items-center space-x-2"
+                  style={{ backgroundColor: "rgba(255, 69, 58, 0.15)", border: "1px solid #FF453A", color: "#FF453A" }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Delete Tax Record</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

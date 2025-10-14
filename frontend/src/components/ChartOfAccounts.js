@@ -274,24 +274,24 @@ const ChartOfAccounts = () => {
 
   const getAccountTypeIcon = (type) => {
     const icons = {
-      'ASSET': <Package className="text-green-600" size={16} />,
-      'LIABILITY': <DollarSign className="text-red-600" size={16} />,
-      'EQUITY': <Building2 className="text-blue-600" size={16} />,
-      'REVENUE': <TrendingUp className="text-purple-600" size={16} />,
-      'EXPENSE': <Users className="text-orange-600" size={16} />
+      'ASSET': <Package style={{ color: "#32D74B" }} size={16} />,
+      'LIABILITY': <DollarSign style={{ color: "#FF453A" }} size={16} />,
+      'EQUITY': <Building2 style={{ color: "#0A84FF" }} size={16} />,
+      'REVENUE': <TrendingUp style={{ color: "#BF5AF2" }} size={16} />,
+      'EXPENSE': <Users style={{ color: "#FF9F0A" }} size={16} />
     };
     return icons[type] || <FileText size={16} />;
   };
 
   const getAccountTypeColor = (type) => {
     const colors = {
-      'ASSET': 'text-green-800 bg-green-100',
-      'LIABILITY': 'text-red-800 bg-red-100',
-      'EQUITY': 'text-blue-800 bg-blue-100',
-      'REVENUE': 'text-purple-800 bg-purple-100',
-      'EXPENSE': 'text-orange-800 bg-orange-100'
+      'ASSET': { bg: 'rgba(50, 215, 75, 0.15)', color: '#32D74B' },
+      'LIABILITY': { bg: 'rgba(255, 69, 58, 0.15)', color: '#FF453A' },
+      'EQUITY': { bg: 'rgba(10, 132, 255, 0.15)', color: '#0A84FF' },
+      'REVENUE': { bg: 'rgba(191, 90, 242, 0.15)', color: '#BF5AF2' },
+      'EXPENSE': { bg: 'rgba(255, 159, 10, 0.15)', color: '#FF9F0A' }
     };
-    return colors[type] || 'text-gray-800 bg-gray-100';
+    return colors[type] || { bg: 'rgba(152, 152, 157, 0.15)', color: '#98989D' };
   };
 
   const renderAccount = (account, level = 0) => {
@@ -300,18 +300,20 @@ const ChartOfAccounts = () => {
     const paddingLeft = level * 24;
 
     return (
-      <div key={account.id} className="border-b border-gray-100">
+      <div key={account.id} style={{ borderBottom: "1px solid #38383A" }}>
         <div 
-          className="flex items-center py-3 hover:bg-gray-50 cursor-pointer"
+          className="flex items-center py-3 cursor-pointer transition-colors duration-150"
           style={{ paddingLeft: `${paddingLeft + 12}px` }}
           onClick={() => hasSubAccounts && toggleNode(account.id)}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <div className="flex items-center flex-1">
             {hasSubAccounts && (
               <button className="mr-2 p-1">
                 {isExpanded ? 
-                  <ChevronDown size={16} className="text-gray-400" /> : 
-                  <ChevronRight size={16} className="text-gray-400" />
+                  <ChevronDown size={16} style={{ color: "#98989D" }} /> : 
+                  <ChevronRight size={16} style={{ color: "#98989D" }} />
                 }
               </button>
             )}
@@ -324,19 +326,19 @@ const ChartOfAccounts = () => {
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <span className="font-mono text-sm text-gray-600 mr-3">
+                  <span className="font-mono text-sm mr-3" style={{ color: "#98989D" }}>
                     {account.accountCode}
                   </span>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium" style={{ color: "#FFFFFF" }}>
                     {account.accountName}
                   </span>
                   {account.constructionSpecific && (
-                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    <span className="ml-2 text-xs px-2 py-1 rounded" style={{ backgroundColor: "rgba(10, 132, 255, 0.15)", color: "#0A84FF" }}>
                       Konstruksi
                     </span>
                   )}
                   {account.projectCostCenter && (
-                    <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                    <span className="ml-2 text-xs px-2 py-1 rounded" style={{ backgroundColor: "rgba(50, 215, 75, 0.15)", color: "#32D74B" }}>
                       Cost Center
                     </span>
                   )}
@@ -346,10 +348,9 @@ const ChartOfAccounts = () => {
                 <div className="flex items-center space-x-4">
                   {(account.debit > 0 || account.credit > 0) && (
                     <div className="text-right">
-                      <div className={`text-sm font-medium ${
-                        account.balance > 0 ? 'text-green-600' : 
-                        account.balance < 0 ? 'text-red-600' : 'text-gray-900'
-                      }`}>
+                      <div className={`text-sm font-medium`} style={{
+                        color: account.balance > 0 ? '#32D74B' : account.balance < 0 ? '#FF453A' : '#FFFFFF'
+                      }}>
                         {account.balance > 0 ? '+' : account.balance < 0 ? '-' : ''}
                         {new Intl.NumberFormat('id-ID', { 
                           style: 'currency', 
@@ -357,14 +358,17 @@ const ChartOfAccounts = () => {
                           minimumFractionDigits: 0 
                         }).format(Math.abs(account.balance || 0))}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs" style={{ color: "#636366" }}>
                         D: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(account.debit || 0)} |
                         C: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(account.credit || 0)}
                       </div>
                     </div>
                   )}
                   
-                  <span className={`text-xs px-2 py-1 rounded-full ${getAccountTypeColor(account.accountType)}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full`} style={{
+                    backgroundColor: getAccountTypeColor(account.accountType).bg,
+                    color: getAccountTypeColor(account.accountType).color
+                  }}>
                     {account.accountType}
                   </span>
                 </div>
@@ -399,7 +403,7 @@ const ChartOfAccounts = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderBottomColor: "#0A84FF" }}></div>
       </div>
     );
   }
@@ -410,15 +414,15 @@ const ChartOfAccounts = () => {
       <div className="flex justify-between items-center">
         <div>
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-gray-900">Chart of Accounts</h1>
+            <h1 className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>Chart of Accounts</h1>
             {!error && accounts.length > 0 && (
-              <span className="flex items-center text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
+              <span className="flex items-center text-sm px-2 py-1 rounded" style={{ backgroundColor: "rgba(50, 215, 75, 0.15)", color: "#32D74B" }}>
                 <CheckCircle size={14} className="mr-1" />
                 {getTotalAccountCount(accounts)} accounts loaded
               </span>
             )}
           </div>
-          <p className="text-gray-600 mt-1">
+          <p className="mt-1" style={{ color: "#98989D" }}>
             Bagan akun standar industri konstruksi sesuai PSAK - Real-time data
           </p>
         </div>
@@ -426,7 +430,8 @@ const ChartOfAccounts = () => {
           <button 
             onClick={handleRefresh}
             disabled={refreshing}
-            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 flex items-center transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg flex items-center transition-colors duration-150 disabled:opacity-50"
+            style={{ backgroundColor: "rgba(152, 152, 157, 0.15)", border: "1px solid #38383A", color: "#98989D" }}
           >
             <RefreshCw size={16} className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -436,7 +441,8 @@ const ChartOfAccounts = () => {
               console.log('Add Account button clicked');
               setShowAddAccountModal(true);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+            className="px-4 py-2 rounded-lg flex items-center transition-colors duration-150"
+            style={{ background: "linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)", color: "#FFFFFF" }}
           >
             <Plus size={16} className="mr-2" />
             Tambah Akun
@@ -446,7 +452,8 @@ const ChartOfAccounts = () => {
               setShowAddEntityModal(true);
               fetchSubsidiaries();
             }}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center transition-colors"
+            className="px-4 py-2 rounded-lg flex items-center transition-colors duration-150"
+            style={{ background: "linear-gradient(135deg, #32D74B 0%, #28B842 100%)", color: "#FFFFFF" }}
           >
             <Building2 size={16} className="mr-2" />
             Kelola Entitas
@@ -456,36 +463,36 @@ const ChartOfAccounts = () => {
 
       {/* Summary Panel */}
       {!loading && !error && accounts.length > 0 && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-6">
+        <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold" style={{ color: "#0A84FF" }}>
                 {new Intl.NumberFormat('id-ID', { 
                   style: 'currency', 
                   currency: 'IDR',
                   minimumFractionDigits: 0 
                 }).format(totalBalances.totalDebit)}
               </div>
-              <div className="text-sm text-gray-600">Total Debit</div>
+              <div className="text-sm" style={{ color: "#98989D" }}>Total Debit</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold" style={{ color: "#32D74B" }}>
                 {new Intl.NumberFormat('id-ID', { 
                   style: 'currency', 
                   currency: 'IDR',
                   minimumFractionDigits: 0 
                 }).format(totalBalances.totalCredit)}
               </div>
-              <div className="text-sm text-gray-600">Total Credit</div>
+              <div className="text-sm" style={{ color: "#98989D" }}>Total Credit</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-700">
+              <div className="text-2xl font-bold">
                 {Math.abs(totalBalances.totalDebit - totalBalances.totalCredit) < 0.01 ? 
-                  <span className="text-green-600">✓ Balanced</span> : 
-                  <span className="text-red-600">⚠ Unbalanced</span>
+                  <span style={{ color: "#32D74B" }}>✓ Balanced</span> : 
+                  <span style={{ color: "#FF453A" }}>⚠ Unbalanced</span>
                 }
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm" style={{ color: "#98989D" }}>
                 {lastUpdate && `Last Update: ${lastUpdate.toLocaleTimeString('id-ID')}`}
               </div>
             </div>
@@ -495,15 +502,16 @@ const ChartOfAccounts = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="rounded-lg p-4" style={{ backgroundColor: "rgba(255, 69, 58, 0.1)", border: "1px solid #FF453A" }}>
           <div className="flex items-center">
-            <AlertCircle className="text-red-600 mr-3" size={20} />
+            <AlertCircle style={{ color: "#FF453A" }} className="mr-3" size={20} />
             <div>
-              <h3 className="text-red-800 font-medium">Error loading accounts</h3>
-              <p className="text-red-600 text-sm mt-1">{error}</p>
+              <h3 className="font-medium" style={{ color: "#FF453A" }}>Error loading accounts</h3>
+              <p className="text-sm mt-1" style={{ color: "#FF453A" }}>{error}</p>
               <button 
                 onClick={handleRefresh}
-                className="text-red-600 hover:text-red-800 text-sm font-medium mt-2 underline"
+                className="text-sm font-medium mt-2 underline"
+                style={{ color: "#FF453A" }}
               >
                 Try again
               </button>
@@ -513,17 +521,22 @@ const ChartOfAccounts = () => {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="rounded-lg p-4" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
         <div className="flex space-x-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2" style={{ color: "#636366" }} size={20} />
               <input
                 type="text"
                 placeholder="Cari nama akun atau kode..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 rounded-lg focus:ring-2 focus:outline-none transition-all duration-200"
+                style={{
+                  backgroundColor: "#1C1C1E",
+                  color: "#FFFFFF",
+                  border: "1px solid #38383A"
+                }}
               />
             </div>
           </div>
@@ -531,7 +544,12 @@ const ChartOfAccounts = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:outline-none transition-all duration-200"
+              style={{
+                backgroundColor: "#1C1C1E",
+                color: "#FFFFFF",
+                border: "1px solid #38383A"
+              }}
             >
               <option value="">Semua Tipe</option>
               <option value="ASSET">Asset</option>
@@ -545,11 +563,11 @@ const ChartOfAccounts = () => {
       </div>
 
       {/* Account Tree */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-gray-900">Struktur Akun</h2>
+      <div className="rounded-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+        <div className="px-6 py-4" style={{ borderBottom: "1px solid #38383A" }}>
+          <h2 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Struktur Akun</h2>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div style={{ borderTop: "1px solid #38383A" }}>
           {filteredAccounts.map(account => renderAccount(account))}
         </div>
       </div>
@@ -576,14 +594,14 @@ const ChartOfAccounts = () => {
           }, 0);
 
           return (
-            <div key={type} className="bg-white rounded-lg border border-gray-200 p-4">
+            <div key={type} className="rounded-lg p-4" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
               <div className="flex items-center">
                 <div className="mr-3">
                   {getAccountTypeIcon(type)}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{type}</p>
-                  <p className="text-2xl font-bold text-gray-900">{count}</p>
+                  <p className="text-sm font-medium" style={{ color: "#98989D" }}>{type}</p>
+                  <p className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>{count}</p>
                 </div>
               </div>
             </div>
@@ -610,29 +628,31 @@ const ChartOfAccounts = () => {
           onClick={(e) => e.target === e.currentTarget && setShowAddAccountModal(false)}
         >
           <div 
-            className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl"
+            className="rounded-lg p-6 w-full max-w-md shadow-2xl"
             style={{
-              backgroundColor: 'white',
+              backgroundColor: '#2C2C2E',
               borderRadius: '8px',
               padding: '24px',
               width: '100%',
               maxWidth: '28rem',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid #38383A'
             }}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Tambah Akun Baru</h3>
+              <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Tambah Akun Baru</h3>
               <button
                 onClick={() => {
                   console.log('🔄 Close modal clicked');
                   setShowAddAccountModal(false);
                 }}
-                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                className="text-2xl leading-none hover:opacity-70 transition-opacity"
                 style={{
                   background: 'none',
                   border: 'none',
                   fontSize: '24px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  color: '#98989D'
                 }}
               >
                 ×
@@ -640,38 +660,53 @@ const ChartOfAccounts = () => {
             </div>
             <form onSubmit={handleAddAccountSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kode Akun *</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Kode Akun *</label>
                 <input
                   type="text"
                   name="accountCode"
                   value={addAccountForm.accountCode}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   placeholder="e.g., 1103"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama Akun *</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Nama Akun *</label>
                 <input
                   type="text"
                   name="accountName"
                   value={addAccountForm.accountName}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   placeholder="e.g., Piutang Lain-lain"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Akun *</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Tipe Akun *</label>
                 <select
                   name="accountType"
                   value={addAccountForm.accountType}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   required
                 >
                   <option value="ASSET">Asset</option>
@@ -683,24 +718,34 @@ const ChartOfAccounts = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sub Tipe</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Sub Tipe</label>
                 <input
                   type="text"
                   name="accountSubType"
                   value={addAccountForm.accountSubType}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   placeholder="e.g., CURRENT_ASSET"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Parent Account ID</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Parent Account ID</label>
                 <select
                   name="parentAccountId"
                   value={addAccountForm.parentAccountId}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                 >
                   <option value="">-- Pilih Parent Account --</option>
                   {accounts.filter(acc => acc.level < 4).map(account => (
@@ -712,12 +757,17 @@ const ChartOfAccounts = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Level *</label>
                 <select
                   name="level"
                   value={addAccountForm.level}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   required
                 >
                   <option value={1}>1 - Main Group</option>
@@ -728,12 +778,17 @@ const ChartOfAccounts = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Normal Balance *</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Normal Balance *</label>
                 <select
                   name="normalBalance"
                   value={addAccountForm.normalBalance}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   required
                 >
                   <option value="DEBIT">Debit</option>
@@ -742,12 +797,17 @@ const ChartOfAccounts = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Deskripsi</label>
                 <textarea
                   name="description"
                   value={addAccountForm.description}
                   onChange={handleAddAccountFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: "#1C1C1E",
+                    color: "#FFFFFF",
+                    border: "1px solid #38383A"
+                  }}
                   rows="3"
                   placeholder="Jelaskan fungsi akun ini..."
                 />
@@ -762,7 +822,7 @@ const ChartOfAccounts = () => {
                     onChange={handleAddAccountFormChange}
                     className="mr-2"
                   />
-                  <span className="text-sm text-gray-700">Spesifik Konstruksi</span>
+                  <span className="text-sm" style={{ color: "#98989D" }}>Spesifik Konstruksi</span>
                 </label>
                 
                 <label className="flex items-center">
@@ -773,7 +833,7 @@ const ChartOfAccounts = () => {
                     onChange={handleAddAccountFormChange}
                     className="mr-2"
                   />
-                  <span className="text-sm text-gray-700">Project Cost Center</span>
+                  <span className="text-sm" style={{ color: "#98989D" }}>Project Cost Center</span>
                 </label>
 
                 <label className="flex items-center">
@@ -784,7 +844,7 @@ const ChartOfAccounts = () => {
                     onChange={handleAddAccountFormChange}
                     className="mr-2"
                   />
-                  <span className="text-sm text-gray-700">VAT Applicable</span>
+                  <span className="text-sm" style={{ color: "#98989D" }}>VAT Applicable</span>
                 </label>
 
                 <label className="flex items-center">
@@ -795,7 +855,7 @@ const ChartOfAccounts = () => {
                     onChange={handleAddAccountFormChange}
                     className="mr-2"
                   />
-                  <span className="text-sm text-gray-700">Tax Deductible</span>
+                  <span className="text-sm" style={{ color: "#98989D" }}>Tax Deductible</span>
                 </label>
               </div>
 
@@ -803,13 +863,22 @@ const ChartOfAccounts = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddAccountModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-2 rounded-md transition-all duration-200"
+                  style={{
+                    backgroundColor: "rgba(152, 152, 157, 0.15)",
+                    border: "1px solid #38383A",
+                    color: "#98989D"
+                  }}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="flex-1 px-4 py-2 rounded-md transition-all duration-200"
+                  style={{
+                    background: "linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)",
+                    color: "#FFFFFF"
+                  }}
                 >
                   Tambah Akun
                 </button>
@@ -822,13 +891,14 @@ const ChartOfAccounts = () => {
 
       {/* Subsidiaries Management Modal */}
       {showAddEntityModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: "rgba(0, 0, 0, 0.7)" }}>
+          <div className="rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Manajemen Entitas/Subsidiaries</h3>
+              <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Manajemen Entitas/Subsidiaries</h3>
               <button
                 onClick={() => setShowAddEntityModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="hover:opacity-70 transition-opacity"
+                style={{ color: "#98989D" }}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -838,60 +908,62 @@ const ChartOfAccounts = () => {
             
             {loadingSubsidiaries ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderBottomColor: "#0A84FF" }}></div>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
+                <div className="text-sm mb-4" style={{ color: "#98989D" }}>
                   Berikut adalah daftar anak perusahaan/subsidiaries yang terdaftar dalam sistem:
                 </div>
                 
                 <div className="grid gap-4">
                   {subsidiaries.map((subsidiary) => (
-                    <div key={subsidiary.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div key={subsidiary.id} className="rounded-lg p-4 transition-all duration-200" style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A" }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1C1C1E'}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-2">
-                            <h4 className="font-semibold text-gray-900">{subsidiary.name}</h4>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <h4 className="font-semibold" style={{ color: "#FFFFFF" }}>{subsidiary.name}</h4>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: "rgba(10, 132, 255, 0.15)", color: "#0A84FF" }}>
                               {subsidiary.code}
                             </span>
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              subsidiary.status === 'active' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium`} style={{
+                              backgroundColor: subsidiary.status === 'active' ? 'rgba(50, 215, 75, 0.15)' : 'rgba(255, 69, 58, 0.15)',
+                              color: subsidiary.status === 'active' ? '#32D74B' : '#FF453A'
+                            }}>
                               {subsidiary.status === 'active' ? 'Aktif' : 'Non-Aktif'}
                             </span>
                           </div>
                           
-                          <p className="text-sm text-gray-600 mb-2">{subsidiary.description}</p>
+                          <p className="text-sm mb-2" style={{ color: "#98989D" }}>{subsidiary.description}</p>
                           
                           <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
-                              <span className="font-medium text-gray-700">Spesialisasi:</span>
-                              <span className="ml-2 capitalize">{subsidiary.specialization}</span>
+                              <span className="font-medium" style={{ color: "#98989D" }}>Spesialisasi:</span>
+                              <span className="ml-2 capitalize" style={{ color: "#FFFFFF" }}>{subsidiary.specialization}</span>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-700">Karyawan:</span>
-                              <span className="ml-2">{subsidiary.employeeCount} orang</span>
+                              <span className="font-medium" style={{ color: "#98989D" }}>Karyawan:</span>
+                              <span className="ml-2" style={{ color: "#FFFFFF" }}>{subsidiary.employeeCount} orang</span>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-700">Didirikan:</span>
-                              <span className="ml-2">{subsidiary.establishedYear}</span>
+                              <span className="font-medium" style={{ color: "#98989D" }}>Didirikan:</span>
+                              <span className="ml-2" style={{ color: "#FFFFFF" }}>{subsidiary.establishedYear}</span>
                             </div>
                             <div>
-                              <span className="font-medium text-gray-700">Kota:</span>
-                              <span className="ml-2">{subsidiary.address?.city || 'N/A'}</span>
+                              <span className="font-medium" style={{ color: "#98989D" }}>Kota:</span>
+                              <span className="ml-2" style={{ color: "#FFFFFF" }}>{subsidiary.address?.city || 'N/A'}</span>
                             </div>
                           </div>
                           
                           {subsidiary.certification && subsidiary.certification.length > 0 && (
                             <div className="mt-2">
-                              <span className="font-medium text-gray-700 text-sm">Sertifikasi:</span>
+                              <span className="font-medium text-sm" style={{ color: "#98989D" }}>Sertifikasi:</span>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {subsidiary.certification.map((cert, index) => (
-                                  <span key={index} className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">
+                                  <span key={index} className="inline-flex items-center px-2 py-1 rounded text-xs" style={{ backgroundColor: "rgba(152, 152, 157, 0.15)", color: "#98989D" }}>
                                     {cert}
                                   </span>
                                 ))}
@@ -905,17 +977,22 @@ const ChartOfAccounts = () => {
                 </div>
                 
                 {subsidiaries.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8" style={{ color: "#98989D" }}>
                     Tidak ada data subsidiaries yang ditemukan.
                   </div>
                 )}
               </div>
             )}
             
-            <div className="flex justify-end pt-4 border-t border-gray-200 mt-6">
+            <div className="flex justify-end pt-4 mt-6" style={{ borderTop: "1px solid #38383A" }}>
               <button
                 onClick={() => setShowAddEntityModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                className="px-4 py-2 rounded-md transition-all duration-200"
+                style={{
+                  backgroundColor: "rgba(152, 152, 157, 0.15)",
+                  border: "1px solid #38383A",
+                  color: "#98989D"
+                }}
               >
                 Tutup
               </button>

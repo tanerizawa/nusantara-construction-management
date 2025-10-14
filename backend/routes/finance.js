@@ -17,9 +17,9 @@ const transactionSchema = Joi.object({
   description: Joi.string().allow('').optional(),
   date: Joi.date().default(new Date()),
   projectId: Joi.string().allow('').optional(),
-  accountFrom: Joi.string().allow('').optional(),
-  accountTo: Joi.string().allow('').optional(),
-  paymentMethod: Joi.string().valid('cash', 'bank_transfer', 'check', 'credit_card', 'other').default('bank_transfer'),
+  accountFrom: Joi.string().allow('').optional(),  // COA account ID for expense/transfer
+  accountTo: Joi.string().allow('').optional(),    // COA account ID for income/transfer
+  paymentMethod: Joi.string().valid('cash', 'bank_transfer', 'check', 'credit_card', 'debit_card', 'other').optional(),  // Legacy field, now optional
   referenceNumber: Joi.string().allow('').optional(),
   notes: Joi.string().allow('').optional()
 });

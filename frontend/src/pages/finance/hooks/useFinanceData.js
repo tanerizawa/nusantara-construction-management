@@ -42,6 +42,7 @@ export const useFinanceData = () => {
 
   /**
    * Fetch all projects
+   * Filter to only show unfinished projects (not completed or cancelled)
    */
   const fetchProjects = async () => {
     try {
@@ -49,8 +50,12 @@ export const useFinanceData = () => {
       const response = await projectsAPI.getAll({ limit: 100 });
 
       if (response.success && response.data) {
-        setProjects(response.data);
-        setFilteredProjects(response.data);
+        // Filter only unfinished projects
+        const unfinishedProjects = response.data.filter(
+          project => project.status !== 'completed' && project.status !== 'cancelled'
+        );
+        setProjects(unfinishedProjects);
+        setFilteredProjects(unfinishedProjects);
       } else {
         console.error("Failed to fetch projects:", response.error);
       }

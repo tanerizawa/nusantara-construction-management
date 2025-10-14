@@ -13,6 +13,7 @@ const ProjectTeamMember = require("../../models/ProjectTeamMember");
 const ProjectDocument = require("../../models/ProjectDocument");
 const ProjectMilestone = require("../../models/ProjectMilestone");
 const User = require("../../models/User");
+const Subsidiary = require("../../models/Subsidiary");
 const PurchaseOrder = require("../../models/PurchaseOrder");
 const DeliveryReceipt = require("../../models/DeliveryReceipt");
 const BeritaAcara = require("../../models/BeritaAcara");
@@ -114,6 +115,12 @@ router.get("/", async (req, res) => {
           as: "rabItemsList",
           required: false,
           attributes: ["id", "status"],
+        },
+        {
+          model: Subsidiary,
+          as: "subsidiary",
+          attributes: ["id", "name", "code"],
+          required: false,
         },
       ],
     });

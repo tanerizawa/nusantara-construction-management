@@ -77,12 +77,41 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
               <p className="text-sm mb-1" style={{ color: '#98989D' }}>Date</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{formatDate(transaction.date, true)}</p>
             </div>
-            <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Payment Method</p>
-              <p className="font-medium" style={{ color: '#FFFFFF' }}>
-                {getPaymentMethodLabel(transaction.paymentMethod)}
-              </p>
-            </div>
+            
+            {/* Account From - for expense/transfer */}
+            {(transaction.type === 'expense' || transaction.type === 'transfer') && transaction.accountFrom && (
+              <div>
+                <p className="text-sm mb-1" style={{ color: '#98989D' }}>
+                  {transaction.type === 'transfer' ? 'From Account' : 'Paying Account'}
+                </p>
+                <p className="font-medium" style={{ color: '#FFFFFF' }}>
+                  {transaction.accountFrom}
+                </p>
+              </div>
+            )}
+            
+            {/* Account To - for income/transfer */}
+            {(transaction.type === 'income' || transaction.type === 'transfer') && transaction.accountTo && (
+              <div>
+                <p className="text-sm mb-1" style={{ color: '#98989D' }}>
+                  {transaction.type === 'transfer' ? 'To Account' : 'Receiving Account'}
+                </p>
+                <p className="font-medium" style={{ color: '#FFFFFF' }}>
+                  {transaction.accountTo}
+                </p>
+              </div>
+            )}
+            
+            {/* Legacy Payment Method (for old transactions) */}
+            {transaction.paymentMethod && (
+              <div>
+                <p className="text-sm mb-1" style={{ color: '#98989D' }}>Payment Method</p>
+                <p className="font-medium" style={{ color: '#FFFFFF' }}>
+                  {getPaymentMethodLabel(transaction.paymentMethod)}
+                </p>
+              </div>
+            )}
+            
             <div>
               <p className="text-sm mb-1" style={{ color: '#98989D' }}>Reference Number</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.referenceNumber || '-'}</p>

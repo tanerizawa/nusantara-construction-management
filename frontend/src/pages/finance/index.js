@@ -249,8 +249,8 @@ const Finance = () => {
               </div>
             )}
 
-            {/* Transaction Form */}
-            {transactions.showTransactionForm && (
+            {/* Transaction Form (Create) */}
+            {transactions.showTransactionForm && !transactions.showEditModal && (
               <TransactionForm
                 formData={transactions.transactionForm}
                 onChange={transactions.handleTransactionFormChange}
@@ -261,12 +261,34 @@ const Finance = () => {
                 }}
                 projects={financeData.filteredProjects}
                 loadingProjects={financeData.loadingProjects}
+                cashAccounts={transactions.cashAccounts}
+                loadingCashAccounts={transactions.loadingCashAccounts}
                 isSubmitting={transactions.isSubmittingTransaction}
               />
             )}
 
+            {/* Transaction Form (Edit) */}
+            {transactions.showEditModal && (
+              <TransactionForm
+                formData={transactions.transactionForm}
+                onChange={transactions.handleTransactionFormChange}
+                onSubmit={transactions.handleUpdateTransaction}
+                onCancel={() => {
+                  transactions.setShowEditModal(false);
+                  transactions.setSelectedTransaction(null);
+                  transactions.resetTransactionForm();
+                }}
+                projects={financeData.filteredProjects}
+                loadingProjects={financeData.loadingProjects}
+                cashAccounts={transactions.cashAccounts}
+                loadingCashAccounts={transactions.loadingCashAccounts}
+                isSubmitting={transactions.isSubmittingTransaction}
+                isEdit={true}
+              />
+            )}
+
             {/* Transaction List */}
-            {!transactions.showTransactionForm && (
+            {!transactions.showTransactionForm && !transactions.showEditModal && (
               <TransactionList
                 transactions={transactions.transactions}
                 loading={transactions.transactionLoading}

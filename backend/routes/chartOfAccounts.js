@@ -166,6 +166,53 @@ router.get('/hierarchy', async (req, res) => {
 });
 
 /**
+ * GET /api/chart-of-accounts/cash/accounts
+ * Get all cash and bank accounts with balances for transaction form
+ */
+router.get('/cash/accounts', async (req, res) => {
+  try {
+    // Get all active cash and bank accounts
+    const cashAccounts = await ChartOfAccounts.findAll({
+      where: { 
+        account_type: 'CASH_AND_BANK',
+        is_active: true
+      },
+      order: [['account_code', 'ASC']]
+    });
+
+    // Format for transaction form dropdown
+    const formattedAccounts = cashAccounts.map(account => ({
+      id: account.id,
+      code: account.accountCode,
+      name: account.accountName,
+      balance: parseFloat(account.currentBalance || 0),
+      type: account.accountType,
+      // Display format: "Bank BCA (1101.01) - Rp 1.091.000.000"
+      displayName: `${account.accountName} (${account.accountCode})`,
+      formattedBalance: new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(account.currentBalance || 0)
+    }));
+
+    res.json({
+      success: true,
+      data: formattedAccounts,
+      count: formattedAccounts.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching cash accounts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching cash accounts',
+      error: error.message
+    });
+  }
+});
+
+/**
  * GET /api/chart-of-accounts/:code
  * Get single account by code
  */

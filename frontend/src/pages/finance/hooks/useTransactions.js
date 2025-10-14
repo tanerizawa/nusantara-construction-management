@@ -3,10 +3,11 @@
  * Custom hook for managing finance transactions CRUD operations
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { financeAPI } from "../../../services/api";
 import { calculateTransactionSummary } from "../utils/calculations";
 import { validateTransactionForm } from "../utils/validators";
+import api from "../../../services/api";
 
 export const useTransactions = (
   selectedSubsidiary = "all",
@@ -21,6 +22,10 @@ export const useTransactions = (
     balance: 0,
   });
 
+  // Cash accounts state
+  const [cashAccounts, setCashAccounts] = useState([]);
+  const [loadingCashAccounts, setLoadingCashAccounts] = useState(false);
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -34,7 +39,8 @@ export const useTransactions = (
     description: "",
     date: new Date().toISOString().split("T")[0],
     projectId: "",
-    paymentMethod: "bank_transfer",
+    accountFrom: "",
+    accountTo: "",
     referenceNumber: "",
     notes: "",
   });
@@ -46,6 +52,28 @@ export const useTransactions = (
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  /**
+   * Fetch cash/bank accounts from COA
+   */
+  const fetchCashAccounts = useCallback(async () => {
+    try {
+      setLoadingCashAccounts(true);
+      const response = await api.get('/coa/cash/accounts');
+      if (response.success) {
+        setCashAccounts(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching cash accounts:', error);
+    } finally {
+      setLoadingCashAccounts(false);
+    }
+  }, []);
+
+  // Fetch cash accounts on mount
+  useEffect(() => {
+    fetchCashAccounts();
+  }, [fetchCashAccounts]);
 
   /**
    * Fetch transactions with filters and pagination
@@ -120,7 +148,8 @@ export const useTransactions = (
       description: "",
       date: new Date().toISOString().split("T")[0],
       projectId: "",
-      paymentMethod: "bank_transfer",
+      accountFrom: "",
+      accountTo: "",
       referenceNumber: "",
       notes: "",
     });
@@ -140,32 +169,75 @@ export const useTransactions = (
       return;
     }
 
+    // Additional transfer validation
+    if (transactionForm.type === 'transfer') {
+      if (transactionForm.accountFrom === transactionForm.accountTo) {
+        setFormErrors({
+          accountTo: 'Source and destination accounts must be different'
+        });
+        return;
+      }
+    }
+
     try {
       setIsSubmittingTransaction(true);
 
       // Prepare data
       const submitData = {
-        ...transactionForm,
+        type: transactionForm.type,
+        category: transactionForm.category,
         amount: parseFloat(transactionForm.amount),
+        description: transactionForm.description,
+        date: transactionForm.date,
+        accountFrom: transactionForm.accountFrom,
+        accountTo: transactionForm.accountTo,
+        referenceNumber: transactionForm.referenceNumber,
+        notes: transactionForm.notes,
       };
 
-      // Remove empty projectId to avoid foreign key constraints
-      if (!submitData.projectId) {
-        delete submitData.projectId;
+      // Add projectId if provided
+      if (transactionForm.projectId) {
+        submitData.projectId = transactionForm.projectId;
       }
+
+      // Remove empty fields
+      Object.keys(submitData).forEach(key => {
+        if (submitData[key] === '' || submitData[key] === null || submitData[key] === undefined) {
+          delete submitData[key];
+        }
+      });
+
+      console.log('🚀 Submitting transaction data:', submitData);
 
       const response = await financeAPI.create(submitData);
 
+      console.log('📥 Response from API:', response);
+
       if (response.success) {
+        console.log('✅ Transaction created successfully!');
         resetTransactionForm();
         setShowTransactionForm(false);
         fetchTransactions(currentPage);
+        
+        // Show success notification
+        alert('Transaction created successfully!');
+        
         return { success: true, message: "Transaction created successfully!" };
       } else {
+        console.error('❌ API returned success=false:', response);
         throw new Error(response.error || "Failed to create transaction");
       }
     } catch (error) {
-      console.error("Error creating transaction:", error);
+      console.error("❌ Error creating transaction:", error);
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        response: error.response
+      });
+      
+      // Show error notification
+      alert('Error creating transaction: ' + error.message);
+      
       return {
         success: false,
         message: "Error creating transaction: " + error.message,
@@ -187,6 +259,7 @@ export const useTransactions = (
    * Handle edit transaction
    */
   const handleEditTransaction = (transaction) => {
+    console.log('✏️ Editing transaction:', transaction);
     setSelectedTransaction(transaction);
     setTransactionForm({
       type: transaction.type,
@@ -195,7 +268,8 @@ export const useTransactions = (
       description: transaction.description,
       date: transaction.date ? transaction.date.split("T")[0] : "",
       projectId: transaction.projectId || "",
-      paymentMethod: transaction.paymentMethod || "bank_transfer",
+      accountFrom: transaction.accountFrom || "",
+      accountTo: transaction.accountTo || "",
       referenceNumber: transaction.referenceNumber || "",
       notes: transaction.notes || "",
     });
@@ -210,10 +284,15 @@ export const useTransactions = (
 
     if (!selectedTransaction) return;
 
+    console.log('🔄 Updating transaction:', selectedTransaction.id);
+    console.log('📝 Update data:', transactionForm);
+
     // Validate form
     const validation = validateTransactionForm(transactionForm);
     if (!validation.isValid) {
+      console.error('❌ Validation failed:', validation.errors);
       setFormErrors(validation.errors);
+      alert('Validation Error: ' + JSON.stringify(validation.errors, null, 2));
       return;
     }
 
@@ -221,30 +300,52 @@ export const useTransactions = (
       setIsSubmittingTransaction(true);
 
       const submitData = {
-        ...transactionForm,
+        type: transactionForm.type,
+        category: transactionForm.category,
         amount: parseFloat(transactionForm.amount),
+        description: transactionForm.description,
+        date: transactionForm.date,
+        accountFrom: transactionForm.accountFrom,
+        accountTo: transactionForm.accountTo,
+        referenceNumber: transactionForm.referenceNumber,
+        notes: transactionForm.notes,
       };
 
-      if (!submitData.projectId) {
-        delete submitData.projectId;
+      // Add projectId if provided
+      if (transactionForm.projectId) {
+        submitData.projectId = transactionForm.projectId;
       }
+
+      // Remove empty fields
+      Object.keys(submitData).forEach(key => {
+        if (submitData[key] === '' || submitData[key] === null || submitData[key] === undefined) {
+          delete submitData[key];
+        }
+      });
+
+      console.log('📤 Sending update:', submitData);
 
       const response = await financeAPI.update(
         selectedTransaction.id,
         submitData
       );
 
+      console.log('📥 Update response:', response);
+
       if (response.success) {
+        console.log('✅ Transaction updated successfully');
         resetTransactionForm();
         setShowEditModal(false);
         setSelectedTransaction(null);
         fetchTransactions(currentPage);
+        alert('Transaction updated successfully!');
         return { success: true, message: "Transaction updated successfully!" };
       } else {
         throw new Error(response.error || "Failed to update transaction");
       }
     } catch (error) {
-      console.error("Error updating transaction:", error);
+      console.error("❌ Error updating transaction:", error);
+      alert('Error updating transaction: ' + error.message);
       return {
         success: false,
         message: "Error updating transaction: " + error.message,
@@ -268,19 +369,26 @@ export const useTransactions = (
   const confirmDeleteTransaction = async () => {
     if (!selectedTransaction) return;
 
+    console.log('🗑️ Deleting transaction:', selectedTransaction.id);
+
     try {
       const response = await financeAPI.delete(selectedTransaction.id);
 
+      console.log('📥 Delete response:', response);
+
       if (response.success) {
+        console.log('✅ Transaction deleted successfully');
         setShowDeleteModal(false);
         setSelectedTransaction(null);
         fetchTransactions(currentPage);
+        alert('Transaction deleted successfully!');
         return { success: true, message: "Transaction deleted successfully!" };
       } else {
         throw new Error(response.error || "Failed to delete transaction");
       }
     } catch (error) {
-      console.error("Error deleting transaction:", error);
+      console.error("❌ Error deleting transaction:", error);
+      alert('Error deleting transaction: ' + error.message);
       return {
         success: false,
         message: "Error deleting transaction: " + error.message,
@@ -324,6 +432,10 @@ export const useTransactions = (
     transactionLoading,
     transactionSummary,
 
+    // Cash accounts
+    cashAccounts,
+    loadingCashAccounts,
+
     // Pagination
     currentPage,
     totalPages,
@@ -344,6 +456,7 @@ export const useTransactions = (
     setShowViewModal,
     setShowEditModal,
     setShowDeleteModal,
+    setSelectedTransaction,
 
     // Actions
     fetchTransactions,

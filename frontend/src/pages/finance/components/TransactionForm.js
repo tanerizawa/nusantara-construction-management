@@ -14,6 +14,8 @@ import { validateTransactionForm } from '../utils/validators';
  * @param {Function} props.onCancel - Handler for cancel action
  * @param {Array} props.projects - List of available projects
  * @param {boolean} props.loadingProjects - Loading state for projects
+ * @param {Array} props.cashAccounts - List of cash/bank accounts from COA
+ * @param {boolean} props.loadingCashAccounts - Loading state for cash accounts
  * @param {boolean} props.isSubmitting - Submission state
  * @param {boolean} props.isEdit - Whether in edit mode
  */
@@ -24,6 +26,8 @@ const TransactionForm = ({
   onCancel,
   projects = [],
   loadingProjects = false,
+  cashAccounts = [],
+  loadingCashAccounts = false,
   isSubmitting = false,
   isEdit = false
 }) => {
@@ -35,15 +39,25 @@ const TransactionForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validate form
-    const validationErrors = validateTransactionForm(formData);
+    console.log('🎯 FORM SUBMIT - Starting validation...');
+    console.log('📝 Form Data:', formData);
     
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    // Validate form
+    const validation = validateTransactionForm(formData);
+    
+    console.log('🔍 Validation Result:', validation);
+    console.log('❓ Is Valid:', validation.isValid);
+    console.log('❓ Errors:', validation.errors);
+    
+    if (!validation.isValid) {
+      console.error('❌ VALIDATION FAILED:', validation.errors);
+      setErrors(validation.errors);
+      alert('Validation Error: ' + JSON.stringify(validation.errors, null, 2));
       return;
     }
     
     // Clear errors and submit
+    console.log('✅ Validation passed, calling onSubmit...');
     setErrors({});
     onSubmit(e);
   };
@@ -204,39 +218,118 @@ const TransactionForm = ({
               </option>
               {projects.map(project => (
                 <option key={project.id} value={project.id}>
-                  {project.name}
+                  {project.name} - {project.subsidiary?.name || 'No Subsidiary'}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Payment Method */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Payment Method *
-            </label>
-            <select
-              value={formData.paymentMethod}
-              onChange={(e) => handleChange('paymentMethod', e.target.value)}
-              className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 transition-all duration-200"
-              style={{
-                backgroundColor: '#1C1C1E',
-                color: '#FFFFFF',
-                border: errors.paymentMethod ? '1px solid #FF453A' : '1px solid #38383A'
-              }}
-              required
-            >
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="cash">Cash</option>
-              <option value="check">Check</option>
-              <option value="credit_card">Credit Card</option>
-              <option value="debit_card">Debit Card</option>
-              <option value="e_wallet">E-Wallet</option>
-            </select>
-            {errors.paymentMethod && (
-              <p className="mt-1 text-sm" style={{ color: '#FF453A' }}>{errors.paymentMethod}</p>
-            )}
-          </div>
+          {/* Bank Account Selection - For Income & Expense */}
+          {formData.type !== 'transfer' && (
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
+                {formData.type === 'income' ? 'Receiving Account *' : 'Paying Account *'}
+              </label>
+              <select
+                value={formData.type === 'income' ? formData.accountTo : formData.accountFrom}
+                onChange={(e) => handleChange(formData.type === 'income' ? 'accountTo' : 'accountFrom', e.target.value)}
+                className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 transition-all duration-200"
+                style={{
+                  backgroundColor: '#1C1C1E',
+                  color: '#FFFFFF',
+                  border: errors.accountFrom || errors.accountTo ? '1px solid #FF453A' : '1px solid #38383A'
+                }}
+                required
+                disabled={loadingCashAccounts}
+              >
+                <option value="">
+                  {loadingCashAccounts ? 'Loading accounts...' : 'Select Bank Account'}
+                </option>
+                {cashAccounts.map(account => (
+                  <option key={account.id} value={account.id}>
+                    {account.displayName} - {account.formattedBalance}
+                  </option>
+                ))}
+              </select>
+              {(errors.accountFrom || errors.accountTo) && (
+                <p className="mt-1 text-sm" style={{ color: '#FF453A' }}>
+                  {errors.accountFrom || errors.accountTo}
+                </p>
+              )}
+              <p className="mt-1 text-xs" style={{ color: '#98989D' }}>
+                {formData.type === 'income' ? 'Account receiving the payment' : 'Account making the payment'}
+              </p>
+            </div>
+          )}
+
+          {/* Transfer: From & To Accounts */}
+          {formData.type === 'transfer' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
+                  From Account *
+                </label>
+                <select
+                  value={formData.accountFrom}
+                  onChange={(e) => handleChange('accountFrom', e.target.value)}
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: '#1C1C1E',
+                    color: '#FFFFFF',
+                    border: errors.accountFrom ? '1px solid #FF453A' : '1px solid #38383A'
+                  }}
+                  required
+                  disabled={loadingCashAccounts}
+                >
+                  <option value="">Select source account</option>
+                  {cashAccounts.map(account => (
+                    <option 
+                      key={account.id} 
+                      value={account.id}
+                      disabled={account.id === formData.accountTo}
+                    >
+                      {account.displayName} - {account.formattedBalance}
+                    </option>
+                  ))}
+                </select>
+                {errors.accountFrom && (
+                  <p className="mt-1 text-sm" style={{ color: '#FF453A' }}>{errors.accountFrom}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
+                  To Account *
+                </label>
+                <select
+                  value={formData.accountTo}
+                  onChange={(e) => handleChange('accountTo', e.target.value)}
+                  className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 transition-all duration-200"
+                  style={{
+                    backgroundColor: '#1C1C1E',
+                    color: '#FFFFFF',
+                    border: errors.accountTo ? '1px solid #FF453A' : '1px solid #38383A'
+                  }}
+                  required
+                  disabled={loadingCashAccounts}
+                >
+                  <option value="">Select destination account</option>
+                  {cashAccounts.map(account => (
+                    <option 
+                      key={account.id} 
+                      value={account.id}
+                      disabled={account.id === formData.accountFrom}
+                    >
+                      {account.displayName} - {account.formattedBalance}
+                    </option>
+                  ))}
+                </select>
+                {errors.accountTo && (
+                  <p className="mt-1 text-sm" style={{ color: '#FF453A' }}>{errors.accountTo}</p>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Reference Number */}
           <div>

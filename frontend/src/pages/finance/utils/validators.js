@@ -9,38 +9,49 @@
  * @returns {Object} Validation result with isValid and errors
  */
 export const validateTransactionForm = (formData) => {
+  console.log('🔍 VALIDATOR - Starting validation for:', formData);
+  
   const errors = {};
 
   // Type validation
   if (!formData.type) {
+    console.log('❌ Type missing');
     errors.type = "Tipe transaksi harus dipilih";
   }
 
   // Category validation
   if (!formData.category || formData.category.trim() === "") {
+    console.log('❌ Category missing or empty');
     errors.category = "Kategori harus diisi";
   }
 
   // Amount validation
   if (!formData.amount || formData.amount === "" || formData.amount === "0") {
+    console.log('❌ Amount missing or zero');
     errors.amount = "Jumlah harus diisi";
   } else if (parseFloat(formData.amount) <= 0) {
+    console.log('❌ Amount <= 0');
     errors.amount = "Jumlah harus lebih dari 0";
   } else if (isNaN(parseFloat(formData.amount))) {
+    console.log('❌ Amount not a number');
     errors.amount = "Jumlah harus berupa angka";
   }
 
   // Description validation
   if (!formData.description || formData.description.trim() === "") {
+    console.log('❌ Description missing or empty');
     errors.description = "Deskripsi harus diisi";
   } else if (formData.description.length < 5) {
+    console.log('❌ Description too short:', formData.description.length, 'chars');
     errors.description = "Deskripsi minimal 5 karakter";
   } else if (formData.description.length > 500) {
+    console.log('❌ Description too long:', formData.description.length, 'chars');
     errors.description = "Deskripsi maksimal 500 karakter";
   }
 
   // Date validation
   if (!formData.date) {
+    console.log('❌ Date missing');
     errors.date = "Tanggal harus diisi";
   } else {
     const dateObj = new Date(formData.date);
@@ -48,25 +59,50 @@ export const validateTransactionForm = (formData) => {
     today.setHours(23, 59, 59, 999); // End of today
 
     if (isNaN(dateObj.getTime())) {
+      console.log('❌ Date invalid format');
       errors.date = "Format tanggal tidak valid";
     } else if (dateObj > today) {
+      console.log('❌ Date in future:', dateObj, 'vs today:', today);
       errors.date = "Tanggal tidak boleh di masa depan";
     }
   }
 
-  // Payment method validation
-  if (!formData.paymentMethod) {
-    errors.paymentMethod = "Metode pembayaran harus dipilih";
+  // Account validation based on transaction type
+  if (formData.type === 'expense' || formData.type === 'transfer') {
+    if (!formData.accountFrom || formData.accountFrom.trim() === "") {
+      console.log('❌ AccountFrom missing for', formData.type);
+      errors.accountFrom = "Akun sumber harus dipilih";
+    }
+  }
+
+  if (formData.type === 'income' || formData.type === 'transfer') {
+    if (!formData.accountTo || formData.accountTo.trim() === "") {
+      console.log('❌ AccountTo missing for', formData.type);
+      errors.accountTo = "Akun tujuan harus dipilih";
+    }
+  }
+
+  // Transfer-specific validation
+  if (formData.type === 'transfer') {
+    if (formData.accountFrom && formData.accountTo && formData.accountFrom === formData.accountTo) {
+      console.log('❌ Transfer: same account', formData.accountFrom);
+      errors.accountTo = "Akun tujuan harus berbeda dari akun sumber";
+    }
   }
 
   // Reference number validation (optional but if provided should be valid)
   if (formData.referenceNumber && formData.referenceNumber.trim() !== "") {
     if (formData.referenceNumber.length < 3) {
+      console.log('❌ Reference number too short');
       errors.referenceNumber = "Nomor referensi minimal 3 karakter";
     } else if (formData.referenceNumber.length > 50) {
+      console.log('❌ Reference number too long');
       errors.referenceNumber = "Nomor referensi maksimal 50 karakter";
     }
   }
+
+  console.log('🔍 VALIDATOR - Final errors:', errors);
+  console.log('✅ VALIDATOR - Is Valid:', Object.keys(errors).length === 0);
 
   return {
     isValid: Object.keys(errors).length === 0,

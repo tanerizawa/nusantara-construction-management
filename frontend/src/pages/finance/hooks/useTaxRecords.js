@@ -23,6 +23,8 @@ export const useTaxRecords = () => {
   });
   const [isSubmittingTax, setIsSubmittingTax] = useState(false);
   const [taxFormErrors, setTaxFormErrors] = useState({});
+  const [selectedTax, setSelectedTax] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   /**
    * Fetch tax records
@@ -118,6 +120,46 @@ export const useTaxRecords = () => {
     }
   };
 
+  /**
+   * Handle delete tax
+   */
+  const handleDeleteTax = (tax) => {
+    setSelectedTax(tax);
+    setShowDeleteModal(true);
+  };
+
+  /**
+   * Confirm delete tax
+   */
+  const confirmDeleteTax = async () => {
+    if (!selectedTax) return;
+    
+    try {
+      console.log('Deleting tax record:', selectedTax.id);
+      const response = await taxAPI.delete(selectedTax.id);
+      
+      if (response.success) {
+        alert('Tax record deleted successfully!');
+        setShowDeleteModal(false);
+        setSelectedTax(null);
+        fetchTaxRecords();
+      } else {
+        alert('Failed to delete tax record: ' + response.error);
+      }
+    } catch (error) {
+      console.error('Error deleting tax record:', error);
+      alert('Error deleting tax record: ' + error.message);
+    }
+  };
+
+  /**
+   * Cancel delete
+   */
+  const cancelDeleteTax = () => {
+    setShowDeleteModal(false);
+    setSelectedTax(null);
+  };
+
   return {
     taxRecords,
     loadingTaxRecords,
@@ -129,6 +171,13 @@ export const useTaxRecords = () => {
     fetchTaxRecords,
     handleTaxFormChange,
     resetTaxForm,
-    handleSubmitTax
+    handleSubmitTax,
+    selectedTax,
+    setSelectedTax,
+    showDeleteModal,
+    setShowDeleteModal,
+    handleDeleteTax,
+    confirmDeleteTax,
+    cancelDeleteTax
   };
 };

@@ -44,19 +44,21 @@ const FinanceTransaction = sequelize.define('FinanceTransaction', {
   accountFrom: {
     type: DataTypes.STRING,
     allowNull: true,
-    field: 'account_from'
+    field: 'account_from',
+    comment: 'COA Account ID for expense/transfer source'
   },
   accountTo: {
     type: DataTypes.STRING,
     allowNull: true,
-    field: 'account_to'
+    field: 'account_to',
+    comment: 'COA Account ID for income/transfer destination'
   },
   paymentMethod: {
     type: DataTypes.ENUM,
     values: ['cash', 'bank_transfer', 'check', 'credit_card', 'debit_card', 'other'],
-    allowNull: false,
+    allowNull: true,  // Changed to true - now optional, legacy field
     field: 'payment_method',
-    defaultValue: 'cash'
+    defaultValue: null
   },
   referenceNumber: {
     type: DataTypes.STRING,

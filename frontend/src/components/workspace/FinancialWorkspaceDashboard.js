@@ -32,9 +32,10 @@ import {
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import FinancialAPIService from '../../services/FinancialAPIService';
 import ProjectFinanceIntegrationService from '../../services/ProjectFinanceIntegrationService';
+import api from '../../services/api';
 
 const FinancialWorkspaceDashboard = ({ userDetails }) => {
-  const [financialData, setFinancialData] = useState({});
+  const [financialData, setFinancialData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
@@ -46,191 +47,225 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
     try {
       setLoading(true);
       
-      const params = {
-        subsidiaryId: selectedSubsidiary === 'all' ? null : selectedSubsidiary,
-        period: selectedPeriod
-      };
-
-      console.log('📊 [FINANCIAL WORKSPACE] Fetching data with params:', params);
-
-      // Fetch both original dashboard data and integrated project data
-      const [originalResult, integratedResult] = await Promise.all([
-        FinancialAPIService.getFinancialDashboardData(params),
-        ProjectFinanceIntegrationService.getIntegratedFinancialData(params)
-      ]);
+      console.log('📊 [FINANCIAL WORKSPACE] Starting data fetch...');
       
-      if (originalResult && originalResult.success) {
-        console.log('✅ [FINANCIAL WORKSPACE] API data loaded successfully');
-        
-        // Merge with real-time integrated data if available
-        let dashboardData = {
-          incomeStatement: originalResult.incomeStatement?.data || {},
-          balanceSheet: originalResult.balanceSheet?.data || {},
-          cashFlow: originalResult.cashFlow?.data || {},
-          dashboard: originalResult.dashboard?.data || {},
-          compliance: originalResult.compliance?.data || {},
-          monthlyTrends: originalResult.monthlyTrends?.data || [],
-          categoryBreakdown: originalResult.expenseBreakdown?.data || [],
-          lastUpdated: originalResult.lastUpdated
-        };
-
-        // Enhance with real-time project data if available
-        if (integratedResult && integratedResult.success) {
-          const metrics = integratedResult.data.metrics;
-          
-          // Update dashboard overview with real-time metrics
-          dashboardData.dashboard = {
-            ...dashboardData.dashboard,
-            totalRevenue: metrics.overview.totalIncome || dashboardData.dashboard.totalRevenue,
-            totalExpenses: metrics.overview.totalExpense || dashboardData.dashboard.totalExpenses,
-            netProfit: metrics.overview.netIncome || dashboardData.dashboard.netProfit,
-            activeProjects: metrics.overview.activeProjects || dashboardData.dashboard.activeProjects,
-            poTransactions: metrics.overview.poTransactions,
-            totalPOAmount: metrics.overview.totalPOAmount,
-            realTimeData: true // Flag to indicate real-time data
-          };
-
-          console.log('✅ [FINANCIAL WORKSPACE] Enhanced with real-time project data');
+      // ✨ NEW: Direct API call to real-data endpoint
+      const response = await api.get('/financial/dashboard/overview', {
+        params: {
+          startDate: null,
+          endDate: null,
+          subsidiaryId: selectedSubsidiary === 'all' ? null : selectedSubsidiary
         }
+      });
+
+      console.log('📊 [FINANCIAL WORKSPACE] Overview API response:', response);
+
+      // Fetch trends data based on selected period
+      let trendsResponse;
+      try {
+        trendsResponse = await api.get('/financial/dashboard/trends', {
+          params: {
+            startDate: null,
+            endDate: null,
+            periodType: selectedPeriod // monthly, quarterly, yearly
+          }
+        });
+        console.log('📊 [FINANCIAL WORKSPACE] Trends API response:', trendsResponse);
+      } catch (trendsError) {
+        console.warn('⚠️ [FINANCIAL WORKSPACE] Trends API failed:', trendsError);
+        trendsResponse = { success: false, data: { trends: [] } };
+      }
+      
+      // api.get() returns response.data directly, so response = {success: true, data: {...}}
+      if (response && response.success) {
+        const realData = response.data;
+        const trendsData = trendsResponse?.success ? trendsResponse.data : null;
+        
+        console.log('📊 [FINANCIAL WORKSPACE] Real data extracted:', {
+          totalRevenue: realData.totalRevenue,
+          totalExpenses: realData.totalExpenses,
+          netProfit: realData.netProfit,
+          totalCash: realData.totalCash
+        });
+        
+        // Transform API response to dashboard format
+        const dashboardData = {
+          dashboard: {
+            totalRevenue: realData.totalRevenue || 0,
+            totalExpenses: realData.totalExpenses || 0,
+            netProfit: realData.netProfit || 0,
+            profitMargin: parseFloat(realData.profitMargin) || 0,
+            totalCash: realData.totalCash || 0,
+            activeProjects: realData.activeProjects || 0,
+            cashAccounts: realData.cashAccounts || []
+          },
+          incomeStatement: {
+            statement: {
+              revenues: { 
+                total: realData.totalRevenue,
+                accounts: realData.revenueByBank || []
+              },
+              directCosts: { 
+                total: realData.totalExpenses,
+                accounts: realData.expenseByCategory || []
+              },
+              grossProfit: realData.netProfit,
+              netIncome: realData.netProfit,
+              netProfitMargin: parseFloat(realData.profitMargin)
+            }
+          },
+          balanceSheet: {
+            assets: {
+              current: {
+                cash: realData.totalCash,
+                accountsReceivable: 0,
+                total: realData.totalCash
+              },
+              fixed: {
+                equipment: 0,
+                buildings: 0,
+                land: 0,
+                total: 0
+              },
+              total: realData.totalCash
+            },
+            liabilities: {
+              current: {
+                accountsPayable: 0,
+                shortTermDebt: 0,
+                total: 0
+              },
+              longTerm: {
+                longTermDebt: 0,
+                total: 0
+              },
+              total: 0
+            },
+            equity: {
+              total: realData.totalCash
+            }
+          },
+          cashFlow: {
+            operating: {
+              netIncome: realData.netProfit,
+              adjustments: 0,
+              workingCapital: 0,
+              total: realData.netProfit
+            },
+            investing: {
+              equipmentPurchases: 0,
+              total: 0
+            },
+            financing: {
+              debtProceeds: 0,
+              dividends: 0,
+              total: 0
+            },
+            netChange: realData.netProfit
+          },
+          // ✨ NEW: Real trends data from API
+          monthlyTrends: trendsData?.trends?.map(item => ({
+            month: item.displayLabel || item.monthName,
+            revenue: item.revenue,
+            expense: item.expense,
+            profit: item.profit
+          })) || [],
+          // Real expense breakdown
+          categoryBreakdown: realData.expenseByCategory?.map((item, index) => ({
+            name: item.cost_category || item.account_name || 'Unknown',
+            value: parseFloat(item.amount),
+            color: ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'][index % 5]
+          })) || [],
+          // Compliance data (to be implemented from backend)
+          compliance: {
+            overallScore: 0,
+            totalChecks: 0,
+            passedChecks: 0,
+            complianceLevel: 'N/A'
+          },
+          lastUpdated: new Date()
+        };
         
         setFinancialData(dashboardData);
+        console.log('✅ [FINANCIAL WORKSPACE] Dashboard data successfully set!');
+        console.log('✅ [FINANCIAL WORKSPACE] Dashboard object:', dashboardData.dashboard);
+        console.log('✅ [FINANCIAL WORKSPACE] Data verification:', {
+          hasRevenue: !!dashboardData.dashboard.totalRevenue,
+          hasExpenses: !!dashboardData.dashboard.totalExpenses,
+          hasCash: !!dashboardData.dashboard.totalCash,
+          hasTrends: !!dashboardData.monthlyTrends.length,
+          hasCategoryBreakdown: !!dashboardData.categoryBreakdown.length
+        });
       } else {
-        throw new Error('API returned unsuccessful result');
+        // API returned no data - show empty state
+        console.warn('⚠️ [FINANCIAL WORKSPACE] API returned success:false or no data');
+        console.warn('⚠️ [FINANCIAL WORKSPACE] Response:', response);
+        setFinancialData(getEmptyFinancialData());
       }
-
     } catch (error) {
-      console.error('❌ [FINANCIAL WORKSPACE] Error fetching data, using fallback:', error);
-      // Use enhanced mock data as fallback
-      setFinancialData(generateEnhancedMockData());
+      console.error('❌ [FINANCIAL WORKSPACE] Error fetching data:', error);
+      console.error('❌ [FINANCIAL WORKSPACE] Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      // Show error state with empty data
+      setFinancialData(getEmptyFinancialData());
     } finally {
       setLoading(false);
+      console.log('📊 [FINANCIAL WORKSPACE] Loading complete, financialData state updated');
     }
-  }, [selectedPeriod, selectedSubsidiary]);
+  }, [selectedSubsidiary, selectedPeriod]);
 
-  // Generate enhanced mock data for demonstration
-  const generateEnhancedMockData = () => {
+  // Get empty financial data structure (no mock/dummy data)
+  const getEmptyFinancialData = () => {
     return {
+      dashboard: {
+        totalRevenue: 0,
+        totalExpenses: 0,
+        netProfit: 0,
+        profitMargin: 0,
+        totalCash: 0,
+        activeProjects: 0,
+        cashAccounts: []
+      },
       incomeStatement: {
-        period: { startDate: '2024-01-01', endDate: '2025-09-15' },
         statement: {
-          revenues: { total: 15750000000, accounts: [
-            { accountName: 'Construction Revenue', balance: 12500000000 },
-            { accountName: 'Equipment Rental Revenue', balance: 2250000000 },
-            { accountName: 'Consulting Services', balance: 1000000000 }
-          ]},
-          directCosts: { total: 9825000000, accounts: [
-            { accountName: 'Material Costs', balance: 5500000000 },
-            { accountName: 'Labor Costs', balance: 3200000000 },
-            { accountName: 'Subcontractor Costs', balance: 1125000000 }
-          ]},
-          grossProfit: 5925000000,
-          indirectCosts: { total: 2575000000, accounts: [
-            { accountName: 'Administrative Expenses', balance: 1200000000 },
-            { accountName: 'Marketing Expenses', balance: 675000000 },
-            { accountName: 'Depreciation', balance: 700000000 }
-          ]},
-          netIncome: 3350000000,
-          grossProfitMargin: 37.6,
-          netProfitMargin: 21.3
+          revenues: { total: 0, accounts: [] },
+          directCosts: { total: 0, accounts: [] },
+          grossProfit: 0,
+          netIncome: 0,
+          netProfitMargin: 0
         }
       },
       balanceSheet: {
         assets: {
-          current: {
-            cash: 2850000000,
-            accountsReceivable: 4120000000,
-            total: 6970000000
-          },
-          fixed: {
-            equipment: 15200000000,
-            buildings: 8900000000,
-            land: 12400000000,
-            total: 36500000000
-          },
-          total: 43470000000
+          current: { cash: 0, accountsReceivable: 0, total: 0 },
+          fixed: { equipment: 0, buildings: 0, land: 0, total: 0 },
+          total: 0
         },
         liabilities: {
-          current: {
-            accountsPayable: 2340000000,
-            shortTermDebt: 1850000000,
-            total: 4190000000
-          },
-          longTerm: {
-            longTermDebt: 8500000000,
-            total: 8500000000
-          },
-          total: 12690000000
+          current: { accountsPayable: 0, shortTermDebt: 0, total: 0 },
+          longTerm: { longTermDebt: 0, total: 0 },
+          total: 0
         },
-        equity: {
-          total: 32430000000
-        }
+        equity: { total: 0 }
       },
       cashFlow: {
-        operating: {
-          netIncome: 3350000000,
-          adjustments: 950000000,
-          workingCapital: -420000000,
-          total: 3880000000
-        },
-        investing: {
-          equipmentPurchases: -2100000000,
-          total: -2100000000
-        },
-        financing: {
-          debtProceeds: 1500000000,
-          dividends: -800000000,
-          total: 700000000
-        },
-        netChange: 2480000000
+        operating: { netIncome: 0, adjustments: 0, workingCapital: 0, total: 0 },
+        investing: { equipmentPurchases: 0, total: 0 },
+        financing: { debtProceeds: 0, dividends: 0, total: 0 },
+        netChange: 0
       },
-      dashboard: {
-        finance: {
-          totalIncome: 15750000000,
-          totalExpense: 12400000000,
-          netIncome: 3350000000,
-          transactions: 1247,
-          profitMargin: 21.3,
-          cashPosition: 2850000000
-        },
-        projects: {
-          active: 23,
-          completed: 8,
-          efficiency: 87.5
-        }
-      },
+      monthlyTrends: [],
+      categoryBreakdown: [],
       compliance: {
-        overallScore: 92.5,
-        totalChecks: 15,
-        passedChecks: 14,
-        complianceLevel: 'EXCELLENT',
-        detailedChecks: {
-          doubleEntryCompliance: { passed: true, score: 100 },
-          accountClassification: { passed: true, score: 95 },
-          transactionDocumentation: { passed: true, score: 90 },
-          chronologicalOrder: { passed: true, score: 100 },
-          constructionAccounting: { passed: false, score: 85 }
-        }
+        overallScore: 0,
+        totalChecks: 0,
+        passedChecks: 0,
+        complianceLevel: 'N/A'
       },
-      lastUpdated: new Date(),
-      // Enhanced trend data
-      monthlyTrends: [
-        { month: 'Jan', revenue: 1200000000, expense: 950000000, profit: 250000000 },
-        { month: 'Feb', revenue: 1350000000, expense: 1050000000, profit: 300000000 },
-        { month: 'Mar', revenue: 1450000000, expense: 1100000000, profit: 350000000 },
-        { month: 'Apr', revenue: 1380000000, expense: 1080000000, profit: 300000000 },
-        { month: 'May', revenue: 1520000000, expense: 1150000000, profit: 370000000 },
-        { month: 'Jun', revenue: 1680000000, expense: 1250000000, profit: 430000000 },
-        { month: 'Jul', revenue: 1750000000, expense: 1300000000, profit: 450000000 },
-        { month: 'Aug', revenue: 1620000000, expense: 1200000000, profit: 420000000 },
-        { month: 'Sep', revenue: 1580000000, expense: 1180000000, profit: 400000000 }
-      ],
-      categoryBreakdown: [
-        { name: 'Material Costs', value: 5500000000, color: '#8B5CF6' },
-        { name: 'Labor Costs', value: 3200000000, color: '#06B6D4' },
-        { name: 'Equipment Costs', value: 1125000000, color: '#10B981' },
-        { name: 'Administrative', value: 1200000000, color: '#F59E0B' },
-        { name: 'Marketing', value: 675000000, color: '#EF4444' }
-      ]
+      lastUpdated: new Date()
     };
   };
 
@@ -281,7 +316,39 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
     );
   }
 
+  // Safety check for financialData
+  if (!financialData) {
+    console.warn('⚠️ [FINANCIAL WORKSPACE RENDER] financialData is null/undefined');
+    return (
+      <div className="rounded-xl p-8 shadow-lg" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
+        <div className="flex flex-col justify-center items-center h-64">
+          <AlertTriangle className="w-12 h-12 mb-4" style={{ color: '#FF9F0A' }} />
+          <div className="text-center">
+            <p className="text-lg mb-2" style={{ color: '#FFFFFF' }}>No financial data available</p>
+            <p className="text-sm mb-4" style={{ color: '#98989D' }}>Unable to load financial data. Please try refreshing.</p>
+            <button 
+              onClick={handleRefresh}
+              className="mt-4 px-4 py-2 rounded-lg"
+              style={{ backgroundColor: '#0A84FF', color: '#FFFFFF' }}
+            >
+              <RefreshCw className="w-4 h-4 inline mr-2" />
+              Refresh Data
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const { incomeStatement, balanceSheet, cashFlow, dashboard, compliance, monthlyTrends, categoryBreakdown } = financialData;
+
+  console.log('📊 [FINANCIAL WORKSPACE RENDER] Rendering with data:', {
+    hasDashboard: !!dashboard,
+    hasIncomeStatement: !!incomeStatement,
+    revenue: dashboard?.totalRevenue,
+    expenses: dashboard?.totalExpenses,
+    cash: dashboard?.totalCash
+  });
 
   return (
     <div className="space-y-6">
@@ -294,7 +361,7 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
               Financial Workspace Dashboard
             </h2>
             <p className="mt-1" style={{ color: '#98989D' }}>
-              Comprehensive financial analysis & PSAK compliance monitoring
+              Real-time financial analysis & reporting
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -348,18 +415,42 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
           border: '1px solid rgba(48, 209, 88, 0.3)'
         }}>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium" style={{ color: '#98989D' }}>Total Revenue</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: '#30D158' }}>
-                {formatCurrency(incomeStatement?.statement?.revenues?.total)}
+              <p className="text-lg font-bold mt-1 truncate" style={{ color: '#30D158' }}>
+                {formatCurrency(dashboard?.totalRevenue || incomeStatement?.statement?.revenues?.total)}
               </p>
               <div className="flex items-center mt-2">
-                <TrendingUp className="w-4 h-4 mr-1" style={{ color: '#30D158' }} />
-                <span className="text-sm" style={{ color: '#30D158' }}>+12.5% from last period</span>
+                <TrendingUp className="w-4 h-4 mr-1 flex-shrink-0" style={{ color: '#30D158' }} />
+                <span className="text-xs truncate" style={{ color: '#30D158' }}>
+                  {dashboard?.profitMargin || incomeStatement?.statement?.netProfitMargin?.toFixed(1)}% margin
+                </span>
               </div>
             </div>
-            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(48, 209, 88, 0.2)' }}>
+            <div className="p-3 rounded-lg flex-shrink-0 ml-2" style={{ backgroundColor: 'rgba(48, 209, 88, 0.2)' }}>
               <DollarSign className="w-6 h-6" style={{ color: '#30D158' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Total Expenses */}
+        <div className="rounded-xl p-6 shadow-lg transition-transform hover:scale-105" style={{
+          background: 'linear-gradient(135deg, rgba(255, 159, 10, 0.15), rgba(255, 159, 10, 0.05))',
+          border: '1px solid rgba(255, 159, 10, 0.3)'
+        }}>
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Total Expenses</p>
+              <p className="text-lg font-bold mt-1 truncate" style={{ color: '#FF9F0A' }}>
+                {formatCurrency(dashboard?.totalExpenses || incomeStatement?.statement?.directCosts?.total)}
+              </p>
+              <div className="flex items-center mt-2">
+                <Activity className="w-4 h-4 mr-1 flex-shrink-0" style={{ color: '#FF9F0A' }} />
+                <span className="text-xs truncate" style={{ color: '#FF9F0A' }}>Operating costs</span>
+              </div>
+            </div>
+            <div className="p-3 rounded-lg flex-shrink-0 ml-2" style={{ backgroundColor: 'rgba(255, 159, 10, 0.2)' }}>
+              <TrendingDown className="w-6 h-6" style={{ color: '#FF9F0A' }} />
             </div>
           </div>
         </div>
@@ -370,19 +461,19 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
           border: '1px solid rgba(10, 132, 255, 0.3)'
         }}>
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium" style={{ color: '#98989D' }}>Net Profit</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: '#0A84FF' }}>
-                {formatCurrency(incomeStatement?.statement?.netIncome)}
+              <p className="text-lg font-bold mt-1 truncate" style={{ color: '#0A84FF' }}>
+                {formatCurrency(dashboard?.netProfit || incomeStatement?.statement?.netIncome)}
               </p>
               <div className="flex items-center mt-2">
-                <Target className="w-4 h-4 mr-1" style={{ color: '#0A84FF' }} />
-                <span className="text-sm" style={{ color: '#0A84FF' }}>
-                  {incomeStatement?.statement?.netProfitMargin?.toFixed(1)}% margin
+                <Target className="w-4 h-4 mr-1 flex-shrink-0" style={{ color: '#0A84FF' }} />
+                <span className="text-xs truncate" style={{ color: '#0A84FF' }}>
+                  {(dashboard?.profitMargin || incomeStatement?.statement?.netProfitMargin)?.toFixed(1)}% margin
                 </span>
               </div>
             </div>
-            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(10, 132, 255, 0.2)' }}>
+            <div className="p-3 rounded-lg flex-shrink-0 ml-2" style={{ backgroundColor: 'rgba(10, 132, 255, 0.2)' }}>
               <TrendingUp className="w-6 h-6" style={{ color: '#0A84FF' }} />
             </div>
           </div>
@@ -394,37 +485,20 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
           border: '1px solid rgba(175, 82, 222, 0.3)'
         }}>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Cash Position</p>
-              <p className="text-2xl font-bold mt-1" style={{ color: '#AF52DE' }}>
-                {formatCurrency(balanceSheet?.assets?.current?.cash)}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Cash & Bank</p>
+              <p className="text-lg font-bold mt-1 truncate" style={{ color: '#AF52DE' }}>
+                {formatCurrency(dashboard?.totalCash || balanceSheet?.assets?.current?.cash)}
               </p>
               <div className="flex items-center mt-2">
-                <Activity className="w-4 h-4 mr-1" style={{ color: '#AF52DE' }} />
-                <span className="text-sm" style={{ color: '#AF52DE' }}>Strong liquidity</span>
+                <Wallet className="w-4 h-4 mr-1 flex-shrink-0" style={{ color: '#AF52DE' }} />
+                <span className="text-xs truncate" style={{ color: '#AF52DE' }}>
+                  {dashboard?.cashAccounts?.length || 0} accounts
+                </span>
               </div>
             </div>
-            <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(175, 82, 222, 0.2)' }}>
-              <Wallet className="w-6 h-6" style={{ color: '#AF52DE' }} />
-            </div>
-          </div>
-        </div>
-
-        {/* PSAK Compliance */}
-        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium" style={{ color: "#98989D" }}>PSAK Compliance</p>
-              <p className="text-2xl font-bold text-emerald-600 mt-1">
-                {compliance?.overallScore?.toFixed(1)}%
-              </p>
-              <div className="flex items-center mt-2">
-                <CheckCircle className="w-4 h-4 text-emerald-500 mr-1" />
-                <span className="text-sm text-emerald-600">{compliance?.complianceLevel}</span>
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-emerald-50">
-              <FileText className="w-6 h-6 text-emerald-600" />
+            <div className="p-3 rounded-lg flex-shrink-0 ml-2" style={{ backgroundColor: 'rgba(175, 82, 222, 0.2)' }}>
+              <Banknote className="w-6 h-6" style={{ color: '#AF52DE' }} />
             </div>
           </div>
         </div>
@@ -639,71 +713,8 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         </div>
       </div>
 
-      {/* Compliance & Action Items */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* PSAK Compliance Details */}
-        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>PSAK Compliance Status</h3>
-            <div className="flex items-center">
-              <CheckCircle className="w-5 h-5 mr-2" style={{ color: "#30D158" }} />
-              <span className="text-sm" style={{ color: "#30D158" }}>{compliance?.complianceLevel}</span>
-            </div>
-          </div>
-          <div className="space-y-3">
-            {Object.entries(compliance?.detailedChecks || {}).map(([key, check]) => (
-              <div key={key} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  {check.passed ? 
-                    <CheckCircle className="w-4 h-4 mr-2" style={{ color: "#30D158" }} /> :
-                    <AlertTriangle className="w-4 h-4 mr-2" style={{ color: "#FF9F0A" }} />
-                  }
-                  <span className="text-sm capitalize" style={{ color: "#FFFFFF" }}>
-                    {key.replace(/([A-Z])/g, ' $1').trim()}
-                  </span>
-                </div>
-                <span className="text-sm font-medium" style={{ color: check.passed ? '#30D158' : '#FF9F0A' }}>
-                  {check.score}%
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Key Actions & Alerts */}
-        <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Action Items</h3>
-            <Clock className="w-5 h-5" style={{ color: "#98989D" }} />
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: "rgba(255, 159, 10, 0.15)", border: "1px solid rgba(255, 159, 10, 0.3)" }}>
-              <AlertTriangle className="w-4 h-4 mr-3" style={{ color: "#FF9F0A" }} />
-              <div className="flex-1">
-                <p className="text-sm font-medium" style={{ color: "#FF9F0A" }}>Review Construction Accounting</p>
-                <p className="text-xs" style={{ color: "#98989D" }}>PSAK compliance needs attention</p>
-              </div>
-              <ChevronRight className="w-4 h-4" style={{ color: "#FF9F0A" }} />
-            </div>
-            <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: "rgba(10, 132, 255, 0.15)", border: "1px solid rgba(10, 132, 255, 0.3)" }}>
-              <Info className="w-4 h-4 mr-3" style={{ color: "#0A84FF" }} />
-              <div className="flex-1">
-                <p className="text-sm font-medium" style={{ color: "#0A84FF" }}>Monthly Tax Filing Due</p>
-                <p className="text-xs" style={{ color: "#98989D" }}>Due in 5 days</p>
-              </div>
-              <ChevronRight className="w-4 h-4" style={{ color: "#0A84FF" }} />
-            </div>
-            <div className="flex items-center p-3 rounded-lg" style={{ backgroundColor: "rgba(48, 209, 88, 0.15)", border: "1px solid rgba(48, 209, 88, 0.3)" }}>
-              <CheckCircle className="w-4 h-4 mr-3" style={{ color: "#30D158" }} />
-              <div className="flex-1">
-                <p className="text-sm font-medium" style={{ color: "#30D158" }}>All invoices processed</p>
-                <p className="text-xs" style={{ color: "#98989D" }}>Financial records up to date</p>
-              </div>
-              <ChevronRight className="w-4 h-4" style={{ color: "#30D158" }} />
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Compliance & Action Items - Hidden until backend implementation */}
+      {/* Feature will be implemented when PSAK compliance monitoring is ready */}
     </div>
   );
 };

@@ -327,6 +327,7 @@ export const useTransactions = (
     // Pagination
     currentPage,
     totalPages,
+    setCurrentPage,
 
     // Form state
     showTransactionForm,
@@ -340,6 +341,9 @@ export const useTransactions = (
     showEditModal,
     showDeleteModal,
     selectedTransaction,
+    setShowViewModal,
+    setShowEditModal,
+    setShowDeleteModal,
 
     // Actions
     fetchTransactions,

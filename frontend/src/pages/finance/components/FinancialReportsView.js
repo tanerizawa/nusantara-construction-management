@@ -225,7 +225,7 @@ const FinancialReportsView = ({
               </button>
             )}
           </div>
-          <InlineIncomeStatement data={incomeStatement} />
+          <InlineIncomeStatement data={reports} />
         </div>
       )}
 
@@ -243,7 +243,7 @@ const FinancialReportsView = ({
               </button>
             )}
           </div>
-          <InlineBalanceSheet data={balanceSheet} />
+          <InlineBalanceSheet data={reports} />
         </div>
       )}
 

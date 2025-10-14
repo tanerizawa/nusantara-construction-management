@@ -456,6 +456,153 @@ class FinancialIntegrationService {
       }
     };
   }
+
+  /**
+   * Get financial trends data (monthly, quarterly, yearly)
+   * @param {Object} filters - Date range and period type
+   * @returns {Object} Trends data
+   */
+  async getFinancialTrends(filters = {}) {
+    const { startDate, endDate, periodType = 'monthly' } = filters;
+    
+    try {
+      let dateGrouping = '';
+      let dateFormat = '';
+      
+      // Determine grouping based on period type
+      switch (periodType) {
+        case 'yearly':
+          dateGrouping = "DATE_TRUNC('year', date_column)";
+          dateFormat = 'YYYY';
+          break;
+        case 'quarterly':
+          dateGrouping = "DATE_TRUNC('quarter', date_column)";
+          dateFormat = 'YYYY-Q';
+          break;
+        case 'monthly':
+        default:
+          dateGrouping = "DATE_TRUNC('month', date_column)";
+          dateFormat = 'YYYY-MM';
+          break;
+      }
+      
+      // Get revenue trends
+      const revenueTrends = await sequelize.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', pp.paid_at), '${dateFormat}') as period,
+          EXTRACT(YEAR FROM pp.paid_at) as year,
+          EXTRACT(MONTH FROM pp.paid_at) as month,
+          COALESCE(SUM(pp.net_amount), 0) as revenue,
+          COUNT(*) as transaction_count
+        FROM progress_payments pp
+        WHERE pp.status = 'paid'
+          AND pp.paid_at IS NOT NULL
+          ${startDate ? "AND pp.paid_at >= :startDate" : ""}
+          ${endDate ? "AND pp.paid_at <= :endDate" : ""}
+        GROUP BY period, year, month
+        ORDER BY year, month
+      `, {
+        replacements: { startDate, endDate },
+        type: QueryTypes.SELECT
+      });
+
+      // Get expense trends
+      const expenseTrends = await sequelize.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', mc.created_at), '${dateFormat}') as period,
+          EXTRACT(YEAR FROM mc.created_at) as year,
+          EXTRACT(MONTH FROM mc.created_at) as month,
+          COALESCE(SUM(mc.amount), 0) as expense,
+          COUNT(*) as transaction_count
+        FROM milestone_costs mc
+        WHERE mc.deleted_at IS NULL
+          ${startDate ? "AND mc.created_at >= :startDate" : ""}
+          ${endDate ? "AND mc.created_at <= :endDate" : ""}
+        GROUP BY period, year, month
+        ORDER BY year, month
+      `, {
+        replacements: { startDate, endDate },
+        type: QueryTypes.SELECT
+      });
+
+      // Merge revenue and expense data by period
+      const trendsMap = new Map();
+
+      // Add revenue data
+      revenueTrends.forEach(item => {
+        const key = item.period;
+        trendsMap.set(key, {
+          period: key,
+          year: parseInt(item.year),
+          month: parseInt(item.month),
+          revenue: parseFloat(item.revenue),
+          expense: 0,
+          profit: 0
+        });
+      });
+
+      // Add expense data
+      expenseTrends.forEach(item => {
+        const key = item.period;
+        if (trendsMap.has(key)) {
+          const existing = trendsMap.get(key);
+          existing.expense = parseFloat(item.expense);
+          existing.profit = existing.revenue - existing.expense;
+        } else {
+          trendsMap.set(key, {
+            period: key,
+            year: parseInt(item.year),
+            month: parseInt(item.month),
+            revenue: 0,
+            expense: parseFloat(item.expense),
+            profit: -parseFloat(item.expense)
+          });
+        }
+      });
+
+      // Convert to array and sort
+      const trends = Array.from(trendsMap.values()).sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+      });
+
+      // Format month names for display
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      trends.forEach(item => {
+        item.monthName = monthNames[item.month - 1];
+        item.displayLabel = periodType === 'yearly' 
+          ? `${item.year}` 
+          : periodType === 'quarterly'
+          ? `Q${Math.ceil(item.month / 3)} ${item.year}`
+          : `${item.monthName} ${item.year}`;
+      });
+
+      return {
+        success: true,
+        data: {
+          trends,
+          periodType,
+          dataPoints: trends.length,
+          summary: {
+            totalRevenue: trends.reduce((sum, item) => sum + item.revenue, 0),
+            totalExpense: trends.reduce((sum, item) => sum + item.expense, 0),
+            totalProfit: trends.reduce((sum, item) => sum + item.profit, 0),
+            averageRevenue: trends.length > 0 
+              ? trends.reduce((sum, item) => sum + item.revenue, 0) / trends.length 
+              : 0,
+            averageExpense: trends.length > 0 
+              ? trends.reduce((sum, item) => sum + item.expense, 0) / trends.length 
+              : 0
+          }
+        }
+      };
+    } catch (error) {
+      console.error('[FinancialIntegration] Error getting trends:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new FinancialIntegrationService();

@@ -216,4 +216,31 @@ router.get('/cash-balances', async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/financial/dashboard/trends
+ * @desc    Get financial trends data (monthly, quarterly, yearly)
+ * @access  Private
+ * @query   startDate, endDate, periodType (monthly|quarterly|yearly)
+ */
+router.get('/trends', async (req, res) => {
+  try {
+    const { startDate, endDate, periodType = 'monthly' } = req.query;
+    
+    const result = await FinancialIntegrationService.getFinancialTrends({
+      startDate: startDate || null,
+      endDate: endDate || null,
+      periodType: periodType
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('[Financial Dashboard] Error getting trends:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch financial trends',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

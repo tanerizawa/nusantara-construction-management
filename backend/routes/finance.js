@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const FinanceTransaction = require('../models/FinanceTransaction');
 const Project = require('../models/Project');
 const PurchaseOrder = require('../models/PurchaseOrder');
+const FinancialIntegrationService = require('../services/FinancialIntegrationService');
 
 const router = express.Router();
 
@@ -197,7 +198,7 @@ router.get('/', async (req, res) => {
 });
 
 // @route   GET /api/finance/reports
-// @desc    Get comprehensive financial reports (Income Statement, Balance Sheet, Cash Flow) with project integration
+// @desc    Get comprehensive financial reports (Income Statement, Balance Sheet, Cash Flow) with REAL data integration
 // @access  Private
 router.get('/reports', async (req, res) => {
   try {
@@ -208,7 +209,26 @@ router.get('/reports', async (req, res) => {
       subsidiary_id
     } = req.query;
 
-    // Build where clause for date filtering
+    // Use FinancialIntegrationService to get REAL data from progress_payments, milestone_costs, and COA
+    const filters = {
+      startDate: startDate || null,
+      endDate: endDate || null,
+      subsidiaryId: subsidiary_id && subsidiary_id !== 'all' ? subsidiary_id : null,
+      projectId: projectId && projectId !== 'all' ? projectId : null
+    };
+
+    const realFinancialData = await FinancialIntegrationService.getDashboardOverview(filters);
+    
+    // Extract data from service response
+    const realData = realFinancialData.success ? realFinancialData.data : {
+      totalRevenue: 0,
+      totalExpenses: 0,
+      netProfit: 0,
+      totalCash: 0,
+      cashAccounts: []
+    };
+
+    // Also get manual transactions from finance_transactions table
     const whereClause = {};
     
     if (startDate || endDate) {
@@ -225,8 +245,8 @@ router.get('/reports', async (req, res) => {
       whereClause.projectId = projectId;
     }
 
-    // Get all transactions for the period with project and PO relationships
-    const transactions = await FinanceTransaction.findAll({
+    // Get manual transactions
+    const manualTransactions = await FinanceTransaction.findAll({
       where: whereClause,
       include: [
         {
@@ -245,105 +265,93 @@ router.get('/reports', async (req, res) => {
       order: [['date', 'DESC']]
     });
 
-    // Filter by subsidiary if specified
-    let filteredTransactions = transactions;
+    // Filter manual transactions by subsidiary if specified
+    let filteredManualTransactions = manualTransactions;
     if (subsidiary_id && subsidiary_id !== 'all') {
-      filteredTransactions = transactions.filter(transaction => 
+      filteredManualTransactions = manualTransactions.filter(transaction => 
         transaction.project && transaction.project.subsidiaryId === subsidiary_id
       );
     }
 
-        // Calculate totals by type and category with project integration
-    const totals = filteredTransactions.reduce((acc, transaction) => {
+    // Calculate manual transaction totals
+    const manualTotals = filteredManualTransactions.reduce((acc, transaction) => {
       const type = transaction.type;
-      const category = transaction.category;
       const amount = parseFloat(transaction.amount);
 
       if (!acc[type]) {
-        acc[type] = {
-          total: 0,
-          categories: {},
-          projectBreakdown: {},
-          poTransactions: 0
-        };
+        acc[type] = { total: 0, count: 0 };
       }
 
       acc[type].total += amount;
-      
-      if (!acc[type].categories[category]) {
-        acc[type].categories[category] = 0;
-      }
-      acc[type].categories[category] += amount;
-
-      // Project breakdown
-      if (transaction.project) {
-        const projectKey = `${transaction.project.id} - ${transaction.project.name}`;
-        if (!acc[type].projectBreakdown[projectKey]) {
-          acc[type].projectBreakdown[projectKey] = 0;
-        }
-        acc[type].projectBreakdown[projectKey] += amount;
-      }
-
-      // Count PO-linked transactions
-      if (transaction.purchaseOrder) {
-        acc[type].poTransactions += 1;
-      }
+      acc[type].count += 1;
 
       return acc;
     }, {});
 
-    // Calculate Income Statement
+    // ✅ REAL Income Statement from project data + manual transactions
     const incomeStatement = {
-      revenue: totals.income?.total || 0,
-      directCosts: totals.expense?.categories['Material Purchase'] || 0,
+      revenue: realData.totalRevenue + (manualTotals.income?.total || 0),
+      directCosts: realData.totalExpenses,
       grossProfit: 0,
-      indirectCosts: (totals.expense?.total || 0) - (totals.expense?.categories['Material Purchase'] || 0),
-      netIncome: 0
+      indirectCosts: manualTotals.expense?.total || 0, // Manual expenses as indirect costs
+      netIncome: 0,
+      breakdown: {
+        projectRevenue: realData.totalRevenue,
+        manualRevenue: manualTotals.income?.total || 0,
+        projectExpenses: realData.totalExpenses,
+        manualExpenses: manualTotals.expense?.total || 0
+      }
     };
 
     incomeStatement.grossProfit = incomeStatement.revenue - incomeStatement.directCosts;
     incomeStatement.netIncome = incomeStatement.grossProfit - incomeStatement.indirectCosts;
 
-    // Calculate Balance Sheet (simplified based on available data)
-    const currentAssets = Math.max(0, incomeStatement.netIncome * 0.3); // 30% of net income as liquid assets
-    const fixedAssets = Math.max(0, incomeStatement.revenue * 2.3); // Estimated fixed assets
-    const totalAssets = currentAssets + fixedAssets;
-    
-    const totalLiabilities = Math.max(0, totalAssets * 0.28); // 28% debt ratio
-    const totalEquity = totalAssets - totalLiabilities;
-
+    // ✅ REAL Balance Sheet from COA data
     const balanceSheet = {
-      totalAssets,
-      currentAssets,
-      fixedAssets,
-      totalLiabilities,
-      totalEquity
+      totalAssets: realData.totalCash, // Current assets from COA
+      currentAssets: realData.totalCash,
+      fixedAssets: 0, // Can be extended with fixed asset tracking
+      totalLiabilities: 0, // Can be extended with liability tracking
+      totalEquity: realData.totalCash, // Simplified: Assets - Liabilities
+      cashAccounts: realData.cashAccounts || []
     };
 
-    // Calculate Cash Flow
-    const operatingCashFlow = incomeStatement.netIncome * 1.15; // Add back non-cash expenses
-    const investingCashFlow = -(fixedAssets * 0.05); // Estimated equipment purchases
-    const financingCashFlow = totalLiabilities * 0.02; // Net financing activities
+    // ✅ REAL Cash Flow from actual transactions
+    const operatingCashFlow = incomeStatement.netIncome;
+    const investingCashFlow = 0; // Can be extended with investment tracking
+    const financingCashFlow = 0; // Can be extended with financing tracking
     const netCashChange = operatingCashFlow + investingCashFlow + financingCashFlow;
 
     const cashFlow = {
+      // Standard format
       operatingCashFlow,
       investingCashFlow,
       financingCashFlow,
-      netCashChange
+      netCashChange,
+      beginningCash: realData.totalCash,
+      endingCash: realData.totalCash + netCashChange,
+      // Frontend aliases (for compatibility)
+      operating: operatingCashFlow,
+      investing: investingCashFlow,
+      financing: financingCashFlow,
+      netCashFlow: netCashChange,
+      endingBalance: realData.totalCash + netCashChange
     };
 
-    // Summary statistics with project integration
+    // Summary statistics
     const summary = {
-      totalTransactions: filteredTransactions.length,
-      totalIncome: totals.income?.total || 0,
-      totalExpense: totals.expense?.total || 0,
-      netBalance: (totals.income?.total || 0) - (totals.expense?.total || 0),
-      projectTransactions: filteredTransactions.filter(t => t.project).length,
-      poTransactions: filteredTransactions.filter(t => t.purchaseOrder).length,
-      projectBreakdown: {
-        income: totals.income?.projectBreakdown || {},
-        expense: totals.expense?.projectBreakdown || {}
+      totalTransactions: filteredManualTransactions.length,
+      totalIncome: incomeStatement.revenue,
+      totalExpense: incomeStatement.directCosts + incomeStatement.indirectCosts,
+      netBalance: incomeStatement.netIncome,
+      balance: incomeStatement.netIncome, // Alias for frontend
+      projectTransactions: filteredManualTransactions.filter(t => t.project).length,
+      poTransactions: filteredManualTransactions.filter(t => t.purchaseOrder).length,
+      realDataSource: {
+        progressPayments: 'progress_payments table',
+        milestoneCosts: 'milestone_costs table',
+        chartOfAccounts: 'chart_of_accounts table',
+        manualTransactions: 'finance_transactions table'
       },
       period: {
         start: startDate || 'Beginning',
@@ -358,15 +366,8 @@ router.get('/reports', async (req, res) => {
         balanceSheet,
         cashFlow,
         summary,
-        breakdown: totals,
-        projectIntegration: {
-          totalProjects: [...new Set(filteredTransactions.filter(t => t.project).map(t => t.project.id))].length,
-          projectBreakdown: summary.projectBreakdown,
-          poIntegration: {
-            totalPOTransactions: summary.poTransactions,
-            poPercentage: summary.totalTransactions > 0 ? (summary.poTransactions / summary.totalTransactions * 100).toFixed(1) : 0
-          }
-        }
+        realData: true, // Flag indicating this uses real data
+        dataSource: 'integrated' // Uses FinancialIntegrationService
       }
     });
   } catch (error) {

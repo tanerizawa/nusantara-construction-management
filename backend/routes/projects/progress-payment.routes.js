@@ -847,6 +847,47 @@ router.patch('/:projectId/progress-payments/:paymentId/confirm-payment', uploadP
       notes: paymentNotes?.trim() || payment.notes
     });
 
+    // ✨ Update bank account balance (INCREASE for revenue)
+    if (bank && receivedAmount > 0) {
+      try {
+        // Find bank account by name (case-insensitive match)
+        const [bankAccount] = await sequelize.query(`
+          SELECT id, account_name, current_balance 
+          FROM chart_of_accounts 
+          WHERE LOWER(account_name) LIKE LOWER(:bankName)
+            AND account_sub_type = 'CASH_AND_BANK'
+            AND is_active = true
+          LIMIT 1
+        `, {
+          replacements: { bankName: `%${bank.trim()}%` },
+          type: sequelize.QueryTypes.SELECT
+        });
+
+        if (bankAccount) {
+          // Increase bank balance (DEBIT bank account for income)
+          await sequelize.query(`
+            UPDATE chart_of_accounts 
+            SET current_balance = current_balance + :amount,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = :accountId
+          `, {
+            replacements: {
+              amount: parseFloat(receivedAmount),
+              accountId: bankAccount.id
+            },
+            type: sequelize.QueryTypes.UPDATE
+          });
+
+          console.log(`[ProgressPayment] Increased ${bankAccount.account_name} balance by Rp ${receivedAmount} (Invoice: ${payment.invoiceNumber})`);
+        } else {
+          console.warn(`[ProgressPayment] Bank account not found for: ${bank}`);
+        }
+      } catch (balanceError) {
+        console.error('[ProgressPayment] Error updating bank balance:', balanceError);
+        // Don't fail the whole transaction, just log the error
+      }
+    }
+
     res.json({
       success: true,
       message: 'Pembayaran berhasil dikonfirmasi',

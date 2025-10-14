@@ -45,7 +45,13 @@ const MilestoneCost = sequelize.define('MilestoneCost', {
     type: DataTypes.STRING(50),
     allowNull: true,
     field: 'account_id',
-    comment: 'Sumber dana/rekening untuk pengeluaran (from Chart of Accounts)'
+    comment: 'Jenis/kategori pengeluaran (Expense account dari Chart of Accounts)'
+  },
+  sourceAccountId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'source_account_id',
+    comment: 'Sumber dana pembayaran (Bank/Kas dari Chart of Accounts)'
   },
   recordedBy: {
     type: DataTypes.UUID,

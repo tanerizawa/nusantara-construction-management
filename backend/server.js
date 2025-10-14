@@ -274,6 +274,9 @@ app.use('/api/journal-entries', require('./routes/journalEntries'));
 // Phase 3B pending: Project Analytics, Fixed Assets, Executive, Budget, Cost Center, Compliance
 app.use('/api/reports', require('./routes/financial-reports'));
 
+// Financial Dashboard API - Real-time integration (Revenue from invoices, Expenses from milestone costs)
+app.use('/api/financial/dashboard', require('./routes/financial/dashboard.routes'));
+
 // app.use('/api/users', require('./routes/users')); // DEPRECATED: Now handled by /api/auth/users
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));

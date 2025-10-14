@@ -14,13 +14,16 @@ const CostsTab = ({ milestone, projectId }) => {
   const [loadingPOs, setLoadingPOs] = useState(false);
   const [expenseAccounts, setExpenseAccounts] = useState([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [sourceAccounts, setSourceAccounts] = useState([]);
+  const [loadingSourceAccounts, setLoadingSourceAccounts] = useState(false);
   const [formData, setFormData] = useState({
     costCategory: 'materials',
     costType: 'actual',
     amount: '',
     description: '',
     referenceNumber: '',
-    accountId: ''
+    accountId: '',
+    sourceAccountId: ''
   });
 
   // Fetch Purchase Orders when component mounts
@@ -28,6 +31,7 @@ const CostsTab = ({ milestone, projectId }) => {
     if (projectId) {
       fetchPurchaseOrders();
       fetchExpenseAccounts();
+      fetchSourceAccounts();
     }
   }, [projectId]);
 
@@ -57,7 +61,9 @@ const CostsTab = ({ milestone, projectId }) => {
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
       
       // Fetch EXPENSE type accounts from Chart of Accounts
-      const response = await fetch(`${API_BASE_URL}/chart-of-accounts?account_type=EXPENSE&is_active=true`);
+      const response = await fetch(`${API_BASE_URL}/chart-of-accounts?account_type=EXPENSE&is_active=true`, {
+        credentials: 'include'
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch expense accounts');
@@ -80,10 +86,47 @@ const CostsTab = ({ milestone, projectId }) => {
       }
     } catch (error) {
       console.error('[CostsTab] Error fetching expense accounts:', error);
-      // Fallback: create default expense accounts if none exist
       setExpenseAccounts([]);
     } finally {
       setLoadingAccounts(false);
+    }
+  };
+
+  const fetchSourceAccounts = async () => {
+    try {
+      setLoadingSourceAccounts(true);
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      
+      // Fetch bank and cash accounts (ASSET type, CASH_AND_BANK subtype)
+      const response = await fetch(`${API_BASE_URL}/chart-of-accounts?account_type=ASSET&is_active=true`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch source accounts');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Filter for CASH_AND_BANK accounts (level >= 3 for actual bank/cash accounts)
+        const accounts = result.data.filter(account => {
+          return (
+            account.accountType === 'ASSET' && 
+            account.accountSubType === 'CASH_AND_BANK' &&
+            account.level >= 3 && 
+            !account.isControlAccount
+          );
+        });
+        
+        console.log('[CostsTab] Loaded source accounts (bank/cash):', accounts.length);
+        setSourceAccounts(accounts);
+      }
+    } catch (error) {
+      console.error('[CostsTab] Error fetching source accounts:', error);
+      setSourceAccounts([]);
+    } finally {
+      setLoadingSourceAccounts(false);
     }
   };
 
@@ -103,6 +146,10 @@ const CostsTab = ({ milestone, projectId }) => {
         await addCost(data);
       }
 
+      // Refresh source accounts to get updated balances
+      await fetchSourceAccounts();
+      console.log('[CostsTab] Balances refreshed after transaction');
+
       // Reset form
       setFormData({
         costCategory: 'materials',
@@ -110,12 +157,19 @@ const CostsTab = ({ milestone, projectId }) => {
         amount: '',
         description: '',
         referenceNumber: '',
-        accountId: ''
+        accountId: '',
+        sourceAccountId: ''
       });
       setShowAddForm(false);
     } catch (error) {
       console.error('Failed to save cost:', error);
-      alert('Failed to save cost entry');
+      
+      // Show error message from backend if available
+      if (error.response?.data?.message) {
+        alert(error.response.data.message);
+      } else {
+        alert('Failed to save cost entry');
+      }
     }
   };
 
@@ -128,7 +182,8 @@ const CostsTab = ({ milestone, projectId }) => {
       amount: cost.amount.toString(),
       description: cost.description || '',
       referenceNumber: cost.referenceNumber || '',
-      accountId: cost.accountId || ''
+      accountId: cost.accountId || '',
+      sourceAccountId: cost.sourceAccountId || ''
     });
     setShowAddForm(true);
   };
@@ -138,6 +193,10 @@ const CostsTab = ({ milestone, projectId }) => {
     if (!window.confirm('Are you sure you want to delete this cost entry?')) return;
     try {
       await deleteCost(costId);
+      
+      // Refresh source accounts to get updated balances (restored after delete)
+      await fetchSourceAccounts();
+      console.log('[CostsTab] Balances refreshed after deletion');
     } catch (error) {
       console.error('Delete failed:', error);
       alert('Failed to delete cost entry');
@@ -154,7 +213,8 @@ const CostsTab = ({ milestone, projectId }) => {
       amount: '',
       description: '',
       referenceNumber: '',
-      accountId: ''
+      accountId: '',
+      sourceAccountId: ''
     });
   };
 
@@ -396,12 +456,13 @@ const CostsTab = ({ milestone, projectId }) => {
               )}
             </div>
 
+            {/* Jenis Pengeluaran (Expense Account) */}
             <div>
-              <label className="block text-xs text-[#8E8E93] mb-1">Sumber Dana *</label>
+              <label className="block text-xs text-[#8E8E93] mb-1">Jenis Pengeluaran *</label>
               <select
                 value={formData.accountId}
                 onChange={(e) => {
-                  console.log('Account selected:', e.target.value);
+                  console.log('Expense account selected:', e.target.value);
                   setFormData(prev => ({ ...prev, accountId: e.target.value }));
                 }}
                 required
@@ -411,7 +472,7 @@ const CostsTab = ({ milestone, projectId }) => {
                 disabled={loadingAccounts}
               >
                 <option value="">
-                  {loadingAccounts ? 'Loading accounts...' : '-- Pilih Sumber Dana --'}
+                  {loadingAccounts ? 'Loading...' : '-- Pilih Jenis Pengeluaran --'}
                 </option>
                 
                 {expenseAccounts.length > 0 ? (
@@ -427,7 +488,7 @@ const CostsTab = ({ milestone, projectId }) => {
               
               {!formData.accountId && (
                 <p className="text-xs text-[#FF453A] mt-1">
-                  Sumber dana wajib dipilih
+                  Jenis pengeluaran wajib dipilih
                 </p>
               )}
               
@@ -436,10 +497,65 @@ const CostsTab = ({ milestone, projectId }) => {
                   ✓ {expenseAccounts.find(a => a.id === formData.accountId)?.accountName}
                 </p>
               )}
+            </div>
+
+            {/* Sumber Dana (Bank/Cash Source) */}
+            <div>
+              <label className="block text-xs text-[#8E8E93] mb-1">Sumber Dana (Bank/Kas) *</label>
+              <select
+                value={formData.sourceAccountId}
+                onChange={(e) => {
+                  console.log('Source account selected:', e.target.value);
+                  setFormData(prev => ({ ...prev, sourceAccountId: e.target.value }));
+                }}
+                required
+                className={`w-full px-3 py-2 bg-[#1C1C1E] border rounded text-sm text-white focus:border-[#0A84FF] focus:outline-none ${
+                  !formData.sourceAccountId ? 'border-[#FF453A]' : 'border-[#38383A]'
+                }`}
+                disabled={loadingSourceAccounts}
+              >
+                <option value="">
+                  {loadingSourceAccounts ? 'Loading...' : '-- Pilih Sumber Dana --'}
+                </option>
+                
+                {sourceAccounts.length > 0 ? (
+                  sourceAccounts.map(account => (
+                    <option key={account.id} value={account.id}>
+                      {account.accountCode} - {account.accountName}
+                      {account.currentBalance !== undefined && account.currentBalance !== null 
+                        ? ` (Saldo: ${formatCurrency(account.currentBalance)})`
+                        : ''
+                      }
+                    </option>
+                  ))
+                ) : (
+                  !loadingSourceAccounts && <option disabled>No bank/cash accounts found</option>
+                )}
+              </select>
               
-              {expenseAccounts.length > 0 && !formData.accountId && (
-                <p className="text-xs text-[#8E8E93] mt-1">
-                  {expenseAccounts.length} expense accounts available
+              {!formData.sourceAccountId && (
+                <p className="text-xs text-[#FF453A] mt-1">
+                  Sumber dana pembayaran wajib dipilih
+                </p>
+              )}
+              
+              {formData.sourceAccountId && sourceAccounts.length > 0 && (
+                <p className="text-xs text-[#30D158] mt-1">
+                  ✓ {sourceAccounts.find(a => a.id === formData.sourceAccountId)?.accountName}
+                  {(() => {
+                    const selectedAccount = sourceAccounts.find(a => a.id === formData.sourceAccountId);
+                    const balance = selectedAccount?.currentBalance;
+                    const amount = parseFloat(formData.amount) || 0;
+                    
+                    if (balance !== undefined && balance !== null) {
+                      if (amount > balance) {
+                        return <span className="text-[#FF453A]"> - ⚠️ Saldo tidak cukup! (Saldo: {formatCurrency(balance)})</span>;
+                      } else {
+                        return <span className="text-[#8E8E93]"> - Saldo: {formatCurrency(balance)}</span>;
+                      }
+                    }
+                    return null;
+                  })()}
                 </p>
               )}
             </div>

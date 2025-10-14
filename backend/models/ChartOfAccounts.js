@@ -96,6 +96,13 @@ const ChartOfAccounts = sequelize.define('ChartOfAccounts', {
   notes: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  currentBalance: {
+    type: DataTypes.DECIMAL(15, 2),
+    allowNull: true,
+    defaultValue: 0,
+    field: 'current_balance',
+    comment: 'Current account balance (for ASSET and LIABILITY accounts)'
   }
 }, {
   tableName: 'chart_of_accounts',

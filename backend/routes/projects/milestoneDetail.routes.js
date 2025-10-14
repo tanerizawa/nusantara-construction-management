@@ -451,6 +451,7 @@ router.get('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
         let recordedByName = null;
         let approvedByName = null;
         let account = null;
+        let sourceAccount = null;
 
         if (cost.recorded_by) {
           try {
@@ -484,7 +485,7 @@ router.get('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
           }
         }
 
-        // Fetch account info if accountId exists
+        // Fetch expense account info if accountId exists
         if (cost.account_id) {
           try {
             const accountData = await sequelize.query(
@@ -501,11 +502,33 @@ router.get('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
           }
         }
 
+        // Fetch source account info if sourceAccountId exists (with balance)
+        if (cost.source_account_id) {
+          try {
+            const sourceAccountData = await sequelize.query(
+              `SELECT 
+                id, account_code, account_name, account_type, account_sub_type,
+                current_balance
+              FROM chart_of_accounts 
+              WHERE id = :sourceAccountId LIMIT 1`,
+              { 
+                replacements: { sourceAccountId: cost.source_account_id },
+                type: sequelize.QueryTypes.SELECT,
+                plain: true
+              }
+            );
+            sourceAccount = sourceAccountData || null;
+          } catch (err) {
+            console.log('Could not fetch source account:', err.message);
+          }
+        }
+
         return {
           ...cost,
           recorded_by_name: recordedByName,
           approved_by_name: approvedByName,
-          account: account
+          account: account,
+          source_account: sourceAccount
         };
       })
     );
@@ -639,7 +662,7 @@ router.get('/:projectId/milestones/:milestoneId/costs/summary', async (req, res)
 router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
   try {
     const { milestoneId } = req.params;
-    const { costCategory, costType, amount, description, referenceNumber, accountId } = req.body;
+    const { costCategory, costType, amount, description, referenceNumber, accountId, sourceAccountId } = req.body;
     const recordedBy = req.user?.id || null;
 
     if (!costCategory || !amount) {
@@ -649,7 +672,7 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       });
     }
 
-    // Validate accountId if provided
+    // Validate accountId if provided (Expense account)
     if (accountId) {
       const [account] = await sequelize.query(`
         SELECT id, account_type FROM chart_of_accounts 
@@ -662,7 +685,7 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       if (!account) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid account ID'
+          error: 'Invalid expense account ID'
         });
       }
 
@@ -674,13 +697,57 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       }
     }
 
+    // Validate sourceAccountId if provided (Bank/Cash account)
+    if (sourceAccountId) {
+      const [sourceAccount] = await sequelize.query(`
+        SELECT id, account_type, account_sub_type, current_balance, account_name 
+        FROM chart_of_accounts 
+        WHERE id = :sourceAccountId AND is_active = true
+      `, {
+        replacements: { sourceAccountId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (!sourceAccount) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid source account ID'
+        });
+      }
+
+      if (sourceAccount.account_type !== 'ASSET' || sourceAccount.account_sub_type !== 'CASH_AND_BANK') {
+        return res.status(400).json({
+          success: false,
+          error: 'Source account must be CASH_AND_BANK type'
+        });
+      }
+
+      // Check if balance is sufficient
+      const currentBalance = parseFloat(sourceAccount.current_balance) || 0;
+      const requestedAmount = parseFloat(amount) || 0;
+
+      if (currentBalance < requestedAmount) {
+        return res.status(400).json({
+          success: false,
+          error: 'Insufficient balance',
+          message: `Saldo tidak cukup! Saldo ${sourceAccount.account_name}: Rp ${currentBalance.toLocaleString('id-ID')}, Dibutuhkan: Rp ${requestedAmount.toLocaleString('id-ID')}`,
+          details: {
+            accountName: sourceAccount.account_name,
+            currentBalance: currentBalance,
+            requestedAmount: requestedAmount,
+            shortfall: requestedAmount - currentBalance
+          }
+        });
+      }
+    }
+
     const [cost] = await sequelize.query(`
       INSERT INTO milestone_costs (
         milestone_id, cost_category, cost_type, amount, description,
-        reference_number, account_id, recorded_by, recorded_at, created_at, updated_at
+        reference_number, account_id, source_account_id, recorded_by, recorded_at, created_at, updated_at
       ) VALUES (
         :milestoneId, :costCategory, :costType, :amount, :description,
-        :referenceNumber, :accountId, :recordedBy, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        :referenceNumber, :accountId, :sourceAccountId, :recordedBy, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       ) RETURNING *
     `, {
       replacements: {
@@ -691,10 +758,29 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
         description,
         referenceNumber,
         accountId: accountId || null,
+        sourceAccountId: sourceAccountId || null,
         recordedBy
       },
       type: sequelize.QueryTypes.INSERT
     });
+
+    // Update source account balance (deduct the amount)
+    if (sourceAccountId) {
+      await sequelize.query(`
+        UPDATE chart_of_accounts 
+        SET current_balance = current_balance - :amount,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = :sourceAccountId
+      `, {
+        replacements: {
+          amount: parseFloat(amount),
+          sourceAccountId
+        },
+        type: sequelize.QueryTypes.UPDATE
+      });
+
+      console.log(`[MilestoneCost] Deducted ${amount} from account ${sourceAccountId}`);
+    }
 
     // Log activity
     await sequelize.query(`
@@ -739,9 +825,9 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
 router.put('/:projectId/milestones/:milestoneId/costs/:costId', async (req, res) => {
   try {
     const { costId } = req.params;
-    const { amount, description, referenceNumber, costCategory, costType, accountId } = req.body;
+    const { amount, description, referenceNumber, costCategory, costType, accountId, sourceAccountId } = req.body;
 
-    // Validate accountId if provided
+    // Validate accountId if provided (Expense account)
     if (accountId) {
       const [account] = await sequelize.query(`
         SELECT id, account_type FROM chart_of_accounts 
@@ -754,7 +840,7 @@ router.put('/:projectId/milestones/:milestoneId/costs/:costId', async (req, res)
       if (!account) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid account ID'
+          error: 'Invalid expense account ID'
         });
       }
 
@@ -766,6 +852,85 @@ router.put('/:projectId/milestones/:milestoneId/costs/:costId', async (req, res)
       }
     }
 
+    // Get old cost data for balance adjustment
+    const [oldCost] = await sequelize.query(`
+      SELECT amount, source_account_id FROM milestone_costs WHERE id = :costId
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!oldCost) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cost entry not found'
+      });
+    }
+
+    const oldAmount = parseFloat(oldCost.amount) || 0;
+    const oldSourceAccountId = oldCost.source_account_id;
+    const newAmount = amount !== undefined ? parseFloat(amount) : oldAmount;
+    const newSourceAccountId = sourceAccountId !== undefined ? sourceAccountId : oldSourceAccountId;
+
+    // Validate sourceAccountId if provided (Bank/Cash account)
+    if (sourceAccountId) {
+      const [sourceAccount] = await sequelize.query(`
+        SELECT id, account_type, account_sub_type, current_balance, account_name FROM chart_of_accounts 
+        WHERE id = :sourceAccountId AND is_active = true
+      `, {
+        replacements: { sourceAccountId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (!sourceAccount) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid source account ID'
+        });
+      }
+
+      if (sourceAccount.account_type !== 'ASSET' || sourceAccount.account_sub_type !== 'CASH_AND_BANK') {
+        return res.status(400).json({
+          success: false,
+          error: 'Source account must be CASH_AND_BANK type'
+        });
+      }
+
+      // Check balance sufficiency for new amount
+      // If source account changed, check new account balance
+      // If amount changed, check balance for difference
+      let requiredBalance = 0;
+      
+      if (newSourceAccountId === oldSourceAccountId) {
+        // Same account, only check if amount increased
+        const amountDifference = newAmount - oldAmount;
+        if (amountDifference > 0) {
+          requiredBalance = amountDifference;
+        }
+      } else {
+        // Different account, check full new amount
+        requiredBalance = newAmount;
+      }
+
+      if (requiredBalance > 0) {
+        const currentBalance = parseFloat(sourceAccount.current_balance) || 0;
+        
+        if (currentBalance < requiredBalance) {
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance',
+            message: `Saldo tidak cukup! Saldo ${sourceAccount.account_name}: Rp ${currentBalance.toLocaleString('id-ID')}, Dibutuhkan: Rp ${requiredBalance.toLocaleString('id-ID')}`,
+            details: {
+              accountName: sourceAccount.account_name,
+              currentBalance: currentBalance,
+              requestedAmount: requiredBalance,
+              shortfall: requiredBalance - currentBalance
+            }
+          });
+        }
+      }
+    }
+
     await sequelize.query(`
       UPDATE milestone_costs SET
         cost_category = COALESCE(:costCategory, cost_category),
@@ -774,12 +939,52 @@ router.put('/:projectId/milestones/:milestoneId/costs/:costId', async (req, res)
         description = COALESCE(:description, description),
         reference_number = COALESCE(:referenceNumber, reference_number),
         account_id = COALESCE(:accountId, account_id),
+        source_account_id = COALESCE(:sourceAccountId, source_account_id),
         updated_at = CURRENT_TIMESTAMP
       WHERE id = :costId
     `, {
-      replacements: { costId, costCategory, costType, amount, description, referenceNumber, accountId },
+      replacements: { costId, costCategory, costType, amount, description, referenceNumber, accountId, sourceAccountId },
       type: sequelize.QueryTypes.UPDATE
     });
+
+    // Adjust balances if source account or amount changed
+    if (oldSourceAccountId || newSourceAccountId) {
+      // Restore old balance if there was an old source account
+      if (oldSourceAccountId) {
+        await sequelize.query(`
+          UPDATE chart_of_accounts 
+          SET current_balance = current_balance + :oldAmount,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = :oldSourceAccountId
+        `, {
+          replacements: {
+            oldAmount: oldAmount,
+            oldSourceAccountId: oldSourceAccountId
+          },
+          type: sequelize.QueryTypes.UPDATE
+        });
+        
+        console.log(`[MilestoneCost] Restored ${oldAmount} to account ${oldSourceAccountId}`);
+      }
+
+      // Deduct new balance if there is a new source account
+      if (newSourceAccountId) {
+        await sequelize.query(`
+          UPDATE chart_of_accounts 
+          SET current_balance = current_balance - :newAmount,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = :newSourceAccountId
+        `, {
+          replacements: {
+            newAmount: newAmount,
+            newSourceAccountId: newSourceAccountId
+          },
+          type: sequelize.QueryTypes.UPDATE
+        });
+        
+        console.log(`[MilestoneCost] Deducted ${newAmount} from account ${newSourceAccountId}`);
+      }
+    }
 
     const [updated] = await sequelize.query(`
       SELECT * FROM milestone_costs WHERE id = :costId
@@ -815,7 +1020,7 @@ router.delete('/:projectId/milestones/:milestoneId/costs/:costId', async (req, r
 
     // Get cost details before soft deleting
     const cost = await sequelize.query(
-      'SELECT cost_category, cost_type, amount FROM milestone_costs WHERE id = :costId LIMIT 1',
+      'SELECT cost_category, cost_type, amount, source_account_id FROM milestone_costs WHERE id = :costId LIMIT 1',
       {
         replacements: { costId },
         type: sequelize.QueryTypes.SELECT,
@@ -830,6 +1035,26 @@ router.delete('/:projectId/milestones/:milestoneId/costs/:costId', async (req, r
       });
     }
 
+    // Restore balance if there was a source account
+    if (cost.source_account_id) {
+      const amount = parseFloat(cost.amount) || 0;
+      
+      await sequelize.query(`
+        UPDATE chart_of_accounts 
+        SET current_balance = current_balance + :amount,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = :sourceAccountId
+      `, {
+        replacements: {
+          amount: amount,
+          sourceAccountId: cost.source_account_id
+        },
+        type: sequelize.QueryTypes.UPDATE
+      });
+      
+      console.log(`[MilestoneCost] Restored ${amount} to account ${cost.source_account_id} (deleted cost ${costId})`);
+    }
+
     // Soft delete - set deleted_by and deleted_at
     await sequelize.query(
       `UPDATE milestone_costs 
@@ -842,6 +1067,7 @@ router.delete('/:projectId/milestones/:milestoneId/costs/:costId', async (req, r
         type: sequelize.QueryTypes.UPDATE
       }
     );
+
 
     // Create activity log for deletion
     await sequelize.query(

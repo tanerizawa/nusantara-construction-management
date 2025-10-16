@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Filter, ArrowUpDown, X } from 'lucide-react';
 import ProjectSearchBar from './ProjectSearchBar';
+import { useTranslation } from '../../i18n';
 
 /**
  * Toolbar component untuk Projects page
@@ -20,12 +21,13 @@ const ProjectToolbar = ({
   disabled = false,
   isSearching = false // New prop untuk show loading indicator
 }) => {
+  const { status, common } = useTranslation();
   const statusOptions = [
-    { value: '', label: 'Semua Status' },
-    { value: 'active', label: 'Aktif' },
-    { value: 'completed', label: 'Selesai' },
-    { value: 'on-hold', label: 'Ditunda' },
-    { value: 'cancelled', label: 'Dibatalkan' }
+    { value: '', label: `Semua Status` },
+    { value: 'active', label: status.active },
+    { value: 'completed', label: status.completed },
+    { value: 'on-hold', label: status.onHold },
+    { value: 'cancelled', label: status.canceled }
   ];
 
   const priorityOptions = [
@@ -144,7 +146,7 @@ const ProjectToolbar = ({
               aria-label="Hapus semua filter dan pencarian"
             >
               <X className="w-4 h-4" />
-              <span>Reset</span>
+              <span>{common.reset}</span>
             </button>
           )}
         </div>

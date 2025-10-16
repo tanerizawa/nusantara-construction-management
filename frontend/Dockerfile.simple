@@ -1,0 +1,31 @@
+# Simple Development Dockerfile without CRACO
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm install --legacy-peer-deps && \
+    npm install -g react-scripts@5.0.1
+
+# Copy application files
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV GENERATE_SOURCEMAP=false
+ENV ESLINT_NO_DEV_ERRORS=true
+ENV TSC_COMPILE_ON_ERROR=true
+ENV DISABLE_ESLINT_PLUGIN=true
+ENV WDS_SOCKET_HOST=0.0.0.0
+ENV WDS_SOCKET_PORT=0
+ENV FAST_REFRESH=false
+
+# Expose port
+EXPOSE 3000
+
+# Start the app with react-scripts directly (bypass CRACO)
+CMD ["react-scripts", "start"]

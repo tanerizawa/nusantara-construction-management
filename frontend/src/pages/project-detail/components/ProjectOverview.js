@@ -283,6 +283,24 @@ const ProjectInformationCard = ({ project }) => {
               </p>
             </div>
             <div>
+              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Subsidiary / Anak Perusahaan</label>
+              <div className="bg-[#1C1C1E] px-3 py-2 rounded-lg border border-[#38383A]">
+                <p className="text-sm font-semibold text-white">
+                  {project.subsidiaryInfo?.name || project.subsidiary?.name || 'Tidak ada subsidiary'}
+                </p>
+                {(project.subsidiaryInfo?.code || project.subsidiary?.code) && (
+                  <p className="text-xs text-[#636366] mt-0.5">
+                    Kode: {project.subsidiaryInfo?.code || project.subsidiary?.code}
+                  </p>
+                )}
+                {(project.subsidiaryInfo?.specialization || project.subsidiary?.specialization) && (
+                  <p className="text-xs text-[#8E8E93] mt-1">
+                    {project.subsidiaryInfo?.specialization || project.subsidiary?.specialization}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div>
               <label className="block text-xs font-medium text-[#8E8E93] mb-1">Klien</label>
               <div className="text-sm text-white">
                 {renderClientInfo(project.client, project.clientName)}

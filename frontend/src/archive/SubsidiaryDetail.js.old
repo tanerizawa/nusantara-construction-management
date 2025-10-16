@@ -1,0 +1,718 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Building, MapPin, Calendar, Users, Phone, Mail, Award, ArrowLeft, Edit, Trash2,
+  CheckCircle, XCircle, Upload, Download, Eye, FileText, DollarSign, Shield, 
+  User, Briefcase, Globe, Star, ExternalLink, Plus, X, AlertCircle
+} from 'lucide-react';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import { subsidiaryAPI } from '../services/api';
+
+/**
+ * Professional Subsidiary Detail Page
+ * Enterprise-grade detail view with comprehensive company information
+ */
+const SubsidiaryDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [subsidiary, setSubsidiary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [statistics, setStatistics] = useState(null);
+
+  useEffect(() => {
+    fetchSubsidiaryDetail();
+  }, [id]);
+
+  const fetchSubsidiaryDetail = async () => {
+    try {
+      setLoading(true);
+      const [subsidiaryResponse, statsResponse] = await Promise.all([
+        subsidiaryAPI.getById(id),
+        subsidiaryAPI.getStats()
+      ]);
+
+      if (subsidiaryResponse.success) {
+        setSubsidiary(subsidiaryResponse.data);
+      } else {
+        throw new Error('Subsidiary not found');
+      }
+
+      if (statsResponse.success) {
+        setStatistics(statsResponse.data);
+      }
+    } catch (error) {
+      console.error('Error fetching subsidiary:', error);
+      alert('Gagal memuat data anak usaha');
+      navigate('/subsidiaries');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus ${subsidiary.name}?`)) {
+      return;
+    }
+
+    try {
+      const response = await subsidiaryAPI.delete(id);
+      if (response.success) {
+        navigate('/subsidiaries', {
+          state: { message: 'Anak usaha berhasil dihapus' }
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting subsidiary:', error);
+      alert('Gagal menghapus anak usaha');
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    const newStatus = subsidiary.status === 'active' ? 'inactive' : 'active';
+    const action = newStatus === 'active' ? 'mengaktifkan' : 'menonaktifkan';
+    
+    if (!window.confirm(`Apakah Anda yakin ingin ${action} ${subsidiary.name}?`)) {
+      return;
+    }
+
+    try {
+      const response = await subsidiaryAPI.update(id, { status: newStatus });
+      if (response.success) {
+        setSubsidiary(prev => ({ ...prev, status: newStatus }));
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('Gagal mengubah status');
+    }
+  };
+
+  const downloadAttachment = async (attachmentId, filename) => {
+    try {
+      const response = await fetch(`/api/subsidiaries/${id}/attachments/${attachmentId}/download`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert('Gagal mendownload file');
+    }
+  };
+
+  const getSpecializationLabel = (spec) => {
+    const labels = {
+      residential: 'Bangunan Gedung Tempat Tinggal',
+      commercial: 'Bangunan Gedung Perkantoran & Komersial',
+      infrastructure: 'Infrastruktur Jalan & Jembatan',
+      industrial: 'Bangunan Industri & Pabrik',
+      renovation: 'Pemeliharaan & Renovasi Bangunan',
+      interior: 'Finishing & Interior',
+      landscaping: 'Pertamanan & Lansekap',
+      general: 'Konstruksi Umum',
+      civil: 'Teknik Sipil',
+      mechanical: 'Mekanikal & Elektrikal (ME)',
+      specialstructure: 'Konstruksi Khusus & Struktur Berat'
+    };
+    return labels[spec] || 'Konstruksi Umum';
+  };
+
+  const getCategoryLabel = (category) => {
+    const categories = {
+      siup: 'SIUP (Surat Izin Usaha Perdagangan)',
+      situ: 'SITU (Surat Izin Tempat Usaha)',
+      siujk: 'SIUJK (Surat Izin Usaha Jasa Konstruksi)',
+      sbu: 'SBU (Sertifikat Badan Usaha)',
+      iso: 'Sertifikat ISO',
+      k3: 'Sertifikat K3 (Keselamatan & Kesehatan Kerja)',
+      npwp: 'NPWP Perusahaan',
+      tdp: 'TDP (Tanda Daftar Perusahaan)',
+      akta: 'Akta Pendirian Perusahaan',
+      sk: 'SK Kemenkumham',
+      other: 'Dokumen Lainnya'
+    };
+    return categories[category] || category;
+  };
+
+  const getCompanySizeLabel = (size) => {
+    const labels = {
+      small: 'Kecil (1-50 karyawan)',
+      medium: 'Menengah (51-200 karyawan)', 
+      large: 'Besar (200+ karyawan)'
+    };
+    return labels[size] || size;
+  };
+
+  const formatCurrency = (amount, currency = 'IDR') => {
+    if (!amount) return '-';
+    
+    const formatted = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 0
+    }).format(amount);
+    
+    return formatted;
+  };
+
+  const getPermitStatusColor = (status) => {
+    const colors = {
+      active: 'bg-green-100 text-green-800',
+      expired: 'bg-red-100 text-red-800',
+      pending: 'bg-yellow-100 text-yellow-800'
+    };
+    return colors[status] || 'style={{ backgroundColor: "#1C1C1E" }} text-gray-800';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#1C1C1E" }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderBottomColor: "#0A84FF" }}></div>
+          <p style={{ color: "#98989D" }}>Memuat data perusahaan...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!subsidiary) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#1C1C1E" }}>
+        <div className="text-center">
+          <Building className="h-16 w-16 mx-auto mb-4" style={{ color: "#636366" }} />
+          <h2 className="text-xl font-semibold mb-2" style={{ color: "#FFFFFF" }}>Perusahaan Tidak Ditemukan</h2>
+          <p className="mb-4" style={{ color: "#98989D" }}>Data perusahaan yang Anda cari tidak tersedia.</p>
+          <Button onClick={() => navigate('/subsidiaries')}>
+            Kembali ke Daftar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen py-8" style={{ backgroundColor: "#1C1C1E" }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => navigate('/subsidiaries')}
+            className="flex items-center mb-4 transition-colors"
+            style={{ color: "#98989D" }}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#98989D'}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Kembali ke Daftar
+          </button>
+          
+          <div className="rounded-lg shadow-sm p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center space-x-4 mb-4 lg:mb-0">
+                <div className="p-3 rounded-lg" style={{ background: "linear-gradient(135deg, rgba(10, 132, 255, 0.2) 0%, rgba(10, 132, 255, 0.1) 100%)" }}>
+                  <Building className="h-8 w-8" style={{ color: "#0A84FF" }} />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold" style={{ color: "#FFFFFF" }}>{subsidiary.name}</h1>
+                  <div className="flex items-center space-x-4 mt-2">
+                    <span className="text-sm font-medium" style={{ color: "#98989D" }}>Kode: {subsidiary.code}</span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{
+                      backgroundColor: subsidiary.status === 'active' ? 'rgba(48, 209, 88, 0.15)' : 'rgba(255, 69, 58, 0.15)',
+                      color: subsidiary.status === 'active' ? '#30D158' : '#FF453A'
+                    }}>
+                      {subsidiary.status === 'active' ? (
+                        <>
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Aktif
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Nonaktif
+                        </>
+                      )}
+                    </span>
+                    <span className="text-sm px-2 py-1 rounded" style={{ color: "#98989D", backgroundColor: "#1C1C1E" }}>
+                      {getSpecializationLabel(subsidiary.specialization)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/subsidiaries/${id}/edit`)}
+                  className="flex items-center space-x-2"
+                  style={{ 
+                    borderColor: "#38383A",
+                    color: "#0A84FF"
+                  }}
+                >
+                  <Edit className="h-4 w-4" />
+                  <span>Edit Data</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleToggleStatus}
+                  className="flex items-center space-x-2"
+                  style={{
+                    borderColor: "#38383A",
+                    color: subsidiary.status === 'active' ? '#FF9F0A' : '#30D158'
+                  }}
+                >
+                  <Users className="h-4 w-4" />
+                  <span>{subsidiary.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDelete}
+                  className="flex items-center space-x-2"
+                  style={{
+                    borderColor: "#38383A",
+                    color: "#FF453A"
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Hapus</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Basic Information */}
+            <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+              <h2 className="text-xl font-semibold mb-6 flex items-center" style={{ color: "#FFFFFF" }}>
+                <Building className="h-5 w-5 mr-2" />
+                Informasi Dasar
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Nama Perusahaan</label>
+                  <p style={{ color: "#FFFFFF" }}>{subsidiary.name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Kode Perusahaan</label>
+                  <p className="font-mono" style={{ color: "#FFFFFF" }}>{subsidiary.code}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Deskripsi</label>
+                  <p style={{ color: "#FFFFFF" }}>{subsidiary.description || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Spesialisasi</label>
+                  <p style={{ color: "#FFFFFF" }}>{getSpecializationLabel(subsidiary.specialization)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Perusahaan Induk</label>
+                  <p style={{ color: "#FFFFFF" }}>{subsidiary.parentCompany}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Information */}
+            <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+              <h2 className="text-xl font-semibold mb-6 flex items-center" style={{ color: "#FFFFFF" }}>
+                <Phone className="h-5 w-5 mr-2" />
+                Informasi Kontak
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Telepon</label>
+                  <p className=" flex items-center" style={{ color: "#FFFFFF" }}>
+                    <Phone className="h-4 w-4 mr-2" />
+                    {subsidiary.contactInfo?.phone || '-'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Email</label>
+                  <p className=" flex items-center" style={{ color: "#FFFFFF" }}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    {subsidiary.contactInfo?.email || '-'}
+                  </p>
+                </div>
+                {subsidiary.profileInfo?.website && (
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Website</label>
+                    <a 
+                      href={subsidiary.profileInfo.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center"
+                      style={{ color: "#0A84FF" }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#409CFF'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#0A84FF'}
+                    >
+                      <Globe className="h-4 w-4 mr-2" />
+                      {subsidiary.profileInfo.website}
+                      <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+              <h2 className="text-xl font-semibold mb-6 flex items-center" style={{ color: "#FFFFFF" }}>
+                <MapPin className="h-5 w-5 mr-2" />
+                Alamat
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Alamat Lengkap</label>
+                  <p className=" " style={{ color: "#FFFFFF" }}>{subsidiary.address?.street || '-'}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Kota</label>
+                    <p className=" " style={{ color: "#FFFFFF" }}>{subsidiary.address?.city || '-'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1" style={{ color: "#98989D" }}>Negara</label>
+                    <p className=" " style={{ color: "#FFFFFF" }}>{subsidiary.address?.country || '-'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Board of Directors */}
+            {subsidiary.boardOfDirectors && subsidiary.boardOfDirectors.length > 0 && (
+              <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+                <h2 className="text-xl font-semibold mb-6 flex items-center" style={{ color: "#FFFFFF" }}>
+                  <User className="h-5 w-5 mr-2" />
+                  Dewan Direksi
+                </h2>
+                <div className="space-y-4">
+                  {subsidiary.boardOfDirectors.map((director, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: "#1C1C1E" }}>
+                      <div>
+                        <h3 className="font-medium " style={{ color: "#FFFFFF" }}>{director.name}</h3>
+                        <p className="text-sm " style={{ color: "#98989D" }}>{director.position}</p>
+                        {director.email && (
+                          <p className="text-sm text-gray-400 flex items-center mt-1">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {director.email}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {director.appointmentDate && (
+                          <p className="text-xs text-gray-400">
+                            Diangkat: {new Date(director.appointmentDate).toLocaleDateString('id-ID')}
+                          </p>
+                        )}
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          director.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'style={{ backgroundColor: "#1C1C1E" }} text-gray-800'
+                        }`}>
+                          {director.isActive ? 'Aktif' : 'Non-aktif'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Documents & Attachments */}
+            <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+              <h2 className="text-xl font-semibold mb-6 flex items-center" style={{ color: "#FFFFFF" }}>
+                <FileText className="h-5 w-5 mr-2" />
+                Dokumen Legalitas & Perizinan
+              </h2>
+              
+              <div className="space-y-6">
+                {/* Legal Information Documents */}
+                {subsidiary.legalInfo && Object.values(subsidiary.legalInfo).some(val => val) && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-4 flex items-center" style={{ color: "#FFFFFF" }}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Informasi Legalitas
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {subsidiary.legalInfo.companyRegistrationNumber && (
+                        <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg " style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>Nomor Registrasi Perusahaan</p>
+                              <p className="text-sm " style={{ color: "#98989D" }}>{subsidiary.legalInfo.companyRegistrationNumber}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {subsidiary.legalInfo.taxIdentificationNumber && (
+                        <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg " style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>NPWP</p>
+                              <p className="text-sm " style={{ color: "#98989D" }}>{subsidiary.legalInfo.taxIdentificationNumber}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {subsidiary.legalInfo.businessLicenseNumber && (
+                        <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg " style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>Nomor Izin Usaha</p>
+                              <p className="text-sm " style={{ color: "#98989D" }}>{subsidiary.legalInfo.businessLicenseNumber}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {subsidiary.legalInfo.vatRegistrationNumber && (
+                        <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg " style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>NPPKP</p>
+                              <p className="text-sm " style={{ color: "#98989D" }}>{subsidiary.legalInfo.vatRegistrationNumber}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {subsidiary.legalInfo.articlesOfIncorporation && (
+                        <div className="flex items-center justify-between p-3 border border-gray-700 rounded-lg " style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>Anggaran Dasar</p>
+                              <p className="text-sm " style={{ color: "#98989D" }}>{subsidiary.legalInfo.articlesOfIncorporation}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Permits and Licenses */}
+                {subsidiary.permits && subsidiary.permits.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-4 flex items-center" style={{ color: "#FFFFFF" }}>
+                      <Award className="h-4 w-4 mr-2" />
+                      Perizinan & Lisensi
+                    </h3>
+                    <div className="space-y-3">
+                      {subsidiary.permits.map((permit, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg" style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <Award className="h-5 w-5 text-green-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>{permit.name}</p>
+                              <div className="flex items-center space-x-4 text-sm mt-1" style={{ color: "#98989D" }}>
+                                <span>No: {permit.number}</span>
+                                <span>Penerbit: {permit.issuedBy}</span>
+                                {permit.expiryDate && (
+                                  <span>Berlaku hingga: {new Date(permit.expiryDate).toLocaleDateString('id-ID')}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPermitStatusColor(permit.status)}`}>
+                            {permit.status === 'active' && 'Aktif'}
+                            {permit.status === 'expired' && 'Kadaluarsa'}
+                            {permit.status === 'pending' && 'Proses'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Uploaded Documents with View Option */}
+                {subsidiary.attachments && subsidiary.attachments.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-4 flex items-center" style={{ color: "#FFFFFF" }}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Dokumen Terlampir
+                    </h3>
+                    <div className="space-y-3">
+                      {subsidiary.attachments.map((attachment, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border border-gray-700 rounded-lg" style={{ backgroundColor: "#1C1C1E" }}>
+                          <div className="flex items-center space-x-3">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-medium " style={{ color: "#FFFFFF" }}>{getCategoryLabel(attachment.category)}</p>
+                              <div className="flex items-center space-x-4 text-sm mt-1" style={{ color: "#98989D" }}>
+                                <span>{attachment.originalName}</span>
+                                <span>{(attachment.size / 1024).toFixed(1)} KB</span>
+                                <span>{new Date(attachment.uploadedAt).toLocaleDateString('id-ID')}</span>
+                              </div>
+                              {attachment.description && (
+                                <p className="text-xs text-gray-400 mt-1">{attachment.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => downloadAttachment(attachment.id, attachment.originalName)}
+                              className="flex items-center space-x-1"
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span>Lihat</span>
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {(!subsidiary.legalInfo || !Object.values(subsidiary.legalInfo).some(val => val)) &&
+                 (!subsidiary.permits || subsidiary.permits.length === 0) &&
+                 (!subsidiary.attachments || subsidiary.attachments.length === 0) && (
+                  <div className="text-center py-12" style={{ color: "#636366" }}>
+                    <FileText className="h-16 w-16 mx-auto mb-4" style={{ color: "#38383A" }} />
+                    <p className="text-lg font-medium" style={{ color: "#98989D" }}>Belum ada data legalitas dan perizinan</p>
+                    <p className="text-sm mt-2" style={{ color: "#636366" }}>Data legalitas, perizinan, dan dokumen akan ditampilkan di sini setelah diisi melalui menu Edit</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Company Stats */}
+            <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Informasi Perusahaan</h3>
+              <div className="space-y-4">
+                {subsidiary.establishedYear && (
+                  <div className="flex items-center justify-between">
+                    <span className=" flex items-center" style={{ color: "#98989D" }}>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Didirikan
+                    </span>
+                    <span className="font-medium " style={{ color: "#FFFFFF" }}>{subsidiary.establishedYear}</span>
+                  </div>
+                )}
+                {subsidiary.employeeCount && (
+                  <div className="flex items-center justify-between">
+                    <span className=" flex items-center" style={{ color: "#98989D" }}>
+                      <Users className="h-4 w-4 mr-2" />
+                      Karyawan
+                    </span>
+                    <span className="font-medium " style={{ color: "#FFFFFF" }}>{subsidiary.employeeCount} orang</span>
+                  </div>
+                )}
+                {subsidiary.profileInfo?.companySize && (
+                  <div className="flex items-center justify-between">
+                    <span className=" flex items-center" style={{ color: "#98989D" }}>
+                      <Briefcase className="h-4 w-4 mr-2" />
+                      Skala
+                    </span>
+                    <span className="font-medium " style={{ color: "#FFFFFF" }}>{getCompanySizeLabel(subsidiary.profileInfo.companySize)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Financial Information */}
+            {subsidiary.financialInfo && (
+              <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+                <h3 className="text-lg font-semibold mb-4 flex items-center" style={{ color: "#FFFFFF" }}>
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  Informasi Keuangan
+                </h3>
+                <div className="space-y-4">
+                  {subsidiary.financialInfo.authorizedCapital && (
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "#98989D" }}>Modal Dasar</label>
+                      <p className="font-medium " style={{ color: "#FFFFFF" }}>
+                        {formatCurrency(subsidiary.financialInfo.authorizedCapital, subsidiary.financialInfo.currency)}
+                      </p>
+                    </div>
+                  )}
+                  {subsidiary.financialInfo.paidUpCapital && (
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "#98989D" }}>Modal Disetor</label>
+                      <p className="font-medium " style={{ color: "#FFFFFF" }}>
+                        {formatCurrency(subsidiary.financialInfo.paidUpCapital, subsidiary.financialInfo.currency)}
+                      </p>
+                    </div>
+                  )}
+                  {subsidiary.financialInfo.fiscalYearEnd && (
+                    <div>
+                      <label className="block text-sm mb-1" style={{ color: "#98989D" }}>Akhir Tahun Fiskal</label>
+                      <p className="font-medium " style={{ color: "#FFFFFF" }}>{subsidiary.financialInfo.fiscalYearEnd}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Certifications */}
+            {subsidiary.certification && subsidiary.certification.length > 0 && (
+              <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+                <h3 className="text-lg font-semibold mb-4 flex items-center" style={{ color: "#FFFFFF" }}>
+                  <Award className="h-5 w-5 mr-2" />
+                  Sertifikasi
+                </h3>
+                <div className="space-y-2">
+                  {subsidiary.certification.map((cert, index) => (
+                    <div key={index} className="flex items-center p-2 bg-blue-50 rounded-lg">
+                      <Star className="h-4 w-4 text-blue-600 mr-2" />
+                      <span className="text-sm text-blue-900">{cert}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Overall Statistics */}
+            {statistics && (
+              <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Statistik Grup</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className=" " style={{ color: "#98989D" }}>Total Anak Usaha</span>
+                    <span className="font-bold " style={{ color: "#FFFFFF" }}>{statistics.totalSubsidiaries}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className=" " style={{ color: "#98989D" }}>Anak Usaha Aktif</span>
+                    <span className="font-bold text-green-600">{statistics.activeSubsidiaries}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className=" " style={{ color: "#98989D" }}>Total Proyek</span>
+                    <span className="font-bold " style={{ color: "#FFFFFF" }}>{statistics.totalProjects}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className=" " style={{ color: "#98989D" }}>Proyek Aktif</span>
+                    <span className="font-bold text-blue-600">{statistics.activeProjects}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SubsidiaryDetail;

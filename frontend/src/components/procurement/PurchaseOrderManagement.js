@@ -18,7 +18,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-const PurchaseOrderManagement = ({ onCreateNew, refreshTrigger = 0 }) => {
+const PurchaseOrderManagement = ({ onCreatePO, onCreateWO, refreshTrigger = 0 }) => {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -480,13 +480,22 @@ const PurchaseOrderManagement = ({ onCreateNew, refreshTrigger = 0 }) => {
                       {searchTerm || statusFilter !== 'all' ? 'Coba ubah filter atau kata kunci pencarian' : 'Mulai dengan membuat Purchase Order pertama'}
                     </p>
                     {(!searchTerm && statusFilter === 'all') && (
-                      <button
-                        onClick={onCreateNew}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Buat Purchase Order
-                      </button>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={onCreatePO}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Buat Purchase Order
+                        </button>
+                        <button
+                          onClick={onCreateWO}
+                          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Buat Work Order
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>

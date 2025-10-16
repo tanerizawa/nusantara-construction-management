@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, Building, DollarSign, Package, Calendar } from 'lucide-react';
 
-const ProjectSelectionDialog = ({ isOpen, onClose, onSelectProject }) => {
+const ProjectSelectionDialog = ({ isOpen, onClose, onSelectProject, documentType = 'po' }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,7 +76,11 @@ const ProjectSelectionDialog = ({ isOpen, onClose, onSelectProject }) => {
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Pilih Proyek</h2>
-            <p className="text-gray-600">Pilih proyek untuk membuat Purchase Order</p>
+            <p className="text-gray-600">
+              {documentType === 'po' 
+                ? 'Pilih proyek untuk membuat Purchase Order' 
+                : 'Pilih proyek untuk membuat Work Order'}
+            </p>
           </div>
           <button
             onClick={onClose}

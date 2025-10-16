@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from '../../i18n';
 
 /**
  * Enhanced Button Component - Apple HIG Compliant
@@ -27,6 +28,7 @@ const Button = ({
   className = '',
   ...props 
 }) => {
+  const { common } = useTranslation();
   const baseClasses = [
     'inline-flex',
     'items-center',
@@ -196,7 +198,7 @@ const Button = ({
             size={iconSize[size]} 
             className="animate-spin" 
           />
-          {children && <span>Memproses...</span>}
+          {children && <span>{common.loading}</span>}
         </>
       ) : (
         <>

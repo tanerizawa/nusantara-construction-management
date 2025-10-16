@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order Invoice - Demo Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        /* Invoice Container */
+        .invoice {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Letterhead */
+        .letterhead {
+            padding: 30px 40px;
+            border-bottom: 3px solid #333;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .logo-placeholder {
+            width: 70px;
+            height: 70px;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #999;
+            flex-shrink: 0;
+        }
+
+        .company-info {
+            flex: 1;
+        }
+
+        .company-info h2 {
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .company-info p {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Invoice Header */
+        .invoice-header {
+            padding: 40px 40px 20px;
+            text-align: center;
+        }
+
+        .invoice-header h1 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .po-details {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 40px;
+            margin-bottom: 30px;
+        }
+
+        .po-details-box {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .po-details-box p {
+            margin: 5px 0;
+            font-size: 0.95em;
+        }
+
+        .po-details-box strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* Supplier Info */
+        .supplier-section {
+            padding: 20px 40px;
+        }
+
+        .supplier-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .supplier-boxes {
+            display: flex;
+            gap: 20px;
+        }
+
+        .supplier-box {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .supplier-box h3 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .supplier-box p {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Items Table */
+        .items-section {
+            padding: 30px 40px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .items-table thead {
+            background: #e8e8e8;
+        }
+
+        .items-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .items-table td {
+            padding: 12px;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+            color: #555;
+        }
+
+        .items-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Total Section */
+        .total-section {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .totals {
+            min-width: 350px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .total-row.subtotal {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 12px;
+            margin-bottom: 8px;
+        }
+
+        .total-row.grand-total {
+            background: #e8e8e8;
+            padding: 15px 20px;
+            margin-top: 10px;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .total-row.grand-total .label {
+            color: #333;
+        }
+
+        .total-row.grand-total .value {
+            color: #0066cc;
+        }
+
+        /* Terms */
+        .terms-section {
+            padding: 30px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .terms-section h3 {
+            font-size: 1em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .terms-section ol {
+            padding-left: 20px;
+        }
+
+        .terms-section li {
+            font-size: 0.85em;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 5px;
+        }
+
+        /* Signature */
+        .signature-section {
+            padding: 40px 40px 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-box {
+            text-align: center;
+            width: 200px;
+        }
+
+        .signature-box p {
+            font-size: 0.9em;
+            margin-bottom: 50px;
+            color: #666;
+        }
+
+        .signature-line {
+            border-top: 2px solid #333;
+            margin-top: 10px;
+            padding-top: 5px;
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        /* Footer */
+        .invoice-footer {
+            padding: 20px 40px;
+            text-align: center;
+            background: #f0f0f0;
+            border-top: 1px solid #ddd;
+        }
+
+        .invoice-footer p {
+            font-size: 0.8em;
+            color: #666;
+            margin: 3px 0;
+        }
+
+        /* Demo Badge */
+        .demo-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .header, .demo-badge {
+                display: none;
+            }
+
+            .invoice {
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-badge">DEMO PREVIEW</div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📄 Purchase Order Invoice</h1>
+            <p>Professional PDF Preview - Generate Invoice Feature</p>
+        </div>
+
+        <!-- Invoice Document -->
+        <div class="invoice">
+            <!-- Letterhead -->
+            <div class="letterhead">
+                <div class="logo-placeholder">LOGO</div>
+                <div class="company-info">
+                    <h2>PT YK CONSTRUCTION</h2>
+                    <p>Jl. Konstruksi Raya No. 123, Jakarta Selatan 12345</p>
+                    <p>Telp: 021-12345678 | Email: info@ykconstruction.com</p>
+                    <p>NPWP: 00.000.000.0-000.000</p>
+                </div>
+            </div>
+
+            <!-- Invoice Header -->
+            <div class="invoice-header">
+                <h1>PURCHASE ORDER</h1>
+            </div>
+
+            <!-- PO Details -->
+            <div class="po-details">
+                <div class="po-details-box">
+                    <p><strong>No. PO:</strong> PO-2025BSR001-001</p>
+                    <p><strong>Tanggal:</strong> 15 Oktober 2025</p>
+                    <p><strong>Proyek:</strong> 2025BSR001</p>
+                </div>
+            </div>
+
+            <!-- Supplier Info -->
+            <div class="supplier-section">
+                <p class="supplier-title">Kepada Yth,</p>
+                <div class="supplier-boxes">
+                    <div class="supplier-box">
+                        <h3>PT Supplier Material Konstruksi</h3>
+                        <p>Jl. Supplier No. 456, Jakarta Barat 11230</p>
+                        <p>Kontak: 021-87654321</p>
+                    </div>
+                    <div class="supplier-box">
+                        <p style="margin-bottom: 8px; color: #999; font-size: 0.85em;">Target Pengiriman:</p>
+                        <h3 style="color: #0066cc;">30 Oktober 2025</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="items-section">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center" style="width: 50px;">No</th>
+                            <th>Nama Item</th>
+                            <th>Spesifikasi</th>
+                            <th class="text-center" style="width: 80px;">Qty</th>
+                            <th class="text-right" style="width: 120px;">Harga Satuan</th>
+                            <th class="text-right" style="width: 130px;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-center">1</td>
+                            <td>Semen Gresik 50kg</td>
+                            <td>Semen Portland Type I</td>
+                            <td class="text-center">500 sak</td>
+                            <td class="text-right">Rp 65.000</td>
+                            <td class="text-right">Rp 32.500.000</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">2</td>
+                            <td>Pasir Cor</td>
+                            <td>Pasir ayak halus</td>
+                            <td class="text-center">20 m³</td>
+                            <td class="text-right">Rp 350.000</td>
+                            <td class="text-right">Rp 7.000.000</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">3</td>
+                            <td>Bata Merah</td>
+                            <td>Bata press kualitas A</td>
+                            <td class="text-center">10.000 biji</td>
+                            <td class="text-right">Rp 850</td>
+                            <td class="text-right">Rp 8.500.000</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">4</td>
+                            <td>Besi Beton 12mm</td>
+                            <td>Besi ulir SNI polos</td>
+                            <td class="text-center">150 batang</td>
+                            <td class="text-right">Rp 85.000</td>
+                            <td class="text-right">Rp 12.750.000</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">5</td>
+                            <td>Cat Tembok</td>
+                            <td>Cat interior weathershield 20L</td>
+                            <td class="text-center">30 pail</td>
+                            <td class="text-right">Rp 425.000</td>
+                            <td class="text-right">Rp 12.750.000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Section -->
+            <div class="total-section">
+                <div class="totals">
+                    <div class="total-row subtotal">
+                        <span class="label">Subtotal:</span>
+                        <span class="value">Rp 73.500.000</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="label">PPN (11%):</span>
+                        <span class="value">Rp 8.085.000</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span class="label">TOTAL:</span>
+                        <span class="value">Rp 81.585.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section">
+                <h3>Syarat dan Ketentuan:</h3>
+                <ol>
+                    <li>Pembayaran dilakukan setelah barang/jasa diterima dan sesuai spesifikasi</li>
+                    <li>Supplier wajib menyertakan surat jalan dan faktur asli</li>
+                    <li>Barang yang tidak sesuai spesifikasi akan dikembalikan</li>
+                    <li>Keterlambatan pengiriman akan dikenakan denda sesuai kesepakatan</li>
+                    <li>PO ini berlaku sebagai kontrak pemesanan yang mengikat</li>
+                </ol>
+            </div>
+
+            <!-- Signature Section -->
+            <div class="signature-section">
+                <div class="signature-box">
+                    <p>Yang Menerima,</p>
+                    <p style="margin-top: 60px; margin-bottom: 10px;">(Supplier)</p>
+                    <div class="signature-line">___________________</div>
+                </div>
+                <div class="signature-box">
+                    <p>Yang Memesan,</p>
+                    <p style="font-size: 0.85em; margin-bottom: 5px;">Jakarta, 15 Oktober 2025</p>
+                    <p style="margin-top: 50px; margin-bottom: 10px;">(Authorized Signature)</p>
+                    <div class="signature-line">___________________</div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="invoice-footer">
+                <p>PT YK CONSTRUCTION | info@ykconstruction.com | 021-12345678</p>
+                <p>Dokumen ini dibuat secara elektronik dan sah tanpa tanda tangan basah</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto print on Ctrl+P
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+
+        // Show info
+        console.log('%c📄 PO Invoice Demo Preview', 'font-size: 20px; color: #667eea; font-weight: bold;');
+        console.log('%cPress Ctrl+P to print this invoice', 'font-size: 14px; color: #666;');
+    </script>
+</body>
+</html>

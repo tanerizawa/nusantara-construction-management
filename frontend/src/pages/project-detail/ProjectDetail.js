@@ -21,6 +21,7 @@ import {
 } from '../../components/workflow';
 import { ReportGenerator } from '../../components/workflow/reports';
 import PurchaseOrdersManager from '../../components/workflow/purchase-orders/PurchaseOrdersManager';
+import WorkOrdersManager from '../../components/workflow/work-orders/WorkOrdersManager';
 
 // Other components
 import ProjectMilestones from '../../components/ProjectMilestones';
@@ -184,6 +185,14 @@ const ProjectDetail = () => {
           
           {activeTab === 'purchase-orders' && project && (
             <PurchaseOrdersManager 
+              projectId={id} 
+              project={project} 
+              onDataChange={fetchProject}
+            />
+          )}
+          
+          {activeTab === 'work-orders' && project && (
+            <WorkOrdersManager 
               projectId={id} 
               project={project} 
               onDataChange={fetchProject}

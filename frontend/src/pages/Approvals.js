@@ -1,13 +1,5 @@
-import React from 'react';
-import { Box } from '@mui/material';
-import ApprovalDashboard from '../components/ApprovalDashboard';
+// Approvals.js - Thin wrapper for backward compatibility
+// This file provides backward compatibility with existing imports
 
-const Approvals = () => {
-  return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
-      <ApprovalDashboard />
-    </Box>
-  );
-};
-
-export default Approvals;
+// Import from modular structure
+export { default } from './Approvals/index';

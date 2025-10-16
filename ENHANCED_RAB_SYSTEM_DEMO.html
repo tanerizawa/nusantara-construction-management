@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced RAB Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .bg-demo { background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%); }
+        .card-demo { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .workflow-pulse { animation: pulse 2s infinite; }
+        .feature-card { transition: all 0.3s ease; }
+        .feature-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); }
+    </style>
+</head>
+<body class="bg-demo text-white min-h-screen">
+    <div class="container mx-auto px-6 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                🏗️ Enhanced RAB Management
+            </h1>
+            <p class="text-xl opacity-90 max-w-3xl mx-auto">
+                Sistem pengelolaan RAB terdepan dengan input massal, import Excel, dan workflow otomatis untuk efisiensi maksimal
+            </p>
+        </div>
+
+        <!-- Key Features Grid -->
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+            <div class="card-demo rounded-2xl p-8 feature-card">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Input Massal Default</h3>
+                <p class="text-gray-300 mb-4">Interface utama untuk input ratusan item RAB sekaligus dengan tabel yang responsif dan intuitif</p>
+                <ul class="text-sm space-y-2">
+                    <li class="flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>Tabel multi-baris</li>
+                    <li class="flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>Validasi real-time</li>
+                    <li class="flex items-center"><span class="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>Auto-calculation</li>
+                </ul>
+            </div>
+
+            <div class="card-demo rounded-2xl p-8 feature-card">
+                <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Excel Import/Export</h3>
+                <p class="text-gray-300 mb-4">Import data dari Excel/CSV dan download template untuk memudahkan persiapan data bulk</p>
+                <ul class="text-sm space-y-2">
+                    <li class="flex items-center"><span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>Template download</li>
+                    <li class="flex items-center"><span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>CSV/Excel support</li>
+                    <li class="flex items-center"><span class="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>Error validation</li>
+                </ul>
+            </div>
+
+            <div class="card-demo rounded-2xl p-8 feature-card">
+                <div class="w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold mb-4">Auto Workflow</h3>
+                <p class="text-gray-300 mb-4">Sistem otomatis mengarahkan material ke PO dan jasa ke Perintah Kerja sesuai business logic</p>
+                <ul class="text-sm space-y-2">
+                    <li class="flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>Material → PO</li>
+                    <li class="flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>Jasa → Perintah Kerja</li>
+                    <li class="flex items-center"><span class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></span>Visual indicators</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Interface Preview -->
+        <div class="card-demo rounded-2xl p-8 mb-12">
+            <h2 class="text-3xl font-bold mb-8 text-center">Interface Terbaru</h2>
+            
+            <!-- Action Bar Preview -->
+            <div class="bg-gray-800 rounded-xl p-6 mb-8">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Kelola RAB Project</h3>
+                        <p class="text-gray-400 text-sm">Input, edit, dan kelola item RAB secara efisien</p>
+                    </div>
+                    <button class="bg-gray-600 text-white p-2 rounded-lg hover:bg-gray-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex flex-wrap items-center justify-between gap-3 p-4 bg-gray-700 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <button class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-4-4m4 4l4-4m6 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Download Template
+                        </button>
+                        <button class="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors workflow-pulse">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 12l2 2 4-4"></path>
+                            </svg>
+                            Import Excel/CSV
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-4 text-sm">
+                        <div class="bg-gray-600 px-3 py-1 rounded">
+                            <span class="text-gray-300">Total:</span> <span class="text-white font-semibold">127</span>
+                        </div>
+                        <div class="bg-gray-600 px-3 py-1 rounded">
+                            <span class="text-gray-300">Estimasi:</span> <span class="text-blue-400 font-semibold">Rp 2.4M</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Table Preview -->
+            <div class="overflow-x-auto bg-gray-800 rounded-xl border border-gray-700">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Tipe</th>
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Kategori</th>
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Deskripsi</th>
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Unit</th>
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Qty</th>
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Harga Unit</th>
+                            <th class="text-left py-4 px-4 text-gray-300 font-semibold">Subtotal</th>
+                            <th class="text-center py-4 px-4 text-gray-300 font-semibold"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700">
+                        <tr class="hover:bg-gray-700 transition-colors">
+                            <td class="py-3 px-4">
+                                <select class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500">
+                                    <option>Material</option>
+                                </select>
+                                <div class="mt-1 px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded text-center font-medium">PO</div>
+                            </td>
+                            <td class="py-3 px-4">
+                                <select class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500">
+                                    <option>Struktur</option>
+                                </select>
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="text" value="Semen Portland PC 40kg" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="text" value="sak" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="number" value="100" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="number" value="65000" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4 text-right font-semibold">Rp 6,500,000</td>
+                            <td class="py-3 px-4 text-center">
+                                <button class="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded transition-colors">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-700 transition-colors">
+                            <td class="py-3 px-4">
+                                <select class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500">
+                                    <option>Service</option>
+                                </select>
+                                <div class="mt-1 px-2 py-0.5 bg-green-500/20 text-green-300 text-xs rounded text-center font-medium">PK</div>
+                            </td>
+                            <td class="py-3 px-4">
+                                <select class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500">
+                                    <option>Finishing</option>
+                                </select>
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="text" value="Jasa Cat Tembok Interior" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="text" value="m²" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="number" value="250" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <input type="number" value="25000" class="bg-gray-600 text-white text-xs rounded px-2 py-1.5 w-full border border-gray-500" />
+                            </td>
+                            <td class="py-3 px-4 text-right font-semibold">Rp 6,250,000</td>
+                            <td class="py-3 px-4 text-center">
+                                <button class="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded transition-colors">🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Enhanced Action Bar -->
+            <div class="mt-6 bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <div class="flex flex-wrap items-center justify-between gap-6">
+                    <div class="flex items-center space-x-6">
+                        <div>
+                            <span class="text-gray-400 text-sm">Total Items:</span>
+                            <span class="text-white text-lg font-bold ml-2">127</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Material:</span>
+                            <span class="text-blue-300 font-semibold ml-2">85</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Jasa:</span>
+                            <span class="text-green-300 font-semibold ml-2">42</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 text-sm">Total Estimasi:</span>
+                            <span class="text-blue-400 text-xl font-bold ml-2">Rp 2,467,890,000</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button class="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Simpan Draft
+                        </button>
+                        <button class="flex items-center px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-semibold">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            Simpan 127 Item
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-gray-400 bg-gray-700 p-3 rounded border border-gray-600">
+                    <div class="flex items-center space-x-4">
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                            Material → Purchase Order
+                        </span>
+                        <span class="flex items-center">
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                            Jasa → Perintah Kerja
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Implementation Highlights -->
+        <div class="card-demo rounded-2xl p-8 mb-12">
+            <h2 class="text-3xl font-bold mb-8 text-center">Peningkatan Implementasi</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-emerald-400 mb-4">✅ Yang Diimplementasikan</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Bulk Input sebagai Default</strong><br>
+                                <span class="text-gray-400 text-sm">Removed single input, bulk adalah main interface</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Excel Import/Export</strong><br>
+                                <span class="text-gray-400 text-sm">Template download dan CSV/Excel import functionality</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Enhanced UI Design</strong><br>
+                                <span class="text-gray-400 text-sm">Compact, symmetrical, dan precision-focused interface</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Workflow Indicators</strong><br>
+                                <span class="text-gray-400 text-sm">Visual badges untuk Material (PO) dan Jasa (PK)</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-blue-400 mb-4">🚀 Keuntungan Sistem</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Efisiensi 95%</strong><br>
+                                <span class="text-gray-400 text-sm">Input 100+ item dalam hitungan menit</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Zero Setup Time</strong><br>
+                                <span class="text-gray-400 text-sm">Langsung bulk input, no single item step</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Excel Integration</strong><br>
+                                <span class="text-gray-400 text-sm">Import existing data, export untuk review</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></span>
+                            <div>
+                                <strong>Smart Workflow</strong><br>
+                                <span class="text-gray-400 text-sm">Auto-routing berdasarkan item type</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Excel Template Sample -->
+        <div class="card-demo rounded-2xl p-8">
+            <h2 class="text-3xl font-bold mb-8 text-center">Excel Template Preview</h2>
+            <div class="overflow-x-auto bg-white rounded-xl text-gray-900">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-3 px-4 text-left font-semibold">Tipe Item</th>
+                            <th class="py-3 px-4 text-left font-semibold">Kategori</th>
+                            <th class="py-3 px-4 text-left font-semibold">Deskripsi</th>
+                            <th class="py-3 px-4 text-left font-semibold">Unit</th>
+                            <th class="py-3 px-4 text-left font-semibold">Quantity</th>
+                            <th class="py-3 px-4 text-left font-semibold">Harga Unit</th>
+                            <th class="py-3 px-4 text-left font-semibold">Spesifikasi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr>
+                            <td class="py-3 px-4 text-blue-600 font-medium">material</td>
+                            <td class="py-3 px-4">Struktur</td>
+                            <td class="py-3 px-4">Semen Portland PC 40kg</td>
+                            <td class="py-3 px-4">sak</td>
+                            <td class="py-3 px-4">100</td>
+                            <td class="py-3 px-4">65000</td>
+                            <td class="py-3 px-4">Semen grade A</td>
+                        </tr>
+                        <tr class="bg-gray-50">
+                            <td class="py-3 px-4 text-green-600 font-medium">service</td>
+                            <td class="py-3 px-4">Finishing</td>
+                            <td class="py-3 px-4">Jasa Cat Tembok</td>
+                            <td class="py-3 px-4">m²</td>
+                            <td class="py-3 px-4">250</td>
+                            <td class="py-3 px-4">25000</td>
+                            <td class="py-3 px-4">Cat akrilik 2 lapis</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 text-center">
+                <button class="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors font-medium">
+                    📥 Download Template Excel
+                </button>
+                <p class="text-gray-400 text-sm mt-2">Template siap pakai untuk import massal data RAB</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

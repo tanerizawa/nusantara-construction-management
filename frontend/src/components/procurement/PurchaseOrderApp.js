@@ -1,26 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Plus, Building, FileText, Eye } from 'lucide-react';
+import { ShoppingCart, Plus, Building, FileText, Eye, Tool, Briefcase, Package, HardHat } from 'lucide-react';
 import ProjectSelectionDialog from './ProjectSelectionDialog';
 import CreatePurchaseOrder from './CreatePurchaseOrder';
+import CreateWorkOrder from './CreateWorkOrder';
 import PurchaseOrderManagement from './PurchaseOrderManagement';
+import RABItemsSelectionContainer from './RABItemsSelectionContainer';
+import { isWorkOrderItem, isPurchaseOrderItem, detectItemType } from '../workflow/purchase-orders/config/workOrderTypes';
+import WorkOrdersNotImplemented from '../workflow/purchase-orders/views/WorkOrdersNotImplemented';
 
 const PurchaseOrderApp = () => {
-  const [currentView, setCurrentView] = useState('management'); // 'management', 'create', 'project-selection'
+  const [currentView, setCurrentView] = useState('management'); // 'management', 'create', 'create-wo', 'select-items', 'project-selection'
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedRABItems, setSelectedRABItems] = useState([]);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [documentType, setDocumentType] = useState('po'); // 'po' or 'wo'
 
-  const handleCreateNewPO = () => {
+  const handleCreateNew = (type) => {
+    setDocumentType(type);
     setShowProjectDialog(true);
   };
 
   const handleProjectSelect = (project) => {
     setSelectedProject(project);
     setShowProjectDialog(false);
-    // For now, go directly to create PO form
-    // In a full implementation, you might want to show RAB selection first
-    setCurrentView('create');
+    
+    // Go to RAB items selection first
+    setCurrentView('select-items');
+  };
+  
+  const handleItemsSelected = (selectedItems) => {
+    setSelectedRABItems(selectedItems);
+    
+    // Choose view based on document type
+    if (documentType === 'po') {
+      setCurrentView('create');
+    } else {
+      setCurrentView('create-wo');
+    }
   };
 
   const handleBackToManagement = () => {
@@ -39,13 +56,35 @@ const PurchaseOrderApp = () => {
 
   const renderCurrentView = () => {
     switch (currentView) {
+      case 'select-items':
+        return (
+          <RABItemsSelectionContainer
+            project={selectedProject}
+            onBack={handleBackToManagement}
+            onContinue={handleItemsSelected}
+            documentType={documentType}
+          />
+        );
+      
       case 'create':
         return (
           <CreatePurchaseOrder
             projectId={selectedProject?.id}
             project={selectedProject}
             selectedRABItems={selectedRABItems}
-            onBack={handleBackToManagement}
+            onBack={() => setCurrentView('select-items')}
+            onSave={handlePOSaved}
+            documentType="po"
+          />
+        );
+      
+      case 'create-wo':
+        return (
+          <CreateWorkOrder
+            projectId={selectedProject?.id}
+            project={selectedProject}
+            selectedRABItems={selectedRABItems}
+            onBack={() => setCurrentView('select-items')}
             onSave={handlePOSaved}
           />
         );
@@ -54,7 +93,8 @@ const PurchaseOrderApp = () => {
       default:
         return (
           <PurchaseOrderManagement 
-            onCreateNew={handleCreateNewPO}
+            onCreatePO={() => handleCreateNew('po')}
+            onCreateWO={() => handleCreateNew('wo')}
             refreshTrigger={refreshTrigger}
           />
         );
@@ -70,8 +110,8 @@ const PurchaseOrderApp = () => {
             <div className="flex items-center">
               <ShoppingCart className="h-8 w-8 text-blue-600 mr-3" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Purchase Order System</h1>
-                <p className="text-gray-600">Kelola Purchase Order untuk semua proyek</p>
+                <h1 className="text-2xl font-bold text-gray-900">Procurement System</h1>
+                <p className="text-gray-600">Kelola Purchase Order dan Work Order untuk semua proyek</p>
               </div>
             </div>
             
@@ -82,17 +122,27 @@ const PurchaseOrderApp = () => {
                   className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900"
                 >
                   <Eye className="h-4 w-4" />
-                  Lihat Semua PO
+                  Lihat Semua Dokumen
                 </button>
               )}
               
-              <button
-                onClick={handleCreateNewPO}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Buat PO Baru
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleCreateNew('po')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Buat PO Baru
+                </button>
+                
+                <button
+                  onClick={() => handleCreateNew('wo')}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                >
+                  <Briefcase className="h-4 w-4" />
+                  Buat Work Order
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -102,18 +152,76 @@ const PurchaseOrderApp = () => {
       {currentView !== 'management' && (
         <div className="bg-gray-50 border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center space-x-2 text-sm">
-              <button
-                onClick={handleBackToManagement}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                Purchase Orders
-              </button>
-              <span className="text-gray-500">/</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm">
+                <button
+                  onClick={handleBackToManagement}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  Procurement
+                </button>
+                <span className="text-gray-500">/</span>
+                
+                {currentView === 'select-items' && (
+                  <>
+                    <span className="text-gray-700">
+                      {documentType === 'po' ? 'Pilih Item untuk PO' : 'Pilih Item untuk WO'}
+                    </span>
+                    {selectedProject && (
+                      <>
+                        <span className="text-gray-500">/</span>
+                        <span className="text-gray-900 font-medium">{selectedProject.name}</span>
+                      </>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              {/* Document type selector */}
+              {currentView === 'select-items' && (
+                <div className="inline-flex rounded-md shadow-sm" role="group">
+                  <button
+                    type="button"
+                    onClick={() => setDocumentType('po')}
+                    className={`px-4 py-2 text-sm font-medium ${
+                      documentType === 'po' 
+                        ? 'text-blue-700 bg-blue-100 border border-blue-300' 
+                        : 'text-gray-700 bg-white border border-gray-300'
+                    } rounded-l-lg focus:z-10 focus:ring-2 focus:ring-blue-700 flex items-center`}
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    Purchase Order
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDocumentType('wo')}
+                    className={`px-4 py-2 text-sm font-medium ${
+                      documentType === 'wo' 
+                        ? 'text-purple-700 bg-purple-100 border border-purple-300' 
+                        : 'text-gray-700 bg-white border border-gray-300'
+                    } rounded-r-lg focus:z-10 focus:ring-2 focus:ring-purple-700 flex items-center`}
+                  >
+                    <HardHat className="h-4 w-4 mr-2" />
+                    Work Order
+                  </button>
+                </div>
+              )}
               
               {currentView === 'create' && (
                 <>
-                  <span className="text-gray-700">Buat PO Baru</span>
+                  <span className="text-gray-700">Buat Purchase Order</span>
+                  {selectedProject && (
+                    <>
+                      <span className="text-gray-500">/</span>
+                      <span className="text-gray-900 font-medium">{selectedProject.name}</span>
+                    </>
+                  )}
+                </>
+              )}
+              
+              {currentView === 'create-wo' && (
+                <>
+                  <span className="text-gray-700">Buat Work Order</span>
                   {selectedProject && (
                     <>
                       <span className="text-gray-500">/</span>
@@ -137,6 +245,7 @@ const PurchaseOrderApp = () => {
         isOpen={showProjectDialog}
         onClose={() => setShowProjectDialog(false)}
         onSelectProject={handleProjectSelect}
+        documentType={documentType}
       />
 
       {/* Footer */}

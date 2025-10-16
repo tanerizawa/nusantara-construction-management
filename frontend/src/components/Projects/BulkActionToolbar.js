@@ -1,6 +1,7 @@
 import React from 'react';
 import { Archive, Download, Trash2, X, FileText, FileSpreadsheet, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
+import { useTranslation } from '../../i18n';
 
 /**
  * Bulk Action Toolbar
@@ -16,6 +17,8 @@ const BulkActionToolbar = ({
   disabled = false,
   isLoading = false // New prop untuk show loading state
 }) => {
+  const { common } = useTranslation();
+  
   if (selectedCount === 0) return null;
 
   return (
@@ -61,7 +64,7 @@ const BulkActionToolbar = ({
                        transition-all duration-150"
           >
             <Archive className="w-4 h-4" />
-            <span>Arsipkan</span>
+            <span>{common.archive}</span>
           </Button>
 
           {/* Export to Excel */}
@@ -77,7 +80,7 @@ const BulkActionToolbar = ({
                        transition-all duration-150"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Export Excel</span>
+            <span>{common.download} Excel</span>
           </Button>
 
           {/* Export to PDF */}
@@ -93,7 +96,7 @@ const BulkActionToolbar = ({
                        transition-all duration-150"
           >
             <FileText className="w-4 h-4" />
-            <span>Export PDF</span>
+            <span>{common.download} PDF</span>
           </Button>
 
           {/* Delete Selected */}
@@ -109,7 +112,7 @@ const BulkActionToolbar = ({
                        transition-all duration-150"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Hapus</span>
+            <span>{common.delete}</span>
           </Button>
         </div>
       </div>

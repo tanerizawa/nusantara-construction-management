@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app-yk-frontend-dev
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:5000/api}
+      - REACT_APP_ENV=development
+      - WDS_SOCKET_HOST=0.0.0.0
+      - WDS_SOCKET_PORT=3001
+      - FAST_REFRESH=true
+      - CHOKIDAR_USEPOLLING=true
+      - GENERATE_SOURCEMAP=true
+      - REACT_APP_DEBUG_MODE=true
+      - REACT_APP_ENABLE_DEV_TOOLS=true
+    stdin_open: true # equivalent to -i
+    tty: true        # equivalent to -t
+    restart: unless-stopped

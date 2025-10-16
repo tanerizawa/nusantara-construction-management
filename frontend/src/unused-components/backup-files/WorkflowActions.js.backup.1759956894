@@ -1,0 +1,55 @@
+import React from 'react';
+import { CheckCircle, Download, FileText } from 'lucide-react';
+
+/**
+ * WorkflowActions Component
+ * Displays workflow action buttons
+ */
+const WorkflowActions = ({ 
+  approvalStatus, 
+  rabItemsCount,
+  isSubmitting,
+  onApprove 
+}) => {
+  if (rabItemsCount === 0) return null;
+
+  return (
+    <div className="bg-[#2C2C2E] rounded-lg shadow p-6">
+      <h3 className="text-lg font-medium text-white mb-4">Workflow Actions</h3>
+      <div className="flex items-center space-x-4">
+        
+        {/* Approve Button - Only show if not approved */}
+        {approvalStatus?.status === 'draft' && (
+          <button
+            onClick={onApprove}
+            disabled={isSubmitting}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            {isSubmitting ? 'Mengapprove...' : 'Approve RAB'}
+          </button>
+        )}
+        
+        {/* Show approval status if already approved */}
+        {approvalStatus?.status === 'approved' && (
+          <div className="flex items-center px-4 py-2 bg-[#30D158]/20 text-green-800 rounded-lg">
+            <CheckCircle className="h-4 w-4 mr-2" />
+            RAB Sudah Disetujui
+          </div>
+        )}
+        
+        <button className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+          <Download className="h-4 w-4 mr-2" />
+          Export RAB
+        </button>
+
+        <button className="flex items-center px-4 py-2 border border-[#38383A] text-[#98989D] rounded-lg hover:bg-[#1C1C1E]">
+          <FileText className="h-4 w-4 mr-2" />
+          Generate BOQ
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default WorkflowActions;

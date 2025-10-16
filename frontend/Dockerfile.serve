@@ -1,0 +1,21 @@
+# Simple Dockerfile without build process
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install dependencies and serve
+RUN npm install --production --legacy-peer-deps && \
+    npm install -g serve@14.2.1
+
+# Copy the rest of the application
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start serving the app
+CMD ["serve", "-s", "/app", "-l", "3000"]

@@ -1,4 +1,3 @@
-
 services:
   # PostgreSQL Database
   postgres:
@@ -58,27 +57,31 @@ services:
       timeout: 10s
       retries: 3
 
-  # Frontend React App
+  # Frontend React App (Production Build)
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend.dev
+      context: ./frontend
+      dockerfile: Dockerfile.simple
     container_name: nusantara-frontend
     restart: unless-stopped
     environment:
-      TZ: Asia/Jakarta
+      NODE_ENV: development
       REACT_APP_API_URL: /api
-      REACT_APP_ENV: production
-      REACT_APP_TIMEZONE: Asia/Jakarta
-      CHOKIDAR_USEPOLLING: false
-      FAST_REFRESH: false
-      WDS_SOCKET_HOST: false
-      WDS_SOCKET_PORT: 0
+      GENERATE_SOURCEMAP: "false"
+      ESLINT_NO_DEV_ERRORS: "true"
+      TSC_COMPILE_ON_ERROR: "true"
+      DISABLE_ESLINT_PLUGIN: "true"
+      CHOKIDAR_USEPOLLING: "false"
+      WATCHPACK_POLLING: "false"
+      WDS_SOCKET_HOST: "0.0.0.0"
+      WDS_SOCKET_PORT: "0"
+      WDS_SOCKET_PATH: "/ws"
+      FAST_REFRESH: "false"
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
     networks:
       - nusantara-network
     depends_on:
@@ -95,4 +98,6 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  frontend_node_modules:
     driver: local

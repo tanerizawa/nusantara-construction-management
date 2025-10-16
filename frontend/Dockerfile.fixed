@@ -1,0 +1,30 @@
+# Development Dockerfile for React Frontend with explicit react-refresh
+
+# Base image with Node.js
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package.json package-lock.json ./
+
+# Install dependencies with npm install instead of npm ci
+# to ensure package.json and package-lock.json are in sync
+RUN npm install --legacy-peer-deps
+
+# Copy the rest of the application
+COPY . .
+
+# Make sure start script is executable
+RUN chmod +x /app/start.sh
+
+# Environment variable for development
+ENV NODE_ENV=development
+ENV PATH /app/node_modules/.bin:$PATH
+
+# Expose the development server port
+EXPOSE 3000
+
+# Start the development server using our custom script
+CMD ["/app/start.sh"]

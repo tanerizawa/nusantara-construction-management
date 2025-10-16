@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal } from 'lucide-react';
 import Button from './Button';
+import { useTranslation } from '../../i18n';
 
 /**
  * Pagination Components - Apple HIG Compliant
@@ -26,6 +27,7 @@ export const Pagination = ({
   disabled = false,
   ...props
 }) => {
+  const { ui, common } = useTranslation();
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
   
@@ -90,13 +92,13 @@ export const Pagination = ({
       {showInfo && (
         <div className="flex-1">
           <p className="text-sm text-gray-700">
-            Menampilkan{' '}
+            {ui.pagination.showing}{' '}
             <span className="font-medium">{startItem}</span>
             {' '}-{' '}
             <span className="font-medium">{endItem}</span>
-            {' '}dari{' '}
+            {' '}{ui.pagination.of}{' '}
             <span className="font-medium">{totalItems.toLocaleString('id-ID')}</span>
-            {' '}hasil
+            {' '}{ui.pagination.items}
           </p>
         </div>
       )}
@@ -105,17 +107,17 @@ export const Pagination = ({
         {/* Page Size Selector */}
         {showPageSizeSelector && onPageSizeChange && (
           <div className="flex items-center space-x-2">
-            <label className="text-sm text-gray-700">Tampilkan:</label>
+            <label className="text-sm text-gray-700">{ui.pagination.showing}:</label>
             <select
               value={itemsPerPage}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
               disabled={disabled}
               className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
+              <option value={10}>10 {ui.pagination.perPage}</option>
+              <option value={25}>25 {ui.pagination.perPage}</option>
+              <option value={50}>50 {ui.pagination.perPage}</option>
+              <option value={100}>100 {ui.pagination.perPage}</option>
             </select>
           </div>
         )}
@@ -133,7 +135,7 @@ export const Pagination = ({
                 icon={<ChevronsLeft size={16} />}
                 className="hidden sm:inline-flex"
               >
-                Pertama
+                {common.first}
               </Button>
             )}
             
@@ -145,7 +147,7 @@ export const Pagination = ({
               disabled={currentPage === 1 || disabled}
               icon={<ChevronLeft size={16} />}
             >
-              <span className="hidden sm:inline">Sebelumnya</span>
+              <span className="hidden sm:inline">{common.previous}</span>
             </Button>
             
             {/* First page number */}
@@ -209,7 +211,7 @@ export const Pagination = ({
               iconPosition="right"
               icon={<ChevronRight size={16} />}
             >
-              <span className="hidden sm:inline">Berikutnya</span>
+              <span className="hidden sm:inline">{common.next}</span>
             </Button>
             
             {/* Last Page */}
@@ -223,7 +225,7 @@ export const Pagination = ({
                 icon={<ChevronsRight size={16} />}
                 className="hidden sm:inline-flex"
               >
-                Terakhir
+                {common.last}
               </Button>
             )}
           </nav>
@@ -244,6 +246,7 @@ export const SimplePagination = ({
   disabled = false,
   ...props
 }) => {
+  const { ui, common } = useTranslation();
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages && page !== currentPage && !disabled) {
       onPageChange?.(page);
@@ -261,11 +264,11 @@ export const SimplePagination = ({
         disabled={currentPage === 1 || disabled}
         icon={<ChevronLeft size={16} />}
       >
-        {showLabels && <span className="hidden sm:inline">Sebelumnya</span>}
+        {showLabels && <span className="hidden sm:inline">{common.previous}</span>}
       </Button>
       
       <span className="text-sm text-gray-700">
-        Halaman {currentPage} dari {totalPages}
+        {ui.pagination.page} {currentPage} {ui.pagination.of} {totalPages}
       </span>
       
       <Button
@@ -276,7 +279,7 @@ export const SimplePagination = ({
         iconPosition="right"
         icon={<ChevronRight size={16} />}
       >
-        {showLabels && <span className="hidden sm:inline">Berikutnya</span>}
+        {showLabels && <span className="hidden sm:inline">{common.next}</span>}
       </Button>
     </div>
   );
@@ -294,6 +297,7 @@ export const InfinitePagination = ({
   className = '',
   ...props
 }) => {
+  const { common } = useTranslation();
   if (!hasMore && !loading) {
     return (
       <div className={`text-center py-4 ${className}`} {...props}>
@@ -311,7 +315,7 @@ export const InfinitePagination = ({
         disabled={loading}
         loading={loading}
       >
-        {loading ? loadingText : loadMoreText}
+        {loading ? common.loading : common.more}
       </Button>
     </div>
   );

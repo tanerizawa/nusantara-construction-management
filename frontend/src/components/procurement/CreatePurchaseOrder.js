@@ -15,7 +15,7 @@ import {
 import { CalendarIconWhite, DateInputWithIcon } from '../ui/CalendarIcon';
 import { NumberInput, QuantityInput, CurrencyInput } from '../ui/NumberInput';
 
-const CreatePurchaseOrder = ({ projectId, project, selectedRABItems = [], onBack, onSave }) => {
+const CreatePurchaseOrder = ({ projectId, project, selectedRABItems = [], onBack, onSave, documentType = 'po' }) => {
   const [formData, setFormData] = useState({
     supplierName: '',
     supplierContact: '',

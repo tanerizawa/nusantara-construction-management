@@ -1,0 +1,36 @@
+import React from 'react';
+import { getUniqueCategories } from '../utils/rabCalculations';
+
+/**
+ * RABStatistics Component
+ * Displays statistical overview of RAB
+ */
+const RABStatistics = ({ rabItems, approvalStatus }) => {
+  const uniqueCategories = getUniqueCategories(rabItems);
+  
+  return (
+    <div className="bg-white rounded-lg shadow p-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">Statistik RAB</h3>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="text-center p-3 bg-blue-50 rounded-lg">
+          <div className="text-2xl font-bold text-blue-600">{rabItems.length}</div>
+          <div className="text-sm text-gray-600">Total Item</div>
+        </div>
+        <div className="text-center p-3 bg-green-50 rounded-lg">
+          <div className="text-2xl font-bold text-green-600">
+            {approvalStatus?.status === 'approved' ? 'Disetujui' : 'Draft'}
+          </div>
+          <div className="text-sm text-gray-600">Status RAB</div>
+        </div>
+        <div className="text-center p-3 bg-purple-50 rounded-lg">
+          <div className="text-2xl font-bold text-purple-600">
+            {uniqueCategories}
+          </div>
+          <div className="text-sm text-gray-600">Kategori</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RABStatistics;

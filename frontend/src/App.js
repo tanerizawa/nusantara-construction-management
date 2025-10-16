@@ -31,7 +31,6 @@ import SubsidiaryDetail from './pages/SubsidiaryDetail';
 import SubsidiaryEdit from './pages/SubsidiaryEdit';
 import Approvals from './pages/Approvals';
 import Settings from './pages/Settings';
-import ApprovalDashboard from './components/ApprovalDashboard';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
 
 // Import routes
@@ -87,7 +86,7 @@ function App() {
               <Route path="/approval" element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <ApprovalDashboard />
+                    <Approvals />
                   </MainLayout>
                 </ProtectedRoute>
               } />

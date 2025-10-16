@@ -2,9 +2,12 @@ const express = require('express');
 const Joi = require('joi');
 const { Op, DataTypes } = require('sequelize');
 const PurchaseOrder = require('../models/PurchaseOrder');
+const Project = require('../models/Project');
+const Subsidiary = require('../models/Subsidiary');
 const { verifyToken } = require('../middleware/auth');
 const POFinanceSyncService = require('../services/poFinanceSync');
 const { sequelize } = require('../config/database');
+const purchaseOrderPdfGenerator = require('../utils/purchaseOrderPdfGenerator');
 
 const router = express.Router();
 
@@ -740,6 +743,167 @@ router.patch('/:id/status', verifyToken, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Gagal update status Purchase Order',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * Generate PO PDF
+ * GET /api/purchase-orders/:id/pdf
+ */
+router.get('/:id/pdf', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find PO by ID or PO number
+    const po = await PurchaseOrder.findOne({ 
+      where: {
+        [Op.or]: [
+          { id: id },
+          { poNumber: id },
+          { po_number: id }
+        ]
+      },
+      raw: true
+    });
+
+    if (!po) {
+      console.error('PO not found for id:', id);
+      return res.status(404).json({
+        success: false,
+        error: 'Purchase Order tidak ditemukan'
+      });
+    }
+
+    console.log('Generating PDF for PO:', po.po_number || po.poNumber);
+
+    // Fetch project to get subsidiary
+    const project = await Project.findOne({
+      where: { id: po.project_id || po.projectId },
+      raw: true
+    });
+
+    // Fetch subsidiary data with proper data
+    let subsidiaryData = null;
+    if (project && project.subsidiary_id) {
+      subsidiaryData = await Subsidiary.findOne({
+        where: { id: project.subsidiary_id },
+        raw: true
+      });
+      console.log('✓ Subsidiary data loaded:', subsidiaryData?.name);
+      console.log('✓ Board of directors (snake_case):', subsidiaryData?.board_of_directors);
+      console.log('✓ Board of directors (camelCase):', subsidiaryData?.boardOfDirectors);
+    } else {
+      console.log('⚠ No project or subsidiary_id found');
+    }
+
+    // Extract director name from board_of_directors
+    // Handle both snake_case and camelCase
+    const boardData = subsidiaryData?.board_of_directors || subsidiaryData?.boardOfDirectors;
+    let directorName = null;
+    let directorPosition = 'Direktur'; // Default position
+    
+    if (boardData && Array.isArray(boardData)) {
+      console.log('✓ Extracting director from board data...');
+      // Find Director or Director Utama
+      const director = boardData.find(d => 
+        d.position?.toLowerCase().includes('direktur utama') || 
+        d.position?.toLowerCase() === 'direktur'
+      );
+      
+      if (director) {
+        directorName = director.name;
+        directorPosition = director.position || 'Direktur';
+        console.log('✓ Director found:', directorName, '(', director.position, ')');
+      } else if (boardData.length > 0) {
+        // Fallback to first director in list
+        directorName = boardData[0].name;
+        directorPosition = boardData[0].position || 'Direktur';
+        console.log('✓ Using first board member:', directorName);
+      }
+    } else {
+      console.log('⚠ No board_of_directors data found');
+    }
+
+    // Handle both snake_case and camelCase for subsidiary data
+    const address = subsidiaryData?.address || {};
+    const contactInfo = subsidiaryData?.contact_info || subsidiaryData?.contactInfo || {};
+    const legalInfo = subsidiaryData?.legal_info || subsidiaryData?.legalInfo || {};
+    
+    // ✅ CRITICAL: NO HARDCODED FALLBACKS! 
+    // If no subsidiary data, PDF should not be generated with fake data
+    if (!subsidiaryData) {
+      console.error('❌ CRITICAL: No subsidiary data found for PDF generation');
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot generate PDF: Subsidiary data not found. Please ensure the project is linked to a valid subsidiary.'
+      });
+    }
+    
+    // Company info from subsidiary - ONLY REAL DATA FROM DATABASE
+    const companyInfo = {
+      name: subsidiaryData.name,  // ✅ NO FALLBACK
+      address: address.street || address.full || '-',  // ✅ Use '-' if no address
+      city: address.city || '-',
+      phone: contactInfo.phone || '-',  // ✅ Use '-' if no phone
+      email: contactInfo.email || '-',
+      npwp: legalInfo.npwp || legalInfo.taxIdentificationNumber || '-',  // ✅ Use '-' if no NPWP
+      logo: subsidiaryData.logo || null,
+      director: directorName,
+      directorPosition: directorPosition
+    };
+    
+    console.log('✓ Company info for PDF (REAL DATA ONLY):', {
+      name: companyInfo.name,
+      address: companyInfo.address,
+      city: companyInfo.city,
+      phone: companyInfo.phone,
+      email: companyInfo.email,
+      npwp: companyInfo.npwp,
+      logo: companyInfo.logo,
+      director: companyInfo.director,
+      position: companyInfo.directorPosition
+    });
+
+    // Supplier info from PO
+    const supplierInfo = {
+      name: po.supplier_name || po.supplierName || 'Supplier',
+      address: po.supplier_address || po.supplierAddress || '-',
+      contact: po.supplier_contact || po.supplierContact || '-',
+      deliveryDate: po.delivery_date || po.deliveryDate,
+      contactPerson: po.supplier_contact_person || null // For signature
+    };
+
+    // Generate PDF with current timestamp
+    const printDate = new Date();
+    const pdfBuffer = await purchaseOrderPdfGenerator.generatePO(
+      po,
+      companyInfo,
+      supplierInfo,
+      printDate // Pass print date for footer
+    );
+
+    // Set response headers for PDF - PREVENT CACHING
+    const timestamp = Date.now();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="PO-${po.po_number || po.poNumber}-${timestamp}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    // Prevent caching to ensure fresh PDF every time
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('X-PDF-Generated-At', printDate.toISOString());
+
+    // Send PDF
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error('Error generating PO PDF:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Gagal generate PDF Purchase Order',
       details: error.message
     });
   }

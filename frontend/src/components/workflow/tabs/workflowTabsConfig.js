@@ -23,17 +23,17 @@ import {
 export const workflowTabsConfig = [
   {
     id: 'overview',
-    label: 'Overview',
+    label: 'Ringkasan',
     icon: Info,
     path: 'overview',
     description: 'Ringkasan proyek',
     hasChildren: false
   },
   {
-    id: 'finance',
-    label: 'Financial',
+    id: 'budget',
+    label: 'RAB & PO',
     icon: Calculator,
-    description: 'Manajemen keuangan',
+    description: 'Manajemen anggaran dan pembelian',
     hasChildren: true,
     children: [
       {
@@ -48,13 +48,20 @@ export const workflowTabsConfig = [
         label: 'Purchase Orders',
         path: 'purchase-orders',
         icon: ShoppingCart,
-        description: 'Purchase Order Management'
+        description: 'Manajemen Purchase Order'
+      },
+      {
+        id: 'work-orders',
+        label: 'Work Orders',
+        path: 'work-orders',
+        icon: Clipboard,
+        description: 'Manajemen Work Order (Jasa & Tenaga Kerja)'
       }
     ]
   },
   {
     id: 'milestones',
-    label: 'Milestones',
+    label: 'Milestone',
     icon: Target,
     path: 'milestones',
     description: 'Target dan pencapaian proyek',
@@ -62,7 +69,7 @@ export const workflowTabsConfig = [
   },
   {
     id: 'ba-payments',
-    label: 'BA & Payments',
+    label: 'BA & Payment',
     icon: Clipboard,
     description: 'Berita Acara dan Progress Payment',
     hasChildren: true,
@@ -76,16 +83,16 @@ export const workflowTabsConfig = [
       },
       {
         id: 'progress-payments',
-        label: 'Progress Payments',
+        label: 'Progress Payment',
         path: 'progress-payments',
         icon: CreditCard,
-        description: 'Progress Payments'
+        description: 'Pembayaran Progres'
       }
     ]
   },
   {
     id: 'documents',
-    label: 'Documents',
+    label: 'Dokumen',
     icon: FolderOpen,
     path: 'documents',
     description: 'Dokumen dan file proyek',
@@ -93,29 +100,29 @@ export const workflowTabsConfig = [
   },
   {
     id: 'operations',
-    label: 'Team',
+    label: 'Tim',
     icon: Users,
     path: 'team',
-    description: 'Tim proyek',
+    description: 'Tim dan personel proyek',
     hasChildren: false
   },
   {
     id: 'analytics',
-    label: 'Analytics',
+    label: 'Laporan',
     icon: BarChart3,
-    description: 'Laporan dan analisis',
+    description: 'Laporan dan analisis proyek',
     hasChildren: true,
     children: [
       {
         id: 'budget-monitoring',
-        label: 'Budget Monitoring',
+        label: 'Monitoring Anggaran',
         path: 'budget-monitoring',
         icon: TrendingUp,
-        description: 'Monitoring Budget Proyek'
+        description: 'Monitoring Anggaran Proyek'
       },
       {
         id: 'reports',
-        label: 'Reports',
+        label: 'Laporan',
         path: 'reports',
         icon: BarChart3,
         description: 'Laporan & Analisis'

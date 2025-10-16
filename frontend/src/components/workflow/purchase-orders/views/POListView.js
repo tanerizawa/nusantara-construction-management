@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Eye, FileText, Calendar, Building, User, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, Eye, FileText, Calendar, Building, User, Clock, CheckCircle2, XCircle, Download, Printer } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../../utils/formatters';
 import { POStatusBadge } from '../components';
 import { formatPONumber } from '../utils/poFormatters';
@@ -21,11 +21,67 @@ const POListView = ({
 }) => {
   const [selectedPO, setSelectedPO] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   // Filter POs
   const filteredPOs = filterStatus === 'all' 
     ? purchaseOrders 
     : purchaseOrders.filter(po => po.status?.toLowerCase() === filterStatus.toLowerCase());
+
+  // Generate and view PDF Invoice
+  const handleGenerateInvoice = async (po) => {
+    try {
+      setGeneratingPDF(true);
+      
+      // Get API URL and remove trailing /api if present
+      let API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      API_URL = API_URL.replace(/\/api\/?$/, ''); // Remove /api or /api/ from end
+      
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_URL}/api/purchase-orders/${po.id}/pdf`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal generate invoice PDF');
+      }
+
+      // Get PDF blob
+      const blob = await response.blob();
+      
+      // Create blob URL and open in new tab
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+      
+      // Clean up blob URL after a delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+
+      // Show success notification
+      window.dispatchEvent(new CustomEvent('show-notification', {
+        detail: { 
+          type: 'success', 
+          message: 'Invoice PDF berhasil dibuat!',
+          duration: 3000 
+        }
+      }));
+
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      window.dispatchEvent(new CustomEvent('show-notification', {
+        detail: { 
+          type: 'error', 
+          message: 'Gagal generate invoice: ' + error.message,
+          duration: 5000 
+        }
+      }));
+    } finally {
+      setGeneratingPDF(false);
+    }
+  };
 
   // Show PO detail
   const showPODetail = (po) => {
@@ -74,7 +130,30 @@ const POListView = ({
               </p>
             </div>
           </div>
-          <POStatusBadge status={selectedPO.status} />
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleGenerateInvoice(selectedPO)}
+              disabled={generatingPDF}
+              style={{
+                backgroundColor: generatingPDF ? '#3A3A3C' : '#0A84FF',
+                border: '1px solid #38383A'
+              }}
+              className="px-4 py-2 rounded-lg hover:bg-[#0077ED] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {generatingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span className="text-sm font-medium text-white">Generating...</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium text-white">Generate Invoice</span>
+                </>
+              )}
+            </button>
+            <POStatusBadge status={selectedPO.status} />
+          </div>
         </div>
 
         {/* PO Detail Card */}

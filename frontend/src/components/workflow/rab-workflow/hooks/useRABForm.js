@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { validateRABForm, isFormValid } from '../utils/rabValidation';
+import { getWorkflowForItemType, getPaymentMethodForItemType } from '../config/rabCategories';
 
 /**
  * Custom hook for RAB form management
- * Handles form state, validation, and submission logic
+ * Handles form state, validation, and submission logic with item type support
  */
 const useRABForm = (onSubmit, editingItem = null) => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,11 @@ const useRABForm = (onSubmit, editingItem = null) => {
     unit: editingItem?.unit || '',
     quantity: editingItem?.quantity || 0,
     unitPrice: editingItem?.unitPrice || 0,
-    specifications: editingItem?.specifications || ''
+    specifications: editingItem?.specifications || '',
+    itemType: editingItem?.itemType || 'material',
+    supplier: editingItem?.supplier || '',
+    laborCategory: editingItem?.laborCategory || '',
+    serviceScope: editingItem?.serviceScope || ''
   });
   
   const [formErrors, setFormErrors] = useState({});
@@ -50,6 +55,9 @@ const useRABForm = (onSubmit, editingItem = null) => {
     setIsSubmitting(true);
     
     try {
+      const workflow = getWorkflowForItemType(formData.itemType);
+      const paymentMethod = getPaymentMethodForItemType(formData.itemType);
+      
       const itemData = {
         category: formData.category,
         description: formData.description,
@@ -57,7 +65,14 @@ const useRABForm = (onSubmit, editingItem = null) => {
         quantity: parseFloat(formData.quantity),
         unitPrice: parseFloat(formData.unitPrice),
         totalPrice: parseFloat(formData.quantity) * parseFloat(formData.unitPrice),
-        notes: formData.specifications || ''
+        notes: formData.specifications || '',
+        itemType: formData.itemType,
+        workflow: workflow,
+        paymentMethod: paymentMethod,
+        // Type-specific fields
+        supplier: formData.itemType === 'material' ? formData.supplier : null,
+        laborCategory: formData.itemType === 'labor' ? formData.laborCategory : null,
+        serviceScope: formData.itemType === 'service' ? formData.serviceScope : null
       };
 
       const result = await onSubmit(itemData);
@@ -82,7 +97,11 @@ const useRABForm = (onSubmit, editingItem = null) => {
       unit: '',
       quantity: 0,
       unitPrice: 0,
-      specifications: ''
+      specifications: '',
+      itemType: 'material',
+      supplier: '',
+      laborCategory: '',
+      serviceScope: ''
     });
     setFormErrors({});
     setIsSubmitting(false);
@@ -95,7 +114,11 @@ const useRABForm = (onSubmit, editingItem = null) => {
       unit: item.unit || '',
       quantity: item.quantity || 0,
       unitPrice: item.unitPrice || 0,
-      specifications: item.specifications || ''
+      specifications: item.specifications || '',
+      itemType: item.itemType || 'material',
+      supplier: item.supplier || '',
+      laborCategory: item.laborCategory || '',
+      serviceScope: item.serviceScope || ''
     });
     setFormErrors({});
   };

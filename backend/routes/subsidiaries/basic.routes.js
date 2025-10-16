@@ -6,7 +6,10 @@
 const express = require('express');
 const Joi = require('joi');
 const { Op } = require('sequelize');
+const path = require('path');
+const fs = require('fs');
 const Subsidiary = require('../../models/Subsidiary');
+const { upload } = require('../../config/multer');
 
 const router = express.Router();
 
@@ -71,7 +74,7 @@ const subsidiarySchema = Joi.object({
     issuedBy: Joi.string().allow('', null).optional(),
     issuedDate: Joi.date().allow(null).optional(),
     expiryDate: Joi.date().allow(null).optional(),
-    status: Joi.string().valid('active', 'expired', 'pending').default('active').optional()
+    status: Joi.string().valid('valid', 'expired', 'pending').default('valid').optional()
   })).default([]).optional(),
   
   financialInfo: Joi.object({
@@ -162,7 +165,7 @@ const subsidiaryUpdateSchema = Joi.object({
     issuedBy: Joi.string().allow('', null).optional(),
     issuedDate: Joi.date().allow(null).optional(),
     expiryDate: Joi.date().allow(null).optional(),
-    status: Joi.string().valid('active', 'expired', 'pending').optional()
+    status: Joi.string().valid('valid', 'expired', 'pending').optional()
   })).optional(),
   
   financialInfo: Joi.object({
@@ -430,5 +433,123 @@ router.delete('/:id', async (req, res) => {
     });
   }
 });
+
+// @route   POST /api/subsidiaries/:id/logo
+// @desc    Upload subsidiary logo
+// @access  Private
+router.post('/:id/logo', upload.single('logo'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if file was uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    // Find subsidiary
+    const subsidiary = await Subsidiary.findByPk(id);
+    if (!subsidiary) {
+      // Delete uploaded file if subsidiary not found
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({
+        success: false,
+        message: 'Subsidiary not found'
+      });
+    }
+
+    // Delete old logo file if exists
+    if (subsidiary.logo) {
+      const oldLogoPath = path.join(__dirname, '../../uploads', subsidiary.logo);
+      if (fs.existsSync(oldLogoPath)) {
+        try {
+          fs.unlinkSync(oldLogoPath);
+        } catch (err) {
+          console.error('Error deleting old logo:', err);
+        }
+      }
+    }
+
+    // Update subsidiary with new logo path (relative path)
+    const logoPath = `subsidiaries/logos/${req.file.filename}`;
+    await subsidiary.update({ logo: logoPath });
+
+    res.json({
+      success: true,
+      message: 'Logo uploaded successfully',
+      data: {
+        logo: logoPath,
+        filename: req.file.filename,
+        size: req.file.size,
+        url: `/uploads/${logoPath}`
+      }
+    });
+  } catch (error) {
+    // Delete uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    console.error('Error uploading logo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while uploading logo',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// @route   DELETE /api/subsidiaries/:id/logo
+// @desc    Delete subsidiary logo
+// @access  Private
+router.delete('/:id/logo', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find subsidiary
+    const subsidiary = await Subsidiary.findByPk(id);
+    if (!subsidiary) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subsidiary not found'
+      });
+    }
+
+    if (!subsidiary.logo) {
+      return res.status(404).json({
+        success: false,
+        message: 'No logo to delete'
+      });
+    }
+
+    // Delete logo file
+    const logoPath = path.join(__dirname, '../../uploads', subsidiary.logo);
+    if (fs.existsSync(logoPath)) {
+      try {
+        fs.unlinkSync(logoPath);
+      } catch (err) {
+        console.error('Error deleting logo file:', err);
+      }
+    }
+
+    // Update subsidiary (remove logo)
+    await subsidiary.update({ logo: null });
+
+    res.json({
+      success: true,
+      message: 'Logo deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting logo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting logo',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
 
 module.exports = router;

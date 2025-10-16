@@ -32,7 +32,7 @@ const WorkflowTabsNavigation = ({ activeTab, onTabChange }) => {
   return (
     <div className="mb-6">
       {/* Main Tabs - Pills Style */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
+      <div className="flex flex-wrap items-center gap-2 mb-4">
         {workflowTabsConfig.map(tab => {
           const isActive = activeMainTab?.id === tab.id || hasActiveChild(tab, activeTab);
           const Icon = tab.icon;
@@ -42,16 +42,16 @@ const WorkflowTabsNavigation = ({ activeTab, onTabChange }) => {
               key={tab.id}
               onClick={() => handleMainTabClick(tab)}
               className={`
-                flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm
-                transition-all duration-200
+                flex items-center gap-1.5 px-3 py-2 rounded-full font-medium text-xs
+                transition-all duration-200 whitespace-nowrap
                 ${isActive 
                   ? 'bg-[#3A3A3C] text-white border border-[#0A84FF] shadow-lg shadow-[#0A84FF]/20' 
                   : 'bg-transparent text-[#8E8E93] border border-[#48484A] hover:bg-[#2C2C2E] hover:text-white hover:border-[#5E5E60]'
                 }
               `}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-[#0A84FF]' : 'text-[#8E8E93]'}`} />
-              <span>{tab.label}</span>
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#0A84FF]' : 'text-[#8E8E93]'}`} />
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           );
         })}
@@ -59,7 +59,7 @@ const WorkflowTabsNavigation = ({ activeTab, onTabChange }) => {
 
       {/* Secondary Tabs - Flat Tabs for Children */}
       {activeMainTab?.hasChildren && (
-        <div className="flex items-center gap-0 border-b border-[#38383A]">
+        <div className="flex items-center gap-0 border-b border-[#38383A] overflow-x-auto">
           {activeMainTab.children.map(subTab => {
             const isActive = activeSubTab?.id === subTab.id;
 
@@ -68,7 +68,7 @@ const WorkflowTabsNavigation = ({ activeTab, onTabChange }) => {
                 key={subTab.id}
                 onClick={() => handleSubTabClick(subTab)}
                 className={`
-                  px-5 py-3 text-sm font-medium transition-all duration-200 relative
+                  px-4 py-2.5 text-xs font-medium transition-all duration-200 relative whitespace-nowrap
                   ${isActive 
                     ? 'text-white' 
                     : 'text-[#8E8E93] hover:text-white hover:bg-[#2C2C2E]/50'

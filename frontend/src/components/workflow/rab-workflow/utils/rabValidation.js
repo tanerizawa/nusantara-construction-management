@@ -5,6 +5,14 @@
 export const validateRABForm = (formData) => {
   const errors = {};
   
+  // Item Type validation (REQUIRED)
+  const validItemTypes = ['material', 'service', 'labor', 'equipment', 'overhead'];
+  if (!formData.itemType?.trim()) {
+    errors.itemType = 'Tipe item harus dipilih';
+  } else if (!validItemTypes.includes(formData.itemType)) {
+    errors.itemType = 'Tipe item tidak valid';
+  }
+  
   if (!formData.category?.trim()) {
     errors.category = 'Kategori harus dipilih';
   }

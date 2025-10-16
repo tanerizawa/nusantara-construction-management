@@ -23,6 +23,8 @@ const useApprovalActions = (type, projectId, onSuccess, onError) => {
     rab: `/api/projects/${projectId}/rab`,
     po: `/api/purchase-orders`,  // PO routes are at root level
     'purchase-orders': `/api/purchase-orders`,  // Alternative name
+    wo: `/api/projects/${projectId}/work-orders`,  // Work Orders
+    'work-orders': `/api/projects/${projectId}/work-orders`,  // Alternative name
     ba: `/api/projects/${projectId}/berita-acara`,
     tt: `/api/projects/${projectId}/tanda-terima`
   };

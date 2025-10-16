@@ -90,6 +90,19 @@ const Subsidiary = sequelize.define('Subsidiary', {
     defaultValue: 'Nusantara Group'
   },
   
+  // Company Logo
+  logo: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    validate: {
+      isValidPath(value) {
+        if (value && !value.match(/\.(jpg|jpeg|png|svg|webp)$/i)) {
+          throw new Error('Logo must be a valid image file (jpg, jpeg, png, svg, webp)');
+        }
+      }
+    }
+  },
+  
   // Board of Directors Data
   boardOfDirectors: {
     type: DataTypes.JSONB,

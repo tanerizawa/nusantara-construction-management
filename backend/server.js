@@ -174,6 +174,9 @@ app.use(express.urlencoded({
   limit: process.env.MAX_FILE_SIZE ? `${process.env.MAX_FILE_SIZE}b` : '10mb'
 }));
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Logging with environment configuration
 const logFormat = isProduction 
   ? 'combined' 
@@ -255,6 +258,9 @@ app.use('/api', (req, res, next) => {
 // Result: 4 modules (912 lines), eliminated 350 lines of duplication
 // Backup: auth.js.backup, users.js.backup available if needed
 app.use('/api/auth', require('./routes/auth'));
+
+// Stats API - Public statistics for landing page
+app.use('/api/stats', require('./routes/stats'));
 
 // Projects API - Modular Routes (Phase 1 Complete - 54 endpoints)
 app.use('/api/projects', require('./routes/projects/index'));

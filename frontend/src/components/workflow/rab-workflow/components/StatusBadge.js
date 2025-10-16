@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { getStatusConfig } from '../config/statusConfig';
 
 /**
@@ -13,6 +13,7 @@ const StatusBadge = ({ status }) => {
     <div className={`flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.textColor}`}>
       {config.icon === 'CheckCircle' && <CheckCircle className="h-4 w-4 mr-1" />}
       {config.icon === 'Clock' && <Clock className="h-4 w-4 mr-1" />}
+      {config.icon === 'AlertTriangle' && <AlertTriangle className="h-4 w-4 mr-1" />}
       {config.label}
     </div>
   );

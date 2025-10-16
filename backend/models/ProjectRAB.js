@@ -19,6 +19,12 @@ const ProjectRAB = sequelize.define('ProjectRAB', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  item_type: {
+    type: DataTypes.ENUM('material', 'service', 'labor', 'equipment', 'overhead'),
+    allowNull: true,
+    defaultValue: 'material',
+    comment: 'Type of RAB item: material (bahan), service (jasa), labor (tenaga kerja), equipment (peralatan), overhead (overhead)'
+  },
   description: {
     type: DataTypes.TEXT,
     allowNull: false

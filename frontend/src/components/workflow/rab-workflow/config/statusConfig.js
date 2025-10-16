@@ -5,7 +5,8 @@
 
 export const RAB_STATUS = {
   DRAFT: 'draft',
-  APPROVED: 'approved'
+  APPROVED: 'approved',
+  REJECTED: 'rejected'
 };
 
 export const STATUS_CONFIG = {
@@ -24,6 +25,14 @@ export const STATUS_CONFIG = {
     bgColor: 'bg-[#30D158]/20',
     textColor: 'text-green-800',
     borderColor: 'border-green-300'
+  },
+  rejected: {
+    label: 'Ditolak',
+    color: 'red',
+    icon: 'AlertTriangle',
+    bgColor: 'bg-[#FF3B30]/20',
+    textColor: 'text-red-800',
+    borderColor: 'border-red-300'
   }
 };
 

@@ -114,7 +114,25 @@ router.get('/:id/rab/:rabId', async (req, res) => {
 router.post('/:id/rab', async (req, res) => {
   try {
     const { id } = req.params;
-    const { category, description, unit, quantity, unitPrice, notes, createdBy, status = 'draft' } = req.body; // Changed default from 'pending' to 'draft'
+    const { 
+      category, 
+      description, 
+      unit, 
+      quantity, 
+      unitPrice, 
+      notes, 
+      createdBy, 
+      status = 'draft',
+      itemType,     // Frontend sends camelCase
+      item_type     // Backend accepts snake_case
+    } = req.body;
+
+    // Support both camelCase (frontend) and snake_case (backend)
+    const receivedItemType = itemType || item_type;
+
+    // LOG: Debug incoming data
+    console.log(`[RAB Create] Received itemType: "${receivedItemType}" (from: ${itemType ? 'itemType' : 'item_type'})`);
+    console.log(`[RAB Create] Description: "${description}", Category: "${category}"`);
 
     // Check if project exists
     const project = await Project.findByPk(id);
@@ -151,9 +169,28 @@ router.post('/:id/rab', async (req, res) => {
       });
     }
 
+    // SIMPLIFIED: Validate itemType (required field)
+    const validItemTypes = ['material', 'service', 'labor', 'equipment', 'overhead'];
+    if (!receivedItemType) {
+      return res.status(400).json({
+        success: false,
+        error: 'itemType is required. Must be one of: material, service, labor, equipment, overhead'
+      });
+    }
+
+    if (!validItemTypes.includes(receivedItemType)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid itemType: ${receivedItemType}. Must be one of: ${validItemTypes.join(', ')}`
+      });
+    }
+
+    console.log(`[RAB Create] Validated item_type: ${receivedItemType}`);
+
     const rabItem = await ProjectRAB.create({
       projectId: id,
       category,
+      item_type: receivedItemType, // USE SNAKE_CASE for Sequelize model
       description,
       unit,
       quantity: qty,
@@ -206,23 +243,38 @@ router.post('/:id/rab/bulk', async (req, res) => {
     }
 
     // Validate and prepare items
-    const rabItems = items.map(item => {
+    const validItemTypes = ['material', 'service', 'labor', 'equipment', 'overhead'];
+    const rabItems = items.map((item, index) => {
       const qty = parseFloat(item.quantity);
       const price = parseFloat(item.unitPrice);
 
       if (!item.category || !item.description || !item.unit || isNaN(qty) || isNaN(price)) {
-        throw new Error(`Invalid item: ${JSON.stringify(item)}`);
+        throw new Error(`Invalid item at index ${index}: ${JSON.stringify(item)}`);
       }
+
+      // SIMPLIFIED: Validate itemType (required field)
+      // Support both camelCase (frontend) and snake_case (backend)
+      const receivedItemType = item.itemType || item.item_type;
+      if (!receivedItemType) {
+        throw new Error(`Item at index ${index} missing itemType: ${item.description}`);
+      }
+
+      if (!validItemTypes.includes(receivedItemType)) {
+        throw new Error(`Item at index ${index} has invalid itemType "${receivedItemType}": ${item.description}. Must be one of: ${validItemTypes.join(', ')}`);
+      }
+
+      console.log(`[RAB Bulk] Item ${index + 1}: item_type=${receivedItemType}, description="${item.description}"`);
 
       return {
         projectId: id,
         category: item.category,
+        item_type: receivedItemType, // USE SNAKE_CASE for Sequelize model
         description: item.description,
         unit: item.unit,
         quantity: qty,
         unitPrice: price,
         totalPrice: qty * price,
-        status: item.status || 'draft', // Changed from 'pending' to 'draft'
+        status: item.status || 'draft',
         notes: item.notes || '',
         createdBy: createdBy || item.createdBy
       };

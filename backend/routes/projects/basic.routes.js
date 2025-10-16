@@ -17,6 +17,7 @@ const Subsidiary = require("../../models/Subsidiary");
 const PurchaseOrder = require("../../models/PurchaseOrder");
 const DeliveryReceipt = require("../../models/DeliveryReceipt");
 const BeritaAcara = require("../../models/BeritaAcara");
+const WorkOrder = require("../../models/WorkOrder");
 const { verifyToken } = require("../../middleware/auth");
 
 const router = express.Router();
@@ -235,6 +236,12 @@ router.get("/:id", async (req, res) => {
           model: User,
           as: "updater",
           attributes: ["id", "username", "email", "role", "profile"],
+          required: false,
+        },
+        {
+          model: Subsidiary,
+          as: "subsidiary",
+          attributes: ["id", "name", "code", "specialization", "contactInfo", "address"],
           required: false,
         },
         {
@@ -711,10 +718,13 @@ router.delete("/:id", async (req, res) => {
     // 2. Now safe to delete purchase orders
     const poDeleted = await PurchaseOrder.destroy({ where: { projectId } });
 
-    // 3. Delete berita acara
+    // 3. Delete work orders
+    const woDeleted = await WorkOrder.destroy({ where: { projectId } });
+
+    // 4. Delete berita acara
     const baDeleted = await BeritaAcara.destroy({ where: { projectId } });
 
-    // 4. Delete other project data
+    // 5. Delete other project data
     const rabDeleted = await ProjectRAB.destroy({ where: { projectId } });
 
     const milestonesDeleted = await ProjectMilestone.destroy({
@@ -750,6 +760,7 @@ router.delete("/:id", async (req, res) => {
         documents: documentsDeleted,
         beritaAcara: baDeleted,
         purchaseOrders: poDeleted,
+        workOrders: woDeleted,
         deliveryReceipts: deliveryReceiptsDeleted,
       },
     });

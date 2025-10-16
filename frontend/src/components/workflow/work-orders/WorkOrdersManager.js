@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, List, ShoppingCart } from 'lucide-react';
-import ProjectPurchaseOrders from './ProjectPurchaseOrders';
+import { Plus, List, Clipboard } from 'lucide-react';
+import ProjectWorkOrders from './ProjectWorkOrders';
 
 /**
- * PurchaseOrdersManager - Wrapper with sub-tabs
- * Manages "Buat PO" and "Riwayat PO" tabs
+ * WorkOrdersManager - Wrapper with sub-tabs
+ * Manages "Buat WO" and "Riwayat WO" tabs
  */
-const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
+const WorkOrdersManager = ({ projectId, project, onDataChange }) => {
   // Sub-tab state (dari URL hash jika ada)
   const getInitialSubTab = () => {
     const hash = window.location.hash.replace('#', '');
@@ -24,7 +24,7 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
   // Update URL hash when sub-tab changes
   useEffect(() => {
     const currentHash = window.location.hash.replace('#', '');
-    const mainTab = currentHash.split(':')[0] || 'purchase-orders';
+    const mainTab = currentHash.split(':')[0] || 'work-orders';
     window.location.hash = `${mainTab}:${activeSubTab}`;
   }, [activeSubTab]);
 
@@ -44,8 +44,8 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [activeSubTab]);
 
-  // Callback when PO created successfully
-  const handlePOCreated = () => {
+  // Callback when WO created successfully
+  const handleWOCreated = () => {
     setActiveSubTab('history'); // Switch to history tab
     onDataChange?.(); // Refresh parent data
   };
@@ -60,13 +60,13 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
       {/* Sub-tabs Header */}
       <div className="bg-gradient-to-br from-[#1C1C1E] to-[#2C2C2E] border border-[#38383A] rounded-xl p-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#0A84FF]/10 rounded-lg">
-            <ShoppingCart size={24} className="text-[#0A84FF]" />
+          <div className="p-2 bg-[#AF52DE]/10 rounded-lg">
+            <Clipboard size={24} className="text-[#AF52DE]" />
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-semibold text-white">Purchase Orders</h2>
+            <h2 className="text-xl font-semibold text-white">Work Orders</h2>
             <p className="text-sm text-[#8E8E93] mt-1">
-              Manajemen Purchase Order untuk material proyek
+              Manajemen Work Order untuk jasa, tenaga kerja, dan peralatan
             </p>
           </div>
         </div>
@@ -79,13 +79,13 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
               flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
               text-sm font-medium transition-all
               ${activeSubTab === 'history'
-                ? 'bg-[#0A84FF] text-white shadow-lg'
+                ? 'bg-[#AF52DE] text-white shadow-lg'
                 : 'text-[#8E8E93] hover:text-white hover:bg-[#2C2C2E]'
               }
             `}
           >
             <List size={16} />
-            Riwayat PO
+            Riwayat WO
           </button>
           <button
             onClick={() => setActiveSubTab('create')}
@@ -93,13 +93,13 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
               flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
               text-sm font-medium transition-all
               ${activeSubTab === 'create'
-                ? 'bg-[#0A84FF] text-white shadow-lg'
+                ? 'bg-[#AF52DE] text-white shadow-lg'
                 : 'text-[#8E8E93] hover:text-white hover:bg-[#2C2C2E]'
               }
             `}
           >
             <Plus size={16} />
-            Buat PO
+            Buat WO
           </button>
         </div>
       </div>
@@ -107,7 +107,7 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
       {/* Content Area */}
       <div className="transition-all duration-300">
         {activeSubTab === 'history' && (
-          <ProjectPurchaseOrders
+          <ProjectWorkOrders
             projectId={projectId}
             project={project}
             onDataChange={onDataChange}
@@ -117,12 +117,12 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
         )}
 
         {activeSubTab === 'create' && (
-          <ProjectPurchaseOrders
+          <ProjectWorkOrders
             projectId={projectId}
             project={project}
             onDataChange={onDataChange}
             mode="create"
-            onComplete={handlePOCreated}
+            onComplete={handleWOCreated}
           />
         )}
       </div>
@@ -130,4 +130,4 @@ const PurchaseOrdersManager = ({ projectId, project, onDataChange }) => {
   );
 };
 
-export default PurchaseOrdersManager;
+export default WorkOrdersManager;

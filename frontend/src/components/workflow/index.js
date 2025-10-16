@@ -14,6 +14,7 @@ export { default as ProjectWorkflowSidebar } from './ProjectWorkflowSidebar';
 export { default as ProjectRABWorkflow } from './ProjectRABWorkflow';
 export { default as ProjectPurchaseOrders } from './purchase-orders/ProjectPurchaseOrders';
 export { default as PurchaseOrdersManager } from './purchase-orders/PurchaseOrdersManager';
+export { default as ProjectWorkOrders } from './work-orders/ProjectWorkOrders';
 export { default as ProjectBudgetMonitoring } from './ProjectBudgetMonitoring';
 export { default as ProfessionalApprovalDashboard } from './approval/ProfessionalApprovalDashboard';
 

@@ -23,6 +23,7 @@ const beritaAcaraRoutes = require('./berita-acara.routes');
 const progressPaymentRoutes = require('./progress-payment.routes');
 const deliveryReceiptRoutes = require('./delivery-receipt.routes');
 const budgetStatisticsRoutes = require('./budget-statistics.routes');
+const workOrdersRoutes = require('./workOrders.routes');
 
 // Mount routes
 router.use('/', basicRoutes);              // Basic CRUD: /, /:id
@@ -35,6 +36,7 @@ router.use('/', beritaAcaraRoutes);        // Berita Acara: /:projectId/berita-a
 router.use('/', progressPaymentRoutes);    // Progress Payments: /:projectId/progress-payments
 router.use('/', deliveryReceiptRoutes);    // Delivery Receipts: /:id/delivery-receipts
 router.use('/', budgetStatisticsRoutes);   // Budget & Stats: /:id/budget-monitoring, /stats/overview
+router.use('/', workOrdersRoutes);         // Work Orders: /:projectId/work-orders
 // const beritaAcaraRoutes = require('./berita-acara.routes');
 // const progressPaymentRoutes = require('./progress-payment.routes');
 // const deliveryReceiptRoutes = require('./delivery-receipt.routes');

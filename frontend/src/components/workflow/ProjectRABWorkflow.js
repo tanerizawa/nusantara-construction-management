@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Upload, Download, List } from 'lucide-react';
 import useRABItems from './rab-workflow/hooks/useRABItems';
-import useRABForm from './rab-workflow/hooks/useRABForm';
+import useBulkRABForm from './rab-workflow/hooks/useBulkRABForm';
 import useRABSync from './rab-workflow/hooks/useRABSync';
 import StatusBadge from './rab-workflow/components/StatusBadge';
 import Notification from './rab-workflow/components/Notification';
 import RABSummaryCards from './rab-workflow/components/RABSummaryCards';
-import RABItemForm from './rab-workflow/components/RABItemForm';
+import BulkRABForm from './rab-workflow/components/BulkRABForm';
 import RABItemsTable from './rab-workflow/components/RABItemsTable';
 import RABBreakdownChart from './rab-workflow/components/RABBreakdownChart';
 import RABStatistics from './rab-workflow/components/RABStatistics';
@@ -22,8 +22,8 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   console.log('Received project:', project);
   console.log('onDataChange function:', typeof onDataChange);
 
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  const [showBulkForm, setShowBulkForm] = useState(false);
+  const [loadedDraftItems, setLoadedDraftItems] = useState([]);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [isApproving, setIsApproving] = useState(false);
   const [workflowStats, setWorkflowStats] = useState({
@@ -34,6 +34,26 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     totalPayments: 0
   });
 
+  // Define showNotification function first, before it's used in any hooks
+  const showNotification = useCallback((message, type = 'success') => {
+    const timestamp = new Date().toLocaleTimeString();
+    const timestampedMessage = `[${timestamp}] ${message}`;
+    console.log(`📢 Notification: ${timestampedMessage}`);
+    
+    setNotification({ show: true, message: timestampedMessage, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 3000);
+  }, []); // No dependencies needed
+
+  // Store onDataChange in ref to ensure it's stable across renders
+  const onDataChangeRef = useRef(onDataChange);
+  
+  // Update onDataChangeRef when onDataChange changes
+  useEffect(() => {
+    onDataChangeRef.current = onDataChange;
+  }, [onDataChange]);
+  
   // Custom hooks
   const {
     rabItems,
@@ -44,59 +64,55 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     deleteRABItem,
     approveRAB,
     refetch
-  } = useRABItems(projectId, onDataChange);
+  } = useRABItems(projectId, onDataChangeRef.current);
+
+  // Use refs to keep stable callback references and avoid infinite loops
+  const refetchRef = useRef(refetch);
+  const showNotificationRef = useRef(showNotification);
+  
+  // Update refs when functions change
+  useEffect(() => {
+    refetchRef.current = refetch;
+    showNotificationRef.current = showNotification;
+  }, [refetch, showNotification]);
+
+  // Stable approval callbacks that don't cause re-renders
+  const handleApprovalSuccess = useCallback((data, action) => {
+    showNotificationRef.current(`Item berhasil ${action === 'approved' ? 'diapprove' : 'ditolak'}`, 'success');
+    refetchRef.current();
+  }, []); // No dependencies - uses refs
+
+  const handleApprovalError = useCallback((error) => {
+    showNotificationRef.current(error, 'error');
+  }, []); // No dependencies - uses refs
 
   // Approval actions hook
   const {
     approveItem,
     rejectItem
-  } = useApprovalActions('rab', projectId, 
-    (data, action) => {
-      // On success callback
-      showNotification(`Item berhasil ${action === 'approved' ? 'diapprove' : 'ditolak'}`, 'success');
-      refetch(); // Refresh data
-    },
-    (error) => {
-      // On error callback
-      showNotification(error, 'error');
-    }
-  );
+  } = useApprovalActions('rab', projectId, handleApprovalSuccess, handleApprovalError);
 
-  // Form submission handler
-  const handleFormSubmit = async (itemData) => {
-    if (editingItem) {
-      const result = await updateRABItem(editingItem.id, itemData);
-      if (result.success) {
-        showNotification(
-          `Item RAB berhasil diperbarui!${result.demo ? ' (Mode Demo)' : ''}`,
-          'success'
-        );
-        return result;
-      }
-    } else {
-      const result = await addRABItem(itemData);
-      if (result.success) {
-        showNotification(
-          `Item RAB berhasil ditambahkan!${result.demo ? ' (Mode Demo)' : ''}`,
-          'success'
-        );
-        return result;
-      }
-    }
-  };
-
-  const {
-    formData,
-    formErrors,
-    isSubmitting,
-    handleChange,
-    handleSubmit,
-    resetForm,
-    loadEditData
-  } = useRABForm(handleFormSubmit, editingItem);
+  // Bulk form handler for success callback
+  const handleBulkSubmitSuccess = useCallback(async (results) => {
+    await refetch(); // Refresh data
+    const totalItems = results.reduce((sum, r) => sum + r.count, 0);
+    showNotification(
+      `${totalItems} item RAB berhasil ditambahkan!`,
+      'success'
+    );
+  }, [refetch, showNotification]); // Include showNotification in dependencies
 
   // Sync with approval changes
   useRABSync(projectId, refetch);
+
+  // Bulk RAB operations
+  const {
+    draftItems,
+    loadDraft,
+    saveDraft,
+    submitBulkItems,
+    generateSubmissionSummary
+  } = useBulkRABForm(projectId, handleBulkSubmitSuccess);
 
   // Fetch workflow statistics
   useEffect(() => {
@@ -151,41 +167,62 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     }
   }, [projectId, approvalStatus]);
 
-  const showNotification = (message, type = 'success') => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => {
-      setNotification({ show: false, message: '', type: 'success' });
-    }, 3000);
-  };
+  const handleAddClick = useCallback(() => {
+    // Load draft items once when the form opens, not on every render
+    const items = loadDraft();
+    setLoadedDraftItems(items);
+    setShowBulkForm(true);
+  }, [loadDraft]);
 
-  const handleAddClick = () => {
-    setShowAddForm(true);
-    setEditingItem(null);
-    resetForm();
-  };
+  const handleCancelForm = useCallback(() => {
+    setShowBulkForm(false);
+  }, []);
 
-  const handleCancelForm = () => {
-    setShowAddForm(false);
-    setEditingItem(null);
-    resetForm();
-  };
-
-  const handleFormSubmitWrapper = async (e) => {
+  const handleFormSubmitWrapper = useCallback(async (e) => {
     e.preventDefault();
-    const result = await handleSubmit(e);
-    if (result && result.success) {
-      setShowAddForm(false);
-      setEditingItem(null);
+    setShowBulkForm(false);
+  }, []);
+
+  const handleBulkSubmit = useCallback(async (items) => {
+    console.log('🔄 ProjectRABWorkflow: Starting bulk submit with items:', items);
+    
+    const result = await submitBulkItems(items);
+    console.log('🔄 ProjectRABWorkflow: Bulk submit result:', result);
+    
+    if (result.success) {
+      setShowBulkForm(false);
+      
+      console.log('🔄 ProjectRABWorkflow: Refreshing RAB data after successful submit...');
+      // Force refresh of RAB data
+      await refetch();
+      console.log('🔄 ProjectRABWorkflow: RAB data refresh completed');
+      
+      const summary = generateSubmissionSummary(result.results);
+      showNotification(summary.join(', '), 'success');
+    } else {
+      console.error('❌ ProjectRABWorkflow: Bulk submit failed:', result.error);
+      showNotification(result.error || 'Gagal menyimpan item bulk', 'error');
     }
-  };
+    return result;
+  }, [submitBulkItems, refetch, generateSubmissionSummary, showNotification]);
 
-  const handleEditItem = (item) => {
-    setEditingItem(item);
-    loadEditData(item);
-    setShowAddForm(true);
-  };
+  const handleSaveDraft = useCallback(async (items) => {
+    const result = await saveDraft(items);
+    if (result.success) {
+      showNotification(result.message, 'success');
+    } else {
+      showNotification(result.error || 'Gagal menyimpan draft', 'error');
+    }
+    return result;
+  }, [saveDraft, showNotification]);
 
-  const handleDeleteItem = async (itemId, description) => {
+  const handleEditItem = useCallback((item) => {
+    // For now, editing will be done within the bulk form or a modal
+    // This is a placeholder for future edit functionality
+    console.log('Edit item:', item);
+  }, []);
+
+  const handleDeleteItem = useCallback(async (itemId, description) => {
     const confirmMessage = `Apakah Anda yakin ingin menghapus item:\n"${description}"?\n\nTindakan ini tidak dapat dibatalkan.`;
     
     // eslint-disable-next-line no-restricted-globals
@@ -198,16 +235,16 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         );
       }
     }
-  };
+  }, [deleteRABItem, showNotification]);
 
-  const handleApproveItem = async (item) => {
+  const handleApproveItem = useCallback(async (item) => {
     const result = await approveItem(item);
     if (result.success) {
       showNotification('Item RAB berhasil diapprove!', 'success');
     }
-  };
+  }, [approveItem, showNotification]);
 
-  const handleRejectItem = async (item) => {
+  const handleRejectItem = useCallback(async (item) => {
     const reason = prompt('Alasan penolakan:');
     if (reason && reason.trim()) {
       const result = await rejectItem(item, reason);
@@ -215,9 +252,9 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         showNotification('Item RAB ditolak', 'warning');
       }
     }
-  };
+  }, [rejectItem, showNotification]);
 
-  const handleApproveAll = async () => {
+  const handleApproveAll = useCallback(async () => {
     const pendingItems = rabItems.filter(item => !item.isApproved);
     if (pendingItems.length === 0) {
       return;
@@ -232,9 +269,9 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       }
       showNotification(`${successCount} dari ${pendingItems.length} item berhasil diapprove`, 'success');
     }
-  };
+  }, [rabItems, approveItem, showNotification]);
 
-  const handleApproveRAB = async () => {
+  const handleApproveRAB = useCallback(async () => {
     if (rabItems.length === 0) {
       alert('Tidak ada item RAB untuk diapprove');
       return;
@@ -249,7 +286,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     } else {
       showNotification(result.error || 'Gagal approve RAB. Silakan coba lagi.', 'error');
     }
-  };
+  }, [rabItems.length, approveRAB, showNotification]);
 
   if (loading) {
     return (
@@ -282,14 +319,14 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
             <StatusBadge status={approvalStatus.status} />
           )}
 
-          {/* Add Item Button - Only show if not approved */}
+          {/* Add RAB Button - Only show if not approved */}
           {canAddItems(approvalStatus) && (
             <button
               onClick={handleAddClick}
-              className="flex items-center px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90"
+              className="flex items-center px-6 py-3 bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90 transition-colors font-medium"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Item RAB
+              <List className="h-5 w-5 mr-2" />
+              Kelola RAB
             </button>
           )}
           
@@ -311,31 +348,30 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
           <h3 className="text-base font-semibold text-white">Daftar Item RAB</h3>
         </div>
         
-        {/* Inline Add/Edit Form */}
-        {showAddForm && (
-          <RABItemForm
-            formData={formData}
-            formErrors={formErrors}
-            isSubmitting={isSubmitting}
-            editingItem={editingItem}
-            onSubmit={handleFormSubmitWrapper}
+        {/* Bulk Input Form */}
+        {showBulkForm && (
+          <BulkRABForm
+            onSubmit={handleBulkSubmit}
+            onSaveDraft={handleSaveDraft}
             onCancel={handleCancelForm}
-            onChange={handleChange}
+            draftItems={loadedDraftItems}
           />
         )}
         
         {/* Items Table or Empty State */}
-        {rabItems.length > 0 ? (
-          <RABItemsTable
-            rabItems={rabItems}
-            onEdit={handleEditItem}
-            onDelete={handleDeleteItem}
-            onApprove={handleApproveItem}
-            onReject={handleRejectItem}
-            onApproveAll={handleApproveAll}
-          />
-        ) : (
-          <EmptyState onAddClick={handleAddClick} />
+        {!showBulkForm && (
+          rabItems.length > 0 ? (
+            <RABItemsTable
+              rabItems={rabItems}
+              onEdit={handleEditItem}
+              onDelete={handleDeleteItem}
+              onApprove={handleApproveItem}
+              onReject={handleRejectItem}
+              onApproveAll={handleApproveAll}
+            />
+          ) : (
+            <EmptyState onAddClick={handleAddClick} />
+          )
         )}
       </div>
 

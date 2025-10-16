@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
  * Custom hook for managing RAB items data
@@ -8,10 +8,15 @@ const useRABItems = (projectId, onDataChange) => {
   const [rabItems, setRABItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [approvalStatus, setApprovalStatus] = useState(null);
-
+  const [refetchCounter, setRefetchCounter] = useState(0);
+  
+  // Store onDataChange in ref to avoid re-renders
+  const onDataChangeRef = useRef(onDataChange);
+  
+  // Update ref when onDataChange changes
   useEffect(() => {
-    fetchRABData();
-  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+    onDataChangeRef.current = onDataChange;
+  }, [onDataChange]);
 
   // Sync RAB approval status with localStorage cache
   const syncRABApprovalStatus = (rabItems) => {
@@ -63,20 +68,23 @@ const useRABItems = (projectId, onDataChange) => {
   const fetchRABData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 useRABItems: Starting fetchRABData for projectId:', projectId);
       
       if (!projectId) {
+        console.log('⚠️ useRABItems: No projectId provided');
         setRABItems([]);
         return;
       }
 
       const token = localStorage.getItem('token');
       if (!token) {
+        console.log('⚠️ useRABItems: No token found');
         setRABItems([]);
         return;
       }
 
-      console.log('📡 Making API call to get RAB items...');
-      console.log('📡 Project ID:', projectId);
+      console.log('📡 useRABItems: Making API call to get RAB items...');
+      console.log('📡 useRABItems: Project ID:', projectId);
       
       const response = await fetch(`/api/projects/${projectId}/rab`, {
         method: 'GET',
@@ -86,10 +94,10 @@ const useRABItems = (projectId, onDataChange) => {
         }
       });
 
-      console.log('📡 RAB Workflow Response status:', response.status);
+      console.log('📡 useRABItems: Response status:', response.status);
       
       const result = await response.json();
-      console.log('🚀 RAB Workflow Full result:', result);
+      console.log('🚀 useRABItems: Full result:', result);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${result.message || 'API Error'}`);
@@ -100,10 +108,10 @@ const useRABItems = (projectId, onDataChange) => {
       }
       
       const items = result.data || [];
-      console.log('RAB Workflow Items found:', items.length, items);
+      console.log('🔍 useRABItems: Items found:', items.length, items);
       
       if (items.length === 0) {
-        console.log('⚠️ No RAB items found for project:', projectId);
+        console.log('⚠️ useRABItems: No RAB items found for project:', projectId);
         setRABItems([]);
         setApprovalStatus(null);
         return;
@@ -111,7 +119,7 @@ const useRABItems = (projectId, onDataChange) => {
       
       // Transform data
       const transformedItems = items.map((item, index) => {
-        console.log(`🔄 Transforming item ${index + 1}:`, item);
+        console.log(`🔄 useRABItems: Transforming item ${index + 1}:`, item);
         
         return {
           id: item.id,
@@ -137,10 +145,11 @@ const useRABItems = (projectId, onDataChange) => {
         };
       });
 
-      console.log('🎯 Final transformed items count:', transformedItems.length);
+      console.log('🎯 useRABItems: Final transformed items count:', transformedItems.length);
       
       // Sync with localStorage approval status
       const syncedRABItems = syncRABApprovalStatus(transformedItems);
+      console.log('✅ useRABItems: Setting rabItems state with', syncedRABItems.length, 'items');
       setRABItems(syncedRABItems);
       
       // Calculate approval status
@@ -163,6 +172,15 @@ const useRABItems = (projectId, onDataChange) => {
     }
   };
 
+  // Create memoized refetch function for external use
+  const refetch = useCallback(() => {
+    setRefetchCounter(prev => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    fetchRABData();
+  }, [projectId, refetchCounter]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const addRABItem = async (itemData) => {
     try {
       const response = await fetch(`/api/projects/${projectId}/rab`, {
@@ -176,7 +194,7 @@ const useRABItems = (projectId, onDataChange) => {
 
       if (response.ok) {
         await fetchRABData();
-        if (onDataChange) onDataChange();
+        if (onDataChangeRef.current) onDataChangeRef.current();
         return { success: true };
       } else {
         const error = await response.json();
@@ -214,7 +232,7 @@ const useRABItems = (projectId, onDataChange) => {
 
       if (response.ok) {
         await fetchRABData();
-        if (onDataChange) onDataChange();
+        if (onDataChangeRef.current) onDataChangeRef.current();
         return { success: true };
       } else {
         const error = await response.json();
@@ -241,7 +259,7 @@ const useRABItems = (projectId, onDataChange) => {
       });
       
       setRABItems(rabItems.filter(item => item.id !== itemId));
-      if (onDataChange) onDataChange();
+      if (onDataChangeRef.current) onDataChangeRef.current();
       return { success: true };
     } catch (error) {
       console.error('Error deleting RAB item:', error);
@@ -268,7 +286,7 @@ const useRABItems = (projectId, onDataChange) => {
 
       if (response.ok) {
         await fetchRABData();
-        if (onDataChange) onDataChange();
+        if (onDataChangeRef.current) onDataChangeRef.current();
         return { success: true };
       } else {
         const err = await response.json().catch(() => ({}));
@@ -288,7 +306,7 @@ const useRABItems = (projectId, onDataChange) => {
     updateRABItem,
     deleteRABItem,
     approveRAB,
-    refetch: fetchRABData
+    refetch
   };
 };
 

@@ -9,7 +9,9 @@ const router = express.Router();
 // @access  Private
 router.get('/', async (req, res) => {
   try {
-    const { level, type, constructionOnly } = req.query;
+    const { level, type, constructionOnly, subsidiaryId } = req.query;
+    
+    console.log('🔍 [Backend COA] GET /api/coa - Query params:', { level, type, constructionOnly, subsidiaryId });
     
     let whereClause = { isActive: true };
     
@@ -24,6 +26,58 @@ router.get('/', async (req, res) => {
     if (constructionOnly === 'true') {
       whereClause.constructionSpecific = true;
     }
+    
+    // Smart subsidiary filtering:
+    // If subsidiaryId is provided, we need to return:
+    // 1. Accounts that HAVE this subsidiary
+    // 2. Parent accounts (even if they have NULL subsidiary) so tree structure is maintained
+    if (subsidiaryId) {
+      console.log('🔍 [Backend COA] Filtering by subsidiaryId:', subsidiaryId);
+      
+      // First, get all accounts with this subsidiaryId
+      const matchingAccounts = await ChartOfAccounts.findAll({
+        where: {
+          isActive: true,
+          subsidiaryId: subsidiaryId
+        },
+        attributes: ['id', 'parentAccountId']
+      });
+      
+      console.log('🔍 [Backend COA] Direct matches:', matchingAccounts.length);
+      
+      // Collect all parent IDs recursively
+      const accountIds = new Set(matchingAccounts.map(acc => acc.id));
+      const parentIds = new Set();
+      
+      // Function to recursively collect parent IDs
+      const collectParents = async (accountId) => {
+        const account = await ChartOfAccounts.findByPk(accountId, {
+          attributes: ['id', 'parentAccountId']
+        });
+        
+        if (account && account.parentAccountId && !parentIds.has(account.parentAccountId)) {
+          parentIds.add(account.parentAccountId);
+          await collectParents(account.parentAccountId);
+        }
+      };
+      
+      // Collect all parent IDs
+      for (const acc of matchingAccounts) {
+        if (acc.parentAccountId) {
+          await collectParents(acc.parentAccountId);
+        }
+      }
+      
+      console.log('🔍 [Backend COA] Parent accounts needed:', parentIds.size);
+      
+      // Combine direct matches + their parents
+      const allRelevantIds = [...accountIds, ...parentIds];
+      whereClause.id = { [Op.in]: allRelevantIds };
+      
+      console.log('🔍 [Backend COA] Total accounts to return:', allRelevantIds.length);
+    }
+    
+    console.log('🔍 [Backend COA] WHERE clause:', JSON.stringify(whereClause));
 
     const accounts = await ChartOfAccounts.findAll({
       where: whereClause,
@@ -42,6 +96,8 @@ router.get('/', async (req, res) => {
         }
       ]
     });
+    
+    console.log('🔍 [Backend COA] Final accounts returned:', accounts.length);
 
     res.json({
       success: true,
@@ -61,8 +117,17 @@ router.get('/', async (req, res) => {
 // @access  Private
 router.get('/hierarchy', async (req, res) => {
   try {
+    const { subsidiaryId } = req.query;
+    
+    let whereClause = { isActive: true, level: 1 };
+    
+    // Filter by subsidiary if provided
+    if (subsidiaryId) {
+      whereClause.subsidiaryId = subsidiaryId;
+    }
+    
     const accounts = await ChartOfAccounts.findAll({
-      where: { isActive: true, level: 1 },
+      where: whereClause,
       order: [['accountCode', 'ASC']],
       include: [
         {
@@ -246,6 +311,47 @@ router.get('/cash/accounts', async (req, res) => {
       success: false,
       message: 'Error fetching cash accounts',
       error: error.message
+    });
+  }
+});
+
+// @route   GET /api/coa/:id
+// @desc    Get single account by ID with full details
+// @access  Private
+router.get('/:id', async (req, res) => {
+  try {
+    const account = await ChartOfAccounts.findByPk(req.params.id, {
+      include: [
+        {
+          model: ChartOfAccounts,
+          as: 'SubAccounts',
+          where: { isActive: true },
+          required: false
+        },
+        {
+          model: ChartOfAccounts,
+          as: 'ParentAccount',
+          required: false
+        }
+      ]
+    });
+    
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        error: 'Account not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: account
+    });
+  } catch (error) {
+    console.error('Error fetching account:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch account details'
     });
   }
 });

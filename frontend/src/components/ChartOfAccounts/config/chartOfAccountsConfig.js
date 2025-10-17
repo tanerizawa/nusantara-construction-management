@@ -5,6 +5,7 @@ export const CHART_OF_ACCOUNTS_CONFIG = {
   // API endpoints
   endpoints: {
     accounts: '/api/coa',
+    hierarchy: '/api/coa/hierarchy',
     subsidiaries: '/api/subsidiaries'
   },
   

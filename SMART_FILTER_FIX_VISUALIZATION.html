@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Filter Fix - Before & After</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+    }
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    .panel {
+      background: #1e1e2f;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .panel h2 {
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #333;
+    }
+    .broken { border-left: 4px solid #f44336; }
+    .fixed { border-left: 4px solid #4CAF50; }
+    .broken h2 { color: #f44336; }
+    .fixed h2 { color: #4CAF50; }
+    
+    .tree {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+      background: #0a0a0a;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .account {
+      padding: 8px 12px;
+      margin: 4px 0;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      transition: background 0.2s;
+    }
+    .account:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .level-1 { margin-left: 0; }
+    .level-2 { margin-left: 30px; }
+    .level-3 { margin-left: 60px; }
+    .level-4 { margin-left: 90px; }
+    
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+    .badge-bsr {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+      font-style: italic;
+    }
+    .empty-state .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+    
+    .explanation {
+      background: #2a2a3e;
+      border-radius: 12px;
+      padding: 25px;
+      margin-top: 30px;
+      border-left: 4px solid #2196F3;
+    }
+    .explanation h3 {
+      color: #2196F3;
+      margin-bottom: 15px;
+    }
+    .explanation ul {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+    .code-block {
+      background: #0a0a0a;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      overflow-x: auto;
+    }
+    .highlight {
+      background: rgba(76, 175, 80, 0.2);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid rgba(76, 175, 80, 0.4);
+    }
+    
+    @media (max-width: 968px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Smart Subsidiary Filter Fix</h1>
+    
+    <div class="comparison">
+      <!-- BEFORE (BROKEN) -->
+      <div class="panel broken">
+        <h2>❌ Before Fix - Broken Filter</h2>
+        <p style="margin-bottom: 15px; color: #aaa;">
+          When user selects <strong>BSR</strong> filter:
+        </p>
+        
+        <div class="tree">
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No accounts to display</p>
+            <p style="font-size: 12px; margin-top: 10px; color: #888;">
+              Filter returned only child account without parents
+            </p>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: rgba(244, 67, 54, 0.1); border-radius: 6px; border: 1px solid rgba(244, 67, 54, 0.3);">
+          <strong style="color: #f44336;">Problem:</strong>
+          <div class="code-block" style="margin-top: 10px;">
+-- Query returned ONLY:
+{
+  id: "COA-xxxx",
+  accountCode: "1101-10",
+  accountName: "BJB",
+  subsidiaryId: "NU002",
+  parentAccountId: "COA-1101"  ← Parent missing!
+}
+
+-- Frontend cannot display this account
+-- because its parents are not in the response
+          </div>
+        </div>
+      </div>
+      
+      <!-- AFTER (FIXED) -->
+      <div class="panel fixed">
+        <h2>✅ After Fix - Smart Filter</h2>
+        <p style="margin-bottom: 15px; color: #aaa;">
+          When user selects <strong>BSR</strong> filter:
+        </p>
+        
+        <div class="tree">
+          <div class="account level-1">
+            📁 <strong>1</strong> - ASET
+          </div>
+          <div class="account level-2">
+            📁 <strong>1100</strong> - ASET LANCAR
+          </div>
+          <div class="account level-3">
+            📁 <strong>1101</strong> - Kas dan Bank
+          </div>
+          <div class="account level-4" style="background: rgba(76, 175, 80, 0.1); border-left: 3px solid #4CAF50;">
+            🏦 <strong>1101-10</strong> - BJB
+            <span class="badge badge-bsr">BSR</span>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: rgba(76, 175, 80, 0.1); border-radius: 6px; border: 1px solid rgba(76, 175, 80, 0.3);">
+          <strong style="color: #4CAF50;">Solution:</strong>
+          <div class="code-block" style="margin-top: 10px;">
+-- Query now returns:
+[
+  { id: "COA-1", accountCode: "1", ... },
+  { id: "COA-1100", accountCode: "1100", ... },
+  { id: "COA-1101", accountCode: "1101", ... },
+  <span class="highlight">{ id: "COA-xxxx", accountCode: "1101-10",
+    subsidiaryId: "NU002", ... }</span>  ← BSR account
+]
+
+-- Frontend can now build complete tree!
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- EXPLANATION -->
+    <div class="explanation">
+      <h3>🧠 How Smart Filter Works</h3>
+      <ul>
+        <li><strong>Step 1:</strong> Find all accounts with <code>subsidiaryId = 'NU002'</code></li>
+        <li><strong>Step 2:</strong> For each matched account, recursively collect all parent IDs up to root</li>
+        <li><strong>Step 3:</strong> Return direct matches + all their parents</li>
+        <li><strong>Result:</strong> Tree structure is maintained, BSR account is visible within its parent chain</li>
+      </ul>
+      
+      <div class="code-block" style="margin-top: 20px;">
+// Pseudo-code of the algorithm:
+const matches = await findAccounts({ subsidiaryId: 'NU002' });
+// → [1101-10 BJB]
+
+const parentIds = [];
+for (account of matches) {
+  let parent = account.parentAccountId;
+  while (parent) {
+    parentIds.push(parent);
+    parent = await getParent(parent);  // Recursive
+  }
+}
+// → [COA-1101, COA-1100, COA-1]
+
+return [...matches, ...parents];
+// → [1, 1100, 1101, 1101-10]
+      </div>
+    </div>
+    
+    <!-- TESTING GUIDE -->
+    <div class="explanation" style="border-left-color: #FF9800; margin-top: 20px;">
+      <h3 style="color: #FF9800;">🧪 How to Test</h3>
+      <ol style="margin-left: 20px; line-height: 2;">
+        <li>Open <strong>http://localhost:3000/finance</strong></li>
+        <li>Press <strong>Ctrl+Shift+R</strong> (hard refresh)</li>
+        <li>Click <strong>SubsidiarySelector</strong> dropdown</li>
+        <li>Select <strong>"BSR - CV. BINTANG SURAYA"</strong></li>
+        <li>✅ <strong>Expected:</strong> See account tree with BSR account visible</li>
+        <li>❌ <strong>Before fix:</strong> Empty tree / "No accounts to display"</li>
+      </ol>
+    </div>
+    
+    <!-- STATUS -->
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin-top: 30px; text-align: center;">
+      <h3 style="font-size: 24px; margin-bottom: 10px;">✅ Fix Deployed</h3>
+      <p style="font-size: 16px; opacity: 0.9;">
+        Backend restarted with smart filter algorithm.<br>
+        <strong>Ready for testing!</strong>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

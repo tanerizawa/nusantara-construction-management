@@ -3,6 +3,7 @@ import { CheckCircle } from 'lucide-react';
 import { getTotalAccountCount } from '../utils/accountHelpers';
 import { formatCurrency, areAccountsBalanced } from '../utils/accountCalculations';
 import { CHART_OF_ACCOUNTS_CONFIG } from '../config/chartOfAccountsConfig';
+import SubsidiarySelector from './SubsidiarySelector';
 
 const { colors } = CHART_OF_ACCOUNTS_CONFIG;
 
@@ -14,7 +15,9 @@ const ChartOfAccountsHeader = ({
   refreshing, 
   onRefresh, 
   onAddAccount, 
-  onManageEntities 
+  onManageEntities,
+  selectedSubsidiary,
+  onSubsidiaryChange
 }) => {
   const totalAccountCount = getTotalAccountCount(accounts);
   const isBalanced = areAccountsBalanced(totalBalances);
@@ -60,7 +63,13 @@ const ChartOfAccountsHeader = ({
         )}
       </div>
       
-      <div className="flex space-x-2">
+      <div className="flex items-center space-x-2">
+        {/* Subsidiary Selector */}
+        <SubsidiarySelector
+          selectedSubsidiary={selectedSubsidiary}
+          onSubsidiaryChange={onSubsidiaryChange}
+        />
+        
         <button 
           onClick={onRefresh}
           disabled={refreshing}

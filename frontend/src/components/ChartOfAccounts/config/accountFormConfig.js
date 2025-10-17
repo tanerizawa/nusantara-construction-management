@@ -6,9 +6,11 @@ export const INITIAL_ACCOUNT_FORM = {
   accountType: ACCOUNT_TYPES.ASSET,
   accountSubType: '',
   parentAccountId: '',
+  subsidiaryId: '', // NEW: Subsidiary assignment
   level: 1,
   normalBalance: 'DEBIT',
   description: '',
+  notes: '', // NEW: Added notes field
   constructionSpecific: false,
   projectCostCenter: false,
   vatApplicable: false,
@@ -58,6 +60,14 @@ export const ACCOUNT_FORM_FIELDS = [
     placeholder: '-- Pilih Parent Account --'
   },
   {
+    name: 'subsidiaryId',
+    label: 'Subsidiary / Entitas',
+    type: 'select',
+    required: false,
+    placeholder: '-- Pilih Subsidiary (Optional) --',
+    description: 'Assign account to specific entity for multi-entity accounting'
+  },
+  {
     name: 'level',
     label: 'Level',
     type: 'select',
@@ -78,6 +88,14 @@ export const ACCOUNT_FORM_FIELDS = [
     required: false,
     placeholder: 'Jelaskan fungsi akun ini...',
     rows: 3
+  },
+  {
+    name: 'notes',
+    label: 'Catatan',
+    type: 'textarea',
+    required: false,
+    placeholder: 'Catatan tambahan (opsional)...',
+    rows: 2
   }
 ];
 

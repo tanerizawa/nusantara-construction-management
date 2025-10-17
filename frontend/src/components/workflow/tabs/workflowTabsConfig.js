@@ -13,7 +13,8 @@ import {
   FolderOpen,
   Target,
   Users,
-  Clipboard
+  Clipboard,
+  ClipboardCheck
 } from 'lucide-react';
 
 /**
@@ -58,6 +59,14 @@ export const workflowTabsConfig = [
         description: 'Manajemen Work Order (Jasa & Tenaga Kerja)'
       }
     ]
+  },
+  {
+    id: 'budget-validation',
+    label: 'Validasi Anggaran',
+    icon: ClipboardCheck,
+    path: 'budget-validation',
+    description: 'Validasi penggunaan anggaran vs RAB',
+    hasChildren: false
   },
   {
     id: 'milestones',

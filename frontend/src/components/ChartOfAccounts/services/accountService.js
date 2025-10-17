@@ -4,15 +4,19 @@ import { CHART_OF_ACCOUNTS_CONFIG } from '../config/chartOfAccountsConfig';
 const { endpoints } = CHART_OF_ACCOUNTS_CONFIG;
 
 /**
- * Fetch all accounts from the API
+ * Fetch all accounts from the API in hierarchical structure
  */
-export const fetchAccounts = async (forceRefresh = false) => {
+export const fetchAccounts = async (forceRefresh = false, subsidiaryId = null) => {
   try {
-    const params = forceRefresh ? { refresh: 'true' } : {};
-    const response = await axios.get(endpoints.accounts, { params });
+    const params = {};
+    if (forceRefresh) params.refresh = 'true';
+    if (subsidiaryId) params.subsidiaryId = subsidiaryId;
+    
+    // Use hierarchy endpoint to get properly nested structure
+    const response = await axios.get(endpoints.hierarchy, { params });
     return {
       success: true,
-      data: response.data.accounts || [],
+      data: response.data.data || response.data.accounts || [],
       message: response.data.message
     };
   } catch (error) {
@@ -55,17 +59,43 @@ export const createAccount = async (accountData) => {
  */
 export const updateAccount = async (accountId, accountData) => {
   try {
-    const response = await axios.put(`${endpoints.accounts}/${accountId}`, accountData);
-    return {
-      success: true,
-      data: response.data,
-      message: 'Account updated successfully'
+    // Filter only allowed fields for update (exclude system fields)
+    const allowedFields = {
+      accountName: accountData.accountName,
+      accountType: accountData.accountType,
+      accountSubType: accountData.accountSubType,
+      parentAccountId: accountData.parentAccountId || null,
+      subsidiaryId: accountData.subsidiaryId || null,
+      level: accountData.level,
+      normalBalance: accountData.normalBalance,
+      description: accountData.description || null,
+      notes: accountData.notes || null,
+      constructionSpecific: accountData.constructionSpecific || false,
+      taxDeductible: accountData.taxDeductible || null,
+      vatApplicable: accountData.vatApplicable || false,
+      projectCostCenter: accountData.projectCostCenter || false
     };
+    
+    const response = await axios.put(`${endpoints.accounts}/${accountId}`, allowedFields);
+    
+    // Backend returns {success: true, data: {...updated account...}}
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        data: response.data.data || response.data,  // Handle both response formats
+        message: 'Account updated successfully'
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.error || 'Failed to update account'
+      };
+    }
   } catch (error) {
     console.error('Error updating account:', error);
     return {
       success: false,
-      error: error.response?.data?.message || error.message || 'Failed to update account'
+      error: error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to update account'
     };
   }
 };
@@ -76,11 +106,20 @@ export const updateAccount = async (accountId, accountData) => {
 export const deleteAccount = async (accountId) => {
   try {
     const response = await axios.delete(`${endpoints.accounts}/${accountId}`);
-    return {
-      success: true,
-      data: response.data,
-      message: 'Account deleted successfully'
-    };
+    
+    // Backend returns {success: true, data: {...}}
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        data: response.data.data || response.data,
+        message: 'Account deleted successfully'
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.error || 'Failed to delete account'
+      };
+    }
   } catch (error) {
     console.error('Error deleting account:', error);
     return {
@@ -96,11 +135,23 @@ export const deleteAccount = async (accountId) => {
 export const getAccountById = async (accountId) => {
   try {
     const response = await axios.get(`${endpoints.accounts}/${accountId}`);
-    return {
-      success: true,
-      data: response.data,
-      message: 'Account retrieved successfully'
-    };
+    
+    // Backend returns {success: true, data: {...account...}}
+    // axios wraps it in response.data
+    // So response.data = {success: true, data: {...account...}}
+    
+    if (response.data && response.data.success) {
+      return {
+        success: true,
+        data: response.data.data,  // Extract nested data
+        message: 'Account retrieved successfully'
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data?.error || 'Failed to fetch account'
+      };
+    }
   } catch (error) {
     console.error('Error fetching account:', error);
     return {

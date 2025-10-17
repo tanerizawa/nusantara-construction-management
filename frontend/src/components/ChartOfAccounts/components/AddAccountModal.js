@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ACCOUNT_FORM_FIELDS, ACCOUNT_FORM_CHECKBOXES } from '../config/accountFormConfig';
 import { getEligibleParentAccounts } from '../utils/accountHelpers';
 import { CHART_OF_ACCOUNTS_CONFIG } from '../config/chartOfAccountsConfig';
+import { fetchSubsidiaries } from '../services/subsidiaryService';
 
 const { colors, modal } = CHART_OF_ACCOUNTS_CONFIG;
 
@@ -16,9 +17,67 @@ const AddAccountModal = ({
   onFormChange, 
   onSubmit 
 }) => {
+  const [subsidiaries, setSubsidiaries] = useState([]);
+  const [loadingSubsidiaries, setLoadingSubsidiaries] = useState(false);
+  const [inheritedSubsidiary, setInheritedSubsidiary] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadSubsidiaries();
+    }
+  }, [isOpen]);
+
+  const loadSubsidiaries = async () => {
+    setLoadingSubsidiaries(true);
+    const result = await fetchSubsidiaries(true); // Active only
+    if (result.success) {
+      setSubsidiaries(result.data);
+    }
+    setLoadingSubsidiaries(false);
+  };
+
+  // Phase 2D-A1: Subsidiary Inheritance
+  // Auto-assign parent's subsidiary to child account
+  useEffect(() => {
+    if (formData.parentAccountId && accounts.length > 0) {
+      const parentAccount = accounts.find(acc => acc.id === formData.parentAccountId);
+      
+      if (parentAccount?.subsidiaryId) {
+        // Only auto-assign if user hasn't manually selected a subsidiary
+        if (!formData.subsidiaryId || formData.subsidiaryId === '') {
+          // Find subsidiary info for display
+          const subsidiary = subsidiaries.find(s => s.id === parentAccount.subsidiaryId);
+          
+          // Auto-fill subsidiaryId from parent
+          onFormChange({
+            target: {
+              name: 'subsidiaryId',
+              value: parentAccount.subsidiaryId
+            }
+          });
+          
+          // Set inherited flag for UI feedback
+          setInheritedSubsidiary(subsidiary);
+        }
+      } else {
+        // Parent has no subsidiary, clear inherited flag
+        setInheritedSubsidiary(null);
+      }
+    } else {
+      // No parent selected, clear inherited flag
+      setInheritedSubsidiary(null);
+    }
+  }, [formData.parentAccountId, accounts, subsidiaries]);
+
   if (!isOpen) return null;
 
   const eligibleParents = getEligibleParentAccounts(accounts);
+
+  // Handler for subsidiary change - clear inherited flag when user manually changes
+  const handleSubsidiaryChange = (e) => {
+    setInheritedSubsidiary(null); // Clear inherited flag
+    onFormChange(e); // Call parent handler
+  };
 
   const renderFormField = (field) => {
     const commonStyles = {
@@ -38,18 +97,25 @@ const AddAccountModal = ({
             key={field.name}
             name={field.name}
             value={formData[field.name]}
-            onChange={onFormChange}
+            onChange={field.name === 'subsidiaryId' ? handleSubsidiaryChange : onFormChange}
             className="w-full px-3 py-2 rounded-md focus:outline-none focus:ring-2 transition-all duration-200"
             style={{ ...commonStyles, ...errorStyles }}
             required={field.required}
+            disabled={field.name === 'subsidiaryId' && loadingSubsidiaries}
           >
-            {field.name === 'parentAccountId' && (
+            {(field.name === 'parentAccountId' || field.name === 'subsidiaryId') && (
               <option value="">{field.placeholder}</option>
             )}
             {field.name === 'parentAccountId' ? 
               eligibleParents.map(account => (
                 <option key={account.id} value={account.id}>
                   {account.accountCode} - {account.accountName}
+                </option>
+              )) : 
+            field.name === 'subsidiaryId' ?
+              subsidiaries.map(subsidiary => (
+                <option key={subsidiary.id} value={subsidiary.id}>
+                  {subsidiary.code} - {subsidiary.name}
                 </option>
               )) :
               field.options?.map(option => (
@@ -153,6 +219,29 @@ const AddAccountModal = ({
                 {field.label} {field.required && '*'}
               </label>
               {renderFormField(field)}
+              
+              {/* Phase 2D-A1: Show inheritance message for subsidiaryId */}
+              {field.name === 'subsidiaryId' && inheritedSubsidiary && (
+                <div 
+                  className="text-xs mt-2 px-2 py-1.5 rounded flex items-center gap-1.5" 
+                  style={{ 
+                    backgroundColor: "rgba(48, 209, 88, 0.1)", 
+                    color: "#30D158",
+                    border: "1px solid rgba(48, 209, 88, 0.2)"
+                  }}
+                >
+                  <span style={{ fontSize: '14px' }}>ℹ️</span>
+                  <span>
+                    Inherited from parent: <strong>{inheritedSubsidiary.code}</strong> (can be changed)
+                  </span>
+                </div>
+              )}
+              
+              {field.description && (
+                <p className="text-xs mt-1" style={{ color: colors.textTertiary }}>
+                  {field.description}
+                </p>
+              )}
               {errors[field.name] && (
                 <p className="text-sm mt-1" style={{ color: colors.error }}>
                   {errors[field.name]}

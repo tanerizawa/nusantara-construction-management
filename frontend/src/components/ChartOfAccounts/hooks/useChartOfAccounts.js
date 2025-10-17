@@ -6,10 +6,12 @@ import { useAccountFilters } from './useAccountFilters';
 
 export const useChartOfAccounts = () => {
   const [accounts, setAccounts] = useState([]);
+  const [allAccounts, setAllAccounts] = useState([]); // NEW: Unfiltered accounts for modal dropdowns
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [selectedSubsidiary, setSelectedSubsidiary] = useState(null); // NEW: Subsidiary filter
   const [totalBalances, setTotalBalances] = useState({
     totalDebit: 0,
     totalCredit: 0,
@@ -21,7 +23,7 @@ export const useChartOfAccounts = () => {
   const filterState = useAccountFilters(accounts);
 
   // Fetch accounts data
-  const loadAccounts = useCallback(async (forceRefresh = false) => {
+  const loadAccounts = useCallback(async (forceRefresh = false, subsidiaryId = null) => {
     try {
       if (forceRefresh) {
         setRefreshing(true);
@@ -31,7 +33,7 @@ export const useChartOfAccounts = () => {
       
       setError(null);
       
-      const result = await fetchAccounts(forceRefresh);
+      const result = await fetchAccounts(forceRefresh, subsidiaryId);
       
       if (result.success) {
         setAccounts(result.data);
@@ -40,6 +42,18 @@ export const useChartOfAccounts = () => {
         // Calculate total balances
         const balances = calculateTotalBalances(result.data);
         setTotalBalances(balances);
+        
+        // NEW: If this is filtered data, also load ALL accounts for modal dropdowns
+        if (subsidiaryId) {
+          // Fetch all accounts in background (without filter)
+          const allResult = await fetchAccounts(false, null);
+          if (allResult.success) {
+            setAllAccounts(allResult.data);
+          }
+        } else {
+          // No filter, so accounts = allAccounts
+          setAllAccounts(result.data);
+        }
       } else {
         setError(result.error);
       }
@@ -54,12 +68,18 @@ export const useChartOfAccounts = () => {
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
-    await loadAccounts(true);
-  }, [loadAccounts]);
+    await loadAccounts(true, selectedSubsidiary);
+  }, [loadAccounts, selectedSubsidiary]);
 
   // Handle account creation success
   const handleAccountCreated = useCallback(() => {
-    loadAccounts(true); // Refresh accounts after creation
+    loadAccounts(true, selectedSubsidiary); // Refresh accounts after creation
+  }, [loadAccounts, selectedSubsidiary]);
+  
+  // Handle subsidiary filter change
+  const handleSubsidiaryChange = useCallback((subsidiaryId) => {
+    setSelectedSubsidiary(subsidiaryId);
+    loadAccounts(false, subsidiaryId);
   }, [loadAccounts]);
 
   // Recalculate balances when accounts change
@@ -89,6 +109,7 @@ export const useChartOfAccounts = () => {
   return {
     // Data
     accounts,
+    allAccounts, // NEW: Unfiltered accounts for modal dropdowns
     totalBalances,
     lastUpdate,
     
@@ -96,11 +117,13 @@ export const useChartOfAccounts = () => {
     loading,
     error,
     refreshing,
+    selectedSubsidiary,
     
     // Actions
     loadAccounts,
     handleRefresh,
     handleAccountCreated,
+    handleSubsidiaryChange,
     
     // Tree state
     ...treeState,

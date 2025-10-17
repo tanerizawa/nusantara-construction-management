@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, X } from 'lucide-react';
 import { useMilestones } from './milestones/hooks/useMilestones';
 import MilestoneStatsCards from './milestones/components/MilestoneStatsCards';
 import MilestoneProgressOverview from './milestones/components/MilestoneProgressOverview';
-import MilestoneTimelineItem from './milestones/components/MilestoneTimelineItem';
+import MilestoneDetailPanel from './milestones/components/MilestoneDetailPanel';
 import MilestoneInlineForm from './milestones/components/MilestoneInlineForm';
-import MilestoneDetailDrawer from './milestones/MilestoneDetailDrawer';
 
 const ProjectMilestones = ({ project, onUpdate }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState(null);
-  const [selectedMilestone, setSelectedMilestone] = useState(null); // For detail drawer
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
 
   // Custom hook for milestones management
   const {
@@ -22,6 +21,13 @@ const ProjectMilestones = ({ project, onUpdate }) => {
     approveMilestone,
     loadMilestones
   } = useMilestones(project.id);
+
+  // Auto-select first milestone when milestones load
+  useEffect(() => {
+    if (milestones.length > 0 && !selectedMilestone) {
+      setSelectedMilestone(milestones[0]);
+    }
+  }, [milestones, selectedMilestone]);
 
   // Handle form success
   const handleFormSuccess = async () => {
@@ -56,7 +62,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
         <button 
           onClick={() => {
             setShowAddForm(!showAddForm);
-            setEditingMilestone(null); // Close edit form when opening add form
+            setEditingMilestone(null);
           }}
           className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
         >
@@ -77,7 +83,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
       {/* Statistics Cards */}
       <MilestoneStatsCards stats={stats} />
 
-      {/* Inline Add Form - Shows above Progress Overview */}
+      {/* Inline Add Form */}
       {showAddForm && (
         <MilestoneInlineForm
           projectId={project.id}
@@ -89,7 +95,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
         />
       )}
 
-      {/* Inline Edit Form - Shows above Progress Overview */}
+      {/* Inline Edit Form */}
       {editingMilestone && (
         <MilestoneInlineForm
           projectId={project.id}
@@ -105,40 +111,39 @@ const ProjectMilestones = ({ project, onUpdate }) => {
       {/* Progress Overview */}
       <MilestoneProgressOverview stats={stats} />
 
-      {/* Milestones Timeline */}
-      <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-        <div className="p-4 border-b border-[#38383A]">
-          <h4 className="font-semibold text-white">Timeline Milestone</h4>
-        </div>
-        
-        <div className="divide-y divide-[#38383A]">
-          {milestones.map((milestone, index) => (
-            <MilestoneTimelineItem
-              key={milestone.id}
-              milestone={milestone}
-              index={index}
-              isLast={index === milestones.length - 1}
-              onEdit={() => {
-                setEditingMilestone(milestone);
-                setShowAddForm(false); // Close add form when opening edit form
-              }}
-              onDelete={() => deleteMilestone(milestone.id)}
-              onApprove={() => approveMilestone(milestone.id)}
-              onProgressUpdate={updateMilestoneProgress}
-              onViewDetail={(milestone) => setSelectedMilestone(milestone)}
-            />
-          ))}
-        </div>
+      {/* FULL WIDTH DETAIL PANEL ONLY */}
+      <div className="w-full">
+        {selectedMilestone ? (
+          <MilestoneDetailPanel
+            milestone={selectedMilestone}
+            milestones={milestones}
+            onMilestoneChange={setSelectedMilestone}
+            projectId={project.id}
+            onEdit={() => {
+              setEditingMilestone(selectedMilestone);
+              setShowAddForm(false);
+            }}
+            onDelete={() => {
+              if (window.confirm(`Are you sure you want to delete "${selectedMilestone.name}"?`)) {
+                deleteMilestone(selectedMilestone.id);
+                // Select next milestone or first one
+                const currentIndex = milestones.findIndex(m => m.id === selectedMilestone.id);
+                const nextMilestone = milestones[currentIndex + 1] || milestones[currentIndex - 1] || milestones[0];
+                setSelectedMilestone(nextMilestone);
+              }
+            }}
+            onApprove={() => approveMilestone(selectedMilestone.id)}
+            onProgressUpdate={updateMilestoneProgress}
+          />
+        ) : (
+          <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] p-16 text-center h-full flex items-center justify-center">
+            <div>
+              <p className="text-[#8E8E93] text-lg mb-2">No Milestone Available</p>
+              <p className="text-[#636366] text-sm">Add a new milestone to get started</p>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Milestone Detail Drawer */}
-      {selectedMilestone && (
-        <MilestoneDetailDrawer
-          milestone={selectedMilestone}
-          projectId={project.id}
-          onClose={() => setSelectedMilestone(null)}
-        />
-      )}
     </div>
   );
 };

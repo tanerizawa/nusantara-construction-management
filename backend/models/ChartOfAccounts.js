@@ -103,6 +103,16 @@ const ChartOfAccounts = sequelize.define('ChartOfAccounts', {
     defaultValue: 0,
     field: 'current_balance',
     comment: 'Current account balance (for ASSET and LIABILITY accounts)'
+  },
+  subsidiaryId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'subsidiary_id',
+    references: {
+      model: 'subsidiaries',
+      key: 'id'
+    },
+    comment: 'Reference to subsidiary for multi-entity accounting'
   }
 }, {
   tableName: 'chart_of_accounts',
@@ -140,5 +150,15 @@ ChartOfAccounts.belongsTo(ChartOfAccounts, {
   as: 'ParentAccount',
   foreignKey: 'parentAccountId'
 });
+
+// Association with Subsidiary for multi-entity accounting
+ChartOfAccounts.associate = (models) => {
+  if (models.Subsidiary) {
+    ChartOfAccounts.belongsTo(models.Subsidiary, {
+      as: 'Subsidiary',
+      foreignKey: 'subsidiaryId'
+    });
+  }
+};
 
 module.exports = ChartOfAccounts;

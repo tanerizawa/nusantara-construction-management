@@ -9,7 +9,8 @@ import {
   ShoppingCart,
   BarChart3,
   PlayCircle,
-  Activity
+  Activity,
+  ClipboardCheck
 } from 'lucide-react';
 
 /**
@@ -49,6 +50,13 @@ export const createTabConfig = (workflowData) => [
     label: 'Budget Monitoring',
     icon: BarChart3,
     description: 'Real-time budget tracking dan cost control'
+  },
+  {
+    id: 'budget-validation',
+    label: 'Validasi Anggaran',
+    icon: ClipboardCheck,
+    description: 'Monitor dan validasi penggunaan anggaran vs RAB',
+    badge: workflowData.budgetValidation?.overBudgetCount || 0
   },
   {
     id: 'team',

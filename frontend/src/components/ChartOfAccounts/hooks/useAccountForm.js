@@ -118,6 +118,7 @@ export const useAccountForm = (accounts, onSuccess) => {
     handleSubmit,
     resetForm,
     updateFormData,
-    validateForm
+    validateForm,
+    setFormData  // NEW: Direct setter for populating edit form
   };
 };

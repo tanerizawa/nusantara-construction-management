@@ -1,521 +1,589 @@
+/**
+ * WORK ORDER PDF GENERATOR (Pro v5 — Full DB-Integrated)
+ * - Header identik PO: logo (from DB file), nama, alamat, kontak, NPWP
+ * - Header detail kanan: No. WO, Tgl. Dibuat, Tgl. Cetak, Proyek
+ * - Signature identik PO: kiri (Pelaksana/manual), kanan (Company box + QR + nama direktur & jabatan)
+ * - Single-page guaranteed: tabel adaptif, deskripsi & terms clamped, ruang footer & signature aman
+ */
+
 const PDFDocument = require('pdfkit');
 const moment = require('moment');
+const QRCode = require('qrcode');
+const fs = require('fs');
+const path = require('path');
 
-/**
- * Generate Professional Work Order PDF - Perintah Kerja
- * Indonesian Formal Business Format
- */
 class WorkOrderPDFGenerator {
-  constructor() {
-    this.pageWidth = 595.28; // A4 width in points
-    this.pageHeight = 841.89; // A4 height in points
-    this.margin = 40; // Reduced from 50 for single page optimization
-  }
+   constructor() {
+      this.pageWidth = 595.28; // A4
+      this.pageHeight = 841.89;
+      this.margin = 40;
 
-  /**
-   * Generate WO PDF and return as buffer - OPTIMIZED FOR SINGLE PAGE
-   */
-  async generateWO(woData, companyInfo, contractorInfo) {
-    return new Promise((resolve, reject) => {
-      try {
-        const doc = new PDFDocument({
-          size: 'A4',
-          margin: 40, // Reduced margin
-          info: {
-            Title: `Perintah Kerja ${woData.woNumber}`,
-            Author: companyInfo.name,
-            Subject: 'Perintah Kerja - Work Order Konstruksi',
-            Keywords: 'perintah kerja, work order, konstruksi'
-          }
-        });
+      this.contentWidth = this.pageWidth - this.margin * 2;
+      this.safeTop = this.margin;
+      this.safeBottom = this.pageHeight - this.margin;
+      this.cursorY = this.safeTop;
 
-        const buffers = [];
-        doc.on('data', buffers.push.bind(buffers));
-        doc.on('end', () => {
-          const pdfBuffer = Buffer.concat(buffers);
-          resolve(pdfBuffer);
-        });
-        doc.on('error', reject);
+      // layout helpers
+      this.baseline = 2;
+      this.sectionGap = 10;
 
-        // Draw content
-        this._drawLetterhead(doc, companyInfo);
-        this._drawWOHeader(doc, woData);
-        this._drawContractorInfo(doc, contractorInfo);
-        this._drawWorkScope(doc, woData);
-        this._drawItemsTable(doc, woData);
-        this._drawTotalSection(doc, woData);
-        this._drawTermsAndConditions(doc, woData);
-        this._drawSignatureSection(doc, companyInfo, woData, contractorInfo);
-        this._drawFooter(doc, companyInfo);
+      // reserved blocks
+      this.footerH = 30;
+      this.signatureH = 120; // sama dengan PO (QR + teks)
+   }
 
-        doc.end();
-      } catch (error) {
-        reject(error);
+   /* ===== Helpers ===== */
+   _snap(y) { return Math.round(y / this.baseline) * this.baseline; }
+   _advance(dy) {
+      this.cursorY = this._snap(this.cursorY + dy);
+      if (this.cursorY > this.safeBottom) this.cursorY = this.safeBottom;
+   }
+   _heightOf(doc, text, width, font = 'Helvetica', size = 9, opts = {}) {
+      doc.font(font).fontSize(size);
+      return doc.heightOfString(text || '', { width, ...opts });
+   }
+   _currency(n) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0);
+   }
+
+   /**
+    * Ambil nama & posisi direktur dari beberapa kemungkinan key (match PO)
+    * Tidak pernah mengganti nama dengan "Pimpinan <company>" dlsb.
+    */
+   _getDirectorInfo(company = {}, wo = {}) {
+      console.log('🔍 [_getDirectorInfo] Input company:', {
+         director: company.director,
+         directorName: company.directorName,
+         directorPosition: company.directorPosition,
+         director_position: company.director_position
+      });
+
+      const nameCandidates = [
+         company.director,
+         company.directorName,
+         company.director_fullname,
+         company.director_full_name,
+         company.presidentDirector,         // jika struktur berbeda
+         wo.approvedByName,
+         wo.approved_by_name
+      ].filter(Boolean).map(s => String(s).trim()).filter(Boolean);
+
+      const posCandidates = [
+         company.directorPosition,
+         company.director_position,
+         company.positionTitle,
+         company.position_title,
+         'Direktur Utama' // default terakhir
+      ].filter(Boolean).map(s => String(s).trim()).filter(Boolean);
+
+      console.log('🔍 [_getDirectorInfo] Name candidates:', nameCandidates);
+      console.log('🔍 [_getDirectorInfo] Position candidates:', posCandidates);
+
+      const result = {
+         name: nameCandidates[0] || '',         // biarkan kosong jika tak ada
+         position: posCandidates[0] || 'Direktur Utama'
+      };
+
+      console.log('✅ [_getDirectorInfo] Result:', result);
+
+      return result;
+   }
+
+   /**
+    * Generate Work Order PDF buffer
+    * @param {Object} woData
+    * @param {Object} companyInfo  {name, address, phone, email, npwp, city, logo, director, directorPosition}
+    * @param {Object} contractorInfo {name, address, contact, startDate, endDate}
+    * @param {Date}   printDate
+    */
+   async generateWO(woData, companyInfo, contractorInfo, printDate = new Date()) {
+      return new Promise(async (resolve, reject) => {
+         try {
+            const doc = new PDFDocument({
+               size: 'A4',
+               margin: this.margin,
+               info: {
+                  Title: `Perintah Kerja ${woData.woNumber}`,
+                  Author: companyInfo.name,
+                  Subject: 'Perintah Kerja (Work Order)',
+                  Keywords: 'work order, perintah kerja, konstruksi'
+               }
+            });
+
+            // Guard: cegah halaman kedua
+            doc.on('pageAdded', () => { throw new Error('Overflow: layout melebihi 1 halaman.'); });
+
+            const buffers = [];
+            doc.on('data', buffers.push.bind(buffers));
+            doc.on('end', () => resolve(Buffer.concat(buffers)));
+            doc.on('error', reject);
+
+            // Flow start
+            this.cursorY = this.safeTop;
+
+            // 1) Letterhead (match PO)
+            this._drawLetterhead(doc, companyInfo);
+
+            // 2) Header WO (match PO detail kanan)
+            this._drawWOHeader_MatchPO(doc, woData, printDate);
+
+            // 3) Contractor box
+            this._drawContractorBox(doc, contractorInfo);
+
+            // 4) Redaksi + Deskripsi (clamped)
+            this._drawScopeAndDescription(doc, woData, contractorInfo);
+
+            // Ruang tersisa untuk Table + Total + Terms + Signature + Footer
+            const reservedBottom = this.signatureH + this.footerH + 20;
+            let spaceLeft = this.safeBottom - reservedBottom - this.cursorY;
+
+            // 5) Items table (adaptif)
+            const tableResult = this._drawItemsTable_Adaptive(doc, woData, spaceLeft);
+            spaceLeft -= tableResult.consumeH;
+
+            // 6) Totals (kompak)
+            const totalsH = this._drawTotals_Compact(doc, woData);
+            spaceLeft -= totalsH + this.sectionGap;
+
+            // 7) Terms (adaptif)
+            const termsH = this._drawTerms_Adaptive(doc, spaceLeft);
+            spaceLeft -= termsH + this.sectionGap;
+
+            // 8) Signature (match PO: QR + nama direktur center dalam kotak)
+            await this._drawSignature_MatchPO(doc, companyInfo, woData, contractorInfo, printDate);
+
+            // 9) Footer
+            this._drawFooter(doc, companyInfo, printDate);
+
+            doc.end();
+         } catch (err) {
+            reject(err);
+         }
+      });
+   }
+
+   /* ==================== SECTION 1: LETTERHEAD (MATCH PO) ==================== */
+   _drawLetterhead(doc, company) {
+      const startY = this.cursorY;
+
+      // LOGO
+      const logoSize = 45;
+      const logoX = this.margin;
+      const logoY = startY;
+
+      if (company.logo) {
+         const logoPath = path.join(__dirname, '..', 'uploads', company.logo); // samakan path dengan PO
+         try {
+            if (fs.existsSync(logoPath)) {
+               doc.image(logoPath, logoX, logoY, { fit: [logoSize, logoSize], align: 'center', valign: 'center' });
+            } else {
+               doc.rect(logoX, logoY, logoSize, logoSize).strokeColor('#CCCCCC').lineWidth(1).stroke();
+               doc.font('Helvetica').fontSize(6).fillColor('#999').text('LOGO', logoX + 15, logoY + 18);
+            }
+         } catch {
+            doc.rect(logoX, logoY, logoSize, logoSize).strokeColor('#CCCCCC').lineWidth(1).stroke();
+            doc.font('Helvetica').fontSize(6).fillColor('#999').text('LOGO', logoX + 15, logoY + 18);
+         }
+      } else {
+         doc.rect(logoX, logoY, logoSize, logoSize).strokeColor('#CCCCCC').lineWidth(1).stroke();
+         doc.font('Helvetica').fontSize(6).fillColor('#999').text('LOGO', logoX + 15, logoY + 18);
       }
-    });
-  }
 
-  /**
-   * Draw company letterhead - OPTIMIZED
-   */
-  _drawLetterhead(doc, company) {
-    const startY = this.margin;
-    
-    // Company Logo placeholder (smaller)
-    doc.rect(this.margin, startY, 50, 50)
-       .strokeColor('#CCCCCC')
-       .lineWidth(1)
-       .stroke();
-    
-    doc.fontSize(7)
-       .fillColor('#999999')
-       .text('LOGO', this.margin + 17, startY + 20);
+      // INFO PERUSAHAAN
+      const companyInfoX = this.margin + logoSize + 10;
+      const companyInfoWidth = this.contentWidth - logoSize - 10;
 
-    // Company Name and Info (more compact)
-    doc.font('Helvetica-Bold')
-       .fontSize(14) // Reduced from 16
-       .fillColor('#000000')
-       .text(company.name || 'PT Nusantara Construction', this.margin + 60, startY);
-    
-    doc.font('Helvetica')
-       .fontSize(8) // Reduced from 9
-       .text(company.address || 'Jakarta, Indonesia', this.margin + 60, startY + 18, { width: 450 })
-       .text(`Telp: ${company.phone || '021-12345678'} | Email: ${company.email || 'info@nusantara.co.id'}`, this.margin + 60, startY + 30)
-       .text(`NPWP: ${company.npwp || '00.000.000.0-000.000'}`, this.margin + 60, startY + 42);
+      doc.font('Helvetica-Bold').fontSize(13).fillColor('#000')
+         .text(company.name || '-', companyInfoX, startY);
 
-    // Horizontal line separator
-    doc.moveTo(this.margin, startY + 60)
-       .lineTo(this.pageWidth - this.margin, startY + 60)
-       .strokeColor('#000000')
-       .lineWidth(1.5)
-       .stroke();
+      const addressText = company.address || '-';
+      doc.font('Helvetica').fontSize(7.5).fillColor('#333');
+      const addrH = doc.heightOfString(addressText, { width: companyInfoWidth });
+      doc.text(addressText, companyInfoX, startY + 16, { width: companyInfoWidth })
+         .text(`Telp: ${company.phone || '-'} | Email: ${company.email || '-'}`, companyInfoX, startY + 16 + addrH + 2)
+         .text(`NPWP: ${company.npwp || '-'}`, companyInfoX, startY + 16 + addrH + 13);
 
-    return startY + 70; // Reduced spacing
-  }
+      // GARIS PEMISAH
+      const separatorY = this._snap(Math.max(startY + 56, doc.y + 6));
+      doc.moveTo(this.margin, separatorY).lineTo(this.pageWidth - this.margin, separatorY)
+         .strokeColor('#000').lineWidth(1.5).stroke();
 
-  /**
-   * Draw WO header - title and reference numbers - OPTIMIZED
-   */
-  _drawWOHeader(doc, wo) {
-    const startY = this.margin + 75;
+      this._advance((separatorY - startY) + this.sectionGap);
+   }
 
-    // WO Title - Centered and Bold (smaller)
-    doc.font('Helvetica-Bold')
-       .fontSize(16) // Reduced from 20
-       .fillColor('#000000')
-       .text('PERINTAH KERJA', 0, startY, {
-         align: 'center',
-         width: this.pageWidth
-       });
-    
-    doc.font('Helvetica')
-       .fontSize(12)
-       .text('(WORK ORDER)', 0, startY + 25, {
-         align: 'center',
-         width: this.pageWidth
-       });
+   /* ==================== SECTION 2: WO HEADER (MATCH PO STYLE) ==================== */
+   _drawWOHeader_MatchPO(doc, wo, printDate) {
+      const startY = this.cursorY + 10;
 
-    // WO Number and Details - Right aligned
-    const infoX = this.pageWidth - this.margin - 220;
-    doc.font('Helvetica')
-       .fontSize(10)
-       .text('No. WO:', infoX, startY + 45)
-       .font('Helvetica-Bold')
-       .fontSize(11)
-       .text(wo.woNumber || wo.wo_number || 'N/A', infoX + 80, startY + 45)
-       
-       .font('Helvetica')
-       .fontSize(10)
-       .text('Tanggal:', infoX, startY + 60)
-       .font('Helvetica-Bold')
-       .text(moment(wo.createdAt || wo.created_at).format('DD MMMM YYYY'), infoX + 80, startY + 60)
-       
-       .font('Helvetica')
-       .text('Proyek:', infoX, startY + 75)
-       .font('Helvetica-Bold')
-       .text(wo.projectId || 'N/A', infoX + 80, startY + 75);
+      // Title center (setara "PURCHASE ORDER" di PO)
+      doc.font('Helvetica-Bold').fontSize(16).fillColor('#000')
+         .text('PERINTAH KERJA', this.margin, startY, { width: this.contentWidth, align: 'center' });
 
-    return startY + 110;
-  }
+      // Panel kanan (No., Tgl. Dibuat, Tgl. Cetak, Proyek)
+      const infoX = this.pageWidth - this.margin - 200;
+      const labelW = 65;
+      const labelSize = 7.5;
+      const valueSize = 9;
 
-  /**
-   * Draw contractor information box
-   */
-  _drawContractorInfo(doc, contractor) {
-    const startY = this.margin + 230;
+      const createdDate = wo.approved_date || wo.approvedDate || wo.createdAt || wo.created_at || new Date();
 
-    // "Kepada Yth" section
-    doc.font('Helvetica-Bold')
-       .fontSize(11)
-       .fillColor('#000000')
-       .text('Kepada Yth,', this.margin, startY);
+      const rows = [
+         ['No. WO:', wo.woNumber || wo.wo_number || 'N/A'],
+         ['Tgl. Dibuat:', moment(createdDate).format('DD MMM YYYY')],
+         ['Tgl. Cetak:', moment(printDate).format('DD MMM YYYY HH:mm')],
+         ['Proyek:', wo.projectId || wo.project_id || 'N/A'],
+      ];
 
-    // Contractor detail box
-    doc.rect(this.margin, startY + 20, 250, 80)
-       .strokeColor('#CCCCCC')
-       .lineWidth(1)
-       .stroke();
+      let y = startY + 24;
+      rows.forEach(([label, val]) => {
+         doc.font('Helvetica').fontSize(labelSize).fillColor('#000').text(label, infoX, y);
+         doc.font('Helvetica-Bold').fontSize(valueSize)
+            .fillColor(label === 'Tgl. Cetak:' ? '#0066CC' : '#000')
+            .text(val, infoX + labelW, y);
+         y += 11;
+      });
 
-    doc.font('Helvetica-Bold')
-       .fontSize(12)
-       .text(contractor.name || 'Nama Kontraktor/Mandor', this.margin + 10, startY + 30);
+      this._advance(this._snap((y - startY) + this.sectionGap));
+   }
 
-    doc.font('Helvetica')
-       .fontSize(10)
-       .text(contractor.address || '-', this.margin + 10, startY + 48, {
-         width: 230,
-         lineGap: 2
-       });
+   /* ==================== SECTION 3: KONTRAKTOR ==================== */
+   _drawContractorBox(doc, contractor) {
+      const y = this.cursorY + 6;
 
-    if (contractor.contact) {
-      doc.text(`Kontak: ${contractor.contact}`, this.margin + 10, startY + 75);
-    }
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#000')
+         .text('Kepada Yth,', this.margin, y);
 
-    // Work Period box
-    if (contractor.startDate || contractor.endDate) {
-      const periodX = this.pageWidth - this.margin - 220;
-      doc.rect(periodX, startY + 20, 220, 50)
-         .strokeColor('#CCCCCC')
-         .lineWidth(1)
-         .stroke();
+      const boxY = y + 16;
+      const boxH = 64;
+      const boxW = 250;
 
-      doc.font('Helvetica')
-         .fontSize(9)
-         .text('Periode Kerja:', periodX + 10, startY + 27);
+      // Box kiri (kontraktor)
+      doc.rect(this.margin, boxY, boxW, boxH).strokeColor('#CCCCCC').lineWidth(1).stroke();
+      doc.font('Helvetica-Bold').fontSize(10).text(contractor.name || 'Nama Kontraktor/Mandor', this.margin + 8, boxY + 6, { width: boxW - 16 });
+      doc.font('Helvetica').fontSize(8.5).text(contractor.address || '-', this.margin + 8, boxY + 22, { width: boxW - 16 });
+      if (contractor.contact) doc.text(`Kontak: ${contractor.contact}`, this.margin + 8, boxY + 40);
 
-      const startDate = contractor.startDate ? moment(contractor.startDate).format('DD MMM YYYY') : '-';
-      const endDate = contractor.endDate ? moment(contractor.endDate).format('DD MMM YYYY') : '-';
+      // Box kanan (periode kerja)
+      if (contractor.startDate || contractor.endDate) {
+         const rW = 210;
+         const rX = this.pageWidth - this.margin - rW;
+         doc.rect(rX, boxY, rW, 48).strokeColor('#CCCCCC').lineWidth(1).stroke();
+         doc.font('Helvetica').fontSize(8).text('Periode Kerja:', rX + 8, boxY + 6);
+         const sd = contractor.startDate ? moment(contractor.startDate).format('DD MMM YYYY') : '-';
+         const ed = contractor.endDate ? moment(contractor.endDate).format('DD MMM YYYY') : '-';
+         doc.font('Helvetica-Bold').fontSize(9).text(`${sd} s/d ${ed}`, rX + 8, boxY + 20);
+      }
 
-      doc.font('Helvetica-Bold')
-         .fontSize(10)
-         .text(`${startDate} s/d ${endDate}`, periodX + 10, startY + 43, {
-           width: 200,
-           lineGap: 2
+      this._advance(this._snap(boxH + 28));
+   }
+
+   /* ==================== SECTION 4: REDAKSI + DESKRIPSI ==================== */
+   _drawScopeAndDescription(doc, wo, contractor) {
+      const y = this.cursorY;
+
+      doc.font('Helvetica').fontSize(9.5).fillColor('#000')
+         .text('Dengan hormat,', this.margin, y);
+      doc.text(
+         'Bersama ini kami instruksikan kepada Saudara untuk melaksanakan pekerjaan sebagai berikut:',
+         this.margin, y + 14, { width: this.contentWidth, lineGap: 2.5 }
+      );
+
+      const redaksi = `Bahwa berdasarkan hasil koordinasi dan kesepakatan bersama, perusahaan kami menunjuk ${contractor.name || '__________________'} untuk melaksanakan pekerjaan sebagaimana tercantum dalam rincian berikut. Pelaksanaan pekerjaan wajib mengikuti spesifikasi teknis, jadwal pelaksanaan, serta ketentuan lain yang telah disetujui.`;
+      const redH = this._heightOf(doc, redaksi, this.contentWidth, 'Helvetica', 9, { align: 'justify', lineGap: 2 });
+      doc.font('Helvetica').fontSize(9).text(redaksi, this.margin, y + 36, { width: this.contentWidth, align: 'justify', lineGap: 2 });
+
+      const instruksi = 'Dengan diterbitkannya Surat Perintah Kerja ini, Saudara wajib memulai pekerjaan sesuai jadwal dan menyampaikan laporan perkembangan secara berkala untuk diverifikasi.';
+      const insH = this._heightOf(doc, instruksi, this.contentWidth, 'Helvetica', 9, { align: 'justify', lineGap: 2 });
+      doc.text(instruksi, this.margin, y + 36 + redH + 6, { width: this.contentWidth, align: 'justify', lineGap: 2 });
+
+      // Box deskripsi (clamped)
+      const descTop = y + 36 + redH + 6 + insH + 10;
+      const boxH = 35;
+      doc.rect(this.margin, descTop, this.contentWidth, boxH).strokeColor('#E0E0E0').lineWidth(1).stroke();
+
+      doc.font('Helvetica-Bold').fontSize(9).text('Deskripsi Pekerjaan:', this.margin + 8, descTop + 6);
+      const desc = wo.description || wo.workScope || '-';
+      const maxDescH = boxH - 15;
+      const fullDescH = this._heightOf(doc, desc, this.contentWidth - 16, 'Helvetica', 8.5, { lineGap: 1.2 });
+      let descText = desc;
+      if (fullDescH > maxDescH) {
+         let cut = desc.length;
+         while (cut > 10) {
+            cut = Math.floor(cut * 0.9);
+            const tryText = desc.slice(0, cut) + ' …';
+            const h = this._heightOf(doc, tryText, this.contentWidth - 16, 'Helvetica', 8.5, { lineGap: 1.2 });
+            if (h <= maxDescH) { descText = tryText; break; }
+         }
+      }
+      doc.font('Helvetica').fontSize(8.5).text(descText, this.margin + 8, descTop + 18, { width: this.contentWidth - 16, lineGap: 1.2 });
+
+      this._advance(this._snap((descTop + boxH) - y + this.sectionGap));
+   }
+
+   /* ==================== SECTION 5: TABEL (ADAPTIF) ==================== */
+   _drawItemsTable_Adaptive(doc, wo, spaceForTable) {
+      const startY = this.cursorY + 15;
+      const headerH = 20;
+      const rowH = 20;
+      const labelH = 10;
+      const minRows = 1;
+
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#000')
+         .text('Rincian Pekerjaan:', this.margin, startY - 14);
+
+      // hitung baris yang muat
+      const spaceRows = Math.max(0, spaceForTable - headerH - labelH);
+      const maxRowsFit = Math.max(minRows, Math.floor(spaceRows / rowH));
+
+      const items = Array.isArray(wo.items) ? wo.items : [];
+      const rows = Math.min(maxRowsFit, items.length || minRows);
+      const truncated = items.length > rows;
+
+      // Header
+      doc.rect(this.margin, startY, this.contentWidth, headerH).fillAndStroke('#E8E8E8', '#000');
+
+      const col1 = this.margin;                 // No
+      const col2 = this.margin + 30;            // Uraian
+      const col3 = this.margin + 200;           // Spesifikasi
+      const col4 = this.pageWidth - this.margin - 220; // Volume
+      const col5 = this.pageWidth - this.margin - 145; // Harga
+      const col6 = this.pageWidth - this.margin - 75;  // Jumlah
+
+      doc.fillColor('#000').font('Helvetica-Bold').fontSize(8)
+         .text('No', col1 + 3, startY + 5)
+         .text('Uraian', col2, startY + 5)
+         .text('Spesifikasi', col3, startY + 5)
+         .text('Volume', col4, startY + 5)
+         .text('Harga', col5, startY + 5, { width: 60, align: 'right' })
+         .text('Jumlah', col6, startY + 5, { width: 70, align: 'right' });
+
+      // Rows
+      let rowY = startY + headerH + 4;
+      const textOffsetY = 4;
+      const showItems = (items.length ? items.slice(0, rows) : [{ itemName: '-', specification: '-', quantity: '', unit: '', unitPrice: 0, totalPrice: 0 }]);
+
+      doc.font('Helvetica').fontSize(7);
+      showItems.forEach((it, i) => {
+         doc.rect(this.margin, rowY - 4, this.contentWidth, rowH).strokeColor('#CFCFCF').lineWidth(0.4).stroke();
+         doc.text(String(i + 1), col1 + 3, rowY + textOffsetY)
+            .text(it.itemName || it.description || '-', col2, rowY + textOffsetY, { width: 160 })
+            .text(it.specification || '-', col3, rowY + textOffsetY, { width: 150 })
+            .text(`${it.quantity || 0} ${it.unit || ''}`, col4, rowY + textOffsetY)
+            .text(this._currency(it.unitPrice || 0), col5, rowY + textOffsetY, { width: 65, align: 'right' })
+            .text(this._currency(it.totalPrice || 0), col6, rowY + textOffsetY, { width: 70, align: 'right' });
+         rowY += rowH;
+      });
+
+      if (truncated) {
+         doc.font('Helvetica-Oblique').fontSize(7).fillColor('#666')
+            .text(`… dan ${items.length - rows} item lainnya`, this.margin + 10, rowY + 2, { width: 220 });
+         rowY += 12;
+      }
+
+      const consumeH = (rowY - startY) + labelH;
+      this._advance(this._snap(consumeH));
+      return { consumeH, endY: rowY };
+   }
+
+   /* ==================== SECTION 6: TOTAL (KOMPAK) ==================== */
+   _drawTotals_Compact(doc, wo) {
+      const startY = this.cursorY + 4;
+
+      const RIGHT_INSET = 14;
+      const BOX_W = 80;
+      const valueX = (this.pageWidth - this.margin - RIGHT_INSET) - BOX_W;
+      const labelX = this.pageWidth - this.margin - 200;
+
+      doc.font('Helvetica').fontSize(9).fillColor('#000')
+         .text('Subtotal:', labelX, startY);
+      doc.font('Helvetica-Bold').fontSize(9)
+         .text(this._currency(wo.totalAmount || 0), valueX, startY, { width: BOX_W, align: 'right' });
+
+      let y = startY;
+      if (wo.tax && wo.tax > 0) {
+         y += 12;
+         doc.font('Helvetica').fontSize(9).text(`PPN (${wo.taxRate || 11}%):`, labelX, y);
+         doc.font('Helvetica-Bold').fontSize(9)
+            .text(this._currency(wo.tax), valueX, y, { width: BOX_W, align: 'right' });
+      }
+
+      const totalY = y + 16;
+      doc.rect(labelX - 8, totalY - 4, 200, 20).fillAndStroke('#EDEDED', '#000');
+      doc.font('Helvetica-Bold').fontSize(10).fillColor('#000')
+         .text('TOTAL:', labelX, totalY + 2);
+      doc.fontSize(11)
+         .text(this._currency(wo.totalAmount || 0), valueX, totalY + 1, { width: BOX_W, align: 'right' });
+
+      const consumed = (totalY + 26) - startY;
+      this._advance(this._snap(consumed));
+      return consumed;
+   }
+
+   /* ==================== SECTION 7: TERMS (ADAPTIF) ==================== */
+   _drawTerms_Adaptive(doc, spaceLeftBeforeTerms) {
+      const startY = this.cursorY + 4;
+
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#000')
+         .text('Ketentuan Pelaksanaan:', this.margin, startY);
+
+      const termsAll = [
+         '1. Pekerjaan dilaksanakan sesuai spesifikasi teknis yang ditetapkan.',
+         '2. Kontraktor wajib menyediakan tenaga kerja, alat, dan material yang diperlukan.',
+         '3. Pembayaran dilakukan bertahap sesuai progres terverifikasi.',
+         '4. Kontraktor bertanggung jawab atas mutu dan keselamatan kerja.',
+         '5. Laporan kemajuan disampaikan secara berkala.',
+         '6. Pekerjaan harus selesai sesuai jadwal yang ditentukan.',
+      ];
+
+      // sisakan ruang signature + footer
+      const mustReserve = this.signatureH + this.footerH + 16;
+      let space = Math.max(40, spaceLeftBeforeTerms - mustReserve);
+
+      let y = startY + 12;
+      const lineH = 11;
+      let printed = 0;
+
+      doc.font('Helvetica').fontSize(8).fillColor('#333');
+      for (let i = 0; i < termsAll.length; i++) {
+         if (space < lineH) break;
+         doc.text(termsAll[i], this.margin, y, { width: this.contentWidth });
+         y += lineH;
+         space -= lineH;
+         printed++;
+      }
+
+      if (printed < termsAll.length && space >= lineH) {
+         doc.font('Helvetica-Oblique').fontSize(7).fillColor('#666')
+            .text('… beberapa ketentuan lain tidak ditampilkan demi kerapian halaman.', this.margin, y, { width: this.contentWidth });
+         y += lineH;
+      }
+
+      const consumed = (y - startY);
+      this._advance(this._snap(consumed));
+      return consumed;
+   }
+
+   /* ==================== SECTION 8: SIGNATURE (MATCH PO + QR) ==================== */
+   async _drawSignature_MatchPO(doc, company, wo, contractor, printDate) {
+      // Pastikan tidak menabrak footer
+      let startY = this.safeBottom - (this.footerH + this.signatureH + 20);
+      if (this.cursorY > startY) startY = this.cursorY;
+      startY = this._snap(startY);
+
+      // Kotak kanan (company) dibingkai
+      const rightBoxW = 200;
+      const rightBoxX = this.pageWidth - this.margin - rightBoxW;
+      const rightBoxY = startY - 6;
+      doc.rect(rightBoxX, rightBoxY, rightBoxW, this.signatureH + 12)
+         .strokeColor('#D0D0D0').lineWidth(0.5).stroke();
+
+      const colLeftX = this.margin + 30;     // kiri (Pelaksana)
+      const colRightTextX = rightBoxX + 14;  // label kanan sedikit masuk
+      const qrSize = 60;
+      const qrX = rightBoxX + (rightBoxW - qrSize) / 2; // center dalam kotak
+      const qrY = startY + 28;
+
+      // Kolom kiri: Pelaksana (kontraktor)
+      doc.font('Helvetica').fontSize(8).fillColor('#000')
+         .text('Menyetujui,', colLeftX, startY);
+      doc.fontSize(7).text('(Pelaksana)', colLeftX, startY + 12);
+      // Garis manual tanda tangan
+      doc.font('Helvetica').fontSize(8).text('', colLeftX - 5, startY + 100);
+      // Nama pelaksana (opsional)
+      if (contractor?.name) {
+         doc.font('Helvetica-Bold').fontSize(8).text(contractor.name, colLeftX - 2, startY + 100, { width: 170 });
+      }
+
+      // Kolom kanan: Perusahaan (QR + nama direktur)
+      doc.font('Helvetica').fontSize(8).fillColor('#000')
+         .text('Yang Memerintahkan,', colRightTextX, startY);
+
+      // Lokasi & tanggal (1 baris)
+      const city = company.city || 'Karawang';
+      const dateStr = moment(printDate).locale('id').format('DD MMMM YYYY');
+      doc.fontSize(7).text(`${city}, ${dateStr}`, colRightTextX, startY + 16);
+
+      // Director info menggunakan helper (match PO, tanpa fallback aneh)
+      const { name: directorName, position: directorPosition } = this._getDirectorInfo(company, wo);
+
+      // (opsional) debug bila kosong
+      if (!directorName) {
+         console.warn('[WO] Director name is empty. Check company.director or mapping keys.');
+      }
+
+      // Generate & place QR (center)
+      try {
+         const qrData = {
+            wo_number: wo.woNumber || wo.wo_number,
+            subsidiary: company.name,
+            director: directorName,
+            position: directorPosition,
+            created_date: moment(wo.createdAt || wo.created_at || new Date()).format('YYYY-MM-DD'),
+            print_date: moment(printDate).format('YYYY-MM-DD HH:mm:ss'),
+            signature_type: 'digital_verified'
+         };
+         const qrCodeBuffer = await QRCode.toBuffer(JSON.stringify(qrData), {
+            errorCorrectionLevel: 'M',
+            type: 'png',
+            width: qrSize,
+            margin: 1
          });
-    }
 
-    return startY + 120;
-  }
+         doc.image(qrCodeBuffer, qrX, qrY, { width: qrSize, height: qrSize });
+         doc.font('Helvetica').fontSize(5.5).fillColor('#0066CC')
+            .text('Tanda Tangan Digital', qrX, qrY + 62, { width: qrSize, align: 'center' })
+            .fillColor('#000');
+      } catch {
+         // lanjut tanpa QR jika gagal
+      }
 
-  /**
-   * Draw work scope description
-   */
-  _drawWorkScope(doc, wo) {
-    const startY = this.margin + 365;
+      // Nama Direktur & Jabatan — center terhadap KOTAK (bukan QR)
+      const nameYBase = qrY + qrSize + 15;
 
-    doc.font('Helvetica')
-       .fontSize(10)
-       .fillColor('#000000')
-       .text('Dengan hormat,', this.margin, startY);
-    
-    doc.text(
-      `Bersama ini kami instruksikan kepada Saudara untuk melaksanakan pekerjaan sebagai berikut:`,
-      this.margin, 
-      startY + 15, 
-      { width: this.pageWidth - (this.margin * 2), lineGap: 3 }
-    );
+      // Dinamis: kecilkan font jika nama/jabatan terlalu panjang agar tetap 1 baris & center
+      let nameFont = 8.5;
+      let posFont = 7.5;
+      const maxWidth = rightBoxW - 12; // sedikit inset agar tidak mepet border
 
-    // Work description box (if provided)
-    if (wo.description || wo.workScope) {
-      doc.rect(this.margin, startY + 45, this.pageWidth - (this.margin * 2), 50)
-         .strokeColor('#E0E0E0')
-         .lineWidth(1)
-         .stroke();
+      // Try-fit untuk nama direktur
+      let nameW = doc.widthOfString(directorName, { font: 'Helvetica-Bold', size: nameFont });
+      while (nameW > maxWidth && nameFont > 6.5) {
+         nameFont -= 0.25;
+         nameW = doc.widthOfString(directorName, { font: 'Helvetica-Bold', size: nameFont });
+      }
+      // Try-fit untuk posisi
+      let posText = `(${directorPosition})`;
+      let posW = doc.widthOfString(posText, { font: 'Helvetica', size: posFont });
+      while (posW > maxWidth && posFont > 6) {
+         posFont -= 0.25;
+         posW = doc.widthOfString(posText, { font: 'Helvetica', size: posFont });
+      }
 
-      doc.font('Helvetica-Bold')
-         .fontSize(9)
-         .text('Deskripsi Pekerjaan:', this.margin + 10, startY + 52);
+      doc.font('Helvetica-Bold').fontSize(nameFont)
+         .text(directorName, rightBoxX + 6, nameYBase, {
+            width: rightBoxW - 12, align: 'center', lineBreak: false
+         });
+      doc.font('Helvetica').fontSize(posFont)
+         .text(posText, rightBoxX + 6, nameYBase + 12, {
+            width: rightBoxW - 12, align: 'center', lineBreak: false
+         });
 
-      doc.font('Helvetica')
-         .fontSize(9)
-         .text(
-           wo.description || wo.workScope || 'Pekerjaan sesuai RAB yang telah disetujui',
-           this.margin + 10,
-           startY + 65,
-           { width: this.pageWidth - (this.margin * 2) - 20, lineGap: 2 }
-         );
-    }
+      // Update cursor agar footer aman
+      this.cursorY = Math.max(this.cursorY, startY + this.signatureH);
+   }
 
-    return startY + 110;
-  }
-
-  /**
-   * Draw items table
-   */
-  _drawItemsTable(doc, wo) {
-    const startY = this.margin + 380; // Reduced from 500 for compact layout
-    const tableTop = startY;
-
-    // Column positions - adjusted for better spacing
-    const col1X = this.margin; // No
-    const col2X = this.margin + 30; // Uraian Pekerjaan
-    const col3X = this.margin + 200; // Spesifikasi
-    const col4X = this.pageWidth - this.margin - 220; // Volume
-    const col5X = this.pageWidth - this.margin - 150; // Harga Satuan
-    const col6X = this.pageWidth - this.margin - 80; // Jumlah
-
-    // Table title
-    doc.font('Helvetica-Bold')
-       .fontSize(10) // Reduced from 11
-       .text('Rincian Pekerjaan:', this.margin, startY - 15);
-
-    // Table header background
-    doc.rect(this.margin, tableTop, this.pageWidth - (this.margin * 2), 25)
-       .fillAndStroke('#E8E8E8', '#000000');
-
-    // Table header text
-    doc.fillColor('#000000')
-       .font('Helvetica-Bold')
-       .fontSize(8) // Reduced from 9
-       .text('No', col1X + 3, tableTop + 8)
-       .text('Uraian Pekerjaan', col2X, tableTop + 8)
-       .text('Spesifikasi', col3X, tableTop + 8)
-       .text('Volume', col4X, tableTop + 8)
-       .text('Harga Satuan', col5X, tableTop + 8, { width: 60, align: 'right' })
-       .text('Jumlah', col6X, tableTop + 8, { width: 70, align: 'right' });
-
-    // Table rows - LIMIT TO 5 ITEMS FOR SINGLE PAGE
-    let rowY = tableTop + 35;
-    const lineHeight = 22; // Reduced from 35 for compact layout
-    const items = wo.items || [];
-    const maxItems = 5; // Max items to fit in single page
-    const displayItems = items.slice(0, maxItems);
-
-    displayItems.forEach((item, index) => {
-      // Row border
-      doc.rect(this.margin, rowY - 5, this.pageWidth - (this.margin * 2), lineHeight)
-         .strokeColor('#CCCCCC')
-         .lineWidth(0.5)
-         .stroke();
-
-      // Row data
-      doc.font('Helvetica')
-         .fontSize(7) // Reduced from 8 for better fit
-         .fillColor('#000000')
-         .text((index + 1).toString(), col1X + 3, rowY)
-         .text(item.itemName || item.item_name || item.description || '-', col2X, rowY, { width: 160, lineGap: 0 })
-         .text(item.specification || '-', col3X, rowY, { width: 150, lineGap: 0 })
-         .text(`${item.quantity || 0} ${item.unit || ''}`, col4X, rowY, { width: 60 })
-         .text(this._formatCurrency(item.unitPrice || item.unit_price || 0), col5X, rowY, { width: 65, align: 'right' })
-         .text(this._formatCurrency(item.totalPrice || item.total_price || 0), col6X, rowY, { width: 70, align: 'right' });
-
-      rowY += lineHeight;
-    });
-
-    // Show remaining items count if truncated
-    if (items.length > maxItems) {
-      doc.font('Helvetica-Oblique')
-         .fontSize(7)
-         .fillColor('#666666')
-         .text(`... dan ${items.length - maxItems} item lainnya`, this.margin + 10, rowY, { width: 200 });
-      rowY += 12;
-    }
-
-    return rowY + 10;
-  }
-
-  /**
-   * Draw total section
-   */
-  _drawTotalSection(doc, wo) {
-    const items = wo.items || [];
-    const lineHeight = 35; // Match table lineHeight
-    const lastItemY = this.margin + 500 + 35 + (items.length * lineHeight);
-    const startY = lastItemY + 20;
-
-    const labelX = this.pageWidth - this.margin - 200;
-    const valueX = this.pageWidth - this.margin - 80;
-
-    // Subtotal
-    doc.font('Helvetica')
-       .fontSize(10)
-       .text('Subtotal:', labelX, startY)
-       .font('Helvetica-Bold')
-       .text(this._formatCurrency(wo.totalAmount || wo.total_amount || 0), valueX, startY, { width: 70, align: 'right' });
-
-    // Tax (if applicable)
-    if (wo.tax && wo.tax > 0) {
-      doc.font('Helvetica')
-         .fontSize(10)
-         .text(`PPN (${wo.taxRate || 11}%):`, labelX, startY + 20)
-         .font('Helvetica-Bold')
-         .text(this._formatCurrency(wo.tax), valueX, startY + 20, { width: 70, align: 'right' });
-    }
-
-    // Grand Total with background
-    const totalY = wo.tax && wo.tax > 0 ? startY + 45 : startY + 25;
-    doc.rect(labelX - 10, totalY - 5, 210, 25)
-       .fillAndStroke('#E8E8E8', '#000000');
-
-    doc.fillColor('#000000')
-       .font('Helvetica-Bold')
-       .fontSize(12)
-       .text('TOTAL NILAI PEKERJAAN:', labelX - 80, totalY + 3)
-       .fontSize(13)
-       .text(this._formatCurrency(wo.totalAmount || wo.total_amount || 0), valueX, totalY + 3, { width: 70, align: 'right' });
-
-    return totalY + 40;
-  }
-
-  /**
-   * Draw terms and conditions
-   */
-  _drawTermsAndConditions(doc, wo) {
-    const items = wo.items || [];
-    const lineHeight = 35; // Match table lineHeight
-    const lastItemY = this.margin + 500 + 35 + (items.length * lineHeight);
-    const startY = lastItemY + 130; // Increased spacing
-
-    doc.font('Helvetica-Bold')
-       .fontSize(10)
-       .fillColor('#000000')
-       .text('Ketentuan Pelaksanaan:', this.margin, startY);
-
-    const terms = [
-      '1. Pekerjaan dilaksanakan sesuai dengan spesifikasi teknis yang telah ditetapkan',
-      '2. Kontraktor wajib menyediakan tenaga kerja, alat, dan material sesuai kebutuhan',
-      '3. Pembayaran dilakukan bertahap sesuai progress pekerjaan yang telah diverifikasi',
-      '4. Kontraktor bertanggung jawab atas kualitas dan keamanan kerja',
-      '5. Laporan progress wajib disampaikan secara berkala sesuai kesepakatan',
-      '6. Pekerjaan harus selesai sesuai jadwal yang telah ditentukan'
-    ];
-
-    doc.font('Helvetica')
-       .fontSize(8);
-
-    terms.forEach((term, index) => {
-      doc.text(term, this.margin, startY + 15 + (index * 12), { width: this.pageWidth - (this.margin * 2) });
-    });
-
-    return startY + 100;
-  }
-
-  /**
-   * Draw signature section - SMART SIGNATURES FROM DATABASE
-   */
-  _drawSignatureSection(doc, company, wo, contractor) {
-    // Fixed position for signature (no new page for single page optimization)
-    const startY = this.pageHeight - 120; // Fixed position near bottom
-    return this._drawSignatureSectionAtY(doc, company, wo, contractor, startY);
-  }
-
-  _drawSignatureSectionAtY(doc, company, wo, contractor, startY) {
-    const col1X = this.margin;
-    const col2X = this.pageWidth / 2 - 75;
-    const col3X = this.pageWidth - this.margin - 150;
-
-    // Left: Kontraktor/Pelaksana
-    doc.font('Helvetica')
-       .fontSize(8)
-       .fillColor('#000000')
-       .text('Menyetujui,', col1X, startY);
-
-    // Contractor contact person or blank
-    const contractorName = contractor?.contactPerson || contractor?.name || '';
-    if (contractorName) {
-      doc.font('Helvetica-Bold')
-         .fontSize(8)
-         .text(contractorName, col1X, startY + 35);
-      doc.font('Helvetica')
-         .fontSize(7)
-         .text('(Pelaksana)', col1X, startY + 48);
-    } else {
-      doc.font('Helvetica')
-         .text('( _____________ )', col1X, startY + 35);
-      doc.fontSize(7)
-         .text('(Pelaksana)', col1X, startY + 48);
-    }
-
-    // Center: Pengawas (usually from project manager)
-    doc.font('Helvetica')
-       .fontSize(8)
-       .text('Mengetahui,', col2X, startY);
-
-    const supervisorName = wo?.supervisor_name || wo?.supervisorName || '';
-    if (supervisorName) {
-      doc.font('Helvetica-Bold')
-         .fontSize(8)
-         .text(supervisorName, col2X, startY + 35);
-      doc.font('Helvetica')
-         .fontSize(7)
-         .text('(Pengawas)', col2X, startY + 48);
-    } else {
-      doc.font('Helvetica')
-         .text('( _____________ )', col2X, startY + 35);
-      doc.fontSize(7)
-         .text('(Pengawas)', col2X, startY + 48);
-    }
-
-    // Right: Pimpinan Subsidiary
-    doc.font('Helvetica')
-       .fontSize(8)
-       .text('Yang Memerintahkan,', col3X, startY);
-
-    doc.fontSize(7)
-       .text(company.city || 'Jakarta', col3X, startY + 12);
-    doc.text(moment().format('DD MMM YYYY'), col3X, startY + 22);
-
-    const companySignature = company?.director || wo?.approved_by || wo?.approvedBy || '';
-    if (companySignature) {
-      doc.font('Helvetica-Bold')
-         .fontSize(8)
-         .text(companySignature, col3X, startY + 35);
-      doc.font('Helvetica')
-         .fontSize(7)
-         .text('(Pimpinan)', col3X, startY + 48);
-    } else {
-      doc.font('Helvetica')
-         .text('( _____________ )', col3X, startY + 35);
-      doc.fontSize(7)
-         .text('(Pimpinan)', col3X, startY + 48);
-    }
-
-    return startY + 70;
-  }
-
-  /**
-   * Draw footer - WITH PRINT DATE
-   */
-  _drawFooter(doc, company) {
-    const footerY = this.pageHeight - 35; // Adjusted for new layout
-
-    doc.font('Helvetica')
-       .fontSize(7)
-       .fillColor('#666666')
-       .text(
-         `${company.name || 'PT Nusantara Construction'} | ${company.email || 'info@nusantara.co.id'} | ${company.phone || '021-12345678'}`,
-         0,
-         footerY,
-         { align: 'center', width: this.pageWidth }
-       );
-
-    doc.text(
-      'Dokumen ini sah dan resmi tanpa memerlukan tanda tangan basah',
-      0,
-      footerY + 10,
-      { align: 'center', width: this.pageWidth }
-    );
-
-    doc.fontSize(6)
-       .text(
-         `Dicetak pada: ${moment().format('DD MMMM YYYY HH:mm')} WIB`,
-         0,
-         footerY + 20,
-         { align: 'center', width: this.pageWidth }
-       );
-  }
-
-  /**
-   * Format currency to Indonesian Rupiah
-   */
-  _formatCurrency(amount) {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount || 0);
-  }
+   /* ==================== SECTION 9: FOOTER ==================== */
+   _drawFooter(doc, company, printDate) {
+      const y = this.safeBottom - this.footerH;
+      doc.font('Helvetica').fontSize(7).fillColor('#666')
+         .text(`${company.name || '-'} | ${company.email || '-'} | ${company.phone || '-'}`,
+            0, y, { align: 'center', width: this.pageWidth });
+      doc.text('Dokumen ini sah dan resmi tanpa memerlukan tanda tangan basah',
+         0, y + 10, { align: 'center', width: this.pageWidth });
+      doc.fontSize(6).fillColor('#999')
+         .text(`Dicetak pada: ${moment(printDate).format('DD MMMM YYYY HH:mm')} WIB`,
+            0, y + 20, { align: 'center', width: this.pageWidth });
+   }
 }
 
 module.exports = new WorkOrderPDFGenerator();

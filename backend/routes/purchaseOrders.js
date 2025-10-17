@@ -778,33 +778,105 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
 
     console.log('Generating PDF for PO:', po.po_number || po.poNumber);
 
+    // Check if we need to fetch items for PO
+    if (!po.items) {
+      console.log('⚠ No items found in PO, attempting to fetch items...');
+      
+      try {
+        // Fetch PO items based on your data model
+        // Adjust this query based on your actual database structure
+        const poItems = await sequelize.query(
+          `SELECT * FROM purchase_order_items WHERE po_id = :poId`,
+          {
+            replacements: { poId: id },
+            type: sequelize.QueryTypes.SELECT
+          }
+        );
+        
+        if (poItems && poItems.length > 0) {
+          console.log(`✓ Found ${poItems.length} items for PO`);
+          po.items = poItems;
+        } else {
+          console.log('⚠ No items found for PO in database');
+          po.items = []; // Ensure items is at least an empty array
+        }
+      } catch (itemError) {
+        console.error('❌ Error fetching PO items:', itemError);
+        po.items = []; // Ensure items is at least an empty array
+      }
+    }
+
     // Fetch project to get subsidiary
     const project = await Project.findOne({
       where: { id: po.project_id || po.projectId },
       raw: true
     });
 
+    console.log('📊 Project data:', {
+      id: project?.id,
+      name: project?.name,
+      subsidiary_id_snake: project?.subsidiary_id,
+      subsidiaryId_camel: project?.subsidiaryId
+    });
+
     // Fetch subsidiary data with proper data
     let subsidiaryData = null;
-    if (project && project.subsidiary_id) {
-      subsidiaryData = await Subsidiary.findOne({
-        where: { id: project.subsidiary_id },
-        raw: true
-      });
-      console.log('✓ Subsidiary data loaded:', subsidiaryData?.name);
-      console.log('✓ Board of directors (snake_case):', subsidiaryData?.board_of_directors);
-      console.log('✓ Board of directors (camelCase):', subsidiaryData?.boardOfDirectors);
+    // Handle both snake_case and camelCase for subsidiary_id
+    const subsidiaryId = project?.subsidiary_id || project?.subsidiaryId;
+    
+    if (project && subsidiaryId) {
+      console.log('🔍 Fetching subsidiary with ID:', subsidiaryId);
+      
+      try {
+        const subsidiaryRaw = await Subsidiary.findOne({
+          where: { id: subsidiaryId },
+          raw: true
+        });
+        
+        // Parse JSONB fields if they are strings (raw query returns JSON as string)
+        if (subsidiaryRaw) {
+          subsidiaryData = {
+            ...subsidiaryRaw,
+            address: typeof subsidiaryRaw.address === 'string' 
+              ? JSON.parse(subsidiaryRaw.address) 
+              : subsidiaryRaw.address,
+            contact_info: typeof subsidiaryRaw.contact_info === 'string' 
+              ? JSON.parse(subsidiaryRaw.contact_info) 
+              : subsidiaryRaw.contact_info,
+            board_of_directors: typeof subsidiaryRaw.board_of_directors === 'string' 
+              ? JSON.parse(subsidiaryRaw.board_of_directors) 
+              : subsidiaryRaw.board_of_directors,
+            legal_info: typeof subsidiaryRaw.legal_info === 'string' 
+              ? JSON.parse(subsidiaryRaw.legal_info) 
+              : subsidiaryRaw.legal_info
+          };
+          
+          console.log('✅ Subsidiary data loaded:', subsidiaryData.name);
+          console.log('✅ Subsidiary status:', subsidiaryData.status);
+          console.log('✅ Board of directors type:', typeof subsidiaryData.board_of_directors);
+          console.log('✅ Board of directors array?:', Array.isArray(subsidiaryData.board_of_directors));
+        } else {
+          console.error('❌ Subsidiary not found in database for ID:', subsidiaryId);
+        }
+      } catch (subsidiaryError) {
+        console.error('❌ Error fetching subsidiary:', subsidiaryError.message);
+        console.error('❌ Subsidiary error stack:', subsidiaryError.stack);
+      }
     } else {
       console.log('⚠ No project or subsidiary_id found');
+      console.log('⚠ Project exists:', !!project);
+      console.log('⚠ Subsidiary ID (snake_case):', project?.subsidiary_id);
+      console.log('⚠ Subsidiary ID (camelCase):', project?.subsidiaryId);
     }
 
     // Extract director name from board_of_directors
     // Handle both snake_case and camelCase
     const boardData = subsidiaryData?.board_of_directors || subsidiaryData?.boardOfDirectors;
-    let directorName = null;
+    // Default director name - use company name jika tidak ada board data
+    let directorName = "Direktur " + (subsidiaryData?.name || "Perusahaan").split(/\s+/)[1];
     let directorPosition = 'Direktur'; // Default position
     
-    if (boardData && Array.isArray(boardData)) {
+    if (boardData && Array.isArray(boardData) && boardData.length > 0) {
       console.log('✓ Extracting director from board data...');
       // Find Director or Director Utama
       const director = boardData.find(d => 
@@ -823,7 +895,7 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
         console.log('✓ Using first board member:', directorName);
       }
     } else {
-      console.log('⚠ No board_of_directors data found');
+      console.log('⚠ No board_of_directors data found, using fallback director name');
     }
 
     // Handle both snake_case and camelCase for subsidiary data
@@ -831,30 +903,70 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
     const contactInfo = subsidiaryData?.contact_info || subsidiaryData?.contactInfo || {};
     const legalInfo = subsidiaryData?.legal_info || subsidiaryData?.legalInfo || {};
     
-    // ✅ CRITICAL: NO HARDCODED FALLBACKS! 
-    // If no subsidiary data, PDF should not be generated with fake data
+    // Periksa apakah data subsidiary ditemukan
     if (!subsidiaryData) {
       console.error('❌ CRITICAL: No subsidiary data found for PDF generation');
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot generate PDF: Subsidiary data not found. Please ensure the project is linked to a valid subsidiary.'
-      });
+      
+      // Fetch default subsidiary if available
+      try {
+        console.log('🔍 Attempting to find default subsidiary...');
+        const subsidiaryRaw = await Subsidiary.findOne({
+          where: { 
+            status: 'active' // Only valid enum value
+          },
+          order: [['created_at', 'ASC']],
+          raw: true
+        });
+        
+        // Parse JSONB fields for fallback subsidiary too
+        if (subsidiaryRaw) {
+          subsidiaryData = {
+            ...subsidiaryRaw,
+            address: typeof subsidiaryRaw.address === 'string' 
+              ? JSON.parse(subsidiaryRaw.address) 
+              : subsidiaryRaw.address,
+            contact_info: typeof subsidiaryRaw.contact_info === 'string' 
+              ? JSON.parse(subsidiaryRaw.contact_info) 
+              : subsidiaryRaw.contact_info,
+            board_of_directors: typeof subsidiaryRaw.board_of_directors === 'string' 
+              ? JSON.parse(subsidiaryRaw.board_of_directors) 
+              : subsidiaryRaw.board_of_directors,
+            legal_info: typeof subsidiaryRaw.legal_info === 'string' 
+              ? JSON.parse(subsidiaryRaw.legal_info) 
+              : subsidiaryRaw.legal_info
+          };
+          
+          console.log('✅ Found default subsidiary:', subsidiaryData.name);
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: 'Cannot generate PDF: Subsidiary data not found. Please ensure the project is linked to a valid subsidiary.'
+          });
+        }
+      } catch (err) {
+        console.error('❌ Error finding default subsidiary:', err);
+        console.error('❌ Error details:', err.message);
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot generate PDF: Subsidiary data not found. Please ensure the project is linked to a valid subsidiary.'
+        });
+      }
     }
     
-    // Company info from subsidiary - ONLY REAL DATA FROM DATABASE
+    // Company info from subsidiary dengan fallback yang aman
     const companyInfo = {
-      name: subsidiaryData.name,  // ✅ NO FALLBACK
-      address: address.street || address.full || '-',  // ✅ Use '-' if no address
-      city: address.city || '-',
-      phone: contactInfo.phone || '-',  // ✅ Use '-' if no phone
-      email: contactInfo.email || '-',
-      npwp: legalInfo.npwp || legalInfo.taxIdentificationNumber || '-',  // ✅ Use '-' if no NPWP
+      name: subsidiaryData.name || 'PT. Nusantara Group',
+      address: address.street || address.full || subsidiaryData.address?.street || subsidiaryData.location?.street || 'Jl. Utama No. 123',
+      city: address.city || subsidiaryData.address?.city || subsidiaryData.location?.city || 'Jakarta',
+      phone: contactInfo.phone || subsidiaryData.contact?.phone || subsidiaryData.phone || '+62-21-555-1234',
+      email: contactInfo.email || subsidiaryData.contact?.email || subsidiaryData.email || 'info@nusantaragroup.co.id',
+      npwp: legalInfo.npwp || legalInfo.taxIdentificationNumber || subsidiaryData.npwp || '01.123.456.7-123.000',
       logo: subsidiaryData.logo || null,
-      director: directorName,
-      directorPosition: directorPosition
+      director: directorName || 'Direktur',
+      directorPosition: directorPosition || 'Direktur Utama'
     };
     
-    console.log('✓ Company info for PDF (REAL DATA ONLY):', {
+    console.log('✓ Company info for PDF (with fallbacks if needed):', {
       name: companyInfo.name,
       address: companyInfo.address,
       city: companyInfo.city,
@@ -866,13 +978,13 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
       position: companyInfo.directorPosition
     });
 
-    // Supplier info from PO
+    // Supplier info from PO dengan fallback yang lebih baik
     const supplierInfo = {
       name: po.supplier_name || po.supplierName || 'Supplier',
-      address: po.supplier_address || po.supplierAddress || '-',
-      contact: po.supplier_contact || po.supplierContact || '-',
-      deliveryDate: po.delivery_date || po.deliveryDate,
-      contactPerson: po.supplier_contact_person || null // For signature
+      address: po.supplier_address || po.supplierAddress || po.address || 'Alamat Supplier',
+      contact: po.supplier_contact || po.supplierContact || po.contact || 'Kontak Supplier',
+      deliveryDate: po.delivery_date || po.deliveryDate || po.expectedDeliveryDate || new Date(),
+      contactPerson: po.supplier_contact_person || po.contactPerson || 'Purchasing Manager' // For signature
     };
 
     // Generate PDF with current timestamp

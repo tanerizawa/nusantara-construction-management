@@ -328,23 +328,155 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
 
     // Fetch subsidiary data
     let subsidiaryData = null;
-    if (project && project.subsidiary_id) {
-      subsidiaryData = await Subsidiary.findOne({
-        where: { id: project.subsidiary_id },
+    const subsidiaryId = project?.subsidiary_id || project?.subsidiaryId; // Handle both snake_case and camelCase
+    
+    if (project && subsidiaryId) {
+      const subsidiaryRaw = await Subsidiary.findOne({
+        where: { id: subsidiaryId },
         raw: true
+      });
+      
+      // Parse JSONB fields if they are strings (raw query returns JSON as string)
+      // NOTE: Sequelize dengan raw:true mengubah snake_case ke camelCase!
+      if (subsidiaryRaw) {
+        subsidiaryData = {
+          ...subsidiaryRaw,
+          address: typeof subsidiaryRaw.address === 'string' 
+            ? JSON.parse(subsidiaryRaw.address) 
+            : subsidiaryRaw.address,
+          contact_info: typeof subsidiaryRaw.contactInfo === 'string' 
+            ? JSON.parse(subsidiaryRaw.contactInfo) 
+            : subsidiaryRaw.contactInfo,
+          contactInfo: typeof subsidiaryRaw.contactInfo === 'string' 
+            ? JSON.parse(subsidiaryRaw.contactInfo) 
+            : subsidiaryRaw.contactInfo,
+          // Sequelize returns boardOfDirectors (camelCase), not board_of_directors
+          board_of_directors: typeof subsidiaryRaw.boardOfDirectors === 'string' 
+            ? JSON.parse(subsidiaryRaw.boardOfDirectors) 
+            : subsidiaryRaw.boardOfDirectors,
+          boardOfDirectors: typeof subsidiaryRaw.boardOfDirectors === 'string' 
+            ? JSON.parse(subsidiaryRaw.boardOfDirectors) 
+            : subsidiaryRaw.boardOfDirectors,
+          legal_info: typeof subsidiaryRaw.legalInfo === 'string' 
+            ? JSON.parse(subsidiaryRaw.legalInfo) 
+            : subsidiaryRaw.legalInfo,
+          legalInfo: typeof subsidiaryRaw.legalInfo === 'string' 
+            ? JSON.parse(subsidiaryRaw.legalInfo) 
+            : subsidiaryRaw.legalInfo
+        };
+      }
+      
+      console.log('📊 Subsidiary data found:', {
+        id: subsidiaryData?.id,
+        name: subsidiaryData?.name,
+        hasAddress: !!subsidiaryData?.address,
+        boardOfDirectorsType: typeof subsidiaryData?.board_of_directors,
+        hasDirectors: Array.isArray(subsidiaryData?.board_of_directors) && subsidiaryData.board_of_directors.length > 0
       });
     }
 
-    // Company info from subsidiary or default
+    // Format address lengkap (sama seperti PO)
+    let fullAddress = process.env.COMPANY_ADDRESS || 'Karawang, Jawa Barat, Indonesia';
+    if (subsidiaryData?.address) {
+      const addressParts = [];
+      if (subsidiaryData.address.street) addressParts.push(subsidiaryData.address.street);
+      if (subsidiaryData.address.city) addressParts.push(subsidiaryData.address.city);
+      if (subsidiaryData.address.province) addressParts.push(subsidiaryData.address.province);
+      if (subsidiaryData.address.postalCode) addressParts.push(subsidiaryData.address.postalCode);
+      if (addressParts.length > 0) fullAddress = addressParts.join(', ');
+    }
+
+    // Extract director dari board_of_directors array
+    let directorName = null;
+    let directorPosition = 'Direktur Utama';
+
+    // Debug: Check board_of_directors structure
+    console.log('🔍 board_of_directors data:', {
+      exists: !!subsidiaryData?.board_of_directors,
+      isArray: Array.isArray(subsidiaryData?.board_of_directors),
+      length: subsidiaryData?.board_of_directors?.length,
+      rawData: subsidiaryData?.board_of_directors
+    });
+
+    if (subsidiaryData?.board_of_directors && Array.isArray(subsidiaryData.board_of_directors)) {
+      // Prioritas 1: Direktur Utama yang aktif
+      let director = subsidiaryData.board_of_directors.find(
+        d => d.isActive && d.position === 'Direktur Utama'
+      );
+      
+      // Prioritas 2: Direktur yang aktif (posisi apapun yang mengandung "Direktur")
+      if (!director) {
+        director = subsidiaryData.board_of_directors.find(
+          d => d.isActive && d.position && d.position.includes('Direktur')
+        );
+      }
+      
+      // Prioritas 3: Director aktif pertama
+      if (!director) {
+        director = subsidiaryData.board_of_directors.find(d => d.isActive);
+      }
+      
+      if (director) {
+        directorName = director.name;
+        directorPosition = director.position;
+        console.log('✅ Director found from board_of_directors:', directorName, '-', directorPosition);
+      } else {
+        console.log('⚠️  No active director found in board_of_directors array');
+      }
+    } else {
+      console.log('❌ board_of_directors is not an array or does not exist');
+    }
+
+    // DISABLED: Fallback yang menghasilkan nama fake seperti "Pimpinan BINTANG SURAYA"
+    // Sekarang biarkan kosong jika tidak ada director di database, jangan bikin nama palsu
+    /*
+    if (!directorName && subsidiaryData?.name) {
+      const companyName = subsidiaryData.name;
+      if (companyName.startsWith('PT.')) {
+        directorName = `Direktur ${companyName.replace('PT.', '').trim()}`;
+      } else if (companyName.startsWith('CV.')) {
+        directorName = `Pimpinan ${companyName.replace('CV.', '').trim()}`;
+      } else {
+        directorName = 'Pimpinan Perusahaan';
+      }
+      console.log('⚠️  No director in board_of_directors, using fallback:', directorName);
+    }
+    */
+    
+    // Warning jika director kosong
+    if (!directorName) {
+      console.warn('⚠️  Director name is empty after checking board_of_directors. PDF will show empty name.');
+    }
+
+    console.log('📋 Final director info before PDF generation:', {
+      directorName,
+      directorPosition
+    });
+
+    // Company info lengkap untuk PDF
     const companyInfo = {
       name: subsidiaryData?.name || process.env.COMPANY_NAME || 'PT Nusantara Construction',
-      address: subsidiaryData?.address?.street || subsidiaryData?.address?.full || process.env.COMPANY_ADDRESS || 'Jakarta, Indonesia',
-      city: subsidiaryData?.address?.city || process.env.COMPANY_CITY || 'Jakarta',
-      phone: subsidiaryData?.contact_info?.phone || process.env.COMPANY_PHONE || '021-12345678',
+      address: fullAddress,
+      city: subsidiaryData?.address?.city || process.env.COMPANY_CITY || 'Karawang',
+      phone: subsidiaryData?.contact_info?.phone || process.env.COMPANY_PHONE || '+62-267-8520-1400',
       email: subsidiaryData?.contact_info?.email || process.env.COMPANY_EMAIL || 'info@nusantara.co.id',
-      npwp: subsidiaryData?.contact_info?.npwp || process.env.COMPANY_NPWP || '00.000.000.0-000.000',
-      director: subsidiaryData?.contact_info?.director || null // For signature
+      npwp: subsidiaryData?.legal_info?.taxIdentificationNumber || 
+            subsidiaryData?.legal_info?.vatRegistificationNumber || 
+            process.env.COMPANY_NPWP || '00.000.000.0-000.000',
+      logo: subsidiaryData?.logo || null,
+      director: directorName,
+      directorPosition: directorPosition
     };
+
+    console.log('✓ Company info for PDF (Work Order):', {
+      name: companyInfo.name,
+      address: companyInfo.address,
+      city: companyInfo.city,
+      phone: companyInfo.phone,
+      email: companyInfo.email,
+      director: companyInfo.director,
+      position: companyInfo.directorPosition
+    });
 
     // Contractor info from WO
     const contractorInfo = {

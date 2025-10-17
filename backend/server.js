@@ -265,8 +265,9 @@ app.use('/api/stats', require('./routes/stats'));
 // Projects API - Modular Routes (Phase 1 Complete - 54 endpoints)
 app.use('/api/projects', require('./routes/projects/index'));
 
-// Subsidiaries API - Modular Routes (Phase 5 Complete - 12 endpoints)
-app.use('/api/subsidiaries', require('./routes/subsidiaries/index'));
+// Subsidiaries API - Updated for COA Integration
+// OLD: app.use('/api/subsidiaries', require('./routes/subsidiaries/index')); // Modular routes (Phase 5)
+app.use('/api/subsidiaries', require('./routes/subsidiaries')); // COA-integrated subsidiary management
 app.use('/api/manpower', require('./routes/manpower'));
 app.use('/api/finance', require('./routes/finance'));
 app.use('/api/tax', require('./routes/tax'));
@@ -294,6 +295,9 @@ app.use('/api/rab-view', require('./routes/rab-view')); // Real-time RAB with av
 console.log('Loading purchase-orders route...');
 app.use('/api/purchase-orders', require('./routes/purchaseOrders'));
 console.log('Purchase-orders route loaded successfully');
+console.log('Loading work-orders route...');
+app.use('/api/work-orders', require('./routes/workOrders'));
+console.log('Work-orders route loaded successfully');
 
 // Root endpoint for health check
 app.get('/', (req, res) => {

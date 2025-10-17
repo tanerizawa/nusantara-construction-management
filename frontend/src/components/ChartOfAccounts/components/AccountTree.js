@@ -26,10 +26,10 @@ const AccountTree = ({
   editForm,              // NEW: Edit form state
   onEditSubmit,          // NEW: Edit submit handler
   onEditCancel,          // NEW: Cancel edit handler
-  allAccounts,           // NEW: All accounts for parent select
-  subsidiaries           // NEW: Subsidiaries for select
+  allAccounts            // NEW: All accounts for parent select
 }) => {
   const [subsidiaryData, setSubsidiaryData] = useState({});
+  const [subsidiaries, setSubsidiaries] = useState([]); // Load internally for edit form
 
   useEffect(() => {
     loadSubsidiaries();
@@ -44,6 +44,7 @@ const AccountTree = ({
         dataMap[sub.id] = sub;
       });
       setSubsidiaryData(dataMap);
+      setSubsidiaries(result.data); // Store array for edit form dropdown
     }
   };
 

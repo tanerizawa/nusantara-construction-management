@@ -12,14 +12,12 @@ import AccountFilters from './components/AccountFilters';
 import AccountTree from './components/AccountTree';
 import AccountStatistics from './components/AccountStatistics';
 import AddAccountModal from './components/AddAccountModal';
-import InlineSubsidiaryPanel from './components/InlineSubsidiaryPanel';
 
 // Utils
 import { exportAccountsToCSV } from './utils/accountExport';
 
 // Services
 import { getAccountById, updateAccount, deleteAccount } from './services/accountService';
-import { fetchSubsidiaries } from './services/subsidiaryService';
 
 // Config
 import { CHART_OF_ACCOUNTS_CONFIG } from './config/chartOfAccountsConfig';
@@ -35,7 +33,6 @@ const ChartOfAccounts = () => {
   const [selectedAccount, setSelectedAccount] = useState(null); // Current account data
   const [deleteConfirmId, setDeleteConfirmId] = useState(null); // Show delete confirmation
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showSubsidiaryPanel, setShowSubsidiaryPanel] = useState(false); // NEW: Inline subsidiary panel
   
   // Main data hook
   const {
@@ -59,7 +56,7 @@ const ChartOfAccounts = () => {
     getFilterStats
   } = useChartOfAccounts();
 
-  // Account form hook
+    // Account form hook
   const accountForm = useAccountForm(allAccounts || accounts, (result) => {
     setShowAddAccountModal(false);
     handleAccountCreated();
@@ -70,20 +67,10 @@ const ChartOfAccounts = () => {
     setShowEditModal(false);
     handleAccountCreated();
   });
-
-  // Subsidiary modal hook
-  const subsidiaryModal = useSubsidiaryModal();
   
   // Handle subsidiary panel toggle
   const handleToggleSubsidiaryPanel = () => {
-    const newState = !showSubsidiaryPanel;
-    setShowSubsidiaryPanel(newState);
-    
-    // Load subsidiaries when opening panel
-    if (newState && subsidiaryModal.subsidiaries.length === 0) {
-      console.log('📊 Loading subsidiaries...');
-      subsidiaryModal.openModal(); // This loads the data
-    }
+    setShowSubsidiaryPanel(!showSubsidiaryPanel);
   };
 
   // Handle export
@@ -246,22 +233,12 @@ const ChartOfAccounts = () => {
         refreshing={refreshing}
         onRefresh={handleRefresh}
         onAddAccount={handleAddAccount}
-        onManageEntities={handleToggleSubsidiaryPanel}
       />
 
       {/* Summary Panel */}
       <AccountSummaryPanel
         totalBalances={totalBalances}
         lastUpdate={lastUpdate}
-      />
-      
-      {/* Inline Subsidiary Panel */}
-      <InlineSubsidiaryPanel
-        isOpen={showSubsidiaryPanel}
-        onClose={() => setShowSubsidiaryPanel(false)}
-        subsidiaries={subsidiaryModal.subsidiaries}
-        loading={subsidiaryModal.loading}
-        error={subsidiaryModal.error}
       />
 
       {/* Error Display */}
@@ -325,7 +302,6 @@ const ChartOfAccounts = () => {
         onEditSubmit={handleEditSubmit}
         onEditCancel={() => { setEditingAccountId(null); editForm.resetForm(); }}
         allAccounts={allAccounts || accounts}
-        subsidiaries={subsidiaryModal.subsidiaries}
       />
 
       {/* Statistics */}

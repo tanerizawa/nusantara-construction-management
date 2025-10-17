@@ -78,6 +78,66 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * @route   GET /api/subsidiaries/statistics
+ * @desc    Get subsidiaries statistics (alias for /stats/summary)
+ * @access  Private
+ */
+router.get('/statistics', async (req, res) => {
+  try {
+    const totalCount = await Subsidiary.count();
+    const activeCount = await Subsidiary.count({ where: { status: 'active' } });
+    const inactiveCount = totalCount - activeCount;
+
+    // Count by specialization
+    const { sequelize } = require('../config/database');
+    const bySpecialization = await Subsidiary.findAll({
+      where: { status: 'active' },
+      attributes: [
+        'specialization',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count']
+      ],
+      group: ['specialization'],
+      raw: true
+    });
+
+    // Calculate total employees
+    const subsidiaries = await Subsidiary.findAll({
+      attributes: ['employeeCount']
+    });
+    const totalEmployees = subsidiaries.reduce((sum, sub) => {
+      return sum + (sub.employeeCount || 0);
+    }, 0);
+
+    res.json({
+      success: true,
+      data: {
+        overview: {
+          total: totalCount,
+          active: activeCount,
+          inactive: inactiveCount,
+          totalEmployees: totalEmployees
+        },
+        bySpecialization: bySpecialization.map(s => ({
+          specialization: s.specialization,
+          count: parseInt(s.count)
+        })),
+        specializations: bySpecialization.map(s => ({
+          specialization: s.specialization,
+          count: parseInt(s.count)
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching subsidiary statistics:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch statistics',
+      message: error.message
+    });
+  }
+});
+
+/**
  * @route   GET /api/subsidiaries/:id
  * @desc    Get subsidiary by ID
  * @access  Private
@@ -88,7 +148,7 @@ router.get('/:id', async (req, res) => {
       include: [
         {
           model: ChartOfAccounts,
-          as: 'Accounts',
+          as: 'accounts',
           attributes: ['id', 'accountCode', 'accountName', 'accountType'],
           limit: 10
         }

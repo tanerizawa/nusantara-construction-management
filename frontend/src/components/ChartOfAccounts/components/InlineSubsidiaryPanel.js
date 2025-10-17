@@ -6,6 +6,13 @@ const { colors } = CHART_OF_ACCOUNTS_CONFIG;
 
 const InlineSubsidiaryPanel = ({ isOpen, onClose, subsidiaries, loading, error }) => {
   if (!isOpen) return null;
+  
+  console.log('📊 InlineSubsidiaryPanel render:', {
+    isOpen,
+    subsidiariesCount: subsidiaries?.length || 0,
+    loading,
+    error
+  });
 
   return (
     <div 

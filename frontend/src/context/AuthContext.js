@@ -32,7 +32,19 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Token verification failed:', error);
-        // Remove token and logout on any error
+        
+        // Handle different error types
+        if (error.response) {
+          if (error.response.status === 401) {
+            // Token invalid or expired - this is expected, just clear auth
+            console.log('Token expired or invalid, clearing auth state');
+          } else if (error.response.status >= 500) {
+            // Server error - log but don't force logout immediately
+            console.error('Server error during token verification:', error.response.status);
+          }
+        }
+        
+        // Clear token and logout on any verification error
         logout();
       } finally {
         setLoading(false);

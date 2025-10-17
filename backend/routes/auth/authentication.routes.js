@@ -218,12 +218,23 @@ router.get("/me", async (req, res) => {
     });
   } catch (error) {
     console.error("Auth error:", error);
+    
+    // Handle JWT errors
     if (error.name === "JsonWebTokenError") {
       return res.status(401).json({
         success: false,
         error: "Invalid token",
       });
     }
+    
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        error: "Token expired",
+        tokenExpired: true
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: "Server error",

@@ -153,6 +153,17 @@ const setupAssociations = () => {
     as: 'projects'
   });
 
+  // ChartOfAccounts - Subsidiary relationships
+  ChartOfAccounts.belongsTo(Subsidiary, {
+    foreignKey: 'subsidiaryId',
+    as: 'subsidiary'
+  });
+  
+  Subsidiary.hasMany(ChartOfAccounts, {
+    foreignKey: 'subsidiaryId',
+    as: 'accounts'
+  });
+
   // Project - ProjectRAB relationships
   Project.hasMany(ProjectRAB, {
     foreignKey: 'projectId',

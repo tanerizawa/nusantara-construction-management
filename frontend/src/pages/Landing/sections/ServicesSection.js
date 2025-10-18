@@ -65,7 +65,7 @@ const ServiceCard = ({ service, animated, delay = 0 }) => {
             {service.stats.projects}
           </div>
           <div className="text-xs text-gray-600">
-            Projects
+            Proyek
           </div>
         </div>
       </div>

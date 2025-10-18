@@ -1,18 +1,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ArrowRight } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { LANDING_CONFIG } from '../config/landingConfig';
 
 export const Navigation = ({ 
   isMenuOpen, 
   toggleMenu, 
   activeSection = 'home',
+  onNavigate,
   className = '' 
 }) => {
-  const { navigation, ctaButtons } = LANDING_CONFIG;
+  const { navigation } = LANDING_CONFIG;
 
   return (
-    <nav className={`fixed top-0 w-full bg-white/95 backdrop-blur-lg shadow-lg z-50 ${className}`}>
+    <nav 
+      className={`fixed top-0 w-full bg-white/95 backdrop-blur-lg shadow-lg z-50 ${className}`}
+      role="navigation" 
+      aria-label="Primary"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -36,6 +41,7 @@ export const Navigation = ({
                 href={item.href}
                 label={item.label}
                 isActive={activeSection === item.href.replace('#', '')}
+                onClick={() => onNavigate && onNavigate(item.href.replace('#', ''))}
               />
             ))}
             <CTAButton />
@@ -58,6 +64,7 @@ export const Navigation = ({
             navigation={navigation}
             activeSection={activeSection}
             onClose={toggleMenu}
+            onNavigate={onNavigate}
           />
         )}
       </div>
@@ -65,12 +72,14 @@ export const Navigation = ({
   );
 };
 
-const NavLink = ({ href, label, isActive }) => (
+const NavLink = ({ href, label, isActive, onClick }) => (
   <a 
     href={href} 
     className={`font-semibold transition-colors duration-300 relative group ${
       isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'
     }`}
+    aria-current={isActive ? 'page' : undefined}
+    onClick={onClick}
   >
     {label}
     <span className={`absolute -bottom-1 left-0 h-0.5 bg-blue-600 transition-all duration-300 ${
@@ -92,7 +101,7 @@ const CTAButton = () => {
   );
 };
 
-const MobileMenu = ({ navigation, activeSection, onClose }) => (
+const MobileMenu = ({ navigation, activeSection, onClose, onNavigate }) => (
   <div className="md:hidden bg-white/95 backdrop-blur-lg border-t border-gray-100">
     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
       {navigation.map((item) => (
@@ -104,7 +113,10 @@ const MobileMenu = ({ navigation, activeSection, onClose }) => (
               ? 'text-blue-600 bg-blue-50' 
               : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
           }`}
-          onClick={onClose}
+          onClick={(e) => {
+            onClose();
+            onNavigate && onNavigate(item.href.replace('#', ''));
+          }}
         >
           {item.label}
         </a>

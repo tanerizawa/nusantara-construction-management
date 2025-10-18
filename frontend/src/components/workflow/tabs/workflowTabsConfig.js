@@ -32,7 +32,7 @@ export const workflowTabsConfig = [
   },
   {
     id: 'budget',
-    label: 'RAB & PO',
+    label: 'Anggaran (RAB/PO/WO',
     icon: Calculator,
     description: 'Manajemen anggaran dan pembelian',
     hasChildren: true,
@@ -61,16 +61,8 @@ export const workflowTabsConfig = [
     ]
   },
   {
-    id: 'budget-validation',
-    label: 'Validasi Anggaran',
-    icon: ClipboardCheck,
-    path: 'budget-validation',
-    description: 'Validasi penggunaan anggaran vs RAB',
-    hasChildren: false
-  },
-  {
     id: 'milestones',
-    label: 'Milestone',
+    label: 'Progres',
     icon: Target,
     path: 'milestones',
     description: 'Target dan pencapaian proyek',
@@ -78,7 +70,7 @@ export const workflowTabsConfig = [
   },
   {
     id: 'ba-payments',
-    label: 'BA & Payment',
+    label: 'BA & Pembayaran',
     icon: Clipboard,
     description: 'Berita Acara dan Progress Payment',
     hasChildren: true,

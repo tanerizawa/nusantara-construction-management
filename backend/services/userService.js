@@ -185,6 +185,45 @@ class UserService {
     return safeUser;
   }
 
+  // Update user
+  async updateUser(id, updateData) {
+    if (dbAvailable && User) {
+      try {
+        const user = await User.findByPk(id);
+        if (!user) {
+          return null;
+        }
+        
+        // Update user
+        await user.update(updateData);
+        return user.toSafeObject();
+      } catch (error) {
+        console.error('Database error updating user:', error);
+        dbAvailable = false;
+      }
+    }
+
+    // Fallback to JSON file
+    const usersData = await this.loadUsersFromFile();
+    const userIndex = usersData.users.findIndex(u => u.id === id);
+    
+    if (userIndex === -1) {
+      return null;
+    }
+
+    // Update user data
+    usersData.users[userIndex] = {
+      ...usersData.users[userIndex],
+      ...updateData
+    };
+
+    await this.saveUsersToFile(usersData);
+
+    // Return safe object (without password)
+    const { password, ...safeUser } = usersData.users[userIndex];
+    return safeUser;
+  }
+
   // Verify password
   async verifyPassword(user, password) {
     if (user && user.password) {

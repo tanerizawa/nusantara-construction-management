@@ -323,7 +323,7 @@ const ProjectWorkOrders = ({
                 contractorInfo={contractorInfo}
                 setContractorInfo={setContractorInfo}
                 onSubmit={handleCreateWO}
-                onBack={() => setCurrentStep('select')}
+                onBack={() => setCreateWOStep('rab-selection')}
                 loading={woLoading}
               />
             </div>

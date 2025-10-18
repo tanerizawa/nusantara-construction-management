@@ -26,6 +26,8 @@ const { colors } = CHART_OF_ACCOUNTS_CONFIG;
 
 const ChartOfAccounts = () => {
   const [showAddAccountModal, setShowAddAccountModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showSubsidiaryPanel, setShowSubsidiaryPanel] = useState(false);
   
   // INLINE approach - no modals, expand in place
   const [expandedAccountId, setExpandedAccountId] = useState(null); // Which account detail is shown

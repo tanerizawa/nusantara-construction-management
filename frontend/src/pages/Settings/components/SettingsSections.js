@@ -1,15 +1,23 @@
 import React from 'react';
 import { FileText, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { SETTINGS_SECTIONS } from '../utils';
 
 /**
  * Component to render a card for each settings section
  * @param {Object} props Component properties
  * @param {Object} props.section Section data
+ * @param {Function} props.onSectionSelect Function to call when section is clicked
  * @returns {JSX.Element} Settings section card
  */
-const SettingSectionCard = ({ section }) => {
+const SettingSectionCard = ({ section, onSectionSelect }) => {
+  const navigate = useNavigate();
   const { title, description, path, icon: SectionIcon, favorite } = section;
+
+  const handleClick = () => {
+    // Call the parent handler
+    onSectionSelect(section.id);
+  };
 
   return (
     <div className="rounded-xl p-6 hover:shadow-md transition-shadow" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
@@ -33,7 +41,7 @@ const SettingSectionCard = ({ section }) => {
         <button 
           className="px-3 py-1 rounded-md text-sm transition-colors font-medium"
           style={{ backgroundColor: '#0A84FF', color: 'white' }}
-          onClick={() => window.location.href = path}
+          onClick={handleClick}
         >
           Buka
         </button>
@@ -55,10 +63,12 @@ const SettingsSections = ({ selectedSection, onSectionSelect }) => {
       {SETTINGS_SECTIONS.map((section, index) => (
         <div 
           key={index} 
-          onClick={() => onSectionSelect(section.id)}
-          className={`cursor-pointer ${selectedSection === section.id ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+          className={`${selectedSection === section.id ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
         >
-          <SettingSectionCard section={section} />
+          <SettingSectionCard 
+            section={section} 
+            onSectionSelect={onSectionSelect}
+          />
         </div>
       ))}
     </div>

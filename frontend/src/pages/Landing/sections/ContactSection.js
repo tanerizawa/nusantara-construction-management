@@ -44,7 +44,7 @@ export const ContactSection = ({ className = '' }) => {
         </div>
 
         {/* CTA Section */}
-        <CTASection />
+        <CTASection contact={contact} />
       </div>
     </section>
   );
@@ -269,7 +269,7 @@ const FormField = ({ type, name, label, value, onChange, options, ...props }) =>
   );
 };
 
-const CTASection = () => (
+const CTASection = ({ contact }) => (
   <div className="text-center mt-16 p-12 bg-white rounded-3xl shadow-2xl">
     <h3 className="text-3xl font-bold text-gray-900 mb-4">
       Siap Memulai Proyek Anda?
@@ -280,7 +280,7 @@ const CTASection = () => (
     
     <div className="flex flex-col sm:flex-row gap-4 justify-center">
       <a 
-        href="tel:+6226712345" 
+        href={`tel:${contact.phone.replace(/\s/g, '')}`} 
         className="bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-4 rounded-2xl hover:from-green-700 hover:to-green-800 transition-all duration-300 font-bold text-lg shadow-xl hover:shadow-2xl inline-flex items-center justify-center"
       >
         <Phone size={20} className="mr-2" />
@@ -288,7 +288,7 @@ const CTASection = () => (
       </a>
       
       <a 
-        href="mailto:info@nusantaragroup.co.id" 
+        href={`mailto:${contact.email}`} 
         className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-bold text-lg shadow-xl hover:shadow-2xl inline-flex items-center justify-center"
       >
         <Mail size={20} className="mr-2" />

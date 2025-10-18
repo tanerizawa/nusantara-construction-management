@@ -131,8 +131,8 @@ export const useCTAActions = () => {
     }));
 
     // Send analytics event if needed
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'cta_click', {
+    if (typeof window.gtag !== 'undefined') {
+      window.gtag('event', 'cta_click', {
         cta_id: ctaId,
         action: action
       });

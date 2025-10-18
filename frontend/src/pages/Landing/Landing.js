@@ -8,6 +8,7 @@ import { Navigation } from './components/Navigation';
 import { HeroSection } from './sections/HeroSection';
 import { AboutSection } from './sections/AboutSection';
 import { ServicesSection } from './sections/ServicesSection';
+import { ProjectsSection } from './sections/ProjectsSection';
 import { TestimonialsSection } from './sections/TestimonialsSection';
 import { ContactSection } from './sections/ContactSection';
 import { Footer } from './components/Footer';
@@ -85,6 +86,7 @@ const Landing = () => {
         isMenuOpen={isMenuOpen}
         toggleMenu={toggleMenu}
         activeSection={activeSection}
+        onNavigate={setSection}
       />
 
       {/* Main Content */}
@@ -92,6 +94,7 @@ const Landing = () => {
         <HeroSection stats={displayStats} />
         <AboutSection />
         <ServicesSection />
+        <ProjectsSection projects={recentProjects} />
         <TestimonialsSection />
         <ContactSection />
       </main>

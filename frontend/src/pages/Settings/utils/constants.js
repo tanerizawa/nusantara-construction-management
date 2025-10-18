@@ -18,7 +18,7 @@ export const SETTINGS_SECTIONS = [
     title: 'Profil Pengguna',
     icon: User,
     description: 'Kelola informasi profil dan preferensi akun',
-    status: 'coming-soon',
+    status: 'available',
     color: '#0A84FF',
     path: '/settings/profile',
     favorite: false
@@ -28,20 +28,20 @@ export const SETTINGS_SECTIONS = [
     title: 'Keamanan',
     icon: Shield,
     description: 'Pengaturan password, autentikasi dua faktor',
-    status: 'coming-soon',
+    status: 'available',
     color: '#FF453A',
     path: '/settings/security',
-    favorite: false
+    favorite: true
   },
   {
     id: 'notifications',
     title: 'Notifikasi',
     icon: Bell,
     description: 'Atur preferensi notifikasi email dan push',
-    status: 'coming-soon',
+    status: 'available',
     color: '#FF9F0A',
     path: '/settings/notifications',
-    favorite: false
+    favorite: true
   },
   {
     id: 'localization',
@@ -74,14 +74,14 @@ export const SETTINGS_SECTIONS = [
     favorite: true
   },
   {
-    id: 'team',
-    title: 'Manajemen Tim',
+    id: 'users',
+    title: 'User Management',
     icon: Users,
-    description: 'Pengaturan tim dan permisi akses',
-    status: 'coming-soon',
+    description: 'Kelola users, roles, dan permissions',
+    status: 'available',
     color: '#64D2FF',
-    path: '/settings/team',
-    favorite: false
+    path: '/settings/users',
+    favorite: true
   },
   {
     id: 'integrations',

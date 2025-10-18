@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management: Modal vs Inline Editing</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0A0A0A;
+      color: white;
+      padding: 20px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    h1 { margin-bottom: 30px; text-align: center; }
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .version {
+      background: #1A1A1A;
+      border-radius: 12px;
+      padding: 20px;
+      border: 2px solid #333;
+    }
+    .version.new { border-color: #3B82F6; }
+    .version h2 {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .badge.old { background: #EF4444; }
+    .badge.new { background: #10B981; }
+    
+    /* Mock UI */
+    .mock-header {
+      background: #0A0A0A;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mock-button {
+      background: #3B82F6;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      color: white;
+    }
+    .mock-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .stat-card {
+      background: #0A0A0A;
+      padding: 12px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .stat-value { font-size: 20px; font-weight: bold; margin-top: 5px; }
+    
+    .mock-table {
+      background: #0A0A0A;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 15px;
+    }
+    .table-header {
+      background: #000;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 40px 1fr 1fr 120px 100px 100px 100px;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: bold;
+      border-bottom: 1px solid #333;
+    }
+    .table-row {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 40px 1fr 1fr 120px 100px 100px 100px;
+      gap: 10px;
+      font-size: 12px;
+      border-bottom: 1px solid #222;
+      align-items: center;
+    }
+    .table-row:hover { background: #1A1A1A; }
+    
+    /* Modal Overlay */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: #1A1A1A;
+      padding: 24px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .close-btn {
+      background: #EF4444;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    
+    /* Inline Form */
+    .inline-form {
+      background: #0A0A0A;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 2px solid #3B82F6;
+      animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .form-section {
+      background: #1A1A1A;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .form-section h4 {
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .form-field {
+      background: #0A0A0A;
+      border: 1px solid #333;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: white;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .btn-cancel { background: #374151; color: white; }
+    .btn-save { background: #3B82F6; color: white; }
+    
+    /* Expanded Row */
+    .expanded-row {
+      padding: 20px;
+      background: #000;
+      border-top: 2px solid #3B82F6;
+      border-bottom: 2px solid #3B82F6;
+      animation: slideDown 0.3s ease-out;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .detail-card {
+      background: #1A1A1A;
+      padding: 12px;
+      border-radius: 6px;
+    }
+    .detail-card h4 {
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: #3B82F6;
+    }
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .detail-label { color: #888; }
+    
+    /* Feature List */
+    .features {
+      background: #1A1A1A;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .feature-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      padding: 8px;
+      background: #0A0A0A;
+      border-radius: 6px;
+    }
+    .feature-item.pro { color: #10B981; }
+    .feature-item.con { color: #EF4444; }
+    
+    /* Interactive Demo */
+    .demo-container {
+      position: relative;
+      background: #1A1A1A;
+      border-radius: 12px;
+      padding: 15px;
+      min-height: 400px;
+    }
+    
+    .hidden { display: none; }
+    .icon { font-size: 16px; }
+    
+    /* Metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-top: 30px;
+    }
+    .metric-card {
+      background: #1A1A1A;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .metric-value {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .metric-value.green { color: #10B981; }
+    .metric-value.red { color: #EF4444; }
+    .metric-value.blue { color: #3B82F6; }
+    .metric-label {
+      font-size: 12px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 User Management: Modal vs Inline Editing</h1>
+    
+    <!-- Comparison -->
+    <div class="comparison">
+      <!-- BEFORE: Modal Approach -->
+      <div class="version old">
+        <h2>
+          <span>❌ Before: Modal Approach</span>
+          <span class="badge old">OLD</span>
+        </h2>
+        
+        <div class="demo-container" id="modal-demo">
+          <div class="mock-header">
+            <div>
+              <h3 style="font-size: 16px;">User Management</h3>
+              <p style="font-size: 11px; color: #888;">Manage users, roles, and permissions</p>
+            </div>
+            <button class="mock-button" onclick="showModal()">➕ Add New User</button>
+          </div>
+          
+          <div class="mock-stats">
+            <div class="stat-card">
+              <div style="color: #888;">Total</div>
+              <div class="stat-value" style="color: #3B82F6;">24</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">Active</div>
+              <div class="stat-value" style="color: #10B981;">20</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">Inactive</div>
+              <div class="stat-value" style="color: #888;">3</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">Locked</div>
+              <div class="stat-value" style="color: #EF4444;">1</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">New (7d)</div>
+              <div class="stat-value" style="color: #A855F7;">5</div>
+            </div>
+          </div>
+          
+          <div class="mock-table">
+            <div class="table-header">
+              <div>☐</div>
+              <div>User</div>
+              <div>Email</div>
+              <div>Role</div>
+              <div>Status</div>
+              <div>Login</div>
+              <div>Actions</div>
+            </div>
+            <div class="table-row">
+              <div>☐</div>
+              <div>johndoe</div>
+              <div>john@example.com</div>
+              <div>Staff</div>
+              <div style="color: #10B981;">Active</div>
+              <div>Today</div>
+              <div>✏️ 🗑️</div>
+            </div>
+            <div class="table-row">
+              <div>☐</div>
+              <div>janedoe</div>
+              <div>jane@example.com</div>
+              <div>Admin</div>
+              <div style="color: #10B981;">Active</div>
+              <div>Yesterday</div>
+              <div>✏️ 🗑️</div>
+            </div>
+          </div>
+          
+          <!-- Modal Overlay -->
+          <div class="modal-overlay hidden" id="modal-overlay">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h3>➕ Add New User</h3>
+                <button class="close-btn" onclick="hideModal()">✕</button>
+              </div>
+              
+              <div class="form-section">
+                <h4>Basic Information</h4>
+                <input type="text" placeholder="Full Name" class="form-field" style="width: 100%; margin-bottom: 10px;">
+                <div class="form-row">
+                  <input type="text" placeholder="Username" class="form-field">
+                  <input type="email" placeholder="Email" class="form-field">
+                </div>
+                <div class="form-row">
+                  <input type="text" placeholder="Phone" class="form-field">
+                  <input type="text" placeholder="Position" class="form-field">
+                </div>
+              </div>
+              
+              <div class="form-section">
+                <h4>Password</h4>
+                <input type="password" placeholder="Password" class="form-field" style="width: 100%; margin-bottom: 10px;">
+                <input type="password" placeholder="Confirm Password" class="form-field" style="width: 100%;">
+              </div>
+              
+              <div class="form-section">
+                <h4>Role & Permissions</h4>
+                <select class="form-field" style="width: 100%;">
+                  <option>Staff - Regular staff member</option>
+                  <option>Admin - System administrator</option>
+                </select>
+              </div>
+              
+              <div class="form-actions">
+                <button class="btn btn-cancel" onclick="hideModal()">Cancel</button>
+                <button class="btn btn-save" onclick="hideModal()">Create User</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AFTER: Inline Approach -->
+      <div class="version new">
+        <h2>
+          <span>✅ After: Inline Editing</span>
+          <span class="badge new">NEW</span>
+        </h2>
+        
+        <div class="demo-container" id="inline-demo">
+          <div class="mock-header">
+            <div>
+              <h3 style="font-size: 16px;">User Management</h3>
+              <p style="font-size: 11px; color: #888;">Manage users, roles, and permissions</p>
+            </div>
+            <button class="mock-button" onclick="showInlineForm()">➕ Add New User</button>
+          </div>
+          
+          <div class="mock-stats">
+            <div class="stat-card">
+              <div style="color: #888;">Total</div>
+              <div class="stat-value" style="color: #3B82F6;">24</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">Active</div>
+              <div class="stat-value" style="color: #10B981;">20</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">Inactive</div>
+              <div class="stat-value" style="color: #888;">3</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">Locked</div>
+              <div class="stat-value" style="color: #EF4444;">1</div>
+            </div>
+            <div class="stat-card">
+              <div style="color: #888;">New (7d)</div>
+              <div class="stat-value" style="color: #A855F7;">5</div>
+            </div>
+          </div>
+          
+          <!-- Inline Form -->
+          <div class="inline-form hidden" id="inline-form">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="font-size: 16px;">➕ Add New User</h3>
+              <button class="close-btn" onclick="hideInlineForm()">✕</button>
+            </div>
+            
+            <div class="form-section">
+              <h4>Basic Information</h4>
+              <input type="text" placeholder="Full Name" class="form-field" style="width: 100%; margin-bottom: 10px;">
+              <div class="form-row">
+                <input type="text" placeholder="Username" class="form-field">
+                <input type="email" placeholder="Email" class="form-field">
+              </div>
+              <div class="form-row">
+                <input type="text" placeholder="Phone" class="form-field">
+                <input type="text" placeholder="Position" class="form-field">
+              </div>
+            </div>
+            
+            <div class="form-section">
+              <h4>Password</h4>
+              <input type="password" placeholder="Password" class="form-field" style="width: 100%; margin-bottom: 10px;">
+              <input type="password" placeholder="Confirm Password" class="form-field" style="width: 100%;">
+            </div>
+            
+            <div class="form-section">
+              <h4>Role & Permissions</h4>
+              <select class="form-field" style="width: 100%;">
+                <option>Staff - Regular staff member</option>
+                <option>Admin - System administrator</option>
+              </select>
+            </div>
+            
+            <div class="form-actions">
+              <button class="btn btn-cancel" onclick="hideInlineForm()">Cancel</button>
+              <button class="btn btn-save" onclick="hideInlineForm()">💾 Create User</button>
+            </div>
+          </div>
+          
+          <div class="mock-table">
+            <div class="table-header">
+              <div>☐</div>
+              <div>User</div>
+              <div>Email</div>
+              <div>Role</div>
+              <div>Status</div>
+              <div>Login</div>
+              <div>Actions</div>
+            </div>
+            <div class="table-row">
+              <div>☐</div>
+              <div>johndoe</div>
+              <div>john@example.com</div>
+              <div>Staff</div>
+              <div style="color: #10B981;">Active</div>
+              <div>Today</div>
+              <div><span onclick="toggleExpanded(1)" style="cursor: pointer;">🔽</span> ✏️ 🗑️</div>
+            </div>
+            
+            <!-- Expanded Detail Row -->
+            <div class="expanded-row hidden" id="expanded-1">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h4>User Details</h4>
+                <button class="btn btn-save" style="font-size: 11px;">✏️ Edit User</button>
+              </div>
+              <div class="detail-grid">
+                <div class="detail-card">
+                  <h4>Basic Information</h4>
+                  <div class="detail-item">
+                    <span class="detail-label">Full Name:</span>
+                    <span>John Doe</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Username:</span>
+                    <span>johndoe</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Email:</span>
+                    <span>john@example.com</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Phone:</span>
+                    <span>+62 812 3456 7890</span>
+                  </div>
+                </div>
+                <div class="detail-card">
+                  <h4>Role & Status</h4>
+                  <div class="detail-item">
+                    <span class="detail-label">Role:</span>
+                    <span style="color: #3B82F6;">🔵 Staff</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span style="color: #10B981;">🟢 Active</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Position:</span>
+                    <span>Project Engineer</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">Department:</span>
+                    <span>Engineering</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="table-row">
+              <div>☐</div>
+              <div>janedoe</div>
+              <div>jane@example.com</div>
+              <div>Admin</div>
+              <div style="color: #10B981;">Active</div>
+              <div>Yesterday</div>
+              <div>🔽 ✏️ 🗑️</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Features Comparison -->
+    <div class="features">
+      <h2 style="margin-bottom: 20px;">📊 Feature Comparison</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <h3 style="font-size: 14px; margin-bottom: 10px; color: #EF4444;">❌ Modal Approach (Old)</h3>
+          <ul class="feature-list">
+            <li class="feature-item con">❌ Blocks entire page</li>
+            <li class="feature-item con">❌ Can't see context</li>
+            <li class="feature-item con">❌ Extra close clicks</li>
+            <li class="feature-item con">❌ Separate add/edit modals</li>
+            <li class="feature-item con">❌ Modal management overhead</li>
+            <li class="feature-item con">❌ Inconsistent with other modules</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size: 14px; margin-bottom: 10px; color: #10B981;">✅ Inline Approach (New)</h3>
+          <ul class="feature-list">
+            <li class="feature-item pro">✅ Seamless integration</li>
+            <li class="feature-item pro">✅ Context always visible</li>
+            <li class="feature-item pro">✅ Fewer clicks needed</li>
+            <li class="feature-item pro">✅ Unified form component</li>
+            <li class="feature-item pro">✅ Better UX flow</li>
+            <li class="feature-item pro">✅ Consistent with Asset/COA</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Metrics -->
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-value green">-25%</div>
+        <div class="metric-label">Fewer Clicks</div>
+        <div style="font-size: 11px; color: #666; margin-top: 5px;">4 clicks → 3 clicks</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value green">-20%</div>
+        <div class="metric-label">Faster Workflow</div>
+        <div style="font-size: 11px; color: #666; margin-top: 5px;">15s → 12s average</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value blue">-213 B</div>
+        <div class="metric-label">Bundle Size</div>
+        <div style="font-size: 11px; color: #666; margin-top: 5px;">514.33 → 514.12 KB</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value green">-62%</div>
+        <div class="metric-label">Duplicate Code</div>
+        <div style="font-size: 11px; color: #666; margin-top: 5px;">931 → 350 lines</div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Modal demo functions
+    function showModal() {
+      document.getElementById('modal-overlay').classList.remove('hidden');
+    }
+    
+    function hideModal() {
+      document.getElementById('modal-overlay').classList.add('hidden');
+    }
+    
+    // Inline demo functions
+    function showInlineForm() {
+      const form = document.getElementById('inline-form');
+      form.classList.remove('hidden');
+      // Hide any expanded rows
+      document.querySelectorAll('.expanded-row').forEach(el => el.classList.add('hidden'));
+    }
+    
+    function hideInlineForm() {
+      document.getElementById('inline-form').classList.add('hidden');
+    }
+    
+    function toggleExpanded(id) {
+      const expanded = document.getElementById(`expanded-${id}`);
+      const isHidden = expanded.classList.contains('hidden');
+      
+      // Hide all expanded rows first
+      document.querySelectorAll('.expanded-row').forEach(el => el.classList.add('hidden'));
+      
+      // Show this one if it was hidden
+      if (isHidden) {
+        expanded.classList.remove('hidden');
+      }
+      
+      // Hide inline form when expanding details
+      hideInlineForm();
+    }
+  </script>
+</body>
+</html>

@@ -25,6 +25,7 @@ import ProjectEdit from './pages/ProjectEdit';
 import Manpower from './pages/Manpower';
 import Users from './pages/Users';
 import Analytics from './pages/Analytics';
+import Notifications from './pages/Notifications';
 import Subsidiaries from './pages/Subsidiaries';
 import SubsidiaryCreate from './pages/SubsidiaryCreate';
 import SubsidiaryDetail from './pages/SubsidiaryDetail';
@@ -194,10 +195,19 @@ function App() {
                   <SubsidiaryEdit />
                 </MainLayout>
               } />
-              <Route path="/settings" element={
+              <Route path="/settings/*" element={
                 <ProtectedRoute>
                   <MainLayout>
                     <Settings />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Notifications Page */}
+              <Route path="/notifications" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <Notifications />
                   </MainLayout>
                 </ProtectedRoute>
               } />

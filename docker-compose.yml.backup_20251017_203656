@@ -1,0 +1,103 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: nusantara-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nusantara_construction
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - nusantara-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d nusantara_construction"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.dev
+    container_name: nusantara-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      TZ: Asia/Jakarta
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: nusantara_construction
+      DB_USERNAME: admin
+      DB_PASSWORD: admin123
+      JWT_SECRET: nusantara-jwt-secret-2025
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    networks:
+      - nusantara-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://0.0.0.0:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React App (Production Build)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.simple
+    container_name: nusantara-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      REACT_APP_API_URL: /api
+      GENERATE_SOURCEMAP: "false"
+      ESLINT_NO_DEV_ERRORS: "true"
+      TSC_COMPILE_ON_ERROR: "true"
+      DISABLE_ESLINT_PLUGIN: "true"
+      CHOKIDAR_USEPOLLING: "false"
+      WATCHPACK_POLLING: "false"
+      WDS_SOCKET_HOST: "0.0.0.0"
+      WDS_SOCKET_PORT: "0"
+      WDS_SOCKET_PATH: "/ws"
+      FAST_REFRESH: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+    networks:
+      - nusantara-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://0.0.0.0:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  nusantara-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  frontend_node_modules:
+    driver: local

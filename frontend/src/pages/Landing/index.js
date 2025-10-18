@@ -5,6 +5,7 @@ export { default } from './Landing';
 export { HeroSection } from './sections/HeroSection';
 export { AboutSection } from './sections/AboutSection';
 export { ServicesSection } from './sections/ServicesSection';
+export { ProjectsSection } from './sections/ProjectsSection';
 export { TestimonialsSection } from './sections/TestimonialsSection';
 export { ContactSection } from './sections/ContactSection';
 

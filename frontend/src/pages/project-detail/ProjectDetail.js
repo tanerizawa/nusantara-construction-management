@@ -29,7 +29,6 @@ import ProjectTeam from '../../components/ProjectTeam';
 import ProjectDocuments from '../../components/ProjectDocuments';
 import BeritaAcaraManager from '../../components/berita-acara/BeritaAcaraManager';
 import ProgressPaymentManager from '../../components/progress-payment/ProgressPaymentManager';
-import BudgetValidationTab from './tabs/BudgetValidation';
 
 /**
  * ProjectDetail - Main page component
@@ -202,10 +201,6 @@ const ProjectDetail = () => {
           
           {activeTab === 'budget-monitoring' && project && (
             <ProjectBudgetMonitoring projectId={id} project={project} onDataChange={fetchProject} />
-          )}
-          
-          {activeTab === 'budget-validation' && project && (
-            <BudgetValidationTab projectId={id} project={project} />
           )}
           
           {activeTab === 'milestones' && project && (

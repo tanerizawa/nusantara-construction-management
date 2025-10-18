@@ -1,7 +1,6 @@
 import React from 'react';
 import { ArrowRight, Play } from 'lucide-react';
 import { COMPANY_STATS } from '../config/contentData';
-import { THEME_CONFIG } from '../config/landingConfig';
 import { useAnimatedCounter, useIntersectionObserver } from '../hooks/useLandingData';
 
 export const StatsCard = ({ 
@@ -38,10 +37,10 @@ export const StatsCard = ({
 const StatItem = ({ stat, animated, delay = 0 }) => {
   const IconComponent = stat.icon;
   
-  // Extract numeric value for animation
+  // Extract numeric value for animation (integers only)
   const numericValue = typeof stat.number === 'string' 
     ? parseInt(stat.number.replace(/\D/g, '')) || 0
-    : stat.number;
+    : (Number.isFinite(stat.number) ? stat.number : 0);
   
   const { currentValue } = useAnimatedCounter(
     numericValue, 
@@ -51,10 +50,23 @@ const StatItem = ({ stat, animated, delay = 0 }) => {
   
   // Format the animated value back to string format
   const formatValue = (value) => {
-    if (stat.number.includes('%')) return `${value}%`;
-    if (stat.number.includes('+')) return `${value}+`;
-    if (stat.number === 'A+') return value >= numericValue ? 'A+' : 'A';
-    return value.toString();
+    const raw = stat.number;
+    if (typeof raw !== 'string') return String(value);
+    if (raw.includes('%')) return `${value}%`;
+    if (raw.includes('+')) return `${value}+`;
+    if (raw === 'A+') return value >= numericValue ? 'A+' : 'A';
+    // Basic currency handling for strings like 'Rp 1.2M' or 'Rp 1000'
+    if (raw.startsWith('Rp')) {
+      // 'Rp 1.2M' → animate 0..12 then show (val/10).toFixed(1) + 'M'
+      const hasMillion = /M\b/i.test(raw);
+      if (hasMillion) {
+        const millionVal = (value / 10).toFixed(1);
+        return `Rp ${millionVal}M`;
+      }
+      // Plain number: 'Rp 1000'
+      return `Rp ${value.toLocaleString('id-ID')}`;
+    }
+    return String(value);
   };
 
   return (
@@ -67,7 +79,7 @@ const StatItem = ({ stat, animated, delay = 0 }) => {
       </div>
       
       <div className="text-3xl font-bold text-gray-900 mb-1">
-        {animated ? formatValue(currentValue) : stat.number}
+        {animated ? formatValue(currentValue) : (typeof stat.number === 'string' ? stat.number : String(stat.number))}
       </div>
       
       <div className="text-sm font-semibold text-gray-700 mb-2">

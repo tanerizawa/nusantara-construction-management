@@ -285,6 +285,18 @@ app.use('/api/reports', require('./routes/financial-reports'));
 app.use('/api/financial/dashboard', require('./routes/financial/dashboard.routes'));
 
 // app.use('/api/users', require('./routes/users')); // DEPRECATED: Now handled by /api/auth/users
+
+// User Management API - Advanced user administration with role-based access (Phase 4)
+// Endpoints: GET /management (list with stats), POST /management (create), 
+// PUT /management/:id (update), DELETE /management/:id (delete/deactivate),
+// PATCH /management/:id/status (toggle status), POST /management/bulk-* (bulk operations)
+app.use('/api/users', require('./routes/users.management'));
+
+// User Notifications API - Multi-channel notification system (Phase 4B)
+// Endpoints: POST /send (to user), POST /send-to-roles (bulk), GET /my (list),
+// PATCH /:id/read (mark read), POST /register-device (FCM), GET /preferences
+app.use('/api/user-notifications', require('./routes/user-notifications'));
+
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));
 app.use('/api/analytics', require('./routes/analytics'));

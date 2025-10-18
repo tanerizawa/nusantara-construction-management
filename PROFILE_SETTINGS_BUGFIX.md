@@ -146,12 +146,64 @@ async updateUser(id, updateData) {
 
 ---
 
+### 4. **Avatar Upload Error: Cannot read properties of undefined (reading 'avatarUrl')** 🖼️
+
+**Error Message**:
+```
+Error uploading avatar: TypeError: Cannot read properties of undefined (reading 'avatarUrl')
+at uploadAvatar (ProfileSettingsPage.js:223:1)
+```
+
+**Root Cause**:  
+Frontend tried to access `data.data.avatarUrl` but backend returns `data.avatarUrl` directly
+
+**Location**: `/frontend/src/pages/Settings/components/ProfileSettings/ProfileSettingsPage.js` line 223
+
+**Backend Response Structure**:
+```javascript
+// POST /api/auth/avatar response:
+{
+  success: true,
+  message: "Avatar uploaded successfully",
+  avatarUrl: "/uploads/avatars/avatar-{userId}-{timestamp}.jpg"  // Direct property
+}
+```
+
+**Before**:
+```javascript
+const data = await response.json();
+
+if (data.success) {
+  setAvatar(data.data.avatarUrl);  // ❌ Wrong - data.data is undefined
+  setAvatarPreview(null);
+  window.showToast && window.showToast('Avatar updated successfully!', 'success');
+}
+```
+
+**After**:
+```javascript
+const data = await response.json();
+
+if (data.success) {
+  setAvatar(data.avatarUrl);  // ✅ Correct - access avatarUrl directly
+  setAvatarPreview(null);
+  window.showToast && window.showToast('Avatar updated successfully!', 'success');
+}
+```
+
+**Note**: GET /api/auth/profile correctly returns `data.data` structure, but POST /api/auth/avatar returns `data.avatarUrl` directly. This is intentional as they serve different purposes.
+
+---
+
 ## 🔧 Files Modified
 
 ### Frontend
 ```
 /frontend/src/components/Layout/Header.js
 - Line 103: navigate('/profile') → navigate('/settings/profile')
+
+/frontend/src/pages/Settings/components/ProfileSettings/ProfileSettingsPage.js
+- Line 223: data.data.avatarUrl → data.avatarUrl
 ```
 
 ### Backend

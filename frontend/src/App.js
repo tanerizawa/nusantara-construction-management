@@ -33,6 +33,7 @@ import SubsidiaryEdit from './pages/SubsidiaryEdit';
 import Approvals from './pages/Approvals';
 import Settings from './pages/Settings';
 import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
+import OperationalDashboard from './pages/OperationalDashboard';
 
 // Import routes
 import AssetRoutes from './routes/AssetRoutes';
@@ -208,6 +209,15 @@ function App() {
                 <ProtectedRoute>
                   <MainLayout>
                     <Notifications />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              
+              {/* Operational Dashboard - Admin Only */}
+              <Route path="/operations" element={
+                <ProtectedRoute roles={['admin']}>
+                  <MainLayout>
+                    <OperationalDashboard />
                   </MainLayout>
                 </ProtectedRoute>
               } />

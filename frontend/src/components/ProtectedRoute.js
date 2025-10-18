@@ -22,25 +22,27 @@ const ProtectedRoute = ({ children, roles = [] }) => {
 
   // Redirect to login if not authenticated
   if (!user) {
+    console.log('🔐 ProtectedRoute: No user, redirecting to /login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // DEBUG: Log role check
+  console.log('🔐 ProtectedRoute Debug:', {
+    path: location.pathname,
+    userRole: user?.role,
+    requiredRoles: roles,
+    hasAccess: roles.length === 0 || roles.includes(user?.role),
+    willRedirect: roles.length > 0 && !roles.includes(user?.role)
+  });
+
   // Check role-based access if roles are specified
   if (roles.length > 0 && !roles.includes(user.role)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Access Denied
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            You don't have permission to access this page.
-          </p>
-          <Navigate to="/" replace />
-        </div>
-      </div>
-    );
+    console.warn('❌ ProtectedRoute: Access denied. User role:', user.role, 'Required:', roles);
+    // Redirect to dashboard instead of landing page for authenticated users
+    return <Navigate to="/dashboard" replace />;
   }
+
+  console.log('✅ ProtectedRoute: Access granted for', location.pathname);
 
   return children;
 };

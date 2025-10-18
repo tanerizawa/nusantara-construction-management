@@ -247,7 +247,11 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// Route middleware with logging
+// Route middleware with logging and monitoring
+const monitoringMiddleware = require('./middleware/monitoring.middleware');
+const auditMiddleware = require('./middleware/audit.middleware');
+app.use('/api', monitoringMiddleware.trackResponseTime);
+app.use('/api', auditMiddleware.auditAllRequests); // Automatic audit logging
 app.use('/api', (req, res, next) => {
   req.startTime = Date.now();
   next();
@@ -302,6 +306,9 @@ app.use('/api/approval', require('./routes/approval'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/database', require('./routes/database'));
+app.use('/api/monitoring', require('./routes/monitoring/monitoring.routes')); // System monitoring (Phase Security Enhancement B)
+app.use('/api/audit', require('./routes/audit/audit.routes')); // Audit trail system (Phase Security Enhancement C)
+app.use('/api/backup', require('./routes/backup/backup.routes')); // Automated backup system (Phase Security Enhancement D)
 app.use('/api/rab-tracking', require('./routes/rabPurchaseTracking'));
 app.use('/api/rab-view', require('./routes/rab-view')); // Real-time RAB with availability
 console.log('Loading purchase-orders route...');
@@ -453,6 +460,11 @@ const startServerWithDatabase = () => {
 💾 Database: PostgreSQL Connected
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     `);
+    
+    // Start backup scheduler
+    const backupScheduler = require('./services/backupScheduler');
+    backupScheduler.startAllJobs();
+    console.log('🔄 Backup scheduler started');
     
     if (isProduction) {
       console.log('✅ Production configuration loaded');

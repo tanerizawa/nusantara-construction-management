@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const { Op } = require("sequelize");
 const User = require("../../models/User");
 const userService = require("../../services/userService");
+const securityService = require("../../services/securityService");
+const auditService = require("../../services/auditService");
 
 const router = express.Router();
 
@@ -55,6 +57,14 @@ router.post("/login", async (req, res) => {
     }
 
     if (!user) {
+      // Log failed login attempt (user not found)
+      await securityService.logLoginAttempt(
+        username, // Use username since user doesn't exist
+        req,
+        false,
+        'user_not_found'
+      );
+      
       return res.status(401).json({
         success: false,
         error: "Invalid credentials",
@@ -93,6 +103,14 @@ router.post("/login", async (req, res) => {
         await userService.updateLoginAttempts(user, false);
       }
 
+      // Log failed login attempt (invalid password)
+      await securityService.logLoginAttempt(
+        user.id,
+        req,
+        false,
+        'invalid_password'
+      );
+
       return res.status(401).json({
         success: false,
         error: "Invalid credentials",
@@ -115,6 +133,23 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET || "fallback_secret",
       { expiresIn: "24h" }
     );
+
+    // Calculate token expiration
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    // Log successful login and create active session
+    await securityService.logLoginAttempt(user.id, req, true);
+    await securityService.createSession(user.id, token, req, expiresAt);
+    
+    // Audit log for successful login
+    await auditService.logLogin({
+      userId: user.id,
+      username: user.username,
+      success: true,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent']
+    });
 
     // Prepare user response (exclude password)
     const userResponse = {
@@ -245,20 +280,30 @@ router.get("/me", async (req, res) => {
 
 /**
  * @route   POST /api/auth/logout
- * @desc    Logout user (client-side token removal)
+ * @desc    Logout user and remove active session
  * @access  Private
  */
 router.post("/logout", async (req, res) => {
   try {
-    // JWT is stateless, so logout is handled client-side
-    // This endpoint is for logging purposes and future enhancements
     const token = req.header("Authorization")?.replace("Bearer ", "");
     if (token) {
       const decoded = jwt.verify(
         token,
         process.env.JWT_SECRET || "fallback_secret"
       );
-      // Logout successful - token verification passed
+      
+      // Remove session from database
+      await securityService.removeSession(token);
+      
+      // Audit log for logout
+      await auditService.logLogout({
+        userId: decoded.id,
+        username: decoded.username,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+      
+      console.log(`User ${decoded.id} logged out successfully`);
     }
 
     res.json({
@@ -267,6 +312,7 @@ router.post("/logout", async (req, res) => {
     });
   } catch (error) {
     // Even if token is invalid, return success (client should remove token)
+    console.error("Logout error:", error);
     res.json({
       success: true,
       message: "Logout successful. Please remove token from client.",
@@ -438,7 +484,7 @@ router.post("/change-password", async (req, res) => {
 
 /**
  * @route   GET /api/auth/login-history
- * @desc    Get user's login history (mock for now)
+ * @desc    Get user's login history from database
  * @access  Private
  */
 router.get("/login-history", async (req, res) => {
@@ -454,33 +500,28 @@ router.get("/login-history", async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Mock data for now - in production, fetch from LoginHistory table
-    const mockHistory = [
-      {
-        loginAt: new Date(),
-        ipAddress: req.ip || "127.0.0.1",
-        userAgent: req.headers["user-agent"] || "Unknown",
-        success: true,
-        location: "Unknown",
-      },
-    ];
+    // Get real login history from database
+    const limit = parseInt(req.query.limit) || 10;
+    const history = await securityService.getLoginHistory(decoded.id, limit);
 
     res.json({
       success: true,
-      history: mockHistory,
+      history: history,
+      count: history.length
     });
   } catch (error) {
     console.error("Login history error:", error);
     res.status(500).json({
       success: false,
       error: "Server error fetching login history",
+      details: error.message
     });
   }
 });
 
 /**
  * @route   GET /api/auth/sessions
- * @desc    Get user's active sessions (mock for now)
+ * @desc    Get user's active sessions from database
  * @access  Private
  */
 router.get("/sessions", async (req, res) => {
@@ -495,35 +536,45 @@ router.get("/sessions", async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const crypto = require('crypto');
+    const currentTokenHash = crypto.createHash('sha256').update(token).digest('hex');
     
-    // Mock data for now - in production, track sessions in database
-    const mockSessions = [
-      {
-        id: "current",
-        device: "Current Browser",
-        ipAddress: req.ip || "127.0.0.1",
-        location: "Unknown",
-        lastActive: new Date(),
-        current: true,
-      },
-    ];
+    // Get real active sessions from database
+    const sessions = await securityService.getActiveSessions(decoded.id);
+    
+    // Mark current session and format data
+    const formattedSessions = sessions.map(session => ({
+      id: session.id,
+      device: `${session.browser} on ${session.os}`,
+      deviceType: session.device,
+      browser: session.browser,
+      os: session.os,
+      ipAddress: session.ipAddress,
+      location: session.location,
+      country: session.country,
+      lastActive: session.lastActive,
+      createdAt: session.createdAt,
+      current: session.token === currentTokenHash
+    }));
 
     res.json({
       success: true,
-      sessions: mockSessions,
+      sessions: formattedSessions,
+      count: formattedSessions.length
     });
   } catch (error) {
     console.error("Sessions error:", error);
     res.status(500).json({
       success: false,
       error: "Server error fetching sessions",
+      details: error.message
     });
   }
 });
 
 /**
  * @route   POST /api/auth/logout-all
- * @desc    Logout from all devices (invalidate all tokens)
+ * @desc    Logout from all devices (remove all active sessions)
  * @access  Private
  */
 router.post("/logout-all", async (req, res) => {
@@ -539,17 +590,75 @@ router.post("/logout-all", async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // In production: Invalidate all refresh tokens for this user
-    // For now, just return success
+    // Remove all sessions for this user from database
+    const removedCount = await securityService.removeAllUserSessions(decoded.id);
+    
+    console.log(`Removed ${removedCount} sessions for user ${decoded.id}`);
+    
     res.json({
       success: true,
       message: "Logged out from all devices",
+      removedSessions: removedCount
     });
   } catch (error) {
     console.error("Logout all error:", error);
     res.status(500).json({
       success: false,
       error: "Server error during logout",
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/auth/sessions/:sessionId
+ * @desc    Logout from a specific device/session
+ * @access  Private
+ */
+router.delete("/sessions/:sessionId", async (req, res) => {
+  try {
+    // Get user from token
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: "No token provided",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { sessionId } = req.params;
+    
+    // Get the session to verify it belongs to the user
+    const ActiveSession = require('../../models/ActiveSession');
+    const session = await ActiveSession.findOne({
+      where: { id: sessionId, userId: decoded.id }
+    });
+    
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        error: "Session not found or doesn't belong to you",
+      });
+    }
+    
+    // Remove the session
+    await ActiveSession.destroy({
+      where: { id: sessionId }
+    });
+    
+    console.log(`User ${decoded.id} removed session ${sessionId}`);
+    
+    res.json({
+      success: true,
+      message: "Session removed successfully"
+    });
+  } catch (error) {
+    console.error("Remove session error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error removing session",
+      details: error.message
     });
   }
 });

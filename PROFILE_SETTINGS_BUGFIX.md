@@ -249,12 +249,18 @@ curl -X PUT https://nusantaragroup.co/api/auth/profile/preferences \
   -d '{"itemsPerPage":50}'
 ```
 
-### 3. Test Avatar Upload
+### 3. Test Avatar Upload ⭐ NEW
 ```
-✓ Upload image file (< 5MB)
-✓ No "userService.getUserById is not a function" error
+✓ Click "Upload Photo" button
+✓ Select image file (< 5MB, JPG/PNG/GIF)
+✓ Preview appears before upload
+✓ Click upload (or auto-upload)
+✓ No "Cannot read properties of undefined" error
 ✓ Avatar uploads successfully
+✓ Success toast message appears
+✓ Avatar displays immediately
 ✓ Old avatar deleted if exists
+✓ Page refresh shows persisted avatar
 ```
 
 ### 4. Backend Logs Check
@@ -293,10 +299,31 @@ curl -X PUT https://nusantaragroup.co/api/auth/profile/preferences \
 
 ## 🚀 Deployment Summary
 
-**Deployment Time**: October 18, 2025 @ 06:30 WIB  
-**Bundle Size**: 517.57 KB gzipped (+2 bytes from previous)  
-**Files Changed**: 3 files (1 frontend, 2 backend)  
-**Lines Changed**: ~50 lines total
+**Initial Deployment**: October 18, 2025 @ 06:30 WIB  
+**Avatar Fix Deployment**: October 18, 2025 @ 06:35 WIB  
+**Bundle Size**: 517.57 KB gzipped  
+**Files Changed**: 4 files (2 frontend, 2 backend)  
+**Lines Changed**: ~55 lines total
+
+### Deployment History
+
+#### Version 1 (06:30 WIB)
+```bash
+# Fixed: Navigation route + Backend methods
+Bundle: main.dc269dbb.js
+Changes:
+  - Header.js: /profile → /settings/profile
+  - authentication.routes.js: getUserById → findById (4 instances)
+  - userService.js: Added updateUser() method
+```
+
+#### Version 2 (06:35 WIB) - Current
+```bash
+# Fixed: Avatar upload response parsing
+Bundle: main.44f527c5.js
+Changes:
+  - ProfileSettingsPage.js: data.data.avatarUrl → data.avatarUrl
+```
 
 ### Deployment Commands Used
 ```bash
@@ -344,6 +371,31 @@ sudo cp -r build/* /var/www/html/nusantara-frontend/
   - Review service API before implementation
   - Add comprehensive service tests
   - Document all public methods
+
+**Issue 4 - Response Structure Inconsistency**:
+- **Cause**: Assumed all endpoints return `data.data.{property}` structure
+- **Impact**: Avatar upload failed with "Cannot read properties of undefined"
+- **Prevention**:
+  - Document API response structures for all endpoints
+  - Use TypeScript interfaces for response types
+  - Add response validation/type checking
+  - Test each endpoint individually during implementation
+
+**API Response Patterns**:
+```javascript
+// GET endpoints (resource retrieval)
+{
+  success: true,
+  data: { /* resource object */ }
+}
+
+// POST/PUT/DELETE endpoints (action responses)
+{
+  success: true,
+  message: "Action completed",
+  {propertyName}: value  // Direct property when returning single value
+}
+```
 
 ---
 
@@ -469,7 +521,8 @@ This bugfix completes the Profile Settings feature implementation:
 
 ---
 
-**Bugfix Version**: 1.0  
+**Bugfix Version**: 2.0  
 **Document Status**: ✅ Complete  
-**Last Updated**: October 18, 2025 @ 06:30 WIB  
+**Last Updated**: October 18, 2025 @ 06:35 WIB  
+**Current Bundle**: main.44f527c5.js  
 **Next Phase**: Theme Customization (pending)

@@ -20,7 +20,8 @@ import {
   HardHat,
   TrendingDown,
   Wrench,
-  PieChart
+  PieChart,
+  Server
 } from 'lucide-react';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -70,6 +71,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'Laporan',
       icon: BarChart3,
       path: '/analytics'
+    },
+    {
+      id: 'operations',
+      label: 'Operations',
+      icon: Server,
+      path: '/operations'
     },
     {
       id: 'settings',

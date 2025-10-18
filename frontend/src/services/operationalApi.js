@@ -24,7 +24,7 @@ export const securityApi = {
    */
   getLoginHistory: async (params = {}) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/security/login-history`, {
+      const response = await axios.get(`${API_BASE_URL}/auth/login-history`, {
         headers: createAuthHeader(),
         params
       });
@@ -35,11 +35,11 @@ export const securityApi = {
   },
 
   /**
-   * Get active sessions
+   * Get active sessions (using auth sessions endpoint)
    */
   getActiveSessions: async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/security/active-sessions`, {
+      const response = await axios.get(`${API_BASE_URL}/auth/sessions`, {
         headers: createAuthHeader()
       });
       return response.data;

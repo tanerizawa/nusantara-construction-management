@@ -162,12 +162,25 @@ async function getDatabaseMetrics() {
       console.error('Error getting active connections:', err);
     }
 
+    // Get max connections setting
+    let maxConnections = 100; // Default value
+    try {
+      const [results] = await sequelize.query(
+        "SELECT setting FROM pg_settings WHERE name = 'max_connections'"
+      );
+      maxConnections = parseInt(results[0]?.setting || 100);
+    } catch (err) {
+      console.error('Error getting max connections:', err);
+    }
+
     return {
       status: 'connected',
       connectionTime: connectionTime,
       size: formatBytes(dbSize),
       sizeBytes: dbSize,
+      databaseSize: (dbSize / (1024 * 1024)).toFixed(2), // Size in MB for easy display
       activeConnections: activeConnections,
+      maxConnections: maxConnections,
       pool: poolStatus
     };
   } catch (error) {
@@ -178,6 +191,9 @@ async function getDatabaseMetrics() {
       connectionTime: null,
       size: 'N/A',
       sizeBytes: 0,
+      databaseSize: 0,
+      activeConnections: 0,
+      maxConnections: 0,
       activeConnections: 0,
       pool: null
     };

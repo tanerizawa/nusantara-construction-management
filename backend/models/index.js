@@ -25,6 +25,12 @@ const BeritaAcara = require('./BeritaAcara');
 const ProgressPayment = require('./ProgressPayment');
 const DeliveryReceipt = require('./DeliveryReceipt');
 
+// Attendance System Models
+const AttendanceRecord = require('./AttendanceRecord');
+const ProjectLocation = require('./ProjectLocation');
+const AttendanceSettings = require('./AttendanceSettings');
+const LeaveRequest = require('./LeaveRequest');
+
 // Define relationships
 const setupAssociations = () => {
   // User - Project relationships
@@ -415,6 +421,109 @@ const setupAssociations = () => {
     as: 'step'
   });
 
+  // ==========================================================================
+  // ATTENDANCE SYSTEM ASSOCIATIONS
+  // ==========================================================================
+  
+  // AttendanceRecord - User associations
+  User.hasMany(AttendanceRecord, {
+    foreignKey: 'user_id',
+    as: 'attendanceRecords'
+  });
+  
+  AttendanceRecord.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  });
+
+  // AttendanceRecord - Project associations
+  Project.hasMany(AttendanceRecord, {
+    foreignKey: 'project_id',
+    as: 'attendanceRecords'
+  });
+  
+  AttendanceRecord.belongsTo(Project, {
+    foreignKey: 'project_id',
+    as: 'project'
+  });
+
+  // AttendanceRecord - ProjectLocation associations
+  ProjectLocation.hasMany(AttendanceRecord, {
+    foreignKey: 'project_location_id',
+    as: 'attendanceRecords'
+  });
+  
+  AttendanceRecord.belongsTo(ProjectLocation, {
+    foreignKey: 'project_location_id',
+    as: 'projectLocation'
+  });
+
+  // ProjectLocation - Project associations
+  Project.hasMany(ProjectLocation, {
+    foreignKey: 'project_id',
+    as: 'locations'
+  });
+  
+  ProjectLocation.belongsTo(Project, {
+    foreignKey: 'project_id',
+    as: 'project'
+  });
+
+  // ProjectLocation - User (creator) associations
+  User.hasMany(ProjectLocation, {
+    foreignKey: 'created_by',
+    as: 'createdLocations'
+  });
+  
+  ProjectLocation.belongsTo(User, {
+    foreignKey: 'created_by',
+    as: 'creator'
+  });
+
+  // AttendanceSettings - Project associations
+  Project.hasOne(AttendanceSettings, {
+    foreignKey: 'project_id',
+    as: 'attendanceSettings'
+  });
+  
+  AttendanceSettings.belongsTo(Project, {
+    foreignKey: 'project_id',
+    as: 'project'
+  });
+
+  // LeaveRequest - User associations
+  User.hasMany(LeaveRequest, {
+    foreignKey: 'user_id',
+    as: 'leaveRequests'
+  });
+  
+  LeaveRequest.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  });
+
+  // LeaveRequest - Project associations
+  Project.hasMany(LeaveRequest, {
+    foreignKey: 'project_id',
+    as: 'leaveRequests'
+  });
+  
+  LeaveRequest.belongsTo(Project, {
+    foreignKey: 'project_id',
+    as: 'project'
+  });
+
+  // LeaveRequest - User (approver) associations
+  User.hasMany(LeaveRequest, {
+    foreignKey: 'approved_by',
+    as: 'approvedLeaveRequests'
+  });
+  
+  LeaveRequest.belongsTo(User, {
+    foreignKey: 'approved_by',
+    as: 'approver'
+  });
+
   console.log('✅ Model associations established');
 };
 
@@ -473,7 +582,12 @@ module.exports = {
     FixedAsset,
     BeritaAcara,
     ProgressPayment,
-    DeliveryReceipt
+    DeliveryReceipt,
+    // Attendance System Models
+    AttendanceRecord,
+    ProjectLocation,
+    AttendanceSettings,
+    LeaveRequest
   },
   setupAssociations,
   syncDatabase,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import Contexts
@@ -7,51 +7,86 @@ import { ThemeProvider } from './context/ThemeContext';
 
 // Import Components
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Import Layout
 import MainLayout from './components/Layout/MainLayout';
 
-// Import Auth components
+// Import Auth components (eager load - needed immediately)
 import Login from './components/Auth/Login';
-
-// Import pages
 import Landing from './pages/Landing';
-import Dashboard from './pages/Dashboard';
-import Finance from './pages/finance';
-import Projects from './pages/Projects';
-import ProjectCreate from './pages/ProjectCreate';
-import ProjectDetail from './pages/ProjectDetail';
-import ProjectEdit from './pages/ProjectEdit';
-import Manpower from './pages/Manpower';
-import Users from './pages/Users';
-import Analytics from './pages/Analytics';
-import Notifications from './pages/Notifications';
-import Subsidiaries from './pages/Subsidiaries';
-import SubsidiaryCreate from './pages/SubsidiaryCreate';
-import SubsidiaryDetail from './pages/SubsidiaryDetail';
-import SubsidiaryEdit from './pages/SubsidiaryEdit';
-import Approvals from './pages/Approvals';
-import Settings from './pages/Settings';
-import AdvancedAnalyticsDashboard from './components/AdvancedAnalyticsDashboard';
-import OperationalDashboard from './pages/OperationalDashboard';
 
-// Import routes
-import AssetRoutes from './routes/AssetRoutes';
+// Lazy load pages for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Finance = lazy(() => import('./pages/finance'));
+const Projects = lazy(() => import('./pages/Projects'));
+const ProjectCreate = lazy(() => import('./pages/ProjectCreate'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const ProjectEdit = lazy(() => import('./pages/ProjectEdit'));
+const Manpower = lazy(() => import('./pages/Manpower'));
+const Users = lazy(() => import('./pages/Users'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const Notifications = lazy(() => import('./pages/Notifications'));
+const Subsidiaries = lazy(() => import('./pages/Subsidiaries'));
+const SubsidiaryCreate = lazy(() => import('./pages/SubsidiaryCreate'));
+const SubsidiaryDetail = lazy(() => import('./pages/SubsidiaryDetail'));
+const SubsidiaryEdit = lazy(() => import('./pages/SubsidiaryEdit'));
+const Approvals = lazy(() => import('./pages/Approvals'));
+const Settings = lazy(() => import('./pages/Settings'));
+const AdvancedAnalyticsDashboard = lazy(() => import('./components/AdvancedAnalyticsDashboard'));
+const OperationalDashboard = lazy(() => import('./pages/OperationalDashboard'));
+const CameraGPSTest = lazy(() => import('./pages/CameraGPSTest'));
 
+// Attendance pages
+const AttendanceDashboard = lazy(() => import('./pages/AttendanceDashboard'));
+const ClockInPage = lazy(() => import('./pages/ClockInPage'));
+const ClockOutPage = lazy(() => import('./pages/ClockOutPage'));
+const AttendanceSuccess = lazy(() => import('./pages/AttendanceSuccess'));
 
+// Lazy load routes
+const AssetRoutes = lazy(() => import('./routes/AssetRoutes'));
+
+// Loading component
+const PageLoader = () => (
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  }}>
+    <div style={{
+      textAlign: 'center',
+      color: 'white'
+    }}>
+      <div style={{
+        width: '50px',
+        height: '50px',
+        border: '4px solid rgba(255, 255, 255, 0.3)',
+        borderTop: '4px solid white',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        margin: '0 auto 20px'
+      }}></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+);
 
 // Import styles
 import './index.css';
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              {/* Auth Routes - No Layout */}
-              <Route path="/login" element={<Login />} />
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
+            <Suspense fallback={<PageLoader />}>
+              <div className="App">
+                <Routes>
+                  {/* Auth Routes - No Layout */}
+                  <Route path="/login" element={<Login />} />
               
               {/* Landing Page - No Layout */}
               <Route path="/" element={<Landing />} />
@@ -231,11 +266,40 @@ function App() {
                 </ProtectedRoute>
               } />
               
-            </Routes>
-          </div>
+              {/* Attendance Routes */}
+              <Route path="/attendance" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <AttendanceDashboard />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/clock-in" element={
+                <ProtectedRoute>
+                  <ClockInPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/clock-out" element={
+                <ProtectedRoute>
+                  <ClockOutPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/success" element={
+                <ProtectedRoute>
+                  <AttendanceSuccess />
+                </ProtectedRoute>
+              } />
+              
+                {/* Test Route - Camera & GPS Testing */}
+                <Route path="/test/camera-gps" element={<CameraGPSTest />} />
+                
+              </Routes>
+            </div>
+          </Suspense>
         </Router>
       </AuthProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

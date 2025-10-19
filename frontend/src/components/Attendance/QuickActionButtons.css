@@ -1,0 +1,434 @@
+/* QuickActionButtons.css */
+
+.quick-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Action Button Base */
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  text-align: left;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.action-btn:hover::before {
+  opacity: 1;
+}
+
+.action-btn.active:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Clock In Button */
+.action-btn.clock-in.active {
+  border-color: #28a745;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+}
+
+.action-btn.clock-in.active:hover {
+  background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%);
+}
+
+/* Clock Out Button */
+.action-btn.clock-out.active {
+  border-color: #007bff;
+  background: linear-gradient(135deg, #cce5ff 0%, #b8daff 100%);
+}
+
+.action-btn.clock-out.active:hover {
+  background: linear-gradient(135deg, #b8daff 0%, #9fcdff 100%);
+}
+
+/* View History Button */
+.action-btn.view-history {
+  border-color: #6c757d;
+  background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+}
+
+.action-btn.view-history:hover {
+  background: linear-gradient(135deg, #d6d8db 0%, #c8cbcf 100%);
+}
+
+/* Disabled State */
+.action-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.action-btn.disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Icon */
+.btn-icon {
+  font-size: 48px;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.action-btn.disabled .btn-icon {
+  opacity: 0.6;
+  background: #f8f9fa;
+}
+
+/* Button Content */
+.btn-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.btn-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.btn-subtitle {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.action-btn.disabled .btn-title {
+  color: #6c757d;
+}
+
+/* Button Arrow */
+.btn-arrow {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.action-btn.active:hover .btn-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Additional Actions */
+.additional-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.secondary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.secondary-btn:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.secondary-icon {
+  font-size: 20px;
+}
+
+/* Status Hints */
+.status-hint {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid;
+  animation: slideInUp 0.5s ease;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.status-hint.active {
+  background: #d1ecf1;
+  border-color: #bee5eb;
+}
+
+.status-hint.completed {
+  background: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.status-hint.pending {
+  background: #fff3cd;
+  border-color: #ffeeba;
+}
+
+.hint-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.hint-content {
+  flex: 1;
+}
+
+.hint-content strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #212529;
+  margin-bottom: 4px;
+}
+
+.hint-content p {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .action-btn {
+    padding: 16px;
+  }
+
+  .btn-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 40px;
+  }
+
+  .btn-title {
+    font-size: 16px;
+  }
+
+  .btn-subtitle {
+    font-size: 13px;
+  }
+
+  .additional-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .action-btn {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .btn-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 32px;
+  }
+
+  .btn-title {
+    font-size: 15px;
+  }
+
+  .btn-subtitle {
+    font-size: 12px;
+  }
+
+  .btn-arrow {
+    font-size: 20px;
+  }
+
+  .secondary-btn {
+    padding: 14px;
+    font-size: 13px;
+  }
+
+  .secondary-icon {
+    font-size: 18px;
+  }
+
+  .status-hint {
+    padding: 12px;
+  }
+
+  .hint-icon {
+    font-size: 28px;
+  }
+
+  .hint-content strong {
+    font-size: 14px;
+  }
+
+  .hint-content p {
+    font-size: 13px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .action-btn {
+    background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-icon {
+    background: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-title {
+    color: #e0e0e0;
+  }
+
+  .btn-subtitle {
+    color: #a0a0a0;
+  }
+
+  .btn-arrow {
+    color: #e0e0e0;
+  }
+
+  .secondary-btn {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #e0e0e0;
+  }
+
+  .secondary-btn:hover {
+    background: #3d3d3d;
+  }
+
+  .action-btn.clock-in.active {
+    background: linear-gradient(135deg, #1e4620 0%, #2d5c2f 100%);
+  }
+
+  .action-btn.clock-out.active {
+    background: linear-gradient(135deg, #0a3d5c 0%, #134a6d 100%);
+  }
+
+  .action-btn.view-history {
+    background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
+  }
+
+  .status-hint.active {
+    background: #0a3d5c;
+    border-color: #134a6d;
+  }
+
+  .status-hint.completed {
+    background: #1e4620;
+    border-color: #2d5c2f;
+  }
+
+  .status-hint.pending {
+    background: #5c4a0a;
+    border-color: #6d5813;
+  }
+
+  .hint-content strong {
+    color: #e0e0e0;
+  }
+
+  .hint-content p {
+    color: #a0a0a0;
+  }
+}
+
+/* Accessibility */
+.action-btn:focus,
+.secondary-btn:focus {
+  outline: 3px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Touch Feedback */
+.action-btn:active:not(.disabled) {
+  transform: scale(0.98);
+}
+
+.secondary-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Print Styles */
+@media print {
+  .quick-action-buttons {
+    display: none;
+  }
+}

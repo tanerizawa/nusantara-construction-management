@@ -1,0 +1,467 @@
+/* AttendanceDashboard.css */
+
+.attendance-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+}
+
+/* Page Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.header-content h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 4px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.header-subtitle strong {
+  font-weight: 700;
+}
+
+/* Refresh Button */
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-btn.refreshing .refresh-icon {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.refresh-icon {
+  font-size: 18px;
+  display: inline-block;
+}
+
+/* Error Alert */
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8d7da;
+  border: 2px solid #f5c6cb;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  animation: slideInDown 0.5s ease;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alert-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-content strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #721c24;
+  margin-bottom: 4px;
+}
+
+.alert-content p {
+  font-size: 14px;
+  color: #721c24;
+  margin: 0;
+}
+
+.alert-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #721c24;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.alert-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Dashboard Content */
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Info Cards */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.info-card-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.info-card-content {
+  flex: 1;
+}
+
+.info-card-content h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 4px 0;
+}
+
+.info-card-content p {
+  font-size: 13px;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Help Section */
+.help-section {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.help-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.help-content {
+  flex: 1;
+}
+
+.help-content h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.help-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  opacity: 0.9;
+}
+
+.help-btn {
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.help-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateX(4px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .attendance-dashboard {
+    padding: 16px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .header-content h1 {
+    font-size: 24px;
+  }
+
+  .header-subtitle {
+    font-size: 14px;
+  }
+
+  .refresh-btn {
+    align-self: flex-start;
+  }
+
+  .info-cards {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .info-card {
+    padding: 16px;
+  }
+
+  .info-card-icon {
+    font-size: 40px;
+  }
+
+  .info-card-content h3 {
+    font-size: 15px;
+  }
+
+  .info-card-content p {
+    font-size: 12px;
+  }
+
+  .help-section {
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .help-icon {
+    font-size: 40px;
+  }
+
+  .help-content h3 {
+    font-size: 18px;
+  }
+
+  .help-content p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance-dashboard {
+    padding: 12px;
+  }
+
+  .dashboard-header {
+    padding: 12px;
+  }
+
+  .header-content h1 {
+    font-size: 20px;
+  }
+
+  .header-subtitle {
+    font-size: 13px;
+  }
+
+  .refresh-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .refresh-icon {
+    font-size: 16px;
+  }
+
+  .error-alert {
+    padding: 12px;
+  }
+
+  .alert-icon {
+    font-size: 28px;
+  }
+
+  .alert-content strong {
+    font-size: 14px;
+  }
+
+  .alert-content p {
+    font-size: 13px;
+  }
+
+  .info-card {
+    padding: 14px;
+  }
+
+  .info-card-icon {
+    font-size: 36px;
+  }
+
+  .info-card-content h3 {
+    font-size: 14px;
+  }
+
+  .info-card-content p {
+    font-size: 11px;
+  }
+
+  .help-section {
+    padding: 16px;
+  }
+
+  .help-icon {
+    font-size: 36px;
+  }
+
+  .help-content h3 {
+    font-size: 16px;
+  }
+
+  .help-content p {
+    font-size: 12px;
+  }
+
+  .help-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .attendance-dashboard {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  }
+
+  .info-card {
+    background: #2d2d2d;
+    border-color: #404040;
+  }
+
+  .info-card-content h3 {
+    color: #e0e0e0;
+  }
+
+  .info-card-content p {
+    color: #a0a0a0;
+  }
+}
+
+/* Loading Skeleton */
+.dashboard-content > * {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .attendance-dashboard {
+    background: white;
+    padding: 0;
+  }
+
+  .dashboard-header,
+  .refresh-btn,
+  .help-section {
+    display: none;
+  }
+
+  .info-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* Accessibility */
+.refresh-btn:focus,
+.help-btn:focus,
+.alert-close:focus {
+  outline: 3px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Smooth Transitions */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}

@@ -1,0 +1,346 @@
+/* GPSIndicator.css */
+
+.gps-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Size variants */
+.gps-indicator-small {
+  padding: 0.5rem 0.75rem;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.gps-indicator-medium {
+  padding: 0.75rem 1rem;
+  gap: 0.75rem;
+  font-size: 1rem;
+}
+
+.gps-indicator-large {
+  padding: 1rem 1.25rem;
+  gap: 1rem;
+  font-size: 1.125rem;
+}
+
+/* Icon */
+.gps-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gps-indicator-small .gps-icon {
+  font-size: 1.25rem;
+}
+
+.gps-indicator-large .gps-icon {
+  font-size: 2rem;
+}
+
+/* Content */
+.gps-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.gps-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gps-text {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.gps-accuracy {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-family: 'Courier New', monospace;
+}
+
+.gps-description {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.gps-details {
+  margin-top: 0.125rem;
+}
+
+/* Coordinates */
+.gps-coordinates {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-family: 'Courier New', monospace;
+}
+
+.gps-coord-label {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.gps-coord-value {
+  color: #4b5563;
+}
+
+/* Signal strength bars */
+.gps-signal-strength {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 20px;
+}
+
+.signal-bar {
+  width: 4px;
+  background: var(--color, #10b981);
+  border-radius: 2px;
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.signal-bar:nth-child(1) {
+  height: 25%;
+}
+
+.signal-bar:nth-child(2) {
+  height: 50%;
+}
+
+.signal-bar:nth-child(3) {
+  height: 75%;
+}
+
+.signal-bar:nth-child(4) {
+  height: 100%;
+}
+
+/* Active signal animation */
+.gps-excellent .signal-bar {
+  opacity: 1;
+}
+
+.gps-good .signal-bar:nth-child(-n+3) {
+  opacity: 1;
+}
+
+.gps-fair .signal-bar:nth-child(-n+2) {
+  opacity: 1;
+}
+
+.gps-poor .signal-bar:nth-child(1) {
+  opacity: 1;
+}
+
+/* Accuracy level colors */
+.gps-excellent {
+  border: 2px solid #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.gps-excellent .gps-text {
+  color: #059669;
+}
+
+.gps-good {
+  border: 2px solid #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.gps-good .gps-text {
+  color: #2563eb;
+}
+
+.gps-fair {
+  border: 2px solid #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.gps-fair .gps-text {
+  color: #d97706;
+}
+
+.gps-poor {
+  border: 2px solid #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.gps-poor .gps-text {
+  color: #dc2626;
+}
+
+/* Loading state */
+.gps-loading {
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.gps-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.gps-error {
+  border: 2px solid #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.gps-error .gps-text {
+  color: #dc2626;
+}
+
+.gps-error-text {
+  font-size: 0.75rem;
+  color: #991b1b;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+/* Inactive state */
+.gps-inactive {
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.gps-inactive .gps-text {
+  color: #9ca3af;
+}
+
+/* GPS Badge (compact version) */
+.gps-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gps-badge-excellent {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.gps-badge-good {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.gps-badge-fair {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.gps-badge-poor {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.gps-badge-inactive {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+/* GPS Status Icon */
+.gps-status-icon {
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.gps-status-icon.gps-active {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Hover effects */
+.gps-indicator:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .gps-indicator {
+    font-size: 0.875rem;
+  }
+
+  .gps-coordinates {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .gps-signal-strength {
+    display: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .gps-indicator {
+    background: #1f2937;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .gps-text {
+    color: #f9fafb;
+  }
+
+  .gps-accuracy,
+  .gps-coord-value {
+    color: #d1d5db;
+  }
+
+  .gps-description,
+  .gps-coord-label {
+    color: #9ca3af;
+  }
+
+  .gps-loading,
+  .gps-inactive {
+    background: #374151;
+    border-color: #4b5563;
+  }
+}

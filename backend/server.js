@@ -305,6 +305,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/attendance', require('./routes/attendance')); // Attendance/Absensi System
 app.use('/api/database', require('./routes/database'));
 app.use('/api/monitoring', require('./routes/monitoring/monitoring.routes')); // System monitoring (Phase Security Enhancement B)
 app.use('/api/audit', require('./routes/audit/audit.routes')); // Audit trail system (Phase Security Enhancement C)

@@ -1,0 +1,511 @@
+/* TodayStatusCard.css */
+
+.today-status-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.today-status-card:hover {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Status-based border colors */
+.today-status-card.green {
+  border-left: 6px solid #28a745;
+}
+
+.today-status-card.blue {
+  border-left: 6px solid #007bff;
+}
+
+.today-status-card.gray {
+  border-left: 6px solid #6c757d;
+}
+
+/* Header */
+.status-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.status-card-title h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 4px 0;
+}
+
+.status-date {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.green {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.blue {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.status-badge.gray {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+/* Body */
+.status-card-body {
+  margin-bottom: 16px;
+}
+
+.status-info-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.status-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.info-icon {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.info-icon.clock-in {
+  background: #d4edda;
+}
+
+.info-icon.clock-out {
+  background: #cce5ff;
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #6c757d;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #212529;
+}
+
+/* Duration */
+.status-duration {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  color: white;
+}
+
+.duration-icon {
+  font-size: 36px;
+}
+
+.duration-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.duration-label {
+  font-size: 14px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.duration-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* Location */
+.status-location {
+  display: flex;
+  gap: 12px;
+  background: #fff3cd;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #ffc107;
+  margin-bottom: 16px;
+}
+
+.location-icon {
+  font-size: 24px;
+}
+
+.location-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.location-label {
+  font-size: 12px;
+  color: #856404;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.location-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #212529;
+}
+
+.location-coords {
+  font-size: 12px;
+  color: #6c757d;
+  font-family: 'Courier New', monospace;
+}
+
+/* Status Alert */
+.status-alert {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.status-alert.late {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+}
+
+.alert-icon {
+  font-size: 24px;
+}
+
+.alert-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.alert-label {
+  font-size: 12px;
+  color: #721c24;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.alert-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #721c24;
+}
+
+.alert-notes {
+  font-size: 14px;
+  color: #721c24;
+  margin: 8px 0 0 0;
+}
+
+/* Empty State */
+.status-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.status-empty h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #212529;
+  margin: 0 0 8px 0;
+}
+
+.status-empty p {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 4px 0;
+}
+
+.empty-hint {
+  font-weight: 600;
+  color: #007bff !important;
+  margin-top: 12px !important;
+}
+
+/* Footer */
+.status-card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 2px solid #e9ecef;
+}
+
+.quick-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #6c757d;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #212529;
+}
+
+/* Loading State */
+.today-status-card.loading {
+  min-height: 300px;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-title {
+  height: 28px;
+  width: 60%;
+  margin-bottom: 8px;
+}
+
+.skeleton-badge {
+  height: 32px;
+  width: 100px;
+}
+
+.skeleton-text {
+  height: 80px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+/* Error State */
+.today-status-card.error {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.error-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.today-status-card.error h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #721c24;
+  margin: 0 0 8px 0;
+}
+
+.today-status-card.error p {
+  font-size: 14px;
+  color: #721c24;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .today-status-card {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .status-card-title h2 {
+    font-size: 20px;
+  }
+
+  .status-info-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .status-info-item {
+    padding: 12px;
+  }
+
+  .info-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+
+  .info-value {
+    font-size: 16px;
+  }
+
+  .duration-value {
+    font-size: 24px;
+  }
+
+  .status-card-footer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .quick-stat {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px 12px;
+  }
+
+  .stat-icon {
+    font-size: 20px;
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .today-status-card {
+    padding: 16px;
+  }
+
+  .status-card-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+  }
+
+  .duration-icon {
+    font-size: 28px;
+  }
+
+  .duration-value {
+    font-size: 20px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .today-status-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-color: #404040;
+    color: #e0e0e0;
+  }
+
+  .status-card-title h2,
+  .info-value,
+  .location-value,
+  .stat-value {
+    color: #e0e0e0;
+  }
+
+  .status-date,
+  .info-label,
+  .stat-label,
+  .location-coords {
+    color: #a0a0a0;
+  }
+
+  .status-info-item,
+  .quick-stat {
+    background: #2d2d2d;
+    border-color: #404040;
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, #2d2d2d 25%, #404040 50%, #2d2d2d 75%);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .today-status-card {
+    box-shadow: none;
+    border: 2px solid #000;
+    page-break-inside: avoid;
+  }
+
+  .today-status-card:hover {
+    transform: none;
+  }
+}

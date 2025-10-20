@@ -55,8 +55,14 @@ export const useAccountForm = (accounts, onSuccess) => {
     }
 
     // Parent account validation
-    if (formData.parentAccountId && formData.level <= 1) {
+    // Level 1 accounts should NOT have parent
+    if (formData.level <= 1 && formData.parentAccountId) {
       newErrors.parentAccountId = 'Parent account not allowed for level 1 accounts';
+    }
+    
+    // Level > 1 accounts MUST have parent
+    if (formData.level > 1 && !formData.parentAccountId) {
+      newErrors.parentAccountId = 'Parent account is required for level 2+ accounts';
     }
 
     setErrors(newErrors);

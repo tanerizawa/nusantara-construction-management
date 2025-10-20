@@ -51,7 +51,11 @@ export const useTransactions = (
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [showReverseModal, setShowReverseModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isVoiding, setIsVoiding] = useState(false);
+  const [isReversing, setIsReversing] = useState(false);
 
   /**
    * Fetch cash/bank accounts from COA
@@ -426,6 +430,122 @@ export const useTransactions = (
     fetchTransactions(page);
   };
 
+  /**
+   * Handle void transaction
+   */
+  const handleVoidTransaction = (transaction) => {
+    console.log('⚠️ Voiding transaction:', transaction.id);
+    setSelectedTransaction(transaction);
+    setShowVoidModal(true);
+  };
+
+  /**
+   * Confirm void transaction
+   */
+  const confirmVoidTransaction = async ({ transactionId, reason }) => {
+    console.log('🚫 Confirming void for transaction:', transactionId);
+    console.log('📝 Void reason:', reason);
+
+    try {
+      setIsVoiding(true);
+
+      const response = await api.post(`/finance/${transactionId}/void`, {
+        reason: reason,
+        voidedBy: 'current-user' // TODO: Get from auth context
+      });
+
+      console.log('📥 Void response:', response);
+
+      if (response.success || response.data) {
+        console.log('✅ Transaction voided successfully');
+        setShowVoidModal(false);
+        setSelectedTransaction(null);
+        fetchTransactions(currentPage);
+        alert('Transaction voided successfully!');
+        return { success: true, message: "Transaction voided successfully!" };
+      } else {
+        throw new Error(response.error || "Failed to void transaction");
+      }
+    } catch (error) {
+      console.error("❌ Error voiding transaction:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Failed to void transaction";
+      alert('Error voiding transaction: ' + errorMessage);
+      return {
+        success: false,
+        message: "Error voiding transaction: " + errorMessage,
+      };
+    } finally {
+      setIsVoiding(false);
+    }
+  };
+
+  /**
+   * Cancel void transaction
+   */
+  const cancelVoidTransaction = () => {
+    setShowVoidModal(false);
+    setSelectedTransaction(null);
+  };
+
+  /**
+   * Handle reverse transaction
+   */
+  const handleReverseTransaction = (transaction) => {
+    console.log('🔄 Reversing transaction:', transaction.id);
+    setSelectedTransaction(transaction);
+    setShowReverseModal(true);
+  };
+
+  /**
+   * Confirm reverse transaction
+   */
+  const confirmReverseTransaction = async ({ transactionId, reason, correctedData }) => {
+    console.log('🔄 Confirming reverse for transaction:', transactionId);
+    console.log('📝 Reverse reason:', reason);
+    console.log('📊 Corrected data:', correctedData);
+
+    try {
+      setIsReversing(true);
+
+      const response = await api.post(`/finance/${transactionId}/reverse`, {
+        reason: reason,
+        reversedBy: 'current-user', // TODO: Get from auth context
+        correctedData: correctedData
+      });
+
+      console.log('📥 Reverse response:', response);
+
+      if (response.success || response.data) {
+        console.log('✅ Transaction reversed successfully');
+        setShowReverseModal(false);
+        setSelectedTransaction(null);
+        fetchTransactions(currentPage);
+        alert('Transaction reversed and corrected successfully!');
+        return { success: true, message: "Transaction reversed successfully!" };
+      } else {
+        throw new Error(response.error || "Failed to reverse transaction");
+      }
+    } catch (error) {
+      console.error("❌ Error reversing transaction:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Failed to reverse transaction";
+      alert('Error reversing transaction: ' + errorMessage);
+      return {
+        success: false,
+        message: "Error reversing transaction: " + errorMessage,
+      };
+    } finally {
+      setIsReversing(false);
+    }
+  };
+
+  /**
+   * Cancel reverse transaction
+   */
+  const cancelReverseTransaction = () => {
+    setShowReverseModal(false);
+    setSelectedTransaction(null);
+  };
+
   return {
     // Transaction list
     transactions,
@@ -452,10 +572,16 @@ export const useTransactions = (
     showViewModal,
     showEditModal,
     showDeleteModal,
+    showVoidModal,
+    showReverseModal,
     selectedTransaction,
+    isVoiding,
+    isReversing,
     setShowViewModal,
     setShowEditModal,
     setShowDeleteModal,
+    setShowVoidModal,
+    setShowReverseModal,
     setSelectedTransaction,
 
     // Actions
@@ -469,6 +595,12 @@ export const useTransactions = (
     handleDeleteTransaction,
     confirmDeleteTransaction,
     cancelDeleteTransaction,
+    handleVoidTransaction,
+    confirmVoidTransaction,
+    cancelVoidTransaction,
+    handleReverseTransaction,
+    confirmReverseTransaction,
+    cancelReverseTransaction,
     closeViewModal,
     closeEditModal,
     handlePageChange,

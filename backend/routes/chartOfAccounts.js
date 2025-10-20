@@ -8,6 +8,13 @@ const router = express.Router();
 const { models } = require('../models');
 const { ChartOfAccounts } = models;
 const { Op } = require('sequelize');
+const AccountCodeGenerator = require('../services/accountCodeGenerator');
+const {
+  getAllTemplates,
+  getTemplateById,
+  getTemplatesByType,
+  getQuickStartTemplates
+} = require('../config/accountTemplates');
 
 /**
  * GET /api/chart-of-accounts
@@ -20,7 +27,8 @@ router.get('/', async (req, res) => {
       level, 
       is_active, 
       parent_code,
-      search 
+      search,
+      transactional_only  // NEW: Filter untuk hanya akun transaksional
     } = req.query;
 
     let whereClause = {};
@@ -53,9 +61,40 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const accounts = await ChartOfAccounts.findAll({
+    let accounts = await ChartOfAccounts.findAll({
       where: whereClause,
       order: [['account_code', 'ASC']]
+    });
+
+    // NEW: Filter untuk hanya akun transaksional (yang tidak memiliki child)
+    // Ini dilakukan setelah query karena perlu cek relasi parent-child
+    if (transactional_only === 'true') {
+      const accountIds = accounts.map(acc => acc.id);
+      
+      // Cari semua akun yang menjadi parent (memiliki child)
+      const parentsWithChildren = await ChartOfAccounts.findAll({
+        where: {
+          parentAccountId: {  // FIXED: Gunakan camelCase seperti di model
+            [Op.in]: accountIds
+          }
+        },
+        attributes: ['parentAccountId'],
+        raw: true
+      });
+      
+      const parentIds = parentsWithChildren.map(p => p.parentAccountId);
+      
+      console.log('[COA] Transactional filter - Found parent accounts:', parentIds.length);
+      
+      // Filter out akun yang memiliki child
+      accounts = accounts.filter(acc => !parentIds.includes(acc.id));
+    }
+
+    console.log(`[COA] GET accounts - Filters:`, {
+      account_type,
+      transactional_only,
+      level,
+      total: accounts.length
     });
 
     res.json({
@@ -166,6 +205,79 @@ router.get('/hierarchy', async (req, res) => {
 });
 
 /**
+ * GET /api/chart-of-accounts/transactional
+ * Get only transactional accounts (non-control accounts) for forms/dropdowns
+ * This excludes parent/control accounts like "Kas & Bank" and only shows actual accounts like "Bank BCA", "Kas Kecil"
+ */
+router.get('/transactional', async (req, res) => {
+  try {
+    const { account_type, account_sub_type } = req.query;
+
+    let whereClause = {
+      is_active: true,
+      is_control_account: false,
+      level: {
+        [Op.gte]: 3  // Only level 3 and above (transactional accounts)
+      }
+    };
+
+    // Filter by account type if provided
+    if (account_type) {
+      whereClause.account_type = account_type;
+    }
+
+    // Filter by sub-type if provided
+    if (account_sub_type) {
+      whereClause.account_sub_type = account_sub_type;
+    }
+
+    const accounts = await ChartOfAccounts.findAll({
+      where: whereClause,
+      order: [['account_code', 'ASC']]
+    });
+
+    console.log(`[COA] GET transactional accounts:`, {
+      filters: { account_type, account_sub_type },
+      total: accounts.length
+    });
+
+    // Format for dropdown display
+    const formattedAccounts = accounts.map(account => ({
+      id: account.id,
+      accountCode: account.accountCode,
+      accountName: account.accountName,
+      accountType: account.accountType,
+      accountSubType: account.accountSubType,
+      level: account.level,
+      currentBalance: parseFloat(account.currentBalance || 0),
+      normalBalance: account.normalBalance,
+      // Display format: "Bank BCA (1101.02) - Rp 1.000.000"
+      displayName: `${account.accountName} (${account.accountCode})`,
+      displayWithBalance: `${account.accountName} (${account.accountCode}) - ${new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(account.currentBalance || 0)}`
+    }));
+
+    res.json({
+      success: true,
+      data: formattedAccounts,
+      count: formattedAccounts.length,
+      message: 'Transactional accounts only (excludes control/parent accounts)'
+    });
+
+  } catch (error) {
+    console.error('Error fetching transactional accounts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching transactional accounts',
+      error: error.message
+    });
+  }
+});
+
+/**
  * GET /api/chart-of-accounts/cash/accounts
  * Get all cash and bank accounts with balances for transaction form
  */
@@ -207,40 +319,6 @@ router.get('/cash/accounts', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching cash accounts',
-      error: error.message
-    });
-  }
-});
-
-/**
- * GET /api/chart-of-accounts/:code
- * Get single account by code
- */
-router.get('/:code', async (req, res) => {
-  try {
-    const { code } = req.params;
-    
-    const account = await ChartOfAccounts.findOne({
-      where: { account_code: code }
-    });
-
-    if (!account) {
-      return res.status(404).json({
-        success: false,
-        message: 'Account not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: account
-    });
-
-  } catch (error) {
-    console.error('Error fetching account:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching account',
       error: error.message
     });
   }
@@ -296,29 +374,45 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * PUT /api/chart-of-accounts/:code
+ * PUT /api/chart-of-accounts/:idOrCode
  * Update account
+ * Accepts either account ID (COA-xxx) or account code (1000)
  */
-router.put('/:code', async (req, res) => {
+router.put('/:idOrCode', async (req, res) => {
   try {
-    const { code } = req.params;
+    const { idOrCode } = req.params;
     const updateData = req.body;
     
-    const account = await ChartOfAccounts.findOne({
-      where: { account_code: code }
+    console.log('[COA UPDATE] Looking for account:', idOrCode);
+    
+    // Try to find by ID first, then by account_code
+    let account = await ChartOfAccounts.findOne({
+      where: { id: idOrCode }
     });
+    
+    if (!account) {
+      account = await ChartOfAccounts.findOne({
+        where: { account_code: idOrCode }
+      });
+    }
 
     if (!account) {
+      console.log('[COA UPDATE] Account not found:', idOrCode);
       return res.status(404).json({
         success: false,
         message: 'Account not found'
       });
     }
 
+    console.log('[COA UPDATE] Found account:', account.id, account.account_code);
+
     // Prevent changing account code
     delete updateData.account_code;
+    delete updateData.id;
 
     await account.update(updateData);
+
+    console.log('[COA UPDATE] Account updated successfully:', account.account_code);
 
     res.json({
       success: true,
@@ -327,7 +421,7 @@ router.put('/:code', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating account:', error);
+    console.error('[COA UPDATE] Error updating account:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating account',
@@ -337,49 +431,66 @@ router.put('/:code', async (req, res) => {
 });
 
 /**
- * DELETE /api/chart-of-accounts/:code
+ * DELETE /api/chart-of-accounts/:idOrCode
  * Soft delete account (set is_active to false)
+ * Accepts either account ID (COA-xxx) or account code (1000)
  */
-router.delete('/:code', async (req, res) => {
+router.delete('/:idOrCode', async (req, res) => {
   try {
-    const { code } = req.params;
+    const { idOrCode } = req.params;
     
-    const account = await ChartOfAccounts.findOne({
-      where: { account_code: code }
+    console.log('[COA DELETE] Looking for account:', idOrCode);
+    
+    // Try to find by ID first, then by account_code
+    let account = await ChartOfAccounts.findOne({
+      where: { id: idOrCode }
     });
+    
+    if (!account) {
+      account = await ChartOfAccounts.findOne({
+        where: { account_code: idOrCode }
+      });
+    }
 
     if (!account) {
+      console.log('[COA DELETE] Account not found:', idOrCode);
       return res.status(404).json({
         success: false,
         message: 'Account not found'
       });
     }
 
-    // Check if account has child accounts
+    console.log('[COA DELETE] Found account:', account.id, account.account_code);
+
+    // Check if account has child accounts (by parent_account_id)
     const childAccounts = await ChartOfAccounts.findAll({
       where: { 
-        parent_code: code,
+        parent_account_id: account.id,
         is_active: true 
       }
     });
 
     if (childAccounts.length > 0) {
+      console.log('[COA DELETE] Account has', childAccounts.length, 'child accounts');
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete account with active child accounts'
+        message: `Cannot delete account with ${childAccounts.length} active child accounts`
       });
     }
 
     // Soft delete
     await account.update({ is_active: false });
 
+    console.log('[COA DELETE] Account deactivated successfully:', account.account_code);
+
     res.json({
       success: true,
+      data: account,
       message: 'Account deactivated successfully'
     });
 
   } catch (error) {
-    console.error('Error deleting account:', error);
+    console.error('[COA DELETE] Error deleting account:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting account',
@@ -414,6 +525,385 @@ router.get('/types/summary', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching account type summary',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/chart-of-accounts/generate-code
+ * Generate next available account code
+ */
+router.post('/generate-code', async (req, res) => {
+  try {
+    const { accountType, parentId, level } = req.body;
+
+    console.log('[COA] Generate code request:', { accountType, parentId, level });
+
+    // Validate required fields
+    if (!accountType || !level) {
+      return res.status(400).json({
+        success: false,
+        error: 'accountType and level are required'
+      });
+    }
+
+    // Generate code
+    const result = await AccountCodeGenerator.generateNextCode({
+      accountType,
+      parentId,
+      level: parseInt(level)
+    });
+
+    // Get suggested properties
+    const properties = AccountCodeGenerator.suggestAccountProperties(
+      result.suggestedCode,
+      accountType
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...result,
+        suggestedProperties: properties
+      }
+    });
+
+  } catch (error) {
+    console.error('[COA] Error generating code:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/chart-of-accounts/templates
+ * Get all account templates
+ */
+router.get('/templates', async (req, res) => {
+  try {
+    const { type, quick_start } = req.query;
+
+    let templates;
+
+    if (quick_start === 'true') {
+      templates = getQuickStartTemplates();
+    } else if (type) {
+      templates = getTemplatesByType(type);
+    } else {
+      templates = getAllTemplates();
+    }
+
+    res.json({
+      success: true,
+      data: templates,
+      count: templates.length
+    });
+
+  } catch (error) {
+    console.error('[COA] Error fetching templates:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/chart-of-accounts/templates/:templateId
+ * Get specific template by ID
+ */
+router.get('/templates/:templateId', async (req, res) => {
+  try {
+    const { templateId } = req.params;
+    const template = getTemplateById(templateId);
+
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'Template not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: template
+    });
+
+  } catch (error) {
+    console.error('[COA] Error fetching template:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/chart-of-accounts/bulk-create-template
+ * Bulk create accounts from template
+ */
+router.post('/bulk-create-template', async (req, res) => {
+  try {
+    const { templateId, subsidiaryId } = req.body;
+
+    if (!templateId) {
+      return res.status(400).json({
+        success: false,
+        error: 'templateId is required'
+      });
+    }
+
+    const template = getTemplateById(templateId);
+    if (!template) {
+      return res.status(404).json({
+        success: false,
+        error: 'Template not found'
+      });
+    }
+
+    const createdAccounts = [];
+    const errors = [];
+
+    // Create each account from template
+    for (const accountTemplate of template.accounts) {
+      try {
+        // Check if account code already exists
+        const existing = await ChartOfAccounts.findOne({
+          where: { accountCode: accountTemplate.code }
+        });
+
+        if (existing) {
+          errors.push({
+            code: accountTemplate.code,
+            name: accountTemplate.name,
+            error: 'Account code already exists'
+          });
+          continue;
+        }
+
+        // Create account
+        const account = await ChartOfAccounts.create({
+          id: `COA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          accountCode: accountTemplate.code,
+          accountName: accountTemplate.name,
+          accountType: template.category,
+          accountSubType: accountTemplate.subType,
+          level: accountTemplate.code.includes('.') ? 4 : 3,
+          normalBalance: accountTemplate.normalBalance,
+          isActive: accountTemplate.isActive !== false,
+          isControlAccount: accountTemplate.isControlAccount || false,
+          constructionSpecific: accountTemplate.constructionSpecific || false,
+          projectCostCenter: accountTemplate.projectCostCenter || false,
+          taxDeductible: accountTemplate.taxDeductible || false,
+          description: accountTemplate.description,
+          subsidiaryId: subsidiaryId || null,
+          currentBalance: 0
+        });
+
+        createdAccounts.push(account);
+
+      } catch (error) {
+        errors.push({
+          code: accountTemplate.code,
+          name: accountTemplate.name,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        created: createdAccounts.length,
+        accounts: createdAccounts,
+        errors: errors.length > 0 ? errors : undefined
+      }
+    });
+
+  } catch (error) {
+    console.error('[COA] Error bulk creating from template:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/chart-of-accounts/smart-create
+ * Smart account creation with auto-code generation
+ */
+router.post('/smart-create', async (req, res) => {
+  try {
+    const {
+      accountName,
+      accountType,
+      parentId,
+      level,
+      openingBalance,
+      subsidiaryId,
+      description
+    } = req.body;
+
+    console.log('[COA] Smart create request:', req.body);
+
+    // Validate required fields
+    if (!accountName || !accountType || !level) {
+      return res.status(400).json({
+        success: false,
+        error: 'accountName, accountType, and level are required'
+      });
+    }
+
+    // Generate code
+    const codeResult = await AccountCodeGenerator.generateNextCode({
+      accountType,
+      parentId,
+      level: parseInt(level)
+    });
+
+    // Get suggested properties
+    const properties = AccountCodeGenerator.suggestAccountProperties(
+      codeResult.suggestedCode,
+      accountType
+    );
+
+    // Determine parent account ID from code
+    let finalParentId = parentId;
+    if (!finalParentId && level > 1) {
+      // Try to find parent by code pattern
+      const parentCode = level === 4 
+        ? codeResult.suggestedCode.split('.')[0]
+        : codeResult.suggestedCode.substring(0, level);
+      
+      const parent = await ChartOfAccounts.findOne({
+        where: { accountCode: parentCode }
+      });
+
+      if (parent) {
+        finalParentId = parent.id;
+      }
+    }
+
+    // Create account
+    const account = await ChartOfAccounts.create({
+      id: `COA-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      accountCode: codeResult.suggestedCode,
+      accountName: accountName.trim(),
+      accountType,
+      accountSubType: properties.accountSubType || null,
+      parentAccountId: finalParentId || null,
+      level: parseInt(level),
+      normalBalance: properties.normalBalance,
+      isActive: true,
+      isControlAccount: properties.isControlAccount,
+      constructionSpecific: properties.constructionSpecific,
+      projectCostCenter: properties.projectCostCenter,
+      vatApplicable: properties.vatApplicable,
+      taxDeductible: properties.taxDeductible,
+      description: description || null,
+      subsidiaryId: subsidiaryId || null,
+      currentBalance: parseFloat(openingBalance) || 0
+    });
+
+    console.log('[COA] Account created successfully:', account.accountCode);
+
+    res.json({
+      success: true,
+      data: account,
+      message: `Account ${account.accountCode} - ${account.accountName} created successfully`
+    });
+
+  } catch (error) {
+    console.error('[COA] Error creating account:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/chart-of-accounts/available-parents
+ * Get available parent accounts for given type and level
+ */
+router.get('/available-parents', async (req, res) => {
+  try {
+    const { accountType, level } = req.query;
+
+    if (!accountType || !level) {
+      return res.status(400).json({
+        success: false,
+        error: 'accountType and level are required'
+      });
+    }
+
+    const parents = await AccountCodeGenerator.getAvailableParents(
+      accountType,
+      parseInt(level)
+    );
+
+    res.json({
+      success: true,
+      data: parents,
+      count: parents.length
+    });
+
+  } catch (error) {
+    console.error('[COA] Error fetching available parents:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/chart-of-accounts/:idOrCode
+ * Get single account by ID or code
+ * Accepts either account ID (COA-xxx) or account code (1000)
+ * NOTE: This route must be LAST because it's a catch-all parameter route
+ */
+router.get('/:idOrCode', async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    
+    console.log('[COA GET] Looking for account:', idOrCode);
+    
+    // Try to find by ID first, then by account_code
+    let account = await ChartOfAccounts.findOne({
+      where: { id: idOrCode }
+    });
+    
+    if (!account) {
+      account = await ChartOfAccounts.findOne({
+        where: { account_code: idOrCode }
+      });
+    }
+
+    if (!account) {
+      console.log('[COA GET] Account not found:', idOrCode);
+      return res.status(404).json({
+        success: false,
+        message: 'Account not found'
+      });
+    }
+
+    console.log('[COA GET] Found account:', account.id, account.account_code);
+
+    res.json({
+      success: true,
+      data: account
+    });
+
+  } catch (error) {
+    console.error('[COA GET] Error fetching account:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching account',
       error: error.message
     });
   }

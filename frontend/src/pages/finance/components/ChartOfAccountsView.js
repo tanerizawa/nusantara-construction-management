@@ -1,6 +1,8 @@
-import React from 'react';
-import { Download, BookOpen } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, BookOpen, Wand2, Zap } from 'lucide-react';
 import ChartOfAccounts from '../../../components/ChartOfAccounts';
+import AccountWizard from '../../../components/ChartOfAccounts/components/AccountWizard';
+import QuickTemplates from '../../../components/ChartOfAccounts/components/QuickTemplates';
 import { convertCOAToCSV } from '../utils/formatters';
 
 /**
@@ -15,6 +17,9 @@ import { convertCOAToCSV } from '../utils/formatters';
 const ChartOfAccountsView = ({
   selectedSubsidiary
 }) => {
+  const [showWizard, setShowWizard] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   /**
    * Handle COA export to CSV
    */
@@ -40,6 +45,24 @@ const ChartOfAccountsView = ({
     }
   };
 
+  /**
+   * Handle wizard complete
+   */
+  const handleWizardComplete = (account) => {
+    console.log('Account created:', account);
+    setShowWizard(false);
+    setRefreshKey(prev => prev + 1); // Trigger refresh
+  };
+
+  /**
+   * Handle templates complete
+   */
+  const handleTemplatesComplete = (result) => {
+    console.log('Template applied:', result);
+    setShowTemplates(false);
+    setRefreshKey(prev => prev + 1); // Trigger refresh
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -47,22 +70,58 @@ const ChartOfAccountsView = ({
           <BookOpen className="w-7 h-7 mr-3" style={{ color: "#0A84FF" }} />
           Chart of Accounts (PSAK Compliant)
         </h2>
-        <button
-          onClick={handleExportCOA}
-          className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
-          style={{ background: "linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)", color: "#FFFFFF" }}
-        >
-          <Download className="w-4 h-4" />
-          <span>Export to CSV</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setShowTemplates(true)}
+            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+            style={{ background: "linear-gradient(135deg, #30D158 0%, #28A745 100%)", color: "#FFFFFF" }}
+          >
+            <Zap className="w-4 h-4" />
+            <span>Template Cepat</span>
+          </button>
+          <button
+            onClick={() => setShowWizard(true)}
+            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+            style={{ background: "linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)", color: "#FFFFFF" }}
+          >
+            <Wand2 className="w-4 h-4" />
+            <span>Buat Akun Baru</span>
+          </button>
+          <button
+            onClick={handleExportCOA}
+            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+            style={{ backgroundColor: "#2C2C2E", color: "#FFFFFF" }}
+          >
+            <Download className="w-4 h-4" />
+            <span>Export CSV</span>
+          </button>
+        </div>
       </div>
 
       {/* Chart of Accounts Component */}
       <div className="rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
         <ChartOfAccounts 
+          key={refreshKey}
           subsidiaryId={selectedSubsidiary !== 'all' ? selectedSubsidiary : null}
         />
       </div>
+
+      {/* Modals */}
+      {showWizard && (
+        <AccountWizard
+          onComplete={handleWizardComplete}
+          onCancel={() => setShowWizard(false)}
+          subsidiaryId={selectedSubsidiary !== 'all' ? selectedSubsidiary : null}
+        />
+      )}
+
+      {showTemplates && (
+        <QuickTemplates
+          onComplete={handleTemplatesComplete}
+          onCancel={() => setShowTemplates(false)}
+          subsidiaryId={selectedSubsidiary !== 'all' ? selectedSubsidiary : null}
+        />
+      )}
 
       {/* Info Panel */}
       <div className="rounded-lg p-4" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>

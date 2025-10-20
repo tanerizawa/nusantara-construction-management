@@ -23,10 +23,39 @@ import { formatCurrency, formatDate } from '../../../../utils/formatters';
  * - Planned vs Actual amounts
  * - Progress bar and variance
  * - Expandable realizations list
- * - Add Realization button
+ * - Inline add realization form
  */
-const RABItemCard = ({ item, realizations, isExpanded, onToggleExpand, onAddRealization }) => {
+const RABItemCard = ({ 
+  item, 
+  realizations, 
+  isExpanded, 
+  onToggleExpand, 
+  onAddRealization,
+  expenseAccounts = [],
+  sourceAccounts = [],
+  onSubmitRealization
+}) => {
   const [loadingRealizations, setLoadingRealizations] = useState(false);
+  const [showInlineForm, setShowInlineForm] = useState(false);
+  const [formData, setFormData] = useState({
+    amount: '',
+    description: `Realisasi: ${item.description}`,
+    accountId: '',
+    sourceAccountId: '',
+    progress: 0
+  });
+
+  // Debug: Log accounts on component mount and when they change
+  React.useEffect(() => {
+    console.log('[RABItemCard] 🔍 Accounts received:', {
+      expenseAccountsCount: expenseAccounts?.length || 0,
+      expenseAccounts: expenseAccounts,
+      sourceAccountsCount: sourceAccounts?.length || 0,
+      sourceAccounts: sourceAccounts,
+      itemId: item.id,
+      itemDescription: item.description
+    });
+  }, [expenseAccounts, sourceAccounts, item.id]);
 
   // Item type icons
   const itemTypeIcons = {
@@ -89,6 +118,41 @@ const RABItemCard = ({ item, realizations, isExpanded, onToggleExpand, onAddReal
     }
     await onToggleExpand();
     setLoadingRealizations(false);
+  };
+
+  // Handle inline form submit
+  const handleInlineSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await onSubmitRealization(item.id, formData);
+      // Reset form
+      setFormData({
+        amount: '',
+        description: `Realisasi: ${item.description}`,
+        accountId: '',
+        sourceAccountId: '',
+        progress: 0
+      });
+      setShowInlineForm(false);
+    } catch (error) {
+      console.error('Failed to add realization:', error);
+      alert(error.message || 'Failed to add realization');
+    }
+  };
+
+  // Toggle inline form
+  const handleToggleForm = () => {
+    setShowInlineForm(!showInlineForm);
+    if (!showInlineForm) {
+      // Reset form when opening
+      setFormData({
+        amount: item.planned_amount.toString(),
+        description: `Realisasi: ${item.description}`,
+        accountId: '',
+        sourceAccountId: '',
+        progress: item.actual_amount > 0 ? 0 : 100
+      });
+    }
   };
 
   return (
@@ -174,11 +238,11 @@ const RABItemCard = ({ item, realizations, isExpanded, onToggleExpand, onAddReal
         {/* Action Buttons */}
         <div className="flex items-center gap-2 mt-4">
           <button
-            onClick={() => onAddRealization(item)}
+            onClick={handleToggleForm}
             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
           >
             <Plus size={16} />
-            Add Realization
+            {showInlineForm ? 'Cancel' : 'Add Realization'}
           </button>
 
           {item.realization_count > 0 && (
@@ -192,6 +256,125 @@ const RABItemCard = ({ item, realizations, isExpanded, onToggleExpand, onAddReal
           )}
         </div>
       </div>
+
+      {/* Inline Form */}
+      {showInlineForm && (
+        <div className="border-t border-[#3C3C3E] bg-[#1C1C1E] p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+            <div className="text-xs font-semibold text-blue-400 uppercase tracking-wide">
+              Add Realization for {item.description}
+            </div>
+          </div>
+
+          <form onSubmit={handleInlineSubmit} className="space-y-3">
+            {/* Amount */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                Amount <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                value={formData.amount}
+                onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#3C3C3E] rounded text-sm text-white focus:border-blue-500 focus:outline-none"
+                placeholder="0"
+              />
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">Description</label>
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#3C3C3E] rounded text-sm text-white focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+
+            {/* Expense Account */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                Expense Account <span className="text-red-400">*</span>
+              </label>
+              <select
+                required
+                value={formData.accountId}
+                onChange={(e) => setFormData(prev => ({ ...prev, accountId: e.target.value }))}
+                className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#3C3C3E] rounded text-sm text-white focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">Select account...</option>
+                {expenseAccounts.map(account => (
+                  <option key={account.id} value={account.id}>
+                    {account.accountCode} - {account.accountName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Source Account */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                Source Account (Bank/Cash) <span className="text-red-400">*</span>
+              </label>
+              <select
+                required
+                value={formData.sourceAccountId}
+                onChange={(e) => setFormData(prev => ({ ...prev, sourceAccountId: e.target.value }))}
+                className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#3C3C3E] rounded text-sm text-white focus:border-blue-500 focus:outline-none"
+              >
+                <option value="">Select source...</option>
+                {sourceAccounts.map(account => (
+                  <option key={account.id} value={account.id}>
+                    {account.accountCode} - {account.accountName}
+                    {account.currentBalance !== undefined && ` (${formatCurrency(account.currentBalance)})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Progress */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                Progress (%) <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                max="100"
+                step="0.01"
+                value={formData.progress}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  progress: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
+                }))}
+                className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#3C3C3E] rounded text-sm text-white focus:border-blue-500 focus:outline-none"
+                placeholder="0-100"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex gap-2 pt-2">
+              <button
+                type="submit"
+                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                Save Realization
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleForm}
+                className="px-4 py-2 bg-[#3C3C3E] hover:bg-[#4C4C4E] text-gray-300 text-sm font-medium rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Expanded: Realizations List */}
       {isExpanded && (

@@ -275,8 +275,8 @@ app.use('/api/subsidiaries', require('./routes/subsidiaries')); // COA-integrate
 app.use('/api/manpower', require('./routes/manpower'));
 app.use('/api/finance', require('./routes/finance'));
 app.use('/api/tax', require('./routes/tax'));
-app.use('/api/coa', require('./routes/coa'));
-app.use('/api/chart-of-accounts', require('./routes/coa')); // Alias for backward compatibility
+app.use('/api/coa', require('./routes/coa')); // Legacy route - still uses old structure
+app.use('/api/chart-of-accounts', require('./routes/chartOfAccounts')); // New semi-automatic COA system
 app.use('/api/entities', require('./routes/entities'));
 app.use('/api/journal-entries', require('./routes/journalEntries'));
 

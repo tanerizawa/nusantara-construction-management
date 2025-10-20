@@ -52,6 +52,17 @@ const CostsTab = ({ milestone, projectId }) => {
     }
   }, [projectId]);
 
+  // Debug: Log RAB items state
+  useEffect(() => {
+    console.log('[CostsTab] RAB Items state updated:', {
+      loadingRAB,
+      rabItemsLength: rabItems?.length,
+      rabItems: rabItems,
+      hasRabItems: rabItems && rabItems.length > 0,
+      willRender: !loadingRAB && rabItems && rabItems.length > 0
+    });
+  }, [rabItems, loadingRAB]);
+
   const fetchPurchaseOrders = async () => {
     try {
       setLoadingPOs(true);
@@ -75,22 +86,36 @@ const CostsTab = ({ milestone, projectId }) => {
   const fetchExpenseAccounts = async () => {
     try {
       setLoadingAccounts(true);
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
       
-      // Fetch EXPENSE type accounts from Chart of Accounts
-      const response = await fetch(`${API_BASE_URL}/chart-of-accounts?account_type=EXPENSE&is_active=true`, {
-        credentials: 'include'
+      console.log('[CostsTab] 🔄 Fetching expense accounts...');
+      
+      // Fetch EXPENSE type accounts from Chart of Accounts (transactional only)
+      const response = await api.get('/chart-of-accounts', {
+        params: {
+          account_type: 'EXPENSE',
+          is_active: true,
+          transactional_only: true  // Only show transactional accounts (no parent/control accounts)
+        }
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch expense accounts');
+      console.log('[CostsTab] 📡 Expense accounts response:', response.data);
+      
+      // Handle both response formats: {success: true, data: [...]} or direct array
+      let accountsData = [];
+      
+      if (Array.isArray(response.data)) {
+        // Direct array response
+        accountsData = response.data;
+        console.log('[CostsTab] 📦 Direct array format detected');
+      } else if (response.data.success && response.data.data) {
+        // Wrapped response format
+        accountsData = response.data.data;
+        console.log('[CostsTab] 📦 Wrapped format detected');
       }
       
-      const result = await response.json();
-      
-      if (result.success && result.data) {
+      if (accountsData.length > 0) {
         // Filter for operational expense accounts (level >= 2)
-        const accounts = result.data.filter(account => {
+        const accounts = accountsData.filter(account => {
           return (
             account.accountType === 'EXPENSE' && 
             account.level >= 2 && 
@@ -98,11 +123,18 @@ const CostsTab = ({ milestone, projectId }) => {
           );
         });
         
-        console.log('[CostsTab] Loaded expense accounts:', accounts.length);
+        console.log('[CostsTab] ✅ Loaded expense accounts:', {
+          totalFromAPI: accountsData.length,
+          filteredCount: accounts.length,
+          accounts: accounts
+        });
         setExpenseAccounts(accounts);
+      } else {
+        console.warn('[CostsTab] ⚠️ No accounts data found:', response.data);
+        setExpenseAccounts([]);
       }
     } catch (error) {
-      console.error('[CostsTab] Error fetching expense accounts:', error);
+      console.error('[CostsTab] ❌ Error fetching expense accounts:', error);
       setExpenseAccounts([]);
     } finally {
       setLoadingAccounts(false);
@@ -112,22 +144,35 @@ const CostsTab = ({ milestone, projectId }) => {
   const fetchSourceAccounts = async () => {
     try {
       setLoadingSourceAccounts(true);
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      
+      console.log('[CostsTab] 🔄 Fetching source accounts (bank/cash)...');
       
       // Fetch bank and cash accounts (ASSET type, CASH_AND_BANK subtype)
-      const response = await fetch(`${API_BASE_URL}/chart-of-accounts?account_type=ASSET&is_active=true`, {
-        credentials: 'include'
+      const response = await api.get('/chart-of-accounts', {
+        params: {
+          account_type: 'ASSET',
+          is_active: true
+        }
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch source accounts');
+      console.log('[CostsTab] 📡 Source accounts response:', response.data);
+      
+      // Handle both response formats: {success: true, data: [...]} or direct array
+      let accountsData = [];
+      
+      if (Array.isArray(response.data)) {
+        // Direct array response
+        accountsData = response.data;
+        console.log('[CostsTab] 📦 Direct array format detected');
+      } else if (response.data.success && response.data.data) {
+        // Wrapped response format
+        accountsData = response.data.data;
+        console.log('[CostsTab] 📦 Wrapped format detected');
       }
       
-      const result = await response.json();
-      
-      if (result.success && result.data) {
+      if (accountsData.length > 0) {
         // Filter for CASH_AND_BANK accounts (level >= 3 for actual bank/cash accounts)
-        const accounts = result.data.filter(account => {
+        const accounts = accountsData.filter(account => {
           return (
             account.accountType === 'ASSET' && 
             account.accountSubType === 'CASH_AND_BANK' &&
@@ -136,11 +181,18 @@ const CostsTab = ({ milestone, projectId }) => {
           );
         });
         
-        console.log('[CostsTab] Loaded source accounts (bank/cash):', accounts.length);
+        console.log('[CostsTab] ✅ Loaded source accounts (bank/cash):', {
+          totalFromAPI: accountsData.length,
+          filteredCount: accounts.length,
+          accounts: accounts
+        });
         setSourceAccounts(accounts);
+      } else {
+        console.warn('[CostsTab] ⚠️ No accounts data found:', response.data);
+        setSourceAccounts([]);
       }
     } catch (error) {
-      console.error('[CostsTab] Error fetching source accounts:', error);
+      console.error('[CostsTab] ❌ Error fetching source accounts:', error);
       setSourceAccounts([]);
     } finally {
       setLoadingSourceAccounts(false);
@@ -156,6 +208,8 @@ const CostsTab = ({ milestone, projectId }) => {
 
   // NEW: Auto-fill form from RAB item
   const handleAddRealizationFromRAB = (rabItem) => {
+    console.log('[CostsTab] 🎯 Add Realization clicked for RAB item:', rabItem);
+    
     // Map RAB item_type to cost_category
     const itemTypeToCategory = {
       'material': 'materials',
@@ -164,7 +218,7 @@ const CostsTab = ({ milestone, projectId }) => {
       'subcontractor': 'subcontractor'
     };
 
-    setFormData({
+    const newFormData = {
       costCategory: itemTypeToCategory[rabItem.item_type] || 'other',
       costType: 'actual',
       amount: rabItem.planned_amount.toString(),
@@ -174,24 +228,77 @@ const CostsTab = ({ milestone, projectId }) => {
       sourceAccountId: '',
       rabItemId: rabItem.id,
       rabItemProgress: rabItem.actual_amount > 0 ? 100 : 100  // Default to 100% if adding realization
-    });
+    };
+    
+    console.log('[CostsTab] 📝 Form data prepared:', newFormData);
+    setFormData(newFormData);
     setShowAddForm(true);
+  };
+
+  // Handle inline realization submit from RABItemCard
+  const handleSubmitInlineRealization = async (rabItemId, inlineFormData) => {
+    console.log('[CostsTab] 🚀 Inline realization submit for RAB item:', rabItemId);
+    console.log('[CostsTab] 📦 Inline form data:', inlineFormData);
+    
+    try {
+      // Map RAB item to get category
+      const rabItem = rabItems.find(item => item.id === rabItemId);
+      const itemTypeToCategory = {
+        'material': 'materials',
+        'service': 'labor',
+        'equipment': 'equipment',
+        'subcontractor': 'subcontractor'
+      };
+
+      const data = {
+        costCategory: itemTypeToCategory[rabItem?.item_type] || 'other',
+        costType: 'actual',
+        amount: parseFloat(inlineFormData.amount),
+        description: inlineFormData.description,
+        referenceNumber: '',
+        accountId: inlineFormData.accountId,
+        sourceAccountId: inlineFormData.sourceAccountId,
+        rabItemId: rabItemId,
+        rabItemProgress: parseFloat(inlineFormData.progress)
+      };
+      
+      console.log('[CostsTab] 📤 Sending inline realization data:', data);
+      
+      const result = await addCost(data);
+      console.log('[CostsTab] ✅ Inline realization added:', result);
+      
+      // Refresh source accounts
+      await fetchSourceAccounts();
+      
+      return result;
+    } catch (error) {
+      console.error('[CostsTab] ❌ Failed to save inline realization:', error);
+      throw error;
+    }
   };
 
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    console.log('[CostsTab] 🚀 Form submitted!');
+    console.log('[CostsTab] 📦 Form data:', formData);
+    
     try {
       const data = {
         ...formData,
         amount: parseFloat(formData.amount)
       };
+      
+      console.log('[CostsTab] 📤 Sending data:', data);
 
       if (editingCost) {
         await updateCost(editingCost.id, data);
+        console.log('[CostsTab] ✅ Cost updated');
         setEditingCost(null);
       } else {
-        await addCost(data);
+        const result = await addCost(data);
+        console.log('[CostsTab] ✅ Cost added:', result);
       }
 
       // Refresh source accounts to get updated balances
@@ -212,13 +319,16 @@ const CostsTab = ({ milestone, projectId }) => {
       });
       setShowAddForm(false);
     } catch (error) {
-      console.error('Failed to save cost:', error);
+      console.error('[CostsTab] ❌ Failed to save cost:', error);
+      console.error('[CostsTab] ❌ Error response:', error.response?.data);
       
       // Show error message from backend if available
       if (error.response?.data?.message) {
         alert(error.response.data.message);
+      } else if (error.response?.data?.error) {
+        alert(error.response.data.error);
       } else {
-        alert('Failed to save cost entry');
+        alert('Failed to save cost entry: ' + error.message);
       }
     }
   };
@@ -318,6 +428,9 @@ const CostsTab = ({ milestone, projectId }) => {
           rabItems={rabItems}
           onAddRealization={handleAddRealizationFromRAB}
           getRealizations={getRealizations}
+          expenseAccounts={expenseAccounts}
+          sourceAccounts={sourceAccounts}
+          onSubmitRealization={handleSubmitInlineRealization}
         />
       )}
 
@@ -342,25 +455,36 @@ const CostsTab = ({ milestone, projectId }) => {
         }}
       />
 
-      {/* Add Cost Button (old - keep for now for manual additional costs) */}
-      {!showAddForm && (
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white rounded-lg transition-colors font-medium"
-        >
-          <Plus size={18} />
-          <span>Add Cost Entry</span>
-        </button>
-      )}
-
       {/* Add/Edit Form */}
       {showAddForm && (
         <div className="bg-[#2C2C2E] rounded-lg p-4 border border-[#38383A]">
-          <h3 className="font-semibold text-white mb-4">
-            {editingCost ? 'Edit Cost Entry' : 'Add New Cost Entry'}
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-white">
+              {editingCost ? 'Edit Cost Entry' : 'Add New Cost Entry'}
+            </h3>
+            {/* RAB-Linked Indicator */}
+            {formData.rabItemId && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-400/10 border border-blue-400/30 rounded-full">
+                <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
+                <span className="text-xs font-medium text-blue-400">RAB Linked</span>
+              </div>
+            )}
+          </div>
           
           <form onSubmit={handleSubmit} className="space-y-3">
+            {/* RAB Item Info (if linked) */}
+            {formData.rabItemId && (
+              <div className="p-3 bg-blue-400/5 border border-blue-400/20 rounded-lg mb-3">
+                <div className="text-xs text-blue-400 font-medium mb-1">
+                  📋 Realisasi dari RAB Item
+                </div>
+                <div className="text-xs text-gray-300">
+                  Cost ini akan tercatat sebagai realisasi dari item RAB. 
+                  Variance akan otomatis dihitung berdasarkan planned amount.
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-[#8E8E93] mb-1">Category *</label>
@@ -552,6 +676,31 @@ const CostsTab = ({ milestone, projectId }) => {
                 </p>
               )}
             </div>
+
+            {/* RAB Progress Field (only show if RAB-linked) */}
+            {formData.rabItemId && (
+              <div>
+                <label className="block text-xs text-[#8E8E93] mb-1">
+                  Progress (%) <span className="text-[#FF453A]">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={formData.rabItemProgress || 0}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    rabItemProgress: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0))
+                  }))}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded text-sm text-white focus:border-[#0A84FF] focus:outline-none"
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  Progress realisasi item RAB (0-100%)
+                </p>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-2">
               <button

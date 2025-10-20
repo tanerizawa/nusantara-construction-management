@@ -73,9 +73,10 @@ const FinanceTransaction = sequelize.define('FinanceTransaction', {
   },
   status: {
     type: DataTypes.ENUM,
-    values: ['pending', 'completed', 'cancelled', 'failed'],
+    values: ['draft', 'pending', 'approved', 'posted', 'completed', 'cancelled', 'failed', 'voided', 'reversed'],
     allowNull: false,
-    defaultValue: 'completed'
+    defaultValue: 'draft',
+    comment: 'Transaction lifecycle: draft -> pending -> approved -> posted. Use voided/reversed for corrections.'
   },
   isRecurring: {
     type: DataTypes.BOOLEAN,
@@ -108,15 +109,99 @@ const FinanceTransaction = sequelize.define('FinanceTransaction', {
     allowNull: true,
     defaultValue: {}
   },
+  // Reversal tracking fields
+  isReversed: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+    field: 'is_reversed',
+    comment: 'True if this transaction has been reversed'
+  },
+  reversedByTransactionId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'reversed_by_transaction_id',
+    comment: 'ID of the transaction that reversed this one'
+  },
+  reversalOfTransactionId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'reversal_of_transaction_id',
+    comment: 'ID of the original transaction if this is a reversal'
+  },
+  
+  // Void tracking fields
+  voidDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'void_date',
+    comment: 'When this transaction was voided'
+  },
+  voidBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'void_by',
+    comment: 'User who voided this transaction'
+  },
+  voidReason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'void_reason',
+    comment: 'Why this transaction was voided (required for audit)'
+  },
+  
+  // Submission workflow fields
+  submittedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'submitted_at',
+    comment: 'When submitted for approval'
+  },
+  submittedBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'submitted_by',
+    comment: 'Who submitted for approval'
+  },
+  
+  // Approval workflow fields
   approvedBy: {
     type: DataTypes.STRING,
     allowNull: true,
-    field: 'approved_by'
+    field: 'approved_by',
+    comment: 'Who approved this transaction'
   },
   approvedAt: {
     type: DataTypes.DATE,
     allowNull: true,
-    field: 'approved_at'
+    field: 'approved_at',
+    comment: 'When this transaction was approved'
+  },
+  approvalNotes: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'approval_notes',
+    comment: 'Notes from approver'
+  },
+  
+  // Rejection tracking
+  rejectedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'rejected_at',
+    comment: 'When this transaction was rejected'
+  },
+  rejectedBy: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'rejected_by',
+    comment: 'Who rejected this transaction'
+  },
+  rejectionReason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'rejection_reason',
+    comment: 'Why this transaction was rejected'
   }
 }, {
   tableName: 'finance_transactions',
@@ -158,6 +243,26 @@ FinanceTransaction.prototype.isExpense = function() {
 
 FinanceTransaction.prototype.isIncome = function() {
   return this.type === 'income';
+};
+
+FinanceTransaction.prototype.canEdit = function() {
+  return ['draft', 'pending'].includes(this.status);
+};
+
+FinanceTransaction.prototype.canDelete = function() {
+  return ['draft', 'pending'].includes(this.status);
+};
+
+FinanceTransaction.prototype.canVoid = function() {
+  return ['approved', 'posted', 'completed'].includes(this.status) && !this.isReversed;
+};
+
+FinanceTransaction.prototype.canReverse = function() {
+  return this.status === 'posted' && !this.isReversed;
+};
+
+FinanceTransaction.prototype.isPosted = function() {
+  return ['posted', 'completed'].includes(this.status);
 };
 
 // Class methods

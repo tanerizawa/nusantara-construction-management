@@ -5,10 +5,17 @@ import RABItemCard from './RABItemCard';
 /**
  * RABItemsSection Component
  * 
- * Displays list of RAB items with expandable realizations.
+ * Displays list of RAB items with expandable realizations and inline forms.
  * Manages expand/collapse state and loads realizations on demand.
  */
-const RABItemsSection = ({ rabItems, onAddRealization, getRealizations }) => {
+const RABItemsSection = ({ 
+  rabItems, 
+  onAddRealization, 
+  getRealizations,
+  expenseAccounts = [],
+  sourceAccounts = [],
+  onSubmitRealization
+}) => {
   const [expandedItems, setExpandedItems] = useState({});
   const [realizations, setRealizations] = useState({});
 
@@ -65,6 +72,9 @@ const RABItemsSection = ({ rabItems, onAddRealization, getRealizations }) => {
             isExpanded={!!expandedItems[item.id]}
             onToggleExpand={() => toggleExpand(item.id)}
             onAddRealization={onAddRealization}
+            expenseAccounts={expenseAccounts}
+            sourceAccounts={sourceAccounts}
+            onSubmitRealization={onSubmitRealization}
           />
         ))}
       </div>

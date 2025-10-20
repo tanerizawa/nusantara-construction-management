@@ -652,6 +652,8 @@ router.get('/:id', async (req, res) => {
 // @desc    Create new transaction
 // @access  Private
 router.post('/', async (req, res) => {
+  const t = await FinanceTransaction.sequelize.transaction();
+  
   try {
     // Validate input
     const { error, value } = transactionSchema.validate(req.body);
@@ -663,23 +665,160 @@ router.post('/', async (req, res) => {
       });
     }
 
+    console.log('[Finance] Creating transaction:', value);
+
+    // Validate required accounts based on transaction type
+    if (value.type === 'income' && !value.accountTo) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'accountTo (bank/cash account) is required for income transactions'
+      });
+    }
+
+    if (value.type === 'expense' && !value.accountFrom) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'accountFrom (bank/cash account) is required for expense transactions'
+      });
+    }
+
+    if (value.type === 'transfer' && (!value.accountFrom || !value.accountTo)) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Both accountFrom and accountTo are required for transfer transactions'
+      });
+    }
+
+    // Load Chart of Accounts model
+    const ChartOfAccounts = require('../models/ChartOfAccounts');
+
     // Generate transaction ID
     const transactionCount = await FinanceTransaction.count();
     const transactionId = `FIN-${String(transactionCount + 1).padStart(4, '0')}`;
 
-    // Create transaction
+    // Create transaction record
     const transaction = await FinanceTransaction.create({
       id: transactionId,
       ...value
-    });
+    }, { transaction: t });
+
+    console.log('[Finance] Transaction record created:', transactionId);
+
+    // Update account balances based on transaction type
+    const amount = parseFloat(value.amount);
+
+    if (value.type === 'income') {
+      // Income: DEBIT bank account (increase), CREDIT revenue account (automatic)
+      const bankAccount = await ChartOfAccounts.findByPk(value.accountTo, { transaction: t });
+      
+      if (bankAccount) {
+        const currentBalance = parseFloat(bankAccount.currentBalance || 0);
+        const newBalance = currentBalance + amount;
+        
+        await bankAccount.update({
+          currentBalance: newBalance
+        }, { transaction: t });
+        
+        console.log('[Finance] ✅ Bank account updated:', {
+          accountId: bankAccount.id,
+          accountCode: bankAccount.accountCode,
+          accountName: bankAccount.accountName,
+          oldBalance: currentBalance,
+          newBalance: newBalance,
+          change: `+${amount}`
+        });
+      } else {
+        console.warn('[Finance] ⚠️ Bank account not found:', value.accountTo);
+      }
+    } else if (value.type === 'expense') {
+      // Expense: CREDIT bank account (decrease), DEBIT expense account (automatic)
+      const bankAccount = await ChartOfAccounts.findByPk(value.accountFrom, { transaction: t });
+      
+      if (bankAccount) {
+        const currentBalance = parseFloat(bankAccount.currentBalance || 0);
+        const newBalance = currentBalance - amount;
+        
+        if (newBalance < 0) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance',
+            details: `Account ${bankAccount.accountCode} - ${bankAccount.accountName} has insufficient balance`
+          });
+        }
+        
+        await bankAccount.update({
+          currentBalance: newBalance
+        }, { transaction: t });
+        
+        console.log('[Finance] ✅ Bank account updated:', {
+          accountId: bankAccount.id,
+          accountCode: bankAccount.accountCode,
+          accountName: bankAccount.accountName,
+          oldBalance: currentBalance,
+          newBalance: newBalance,
+          change: `-${amount}`
+        });
+      } else {
+        console.warn('[Finance] ⚠️ Bank account not found:', value.accountFrom);
+      }
+    } else if (value.type === 'transfer') {
+      // Transfer: CREDIT source account (decrease), DEBIT destination account (increase)
+      const sourceAccount = await ChartOfAccounts.findByPk(value.accountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(value.accountTo, { transaction: t });
+      
+      if (sourceAccount && destAccount) {
+        const sourceBalance = parseFloat(sourceAccount.currentBalance || 0);
+        const destBalance = parseFloat(destAccount.currentBalance || 0);
+        
+        if (sourceBalance < amount) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance',
+            details: `Source account ${sourceAccount.accountCode} has insufficient balance`
+          });
+        }
+        
+        await sourceAccount.update({
+          currentBalance: sourceBalance - amount
+        }, { transaction: t });
+        
+        await destAccount.update({
+          currentBalance: destBalance + amount
+        }, { transaction: t });
+        
+        console.log('[Finance] ✅ Transfer completed:', {
+          from: `${sourceAccount.accountCode} - ${sourceAccount.accountName}`,
+          to: `${destAccount.accountCode} - ${destAccount.accountName}`,
+          amount: amount,
+          sourceNewBalance: sourceBalance - amount,
+          destNewBalance: destBalance + amount
+        });
+      } else {
+        console.warn('[Finance] ⚠️ Transfer accounts not found:', {
+          from: value.accountFrom,
+          to: value.accountTo
+        });
+      }
+    }
+
+    // Commit transaction
+    await t.commit();
+
+    console.log('[Finance] ✅ Transaction completed successfully:', transactionId);
 
     res.status(201).json({
       success: true,
       data: transaction,
-      message: 'Transaction created successfully'
+      message: 'Transaction created successfully and account balances updated'
     });
   } catch (error) {
-    console.error('Error creating transaction:', error);
+    await t.rollback();
+    console.error('[Finance] ❌ Error creating transaction:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to create transaction',
@@ -692,15 +831,29 @@ router.post('/', async (req, res) => {
 // @desc    Update transaction
 // @access  Private
 router.put('/:id', async (req, res) => {
+  const t = await FinanceTransaction.sequelize.transaction();
+  
   try {
     const { id } = req.params;
 
     // Find transaction
-    const transaction = await FinanceTransaction.findByPk(id);
+    const transaction = await FinanceTransaction.findByPk(id, { transaction: t });
     if (!transaction) {
+      await t.rollback();
       return res.status(404).json({
         success: false,
         error: 'Transaction not found'
+      });
+    }
+
+    // ✅ VALIDATION: Only DRAFT/PENDING can be edited
+    if (!transaction.canEdit()) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: `Cannot edit transaction with status: ${transaction.status}`,
+        hint: 'Only DRAFT or PENDING transactions can be edited. Use VOID or REVERSE for posted transactions.',
+        allowedActions: transaction.canVoid() ? ['void', 'reverse'] : []
       });
     }
 
@@ -712,6 +865,7 @@ router.put('/:id', async (req, res) => {
     
     const { error, value } = updateSchema.validate(req.body);
     if (error) {
+      await t.rollback();
       return res.status(400).json({
         success: false,
         error: 'Validation failed',
@@ -719,16 +873,111 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    console.log('[Finance] Updating transaction:', id, value);
+
+    const ChartOfAccounts = require('../models/ChartOfAccounts');
+    
+    // Reverse old balance changes
+    const oldAmount = parseFloat(transaction.amount);
+    const oldType = transaction.type;
+    const oldAccountFrom = transaction.accountFrom;
+    const oldAccountTo = transaction.accountTo;
+
+    if (oldType === 'income' && oldAccountTo) {
+      const account = await ChartOfAccounts.findByPk(oldAccountTo, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) - oldAmount
+        }, { transaction: t });
+        console.log('[Finance] Reversed income balance:', oldAccountTo);
+      }
+    } else if (oldType === 'expense' && oldAccountFrom) {
+      const account = await ChartOfAccounts.findByPk(oldAccountFrom, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) + oldAmount
+        }, { transaction: t });
+        console.log('[Finance] Reversed expense balance:', oldAccountFrom);
+      }
+    } else if (oldType === 'transfer' && oldAccountFrom && oldAccountTo) {
+      const sourceAccount = await ChartOfAccounts.findByPk(oldAccountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(oldAccountTo, { transaction: t });
+      if (sourceAccount && destAccount) {
+        await sourceAccount.update({
+          currentBalance: parseFloat(sourceAccount.currentBalance) + oldAmount
+        }, { transaction: t });
+        await destAccount.update({
+          currentBalance: parseFloat(destAccount.currentBalance) - oldAmount
+        }, { transaction: t });
+        console.log('[Finance] Reversed transfer balance');
+      }
+    }
+
     // Update transaction
-    await transaction.update(value);
+    await transaction.update(value, { transaction: t });
+
+    // Apply new balance changes
+    const newAmount = parseFloat(value.amount || transaction.amount);
+    const newType = value.type || transaction.type;
+    const newAccountFrom = value.accountFrom || transaction.accountFrom;
+    const newAccountTo = value.accountTo || transaction.accountTo;
+
+    if (newType === 'income' && newAccountTo) {
+      const account = await ChartOfAccounts.findByPk(newAccountTo, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) + newAmount
+        }, { transaction: t });
+        console.log('[Finance] Applied new income balance:', newAccountTo);
+      }
+    } else if (newType === 'expense' && newAccountFrom) {
+      const account = await ChartOfAccounts.findByPk(newAccountFrom, { transaction: t });
+      if (account) {
+        const newBalance = parseFloat(account.currentBalance) - newAmount;
+        if (newBalance < 0) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance after update'
+          });
+        }
+        await account.update({
+          currentBalance: newBalance
+        }, { transaction: t });
+        console.log('[Finance] Applied new expense balance:', newAccountFrom);
+      }
+    } else if (newType === 'transfer' && newAccountFrom && newAccountTo) {
+      const sourceAccount = await ChartOfAccounts.findByPk(newAccountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(newAccountTo, { transaction: t });
+      if (sourceAccount && destAccount) {
+        const newSourceBalance = parseFloat(sourceAccount.currentBalance) - newAmount;
+        if (newSourceBalance < 0) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance in source account'
+          });
+        }
+        await sourceAccount.update({
+          currentBalance: newSourceBalance
+        }, { transaction: t });
+        await destAccount.update({
+          currentBalance: parseFloat(destAccount.currentBalance) + newAmount
+        }, { transaction: t });
+        console.log('[Finance] Applied new transfer balance');
+      }
+    }
+
+    await t.commit();
 
     res.json({
       success: true,
       data: transaction,
-      message: 'Transaction updated successfully'
+      message: 'Transaction updated successfully and balances adjusted'
     });
   } catch (error) {
-    console.error('Error updating transaction:', error);
+    await t.rollback();
+    console.error('[Finance] Error updating transaction:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to update transaction',
@@ -738,31 +987,402 @@ router.put('/:id', async (req, res) => {
 });
 
 // @route   DELETE /api/finance/:id
-// @desc    Delete transaction
+// @desc    Delete transaction (only DRAFT/PENDING)
 // @access  Private
 router.delete('/:id', async (req, res) => {
+  const t = await FinanceTransaction.sequelize.transaction();
+  
   try {
     const { id } = req.params;
 
-    const transaction = await FinanceTransaction.findByPk(id);
+    const transaction = await FinanceTransaction.findByPk(id, { transaction: t });
     if (!transaction) {
+      await t.rollback();
       return res.status(404).json({
         success: false,
         error: 'Transaction not found'
       });
     }
 
-    await transaction.destroy();
+    // ✅ VALIDATION: Only DRAFT/PENDING can be deleted
+    if (!transaction.canDelete()) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: `Cannot delete transaction with status: ${transaction.status}`,
+        hint: 'Only DRAFT or PENDING transactions can be deleted. Use VOID for posted transactions.',
+        allowedActions: transaction.canVoid() ? ['void'] : []
+      });
+    }
+
+    console.log('[Finance] Deleting transaction:', id);
+
+    const ChartOfAccounts = require('../models/ChartOfAccounts');
+    
+    // Reverse balance changes before deleting
+    const amount = parseFloat(transaction.amount);
+    const type = transaction.type;
+    const accountFrom = transaction.accountFrom;
+    const accountTo = transaction.accountTo;
+
+    if (type === 'income' && accountTo) {
+      // Reverse income: decrease bank balance
+      const account = await ChartOfAccounts.findByPk(accountTo, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) - amount
+        }, { transaction: t });
+        console.log('[Finance] Reversed income balance on delete:', accountTo);
+      }
+    } else if (type === 'expense' && accountFrom) {
+      // Reverse expense: increase bank balance
+      const account = await ChartOfAccounts.findByPk(accountFrom, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) + amount
+        }, { transaction: t });
+        console.log('[Finance] Reversed expense balance on delete:', accountFrom);
+      }
+    } else if (type === 'transfer' && accountFrom && accountTo) {
+      // Reverse transfer
+      const sourceAccount = await ChartOfAccounts.findByPk(accountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(accountTo, { transaction: t });
+      if (sourceAccount && destAccount) {
+        await sourceAccount.update({
+          currentBalance: parseFloat(sourceAccount.currentBalance) + amount
+        }, { transaction: t });
+        await destAccount.update({
+          currentBalance: parseFloat(destAccount.currentBalance) - amount
+        }, { transaction: t });
+        console.log('[Finance] Reversed transfer balance on delete');
+      }
+    }
+
+    await transaction.destroy({ transaction: t });
+    await t.commit();
+
+    console.log('[Finance] ✅ Transaction deleted and balances reversed');
 
     res.json({
       success: true,
-      message: 'Transaction deleted successfully'
+      message: 'Transaction deleted successfully and balances reversed'
     });
   } catch (error) {
-    console.error('Error deleting transaction:', error);
+    await t.rollback();
+    console.error('[Finance] Error deleting transaction:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to delete transaction',
+      details: error.message
+    });
+  }
+});
+
+// @route   POST /api/finance/:id/void
+// @desc    Void a posted transaction (cancels it, reverses balance)
+// @access  Private
+router.post('/:id/void', async (req, res) => {
+  const t = await FinanceTransaction.sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { reason, voidedBy } = req.body;
+
+    // Validate reason is provided
+    if (!reason || reason.trim() === '') {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Void reason is required for audit trail'
+      });
+    }
+
+    // Find transaction
+    const transaction = await FinanceTransaction.findByPk(id, { transaction: t });
+    if (!transaction) {
+      await t.rollback();
+      return res.status(404).json({
+        success: false,
+        error: 'Transaction not found'
+      });
+    }
+
+    // ✅ VALIDATION: Check if can be voided
+    if (!transaction.canVoid()) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: `Cannot void transaction with status: ${transaction.status}`,
+        hint: transaction.isReversed ? 
+          'Transaction has already been reversed' : 
+          'Only APPROVED/POSTED/COMPLETED transactions can be voided'
+      });
+    }
+
+    console.log('[Finance] Voiding transaction:', id, '- Reason:', reason);
+
+    const ChartOfAccounts = require('../models/ChartOfAccounts');
+    const amount = parseFloat(transaction.amount);
+    const type = transaction.type;
+    const accountFrom = transaction.accountFrom;
+    const accountTo = transaction.accountTo;
+
+    // Reverse balance changes
+    if (type === 'income' && accountTo) {
+      const account = await ChartOfAccounts.findByPk(accountTo, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) - amount
+        }, { transaction: t });
+        console.log('[Finance] Reversed income balance on void:', accountTo);
+      }
+    } else if (type === 'expense' && accountFrom) {
+      const account = await ChartOfAccounts.findByPk(accountFrom, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) + amount
+        }, { transaction: t });
+        console.log('[Finance] Reversed expense balance on void:', accountFrom);
+      }
+    } else if (type === 'transfer' && accountFrom && accountTo) {
+      const sourceAccount = await ChartOfAccounts.findByPk(accountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(accountTo, { transaction: t });
+      if (sourceAccount && destAccount) {
+        await sourceAccount.update({
+          currentBalance: parseFloat(sourceAccount.currentBalance) + amount
+        }, { transaction: t });
+        await destAccount.update({
+          currentBalance: parseFloat(destAccount.currentBalance) - amount
+        }, { transaction: t });
+        console.log('[Finance] Reversed transfer balance on void');
+      }
+    }
+
+    // Update transaction status to VOIDED
+    await transaction.update({
+      status: 'voided',
+      voidDate: new Date(),
+      voidBy: voidedBy || 'system',
+      voidReason: reason
+    }, { transaction: t });
+
+    await t.commit();
+
+    console.log('[Finance] ✅ Transaction voided successfully');
+
+    res.json({
+      success: true,
+      message: 'Transaction voided successfully and balances reversed',
+      data: transaction
+    });
+  } catch (error) {
+    await t.rollback();
+    console.error('[Finance] Error voiding transaction:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to void transaction',
+      details: error.message
+    });
+  }
+});
+
+// @route   POST /api/finance/:id/reverse
+// @desc    Reverse a posted transaction and create corrected entry
+// @access  Private
+router.post('/:id/reverse', async (req, res) => {
+  const t = await FinanceTransaction.sequelize.transaction();
+  
+  try {
+    const { id } = req.params;
+    const { reason, correctedData, reversedBy } = req.body;
+
+    // Validate inputs
+    if (!reason || reason.trim() === '') {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Reversal reason is required for audit trail'
+      });
+    }
+
+    if (!correctedData) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Corrected transaction data is required'
+      });
+    }
+
+    // Find original transaction
+    const originalTransaction = await FinanceTransaction.findByPk(id, { transaction: t });
+    if (!originalTransaction) {
+      await t.rollback();
+      return res.status(404).json({
+        success: false,
+        error: 'Original transaction not found'
+      });
+    }
+
+    // ✅ VALIDATION: Check if can be reversed
+    if (!originalTransaction.canReverse()) {
+      await t.rollback();
+      return res.status(400).json({
+        success: false,
+        error: `Cannot reverse transaction with status: ${originalTransaction.status}`,
+        hint: originalTransaction.isReversed ? 
+          'Transaction has already been reversed' : 
+          'Only POSTED transactions can be reversed'
+      });
+    }
+
+    console.log('[Finance] Reversing transaction:', id, '- Reason:', reason);
+
+    const ChartOfAccounts = require('../models/ChartOfAccounts');
+    const amount = parseFloat(originalTransaction.amount);
+    const type = originalTransaction.type;
+    const accountFrom = originalTransaction.accountFrom;
+    const accountTo = originalTransaction.accountTo;
+
+    // STEP 1: Create reversal entry (opposite of original)
+    const reversalId = `FIN-REV-${Date.now()}`;
+    let reversalData = {
+      id: reversalId,
+      type: type,
+      category: originalTransaction.category,
+      subcategory: originalTransaction.subcategory,
+      amount: amount,
+      description: `REVERSAL: ${originalTransaction.description} (Reason: ${reason})`,
+      date: new Date(),
+      projectId: originalTransaction.projectId,
+      status: 'posted',
+      reversalOfTransactionId: originalTransaction.id
+    };
+
+    // Swap accounts for reversal
+    if (type === 'income') {
+      reversalData.accountFrom = accountTo;  // Reverse: debit from where it was credited
+      reversalData.accountTo = null;
+    } else if (type === 'expense') {
+      reversalData.accountFrom = null;
+      reversalData.accountTo = accountFrom;  // Reverse: credit back to where it was debited
+    } else if (type === 'transfer') {
+      reversalData.accountFrom = accountTo;   // Swap source and destination
+      reversalData.accountTo = accountFrom;
+    }
+
+    const reversalTransaction = await FinanceTransaction.create(reversalData, { transaction: t });
+
+    // Apply reversal balance changes
+    if (type === 'income' && accountTo) {
+      const account = await ChartOfAccounts.findByPk(accountTo, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) - amount
+        }, { transaction: t });
+      }
+    } else if (type === 'expense' && accountFrom) {
+      const account = await ChartOfAccounts.findByPk(accountFrom, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) + amount
+        }, { transaction: t });
+      }
+    } else if (type === 'transfer' && accountFrom && accountTo) {
+      const sourceAccount = await ChartOfAccounts.findByPk(accountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(accountTo, { transaction: t });
+      if (sourceAccount && destAccount) {
+        await sourceAccount.update({
+          currentBalance: parseFloat(sourceAccount.currentBalance) + amount
+        }, { transaction: t });
+        await destAccount.update({
+          currentBalance: parseFloat(destAccount.currentBalance) - amount
+        }, { transaction: t });
+      }
+    }
+
+    // STEP 2: Mark original as reversed
+    await originalTransaction.update({
+      isReversed: true,
+      reversedByTransactionId: reversalTransaction.id,
+      status: 'reversed'
+    }, { transaction: t });
+
+    // STEP 3: Create new corrected transaction
+    const correctedId = `FIN-${Date.now()}`;
+    const correctedTransaction = await FinanceTransaction.create({
+      ...correctedData,
+      id: correctedId,
+      description: `CORRECTED: ${correctedData.description || originalTransaction.description} (Original: ${originalTransaction.id})`,
+      status: 'posted',
+      date: new Date()
+    }, { transaction: t });
+
+    // Apply corrected transaction balance changes
+    const newAmount = parseFloat(correctedTransaction.amount);
+    const newType = correctedTransaction.type;
+    const newAccountFrom = correctedTransaction.accountFrom;
+    const newAccountTo = correctedTransaction.accountTo;
+
+    if (newType === 'income' && newAccountTo) {
+      const account = await ChartOfAccounts.findByPk(newAccountTo, { transaction: t });
+      if (account) {
+        await account.update({
+          currentBalance: parseFloat(account.currentBalance) + newAmount
+        }, { transaction: t });
+      }
+    } else if (newType === 'expense' && newAccountFrom) {
+      const account = await ChartOfAccounts.findByPk(newAccountFrom, { transaction: t });
+      if (account) {
+        const newBalance = parseFloat(account.currentBalance) - newAmount;
+        if (newBalance < 0) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance',
+            details: `Account ${account.accountName} would have negative balance: ${newBalance}`
+          });
+        }
+        await account.update({ currentBalance: newBalance }, { transaction: t });
+      }
+    } else if (newType === 'transfer' && newAccountFrom && newAccountTo) {
+      const sourceAccount = await ChartOfAccounts.findByPk(newAccountFrom, { transaction: t });
+      const destAccount = await ChartOfAccounts.findByPk(newAccountTo, { transaction: t });
+      if (sourceAccount && destAccount) {
+        const newSourceBalance = parseFloat(sourceAccount.currentBalance) - newAmount;
+        if (newSourceBalance < 0) {
+          await t.rollback();
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance in source account',
+            details: `Account ${sourceAccount.accountName} would have negative balance: ${newSourceBalance}`
+          });
+        }
+        await sourceAccount.update({ currentBalance: newSourceBalance }, { transaction: t });
+        await destAccount.update({
+          currentBalance: parseFloat(destAccount.currentBalance) + newAmount
+        }, { transaction: t });
+      }
+    }
+
+    await t.commit();
+
+    console.log('[Finance] ✅ Transaction reversed and corrected successfully');
+
+    res.json({
+      success: true,
+      message: 'Transaction reversed and corrected successfully',
+      data: {
+        original: originalTransaction,
+        reversal: reversalTransaction,
+        corrected: correctedTransaction
+      }
+    });
+  } catch (error) {
+    await t.rollback();
+    console.error('[Finance] Error reversing transaction:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reverse transaction',
       details: error.message
     });
   }

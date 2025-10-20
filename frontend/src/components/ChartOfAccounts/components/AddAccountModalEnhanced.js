@@ -112,7 +112,7 @@ const AddAccountModal = ({
     try {
       const result = await generateAccountCode({
         accountType: formData.accountType,
-        parentId: formData.parentAccountId || null, // Convert empty string to null
+        parentId: formData.parentAccountId,
         level: parseInt(formData.level)
       });
       
@@ -311,7 +311,7 @@ const AddAccountModal = ({
     };
 
     const errorStyles = errors[field.name] ? {
-      border: `1px solid ${colors.error}`
+      borderColor: colors.error
     } : {};
 
     // Auto-filled fields in smart mode (read-only or disabled)
@@ -322,7 +322,7 @@ const AddAccountModal = ({
 
     const autoFilledStyles = isAutoFilled ? {
       backgroundColor: 'rgba(10, 132, 255, 0.1)',
-      border: '1px solid #0A84FF',
+      borderColor: '#0A84FF',
       cursor: 'not-allowed'
     } : {};
 

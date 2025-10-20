@@ -23,6 +23,8 @@ import TransactionFilters from './components/TransactionFilters';
 import TransactionList from './components/TransactionList';
 import TransactionForm from './components/TransactionForm';
 import TransactionModals from './components/TransactionModals';
+import VoidTransactionModal from './components/VoidTransactionModal';
+import ReverseTransactionModal from './components/ReverseTransactionModal';
 import FinancialReportsView from './components/FinancialReportsView';
 import TaxManagement from './components/TaxManagement';
 import FinanceWorkspace from './components/FinanceWorkspace';
@@ -295,6 +297,8 @@ const Finance = () => {
                 onView={transactions.handleViewTransaction}
                 onEdit={transactions.handleEditTransaction}
                 onDelete={transactions.handleDeleteTransaction}
+                onVoid={transactions.handleVoidTransaction}
+                onReverse={transactions.handleReverseTransaction}
                 currentPage={transactions.currentPage}
                 totalPages={transactions.totalPages}
                 onPageChange={transactions.handlePageChange}
@@ -316,6 +320,25 @@ const Finance = () => {
               onCloseDelete={() => transactions.setShowDeleteModal(false)}
               onConfirmDelete={transactions.confirmDeleteTransaction}
               isDeleting={false}
+            />
+
+            {/* VOID Transaction Modal - for cancelling posted transactions */}
+            <VoidTransactionModal
+              isOpen={transactions.showVoidModal}
+              onClose={transactions.cancelVoidTransaction}
+              onConfirm={transactions.confirmVoidTransaction}
+              transaction={transactions.selectedTransaction}
+              loading={transactions.isVoiding}
+            />
+
+            {/* REVERSE Transaction Modal - for correcting posted transactions */}
+            <ReverseTransactionModal
+              isOpen={transactions.showReverseModal}
+              onClose={transactions.cancelReverseTransaction}
+              onConfirm={transactions.confirmReverseTransaction}
+              transaction={transactions.selectedTransaction}
+              loading={transactions.isReversing}
+              cashAccounts={financeData.cashAccounts}
             />
           </div>
         );

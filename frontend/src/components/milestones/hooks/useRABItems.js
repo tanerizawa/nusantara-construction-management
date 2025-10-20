@@ -36,18 +36,67 @@ export const useRABItems = (projectId, milestoneId) => {
         `/projects/${projectId}/milestones/${milestoneId}/rab-items`
       );
 
-      if (response.data.success) {
-        console.log(`[useRABItems] Loaded ${response.data.data.length} RAB items`);
-        setRABItems(response.data.data);
-        setSummary(response.data.summary);
+      console.log('[useRABItems] API Response:', response.data);
+
+      // Check if response exists and has data
+      if (response && response.data) {
+        // Handle direct array response (backend returns array directly)
+        if (Array.isArray(response.data)) {
+          console.log(`[useRABItems] ✅ Loaded ${response.data.length} RAB items (direct array)`);
+          setRABItems(response.data);
+          setSummary(null); // No summary in direct array format
+          setError(null);
+        }
+        // Handle wrapped response {success: true, data: [...], summary: {...}}
+        else if (response.data.success && response.data.data) {
+          console.log(`[useRABItems] ✅ Loaded ${response.data.data?.length || 0} RAB items (wrapped)`);
+          setRABItems(response.data.data || []);
+          setSummary(response.data.summary || null);
+          setError(null);
+        }
+        // Handle message response (no RAB items)
+        else if (response.data.message) {
+          console.log('[useRABItems]', response.data.message);
+          setRABItems([]);
+          setSummary(null);
+          setError(null);
+        }
+        // Unknown format
+        else {
+          console.warn('[useRABItems] Unexpected response format:', response.data);
+          setRABItems([]);
+          setSummary(null);
+          setError(null);
+        }
       } else {
-        throw new Error(response.data.error || 'Failed to load RAB items');
+        console.error('[useRABItems] Invalid response structure');
+        setRABItems([]);
+        setSummary(null);
+        setError(null);
       }
     } catch (err) {
       console.error('[useRABItems] Error loading RAB items:', err);
-      setError(err.response?.data?.error || err.message);
-      setRABItems([]);
-      setSummary(null);
+      console.error('[useRABItems] Error details:', err.response?.data);
+      
+      // Don't set error for 404 or empty responses - just means no RAB items
+      if (err.response?.status === 404 || err.response?.status === 204) {
+        console.log('[useRABItems] No RAB items found (404/204)');
+        setRABItems([]);
+        setSummary(null);
+        setError(null);
+      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        console.error('[useRABItems] Authentication error');
+        setError('Authentication required');
+        setRABItems([]);
+        setSummary(null);
+      } else {
+        // Only set error for actual errors, not empty data
+        const errorMsg = err.response?.data?.error || err.message;
+        console.error('[useRABItems] Setting error:', errorMsg);
+        setError(errorMsg);
+        setRABItems([]);
+        setSummary(null);
+      }
     } finally {
       setLoading(false);
     }

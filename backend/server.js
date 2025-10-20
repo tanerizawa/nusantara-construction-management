@@ -305,6 +305,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/approval', require('./routes/approval'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/fcm-notifications', require('./routes/fcmNotificationRoutes')); // Firebase Cloud Messaging for push notifications
 app.use('/api/attendance', require('./routes/attendance')); // Attendance/Absensi System
 app.use('/api/database', require('./routes/database'));
 app.use('/api/monitoring', require('./routes/monitoring/monitoring.routes')); // System monitoring (Phase Security Enhancement B)
@@ -436,6 +437,16 @@ const startServer = async () => {
     } else {
       await sequelize.sync();
       console.log('🔒 Database models verified');
+    }
+
+    // Initialize Firebase Cloud Messaging for push notifications
+    try {
+      const fcmNotificationService = require('./services/FCMNotificationService');
+      await fcmNotificationService.initialize();
+      console.log('✅ FCM Notification Service initialized');
+    } catch (error) {
+      console.warn('⚠️  FCM initialization failed:', error.message);
+      console.warn('📱 Push notifications will not be available');
     }
 
     startServerWithDatabase();

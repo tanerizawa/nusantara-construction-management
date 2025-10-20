@@ -1,13 +1,28 @@
-// Costs Tab - Cost tracking and budget management
-import React, { useState, useEffect } from 'react';
+// Costs Tab - Cost tracking and budget management with RAB integration
+import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, DollarSign, TrendingUp, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { useMilestoneCosts } from '../hooks/useMilestoneCosts';
+import { useRABItems } from '../hooks/useRABItems';
 import { COST_CATEGORIES, COST_TYPES } from '../services/milestoneDetailAPI';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import api from '../../../services/api';
 
+// New RAB Integration Components
+import EnhancedBudgetSummary from './costs/EnhancedBudgetSummary';
+import RABItemsSection from './costs/RABItemsSection';
+import AdditionalCostsSection from './costs/AdditionalCostsSection';
+
 const CostsTab = ({ milestone, projectId }) => {
   const { costs, summary, loading, addCost, updateCost, deleteCost } = useMilestoneCosts(projectId, milestone.id);
+  
+  // NEW: RAB Items Hook
+  const { 
+    rabItems, 
+    summary: rabSummary, 
+    loading: loadingRAB, 
+    getRealizations 
+  } = useRABItems(projectId, milestone.id);
+  
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCost, setEditingCost] = useState(null);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
@@ -23,7 +38,9 @@ const CostsTab = ({ milestone, projectId }) => {
     description: '',
     referenceNumber: '',
     accountId: '',
-    sourceAccountId: ''
+    sourceAccountId: '',
+    rabItemId: null,           // NEW: Link to RAB item
+    rabItemProgress: 0         // NEW: Progress percentage
   });
 
   // Fetch Purchase Orders when component mounts
@@ -130,6 +147,37 @@ const CostsTab = ({ milestone, projectId }) => {
     }
   };
 
+  // NEW: Calculate total additional costs (non-RAB)
+  const additionalCostsTotal = useMemo(() => {
+    return costs
+      .filter(cost => !cost.rabItemId && !cost.rab_item_id)
+      .reduce((sum, cost) => sum + parseFloat(cost.amount || 0), 0);
+  }, [costs]);
+
+  // NEW: Auto-fill form from RAB item
+  const handleAddRealizationFromRAB = (rabItem) => {
+    // Map RAB item_type to cost_category
+    const itemTypeToCategory = {
+      'material': 'materials',
+      'service': 'labor',
+      'equipment': 'equipment',
+      'subcontractor': 'subcontractor'
+    };
+
+    setFormData({
+      costCategory: itemTypeToCategory[rabItem.item_type] || 'other',
+      costType: 'actual',
+      amount: rabItem.planned_amount.toString(),
+      description: `Realisasi: ${rabItem.description}`,
+      referenceNumber: '',
+      accountId: '',
+      sourceAccountId: '',
+      rabItemId: rabItem.id,
+      rabItemProgress: rabItem.actual_amount > 0 ? 100 : 100  // Default to 100% if adding realization
+    });
+    setShowAddForm(true);
+  };
+
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -158,7 +206,9 @@ const CostsTab = ({ milestone, projectId }) => {
         description: '',
         referenceNumber: '',
         accountId: '',
-        sourceAccountId: ''
+        sourceAccountId: '',
+        rabItemId: null,
+        rabItemProgress: 0
       });
       setShowAddForm(false);
     } catch (error) {
@@ -183,7 +233,9 @@ const CostsTab = ({ milestone, projectId }) => {
       description: cost.description || '',
       referenceNumber: cost.referenceNumber || '',
       accountId: cost.accountId || '',
-      sourceAccountId: cost.sourceAccountId || ''
+      sourceAccountId: cost.sourceAccountId || '',
+      rabItemId: cost.rabItemId || cost.rab_item_id || null,
+      rabItemProgress: cost.rabItemProgress || cost.rab_item_progress || 0
     });
     setShowAddForm(true);
   };
@@ -214,7 +266,9 @@ const CostsTab = ({ milestone, projectId }) => {
       description: '',
       referenceNumber: '',
       accountId: '',
-      sourceAccountId: ''
+      sourceAccountId: '',
+      rabItemId: null,
+      rabItemProgress: 0
     });
   };
 
@@ -245,111 +299,50 @@ const CostsTab = ({ milestone, projectId }) => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Budget Summary */}
-      {loading ? (
+      {/* Enhanced Budget Summary with RAB Integration */}
+      {loading || loadingRAB ? (
         <div className="bg-[#2C2C2E] rounded-lg p-4 border border-[#38383A]">
           <p className="text-sm text-[#8E8E93]">Loading summary...</p>
         </div>
-      ) : summary ? (
-        <div className="bg-[#2C2C2E] rounded-lg p-6 border border-[#38383A]">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={20} className="text-[#0A84FF]" />
-            <h3 className="font-semibold text-white text-lg">Budget Summary</h3>
-          </div>
+      ) : (
+        <EnhancedBudgetSummary 
+          milestone={milestone}
+          rabSummary={rabSummary}
+          additionalCosts={additionalCostsTotal}
+        />
+      )}
 
-          {/* Main Numbers */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-xs text-[#8E8E93] mb-1">Milestone Budget</p>
-              <p className="text-2xl font-bold text-white">
-                {formatCurrency(milestone.budget || 0)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-[#8E8E93] mb-1">Total Spent</p>
-              <p className="text-2xl font-bold text-white">
-                {formatCurrency(summary.totalActual || 0)}
-              </p>
-            </div>
-          </div>
+      {/* RAB Items Section (if milestone has RAB link) */}
+      {!loadingRAB && rabItems && rabItems.length > 0 && (
+        <RABItemsSection
+          rabItems={rabItems}
+          onAddRealization={handleAddRealizationFromRAB}
+          getRealizations={getRealizations}
+        />
+      )}
 
-          {/* Progress Bar */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-[#8E8E93]">Budget Usage</span>
-              <span className="text-xs font-medium text-white">
-                {milestone.budget > 0 
-                  ? ((summary.totalActual || 0) / milestone.budget * 100).toFixed(1)
-                  : '0.0'
-                }%
-              </span>
-            </div>
-            <div className="w-full bg-[#48484A] rounded-full h-2">
-              <div 
-                className="h-2 rounded-full transition-all duration-300"
-                style={{ 
-                  width: milestone.budget > 0 
-                    ? `${Math.min(((summary.totalActual || 0) / milestone.budget) * 100, 100)}%`
-                    : '0%',
-                  backgroundColor: summary.status === 'over_budget' ? '#FF453A' : '#30D158'
-                }}
-              />
-            </div>
-          </div>
+      {/* Additional Costs Section (Non-RAB costs) */}
+      <AdditionalCostsSection
+        costs={costs}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAddNew={() => {
+          setFormData({
+            costCategory: 'materials',
+            costType: 'actual',
+            amount: '',
+            description: '',
+            referenceNumber: '',
+            accountId: '',
+            sourceAccountId: '',
+            rabItemId: null,
+            rabItemProgress: 0
+          });
+          setShowAddForm(true);
+        }}
+      />
 
-          {/* Variance Alert */}
-          {summary.variance !== undefined && summary.variance !== 0 && milestone.budget > 0 && (
-            <div className={`flex items-start gap-3 p-3 rounded-lg ${
-              summary.status === 'over_budget'
-                ? 'bg-[#FF453A]/10 border border-[#FF453A]/30'
-                : 'bg-[#30D158]/10 border border-[#30D158]/30'
-            }`}>
-              <AlertCircle 
-                size={20} 
-                className={summary.status === 'over_budget' ? 'text-[#FF453A]' : 'text-[#30D158]'}
-              />
-              <div className="flex-1">
-                <p className={`text-sm font-medium ${
-                  summary.status === 'over_budget' ? 'text-[#FF453A]' : 'text-[#30D158]'
-                }`}>
-                  {summary.status === 'over_budget' ? 'Over Budget!' : 'Under Budget'}
-                </p>
-                <p className="text-xs text-[#8E8E93] mt-1">
-                  Variance: {summary.variance > 0 ? '+' : ''}{formatCurrency(Math.abs(summary.variance || 0))}
-                  {' '}({((Math.abs(summary.variance || 0) / milestone.budget) * 100).toFixed(1)}%)
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Breakdown by Category */}
-          {summary.breakdown && summary.breakdown.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-[#38383A]">
-              <p className="text-xs font-medium text-[#8E8E93] mb-3">Cost Breakdown</p>
-              <div className="space-y-2">
-                {summary.breakdown.map((item) => (
-                  <div key={item.category} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: getCategoryColor(item.category) }}
-                      />
-                      <span className="text-xs text-white capitalize">
-                        {item.category.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <span className="text-xs font-medium text-white">
-                      {formatCurrency(item.total)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      ) : null}
-
-      {/* Add Cost Button */}
+      {/* Add Cost Button (old - keep for now for manual additional costs) */}
       {!showAddForm && (
         <button
           onClick={() => setShowAddForm(true)}
@@ -578,86 +571,6 @@ const CostsTab = ({ milestone, projectId }) => {
           </form>
         </div>
       )}
-
-      {/* Cost Entries List */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-white">Cost Entries ({costs.length})</h3>
-        
-        {loading ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-[#8E8E93]">Loading costs...</p>
-          </div>
-        ) : costs.length === 0 ? (
-          <div className="text-center py-8 bg-[#2C2C2E] rounded-lg border border-[#38383A]">
-            <DollarSign size={48} className="text-[#636366] mx-auto mb-3" />
-            <p className="text-sm text-[#8E8E93]">No cost entries yet. Add one to get started!</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {costs.map((cost) => {
-              const typeBadge = getTypeBadge(cost.costType);
-              return (
-                <div
-                  key={cost.id}
-                  className="bg-[#2C2C2E] rounded-lg p-4 border border-[#38383A] hover:border-[#48484A] transition-colors"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div 
-                          className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: getCategoryColor(cost.costCategory) }}
-                        />
-                        <span className="text-sm font-medium text-white capitalize">
-                          {cost.costCategory.replace('_', ' ')}
-                        </span>
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs ${typeBadge.color}`}>
-                          {typeBadge.text}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#8E8E93] mb-2">
-                        {cost.description}
-                      </p>
-                      {cost.referenceNumber && (
-                        <p className="text-xs text-[#636366]">
-                          Ref: {cost.referenceNumber}
-                        </p>
-                      )}
-                      <p className="text-xs text-[#636366] mt-1">
-                        {formatDate(cost.recordedAt || cost.createdAt)}
-                        {cost.recorder_name && ` • By: ${cost.recorder_name}`}
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-white">
-                          {formatCurrency(cost.amount)}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleEdit(cost)}
-                          className="p-1.5 text-[#0A84FF] hover:bg-[#0A84FF]/10 rounded transition-colors"
-                          title="Edit"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(cost.id)}
-                          className="p-1.5 text-[#FF453A] hover:bg-[#FF453A]/10 rounded transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

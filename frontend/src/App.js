@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import Contexts
@@ -8,6 +8,12 @@ import { ThemeProvider } from './context/ThemeContext';
 // Import Components
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import NotificationPrompt from './components/NotificationPrompt';
+import NotificationToast from './components/Notifications/NotificationToast';
+import DeepLinkRouter from './components/DeepLinkRouter';
+
+// Import Utilities
+import notificationManager from './utils/notificationManager';
 
 // Import Layout
 import MainLayout from './components/Layout/MainLayout';
@@ -42,6 +48,11 @@ const AttendanceDashboard = lazy(() => import('./pages/AttendanceDashboard'));
 const ClockInPage = lazy(() => import('./pages/ClockInPage'));
 const ClockOutPage = lazy(() => import('./pages/ClockOutPage'));
 const AttendanceSuccess = lazy(() => import('./pages/AttendanceSuccess'));
+const AttendanceHistory = lazy(() => import('./pages/AttendanceHistory'));
+const MonthlySummary = lazy(() => import('./pages/MonthlySummary'));
+const LeaveRequestPage = lazy(() => import('./pages/LeaveRequestPage'));
+const AttendanceSettings = lazy(() => import('./pages/AttendanceSettings'));
+const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 
 // Lazy load routes
 const AssetRoutes = lazy(() => import('./routes/AssetRoutes'));
@@ -77,6 +88,29 @@ const PageLoader = () => (
 import './index.css';
 
 function App() {
+  // Initialize notification system when app loads
+  useEffect(() => {
+    const initializeNotifications = async () => {
+      const token = localStorage.getItem('token');
+      
+      // Only initialize if user is logged in
+      if (token) {
+        try {
+          await notificationManager.initialize();
+        } catch (error) {
+          console.error('Failed to initialize notifications:', error);
+        }
+      }
+    };
+
+    initializeNotifications();
+
+    // Cleanup on unmount
+    return () => {
+      // Notification manager cleanup happens on logout
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
@@ -84,6 +118,15 @@ function App() {
           <Router>
             <Suspense fallback={<PageLoader />}>
               <div className="App">
+                {/* Notification Prompt - Shows after login */}
+                <NotificationPrompt />
+                
+                {/* Notification Toast - In-app notifications */}
+                <NotificationToast />
+                
+                {/* Deep Link Router - Handles app:// URLs */}
+                <DeepLinkRouter />
+                
                 <Routes>
                   {/* Auth Routes - No Layout */}
                   <Route path="/login" element={<Login />} />
@@ -243,7 +286,7 @@ function App() {
               <Route path="/notifications" element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <Notifications />
+                    <NotificationPage />
                   </MainLayout>
                 </ProtectedRoute>
               } />
@@ -287,6 +330,34 @@ function App() {
               <Route path="/attendance/success" element={
                 <ProtectedRoute>
                   <AttendanceSuccess />
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/history" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <AttendanceHistory />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/summary" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <MonthlySummary />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/leave-request" element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <LeaveRequestPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              } />
+              <Route path="/attendance/settings" element={
+                <ProtectedRoute roles={['admin']}>
+                  <MainLayout>
+                    <AttendanceSettings />
+                  </MainLayout>
                 </ProtectedRoute>
               } />
               

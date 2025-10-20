@@ -381,4 +381,212 @@ router.put('/settings/:projectId', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/attendance/leave-request
+ * @desc    Submit leave request
+ * @access  Private
+ */
+router.post('/leave-request', verifyToken, upload.single('attachment'), async (req, res) => {
+  try {
+    const {
+      leaveType,
+      startDate,
+      endDate,
+      reason,
+      contactNumber,
+    } = req.body;
+
+    // Validation
+    if (!leaveType || !startDate || !endDate || !reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Leave type, dates, and reason are required',
+      });
+    }
+
+    const attachmentUrl = req.file ? `/uploads/attendance/${req.file.filename}` : null;
+
+    const leaveRequest = await AttendanceService.createLeaveRequest({
+      userId: req.user.id,
+      leave_type: leaveType,
+      start_date: startDate,
+      end_date: endDate,
+      reason,
+      contact_number: contactNumber,
+      attachment_url: attachmentUrl,
+      status: 'pending',
+    });
+
+    // Send FCM notification to admins
+    try {
+      const fcmNotificationService = require('../services/FCMNotificationService');
+      const User = require('../models/User');
+      
+      // Find all admins
+      const admins = await User.findAll({
+        where: { role: 'admin', is_active: true }
+      });
+
+      // Send notification to each admin
+      for (const admin of admins) {
+        await fcmNotificationService.sendLeaveApprovalRequest({
+          adminId: admin.id,
+          employee: req.user,
+          leaveRequest
+        });
+      }
+    } catch (fcmError) {
+      console.warn('Failed to send FCM notification:', fcmError.message);
+      // Don't fail the request if notification fails
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Leave request submitted successfully',
+      data: leaveRequest,
+    });
+  } catch (error) {
+    console.error('Submit leave request error:', error);
+    
+    // Delete uploaded file if error occurs
+    if (req.file) {
+      try {
+        await fs.unlink(req.file.path);
+      } catch (unlinkError) {
+        console.error('Error deleting file:', unlinkError);
+      }
+    }
+
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to submit leave request',
+    });
+  }
+});
+
+/**
+ * @route   GET /api/attendance/leave-requests
+ * @desc    Get leave requests (admin sees all, employee sees own)
+ * @access  Private
+ */
+router.get('/leave-requests', verifyToken, async (req, res) => {
+  try {
+    const { status, limit = 50, page = 1 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    let whereClause = {};
+    
+    // Non-admins can only see their own requests
+    if (req.user.role !== 'admin') {
+      whereClause.user_id = req.user.id;
+    }
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const leaveRequests = await AttendanceService.getLeaveRequests({
+      where: whereClause,
+      limit: parseInt(limit),
+      offset,
+    });
+
+    res.json({
+      success: true,
+      ...leaveRequests,
+    });
+  } catch (error) {
+    console.error('Get leave requests error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get leave requests',
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/attendance/leave-request/:id
+ * @desc    Update leave request status (approve/reject)
+ * @access  Private (Admin)
+ */
+router.put('/leave-request/:id', verifyToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins can approve or reject leave requests',
+      });
+    }
+
+    const { id } = req.params;
+    const { status, rejection_reason } = req.body;
+
+    // Validation
+    if (!status || !['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid status (approved/rejected) is required',
+      });
+    }
+
+    if (status === 'rejected' && !rejection_reason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Rejection reason is required when rejecting',
+      });
+    }
+
+    const leaveRequest = await AttendanceService.updateLeaveRequest(id, {
+      status,
+      rejection_reason: status === 'rejected' ? rejection_reason : null,
+      reviewed_by: req.user.id,
+      reviewed_at: new Date(),
+    });
+
+    if (!leaveRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Leave request not found',
+      });
+    }
+
+    // Send FCM notification to employee
+    try {
+      const fcmNotificationService = require('../services/FCMNotificationService');
+      
+      if (status === 'approved') {
+        await fcmNotificationService.sendLeaveApproved({
+          employeeId: leaveRequest.user_id,
+          leaveRequest,
+          approver: req.user,
+        });
+      } else if (status === 'rejected') {
+        await fcmNotificationService.sendLeaveRejected({
+          employeeId: leaveRequest.user_id,
+          leaveRequest,
+          rejector: req.user,
+          reason: rejection_reason,
+        });
+      }
+    } catch (fcmError) {
+      console.warn('Failed to send FCM notification:', fcmError.message);
+      // Don't fail the request if notification fails
+    }
+
+    res.json({
+      success: true,
+      message: `Leave request ${status} successfully`,
+      data: leaveRequest,
+    });
+  } catch (error) {
+    console.error('Update leave request error:', error);
+    res.status(400).json({
+      success: false,
+      message: error.message || 'Failed to update leave request',
+    });
+  }
+});
+
 module.exports = router;
+

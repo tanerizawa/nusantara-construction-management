@@ -202,12 +202,21 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Prepare account data - convert empty strings to null
     const accountData = {
       ...req.body,
       id: await generateAccountId(),
       level: level,
       isActive: true,
-      isControlAccount: false
+      isControlAccount: false,
+      // Convert empty parent_account_id to null
+      parentAccountId: req.body.parentAccountId && req.body.parentAccountId.trim() !== '' 
+        ? req.body.parentAccountId 
+        : null,
+      // Convert empty subsidiary_id to null
+      subsidiaryId: req.body.subsidiaryId && req.body.subsidiaryId.trim() !== ''
+        ? req.body.subsidiaryId
+        : null
     };
 
     const account = await ChartOfAccounts.create(accountData);

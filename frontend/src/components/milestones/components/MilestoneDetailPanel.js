@@ -32,6 +32,13 @@ const MilestoneDetailPanel = ({
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showMilestoneDropdown, setShowMilestoneDropdown] = useState(false);
+  const [localProgress, setLocalProgress] = useState(milestone.progress);
+  
+  // Sync local progress when milestone changes
+  React.useEffect(() => {
+    setLocalProgress(milestone.progress);
+  }, [milestone.progress]);
+  
   const statusInfo = getStatusInfo(isOverdue(milestone) ? 'overdue' : milestone.status);
   const StatusIcon = statusInfo.icon;
 
@@ -245,18 +252,29 @@ const MilestoneDetailPanel = ({
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#8E8E93]">Adjust Progress</span>
-              <span className="font-mono font-medium text-white">{milestone.progress}%</span>
+              <span className="font-mono font-medium text-white">{localProgress}%</span>
             </div>
             <div className="flex items-center gap-3">
               <input
                 type="range"
                 min="0"
                 max="100"
-                value={milestone.progress}
-                onChange={(e) => onProgressUpdate(milestone.id, parseInt(e.target.value))}
+                value={localProgress}
+                onChange={(e) => {
+                  const newProgress = parseInt(e.target.value);
+                  setLocalProgress(newProgress); // ✅ Immediate UI update
+                }}
+                onMouseUp={(e) => {
+                  const newProgress = parseInt(e.target.value);
+                  onProgressUpdate(milestone.id, newProgress); // ✅ API call on release
+                }}
+                onTouchEnd={(e) => {
+                  const newProgress = parseInt(e.target.value);
+                  onProgressUpdate(milestone.id, newProgress); // ✅ Mobile support
+                }}
                 className="flex-1 h-2 accent-[#0A84FF] cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, #0A84FF 0%, #0A84FF ${milestone.progress}%, #48484A ${milestone.progress}%, #48484A 100%)`
+                  background: `linear-gradient(to right, #0A84FF 0%, #0A84FF ${localProgress}%, #48484A ${localProgress}%, #48484A 100%)`
                 }}
               />
             </div>

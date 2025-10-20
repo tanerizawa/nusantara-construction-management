@@ -18,30 +18,30 @@ const createRABAvailabilityView = async () => {
       CREATE VIEW rab_items_availability AS
       SELECT 
         r.id,
-        r."projectId",
+        r.project_id,
         r.category,
         r.description,
         r.unit,
         r.quantity as original_quantity,
-        r."unitPrice",
-        r."totalPrice",
+        r.unit_price,
+        r.total_price,
         r.notes,
         r.status,
-        r."isApproved",
-        r."approvedBy",
-        r."approvedAt",
-        r."createdBy",
-        r."updatedBy",
-        r."createdAt",
-        r."updatedAt",
+        r.is_approved,
+        r.approved_by,
+        r.approved_at,
+        r.created_by,
+        r.updated_by,
+        r.created_at,
+        r.updated_at,
         -- Purchase tracking aggregations
         COALESCE(SUM(t.quantity), 0)::DECIMAL(10,2) as total_purchased,
-        COALESCE(SUM(t."totalAmount"), 0)::DECIMAL(15,2) as total_purchase_amount,
-        COUNT(DISTINCT t."poNumber") as active_po_count,
-        MAX(t."purchaseDate") as last_purchase_date,
+        COALESCE(SUM(t.total_amount), 0)::DECIMAL(15,2) as total_purchase_amount,
+        COUNT(DISTINCT t.po_number) as active_po_count,
+        MAX(t.purchase_date) as last_purchase_date,
         -- Calculated availability
         (r.quantity - COALESCE(SUM(t.quantity), 0))::DECIMAL(10,2) as available_quantity,
-        ((r.quantity - COALESCE(SUM(t.quantity), 0)) * r."unitPrice")::DECIMAL(15,2) as available_value,
+        ((r.quantity - COALESCE(SUM(t.quantity), 0)) * r.unit_price)::DECIMAL(15,2) as available_value,
         -- Progress percentage
         CASE 
           WHEN r.quantity > 0 
@@ -49,25 +49,25 @@ const createRABAvailabilityView = async () => {
           ELSE 0 
         END as purchase_progress_percent
       FROM project_rab r
-      LEFT JOIN rab_purchase_tracking t ON r.id::text = t."rabItemId"
+      LEFT JOIN rab_purchase_tracking t ON r.id::text = t.rab_item_id
       GROUP BY 
         r.id,
-        r."projectId",
+        r.project_id,
         r.category,
         r.description,
         r.unit,
         r.quantity,
-        r."unitPrice",
-        r."totalPrice",
+        r.unit_price,
+        r.total_price,
         r.notes,
         r.status,
-        r."isApproved",
-        r."approvedBy",
-        r."approvedAt",
-        r."createdBy",
-        r."updatedBy",
-        r."createdAt",
-        r."updatedAt";
+        r.is_approved,
+        r.approved_by,
+        r.approved_at,
+        r.created_by,
+        r.updated_by,
+        r.created_at,
+        r.updated_at;
     `);
 
     return true;

@@ -38,6 +38,15 @@ export const BASE_URL = (() => {
 export const getImageUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
+  
+  // For production, use relative URL to leverage Apache proxy
+  const hostname = window.location.hostname;
+  if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+    // Return path as-is, browser will use current protocol + domain
+    return path;
+  }
+  
+  // Development: prepend full BASE_URL
   return `${BASE_URL}${path}`;
 };
 

@@ -87,6 +87,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
       {showAddForm && (
         <MilestoneInlineForm
           projectId={project.id}
+          project={project}
           onClose={() => setShowAddForm(false)}
           onSuccess={() => {
             handleFormSuccess();
@@ -99,6 +100,7 @@ const ProjectMilestones = ({ project, onUpdate }) => {
       {editingMilestone && (
         <MilestoneInlineForm
           projectId={project.id}
+          project={project}
           milestone={editingMilestone}
           onClose={() => setEditingMilestone(null)}
           onSuccess={() => {

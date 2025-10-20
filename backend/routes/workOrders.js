@@ -296,6 +296,11 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
     const projectId = req.projectId || req.params.projectId;
     const { id } = req.params;
 
+    console.log('📄 [PDF] PDF generation request received');
+    console.log('📄 [PDF] Project ID:', projectId);
+    console.log('📄 [PDF] WO ID:', id);
+    console.log('📄 [PDF] User:', req.user?.id || 'unknown');
+
     // Find WO by ID or WO number
     const wo = await WorkOrder.findOne({
       where: {
@@ -311,7 +316,7 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
     });
 
     if (!wo) {
-      console.error('WO not found for id:', id);
+      console.error('❌ [PDF] WO not found for id:', id);
       return res.status(404).json({
         success: false,
         error: 'Work Order tidak ditemukan'
@@ -495,6 +500,8 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
       contractorInfo
     );
 
+    console.log('✅ [PDF] PDF generated successfully, size:', pdfBuffer.length, 'bytes');
+
     // Set response headers for PDF
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="Perintah-Kerja-${wo.wo_number || wo.woNumber}.pdf"`);
@@ -504,7 +511,8 @@ router.get('/:id/pdf', verifyToken, async (req, res) => {
     res.send(pdfBuffer);
 
   } catch (error) {
-    console.error('Error generating WO PDF:', error);
+    console.error('❌ [PDF] Error generating WO PDF:', error);
+    console.error('❌ [PDF] Error stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Gagal generate PDF Perintah Kerja',

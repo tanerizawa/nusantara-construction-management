@@ -7,8 +7,134 @@
 const express = require('express');
 const ProjectRAB = require('../../models/ProjectRAB');
 const Project = require('../../models/Project');
+const ProjectTeamMember = require('../../models/ProjectTeamMember');
+const User = require('../../models/User');
+const fcmNotificationService = require('../../services/FCMNotificationService');
 
 const router = express.Router();
+
+/**
+ * Helper: Find users who should be notified about RAB approval requests
+ * Priority: 1) Project team members 2) All admins
+ */
+async function getRABApprovers(projectId) {
+  try {
+    // Strategy 1: Find project team members with manager/admin roles
+    const projectTeamMembers = await ProjectTeamMember.findAll({
+      where: { 
+        projectId,
+        status: 'active'
+      },
+      attributes: ['employeeId', 'role', 'name']
+    });
+
+    // Get employee IDs (filtering out null values)
+    const employeeIds = projectTeamMembers
+      .filter(member => member.employeeId)
+      .map(member => member.employeeId);
+
+    if (employeeIds.length > 0) {
+      console.log(`✓ Found ${employeeIds.length} project team members for RAB approval notification`);
+      console.log(`  Team member IDs: ${employeeIds.join(', ')}`);
+      
+      // Convert EMP- IDs to USR- IDs by querying users table
+      // Many project_team_members use EMP- prefix but users table uses USR- prefix
+      const userIds = [];
+      
+      for (const empId of employeeIds) {
+        // Try direct match first (if employee_id matches user.id)
+        let user = await User.findByPk(empId);
+        
+        // If not found, try to map EMP- to USR- by finding matching username
+        if (!user) {
+          // Extract name from project team member and find matching user
+          const teamMember = projectTeamMembers.find(m => m.employeeId === empId);
+          if (teamMember && teamMember.name) {
+            user = await User.findOne({
+              where: { username: teamMember.name.toLowerCase() }
+            });
+          }
+        }
+        
+        if (user) {
+          userIds.push(user.id);
+          console.log(`  Mapped ${empId} → ${user.id} (${user.username})`);
+        } else {
+          console.warn(`  ⚠ Could not find user for employee ID: ${empId}`);
+        }
+      }
+      
+      if (userIds.length > 0) {
+        return userIds;
+      }
+    }
+
+    // Strategy 2: Fallback to all active admins
+    const admins = await User.findAll({
+      where: { 
+        role: 'admin', 
+        is_active: true 
+      },
+      attributes: ['id']
+    });
+
+    const adminIds = admins.map(admin => admin.id);
+    console.log(`✓ No project team members found, using ${adminIds.length} admins for RAB approval notification`);
+    return adminIds;
+  } catch (error) {
+    console.error('Error finding RAB approvers:', error);
+    return [];
+  }
+}
+
+/**
+ * Helper: Send RAB approval request notification
+ */
+async function sendRABApprovalNotification(projectId, rabItem, creatorName) {
+  try {
+    const approverIds = await getRABApprovers(projectId);
+    
+    if (approverIds.length === 0) {
+      console.warn('⚠ No approvers found for RAB notification');
+      return;
+    }
+
+    // Get project details for better notification context
+    const project = await Project.findByPk(projectId);
+    const projectName = project ? project.name : 'Unknown Project';
+
+    const title = '💰 New RAB Approval Request';
+    const body = `${creatorName} submitted RAB "${rabItem.description}" for ${projectName}`;
+    
+    const data = {
+      type: 'rab_approval_request',
+      rabId: rabItem.id.toString(),
+      projectId: projectId,
+      projectName: projectName,
+      description: rabItem.description,
+      category: rabItem.category,
+      totalPrice: rabItem.totalPrice.toString(),
+      createdBy: creatorName
+    };
+
+    const clickAction = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/projects/${projectId}/rab/${rabItem.id}`;
+
+    // Send notification to all approvers
+    const results = await fcmNotificationService.sendToMultipleUsers({
+      userIds: approverIds,
+      title,
+      body,
+      data,
+      clickAction
+    });
+
+    const successCount = results.filter(r => r.success).length;
+    console.log(`✓ RAB approval notification sent: ${successCount}/${approverIds.length} delivered`);
+  } catch (error) {
+    console.error('Error sending RAB approval notification:', error);
+    // Don't throw - allow RAB creation to succeed even if notification fails
+  }
+}
 
 /**
  * @route   GET /api/projects/:id/rab
@@ -201,6 +327,27 @@ router.post('/:id/rab', async (req, res) => {
       createdBy
     });
 
+    // Send notification when RAB is created (including draft status)
+    if (status === 'draft' || status === 'under_review' || status === 'pending_approval') {
+      try {
+        // Get creator name for notification
+        let creatorName = 'Unknown User';
+        if (req.user) {
+          creatorName = req.user.profile?.full_name || req.user.username || req.user.email;
+        } else if (createdBy) {
+          const creator = await User.findByPk(createdBy);
+          if (creator) {
+            creatorName = creator.profile?.full_name || creator.username || creator.email;
+          }
+        }
+
+        await sendRABApprovalNotification(id, rabItem, creatorName);
+      } catch (notifError) {
+        console.warn('Failed to send RAB notification:', notifError.message);
+        // Don't fail the request if notification fails
+      }
+    }
+
     res.status(201).json({
       success: true,
       data: rabItem,
@@ -282,6 +429,72 @@ router.post('/:id/rab/bulk', async (req, res) => {
 
     // Bulk create
     const created = await ProjectRAB.bulkCreate(rabItems);
+
+    // Send notification for all RAB items (including draft)
+    const itemsRequiringApproval = created.filter(item => 
+      item.status === 'draft' || item.status === 'under_review' || item.status === 'pending_approval'
+    );
+
+    console.log(`🔔 [RAB Bulk] Created items: ${created.length}, Requiring approval: ${itemsRequiringApproval.length}`);
+    console.log(`🔔 [RAB Bulk] Item statuses:`, created.map(i => i.status));
+
+    if (itemsRequiringApproval.length > 0) {
+      try {
+        // Get creator name for notification
+        let creatorName = 'Unknown User';
+        if (req.user) {
+          creatorName = req.user.profile?.full_name || req.user.username || req.user.email;
+        } else if (createdBy) {
+          const creator = await User.findByPk(createdBy);
+          if (creator) {
+            creatorName = creator.profile?.full_name || creator.username || creator.email;
+          }
+        }
+
+        console.log(`🔔 [RAB Bulk] Creator: ${creatorName}`);
+
+        // Send notification for the first item (representing the batch)
+        const firstItem = itemsRequiringApproval[0];
+        const approverIds = await getRABApprovers(id);
+        
+        console.log(`🔔 [RAB Bulk] Approver IDs:`, approverIds);
+        
+        if (approverIds.length > 0) {
+          const project = await Project.findByPk(id);
+          const projectName = project ? project.name : 'Unknown Project';
+
+          const title = '💰 New RAB Approval Request';
+          const body = `${creatorName} submitted ${itemsRequiringApproval.length} RAB items for ${projectName}`;
+          
+          const data = {
+            type: 'rab_approval_request',
+            rabId: firstItem.id.toString(),
+            projectId: id,
+            projectName: projectName,
+            itemCount: itemsRequiringApproval.length.toString(),
+            createdBy: creatorName
+          };
+
+          const clickAction = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/projects/${id}/rab`;
+
+          console.log(`🔔 [RAB Bulk] Sending notification:`, { title, body, approverCount: approverIds.length });
+
+          await fcmNotificationService.sendToMultipleUsers({
+            userIds: approverIds,
+            title,
+            body,
+            data,
+            clickAction
+          });
+
+          console.log(`✅ Bulk RAB approval notification sent for ${itemsRequiringApproval.length} items to ${approverIds.length} users`);
+        } else {
+          console.warn(`⚠️ [RAB Bulk] No approvers found for project ${id}`);
+        }
+      } catch (notifError) {
+        console.warn('Failed to send bulk RAB notification:', notifError.message);
+      }
+    }
 
     res.status(201).json({
       success: true,
@@ -370,6 +583,26 @@ router.put('/:id/rab/:rabId', async (req, res) => {
 
     await rabItem.update(updateData);
 
+    // Send notification if status changed (including draft)
+    if (status && (status === 'draft' || status === 'under_review' || status === 'pending_approval') && 
+        rabItem.status !== status) {
+      try {
+        let updaterName = 'Unknown User';
+        if (req.user) {
+          updaterName = req.user.profile?.full_name || req.user.username || req.user.email;
+        } else if (updatedBy) {
+          const updater = await User.findByPk(updatedBy);
+          if (updater) {
+            updaterName = updater.profile?.full_name || updater.username || updater.email;
+          }
+        }
+
+        await sendRABApprovalNotification(id, rabItem, updaterName);
+      } catch (notifError) {
+        console.warn('Failed to send RAB update notification:', notifError.message);
+      }
+    }
+
     res.json({
       success: true,
       data: rabItem,
@@ -430,6 +663,45 @@ router.put('/:id/rab/:rabId/approve', async (req, res) => {
       updatedBy: approvedBy
     });
 
+    // Notify the creator that their RAB was approved
+    if (rabItem.createdBy) {
+      try {
+        const project = await Project.findByPk(id);
+        const projectName = project ? project.name : 'Unknown Project';
+
+        const approver = await User.findByPk(approvedBy);
+        const approverName = approver 
+          ? (approver.profile?.full_name || approver.username || approver.email)
+          : 'Admin';
+
+        const title = '✅ RAB Approved';
+        const body = `Your RAB "${rabItem.description}" for ${projectName} has been approved by ${approverName}`;
+        
+        const data = {
+          type: 'rab_approved',
+          rabId: rabItem.id.toString(),
+          projectId: id,
+          projectName: projectName,
+          description: rabItem.description,
+          approvedBy: approverName
+        };
+
+        const clickAction = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/projects/${id}/rab/${rabItem.id}`;
+
+        await fcmNotificationService.sendToUser({
+          userId: rabItem.createdBy,
+          title,
+          body,
+          data,
+          clickAction
+        });
+
+        console.log(`✓ RAB approval notification sent to creator ${rabItem.createdBy}`);
+      } catch (notifError) {
+        console.warn('Failed to send RAB approval notification to creator:', notifError.message);
+      }
+    }
+
     res.json({ 
       success: true, 
       data: rabItem, 
@@ -480,6 +752,46 @@ router.put('/:id/rab/:rabId/reject', async (req, res) => {
       updatedBy: rejectedBy
     });
 
+    // Notify the creator that their RAB was rejected
+    if (rabItem.createdBy) {
+      try {
+        const project = await Project.findByPk(id);
+        const projectName = project ? project.name : 'Unknown Project';
+
+        const rejector = await User.findByPk(rejectedBy);
+        const rejectorName = rejector 
+          ? (rejector.profile?.full_name || rejector.username || rejector.email)
+          : 'Admin';
+
+        const title = '❌ RAB Rejected';
+        const body = `Your RAB "${rabItem.description}" for ${projectName} was rejected: ${rejectionReason}`;
+        
+        const data = {
+          type: 'rab_rejected',
+          rabId: rabItem.id.toString(),
+          projectId: id,
+          projectName: projectName,
+          description: rabItem.description,
+          rejectedBy: rejectorName,
+          reason: rejectionReason
+        };
+
+        const clickAction = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/projects/${id}/rab/${rabItem.id}`;
+
+        await fcmNotificationService.sendToUser({
+          userId: rabItem.createdBy,
+          title,
+          body,
+          data,
+          clickAction
+        });
+
+        console.log(`✓ RAB rejection notification sent to creator ${rabItem.createdBy}`);
+      } catch (notifError) {
+        console.warn('Failed to send RAB rejection notification to creator:', notifError.message);
+      }
+    }
+
     res.json({
       success: true,
       data: rabItem,
@@ -512,6 +824,14 @@ router.post('/:id/rab/approve-all', async (req, res) => {
       });
     }
 
+    // Get RAB items before updating to send notifications
+    const rabItemsToApprove = await ProjectRAB.findAll({
+      where: { 
+        projectId: id,
+        status: 'draft' // Changed from 'pending' to 'draft'
+      }
+    });
+
     const [updatedCount] = await ProjectRAB.update({
       status: 'approved',
       approvedBy,
@@ -520,9 +840,50 @@ router.post('/:id/rab/approve-all', async (req, res) => {
     }, {
       where: { 
         projectId: id,
-        status: 'draft' // Changed from 'pending' to 'draft'
+        status: 'draft'
       }
     });
+
+    // Send notification to all creators
+    if (rabItemsToApprove.length > 0) {
+      try {
+        const project = await Project.findByPk(id);
+        const projectName = project ? project.name : 'Unknown Project';
+
+        const approver = await User.findByPk(approvedBy);
+        const approverName = approver 
+          ? (approver.profile?.full_name || approver.username || approver.email)
+          : 'Admin';
+
+        // Get unique creator IDs
+        const creatorIds = [...new Set(rabItemsToApprove.map(item => item.createdBy).filter(Boolean))];
+
+        const title = '✅ RAB Bulk Approved';
+        const body = `${updatedCount} RAB items for ${projectName} have been approved by ${approverName}`;
+        
+        const data = {
+          type: 'rab_bulk_approved',
+          projectId: id,
+          projectName: projectName,
+          approvedCount: updatedCount.toString(),
+          approvedBy: approverName
+        };
+
+        const clickAction = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/projects/${id}/rab`;
+
+        await fcmNotificationService.sendToMultipleUsers({
+          userIds: creatorIds,
+          title,
+          body,
+          data,
+          clickAction
+        });
+
+        console.log(`✓ Bulk RAB approval notification sent to ${creatorIds.length} creators`);
+      } catch (notifError) {
+        console.warn('Failed to send bulk RAB approval notification:', notifError.message);
+      }
+    }
 
     res.json({
       success: true,

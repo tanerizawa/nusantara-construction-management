@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import NotificationPanel from './NotificationPanel';
+import NotificationBadge from '../Notifications/NotificationBadge';
 
 const Header = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
@@ -65,8 +66,11 @@ const Header = ({ onMenuClick }) => {
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
-          {/* Notifications - Using NotificationPanel */}
-          <NotificationPanel />
+          {/* Notifications - Using NotificationBadge */}
+          <NotificationBadge 
+            onClick={() => navigate('/notifications')}
+            className="notification-badge-header"
+          />
 
           {/* User Menu */}
           <div className="relative" ref={userMenuRef}>

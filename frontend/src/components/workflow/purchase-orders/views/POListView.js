@@ -33,13 +33,19 @@ const POListView = ({
     try {
       setGeneratingPDF(true);
       
-      // Get API URL and remove trailing /api if present
-      let API_URL = process.env.REACT_APP_API_URL || window.location.origin || 'http://localhost:5000';
-      API_URL = API_URL.replace(/\/api\/?$/, ''); // Remove /api or /api/ from end
+      // Detect environment based on hostname
+      const hostname = window.location.hostname;
+      let API_URL;
       
-      if (API_URL.includes('nusantaragroup.co')) {
-        // Untuk production server
-        API_URL = 'https://api.nusantaragroup.co';
+      if (hostname === 'nusantaragroup.co' || hostname === 'www.nusantaragroup.co') {
+        // Production environment
+        API_URL = 'https://nusantaragroup.co';
+      } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        // Development environment
+        API_URL = 'http://localhost:5000';
+      } else {
+        // Fallback to current origin
+        API_URL = window.location.origin;
       }
       
       const token = localStorage.getItem('token');

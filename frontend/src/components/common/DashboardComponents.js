@@ -49,20 +49,28 @@ export const StatsCard = ({
   icon: Icon, 
   color = 'blue', 
   trend,
-  onClick 
+  onClick,
+  urgent = false
 }) => {
   const colorClasses = {
     blue: 'text-[#0A84FF] bg-[#0A84FF]/10',
     green: 'text-[#30D158] bg-[#30D158]/10',
     red: 'text-[#FF453A] bg-[#FF453A]/10',
     yellow: 'text-[#FF9F0A] bg-[#FF9F0A]/10',
+    orange: 'text-[#FF9F0A] bg-[#FF9F0A]/10',
     purple: 'text-[#BF5AF2] bg-[#BF5AF2]/10',
+    cyan: 'text-[#64D2FF] bg-[#64D2FF]/10',
+    indigo: 'text-[#5E5CE6] bg-[#5E5CE6]/10',
     gray: 'text-[#98989D] bg-[#98989D]/10'
   };
 
   return (
     <div 
-      className={`bg-[#2C2C2E] border border-[#38383A] rounded-xl p-5 hover:border-[#48484A] transition-colors duration-150 ${onClick ? 'cursor-pointer' : ''}`}
+      className={`bg-[#2C2C2E] border rounded-xl p-5 transition-all duration-150 ${
+        urgent 
+          ? 'border-[#FF453A] animate-pulse' 
+          : 'border-[#38383A] hover:border-[#48484A]'
+      } ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
@@ -76,7 +84,7 @@ export const StatsCard = ({
           )}
           {trend && (
             <div className="flex items-center mt-2">
-              <span className={`text-xs font-medium ${trend.startsWith('+') ? 'text-[#30D158]' : 'text-[#FF453A]'}`}>
+              <span className={`text-xs font-medium ${trend.startsWith('+') ? 'text-[#30D158]' : trend.includes('⚠️') ? 'text-[#FF9F0A]' : 'text-[#98989D]'}`}>
                 {trend}
               </span>
             </div>

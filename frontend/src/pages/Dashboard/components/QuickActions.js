@@ -1,32 +1,56 @@
 import React from 'react';
-import { Building, ShoppingCart, BarChart3, Package } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ClipboardCheck, Camera, Upload, BarChart3 } from 'lucide-react';
 
 /**
- * Quick actions component
- * @returns {JSX.Element} Quick actions UI
+ * Quick Links component - Revised for Attendance & Documentation
+ * @returns {JSX.Element} Quick links UI
  */
-const QuickActions = () => {
-  const actions = [
-    { icon: Building, text: 'Buat Proyek Baru', color: '[#0A84FF]' },
-    { icon: ShoppingCart, text: 'Buat Purchase Order', color: '[#30D158]' },
-    { icon: BarChart3, text: 'Lihat Laporan', color: '[#64D2FF]' },
-    { icon: Package, text: 'Kelola Inventory', color: '[#FF9F0A]' }
+const QuickLinks = () => {
+  const navigate = useNavigate();
+
+  const links = [
+    { 
+      icon: ClipboardCheck, 
+      text: 'Absensi Hari Ini', 
+      color: '[#0A84FF]',
+      path: '/attendance'
+    },
+    { 
+      icon: Camera, 
+      text: 'Dokumentasi Kegiatan', 
+      color: '[#30D158]',
+      path: '/berita-acara'
+    },
+    { 
+      icon: Upload, 
+      text: 'Upload Progress Foto', 
+      color: '[#FF9F0A]',
+      path: '/projects'
+    },
+    { 
+      icon: BarChart3, 
+      text: 'Lihat Laporan', 
+      color: '[#64D2FF]',
+      path: '/reports'
+    }
   ];
   
   return (
     <div className="bg-[#2C2C2E] border border-[#38383A] p-6 rounded-xl hover:border-[#48484A] transition-colors">
-      <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
       <div className="space-y-3">
-        {actions.map((action, index) => (
+        {links.map((link, index) => (
           <button 
             key={index}
-            className="w-full flex items-center justify-between p-3 text-left border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] hover:border-[#48484A] transition-colors duration-150"
+            onClick={() => navigate(link.path)}
+            className="w-full flex items-center justify-between p-3 text-left border border-[#38383A] rounded-lg hover:bg-[#3A3A3C] hover:border-[#48484A] transition-colors duration-150 group"
           >
             <div className="flex items-center">
-              <action.icon className={`h-5 w-5 text-${action.color} mr-3`} />
-              <span className="font-medium text-white">{action.text}</span>
+              <link.icon className={`h-5 w-5 text-${link.color} mr-3 group-hover:scale-110 transition-transform`} />
+              <span className="font-medium text-white">{link.text}</span>
             </div>
-            <div className="text-[#98989D]">→</div>
+            <div className="text-[#98989D] group-hover:text-[#0A84FF] group-hover:translate-x-1 transition-all">→</div>
           </button>
         ))}
       </div>
@@ -34,4 +58,4 @@ const QuickActions = () => {
   );
 };
 
-export default QuickActions;
+export default QuickLinks;

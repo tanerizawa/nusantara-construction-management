@@ -18,6 +18,12 @@ const MilestoneTimelineItem = ({
   const Icon = statusInfo.icon;
   const [showWorkflowProgress, setShowWorkflowProgress] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [localProgress, setLocalProgress] = useState(milestone.progress);
+  
+  // Sync local progress when milestone changes
+  React.useEffect(() => {
+    setLocalProgress(milestone.progress);
+  }, [milestone.progress]);
 
   // Check if milestone has category link
   const hasCategoryLink = milestone.category_link && milestone.category_link.enabled;
@@ -155,11 +161,22 @@ const MilestoneTimelineItem = ({
                 type="range"
                 min="0"
                 max="100"
-                value={milestone.progress}
-                onChange={(e) => onProgressUpdate(milestone.id, parseInt(e.target.value))}
+                value={localProgress}
+                onChange={(e) => {
+                  const newProgress = parseInt(e.target.value);
+                  setLocalProgress(newProgress); // ✅ Immediate UI update
+                }}
+                onMouseUp={(e) => {
+                  const newProgress = parseInt(e.target.value);
+                  onProgressUpdate(milestone.id, newProgress); // ✅ API call on release
+                }}
+                onTouchEnd={(e) => {
+                  const newProgress = parseInt(e.target.value);
+                  onProgressUpdate(milestone.id, newProgress); // ✅ Mobile support
+                }}
                 className="flex-1 h-1.5 accent-[#0A84FF] cursor-pointer"
                 style={{
-                  background: `linear-gradient(to right, #0A84FF 0%, #0A84FF ${milestone.progress}%, #48484A ${milestone.progress}%, #48484A 100%)`
+                  background: `linear-gradient(to right, #0A84FF 0%, #0A84FF ${localProgress}%, #48484A ${localProgress}%, #48484A 100%)`
                 }}
               />
             </div>

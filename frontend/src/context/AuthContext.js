@@ -101,6 +101,15 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
+        // Send token to service worker for background actions
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'STORE_AUTH_TOKEN',
+            token: token
+          });
+          console.log('✅ Auth token sent to service worker');
+        }
+        
         setUser(user);
         toast.success('Login berhasil!');
         return { success: true };

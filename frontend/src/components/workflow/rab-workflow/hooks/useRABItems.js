@@ -208,7 +208,7 @@ const useRABItems = (projectId, onDataChange) => {
         ...itemData,
         id: Date.now(),
         projectId: projectId,
-        status: 'draft',
+        status: 'draft', // Default status - will trigger FCM notification
         isApproved: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()

@@ -115,6 +115,9 @@ frontend/public/
 backend/uploads/
 backend/temp/
 
+# Firebase service account (KEEP SECRET!)
+backend/config/firebase-service-account.json
+
 # Database
 *.sqlite
 *.sqlite3

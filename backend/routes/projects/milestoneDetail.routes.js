@@ -654,6 +654,207 @@ router.get('/:projectId/milestones/:milestoneId/costs/summary', async (req, res)
   }
 });
 
+// ============================================
+// RAB INTEGRATION ENDPOINTS
+// ============================================
+
+/**
+ * @route   GET /api/projects/:projectId/milestones/:milestoneId/rab-items
+ * @desc    Get RAB items linked to milestone with actual cost summary
+ * @access  Private
+ */
+router.get('/:projectId/milestones/:milestoneId/rab-items', async (req, res) => {
+  try {
+    const { projectId, milestoneId } = req.params;
+
+    // Get milestone with category link
+    const [milestone] = await sequelize.query(`
+      SELECT category_link
+      FROM project_milestones
+      WHERE id = :milestoneId
+    `, {
+      replacements: { milestoneId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!milestone) {
+      return res.status(404).json({
+        success: false,
+        error: 'Milestone not found'
+      });
+    }
+
+    // Check if RAB link is enabled
+    if (!milestone.category_link || !milestone.category_link.enabled) {
+      return res.json({
+        success: true,
+        data: [],
+        summary: {
+          total_planned: 0,
+          total_actual: 0,
+          total_variance: 0,
+          items_count: 0,
+          completed_count: 0
+        },
+        message: 'No RAB link configured for this milestone'
+      });
+    }
+
+    const categoryName = milestone.category_link.category_name;
+
+    // Get RAB items with actual cost summary
+    const rabItems = await sequelize.query(`
+      SELECT 
+        r.id,
+        r.project_id,
+        r.category,
+        r.description,
+        r.unit,
+        r.quantity,
+        r.unit_price,
+        r.total_price as planned_amount,
+        r.item_type,
+        r.is_approved,
+        r.approved_at,
+        r.notes,
+        
+        -- Actual costs summary
+        COALESCE(SUM(mc.amount), 0) as actual_amount,
+        COUNT(mc.id) as realization_count,
+        
+        -- Calculate progress
+        CASE 
+          WHEN r.total_price > 0 THEN 
+            LEAST((COALESCE(SUM(mc.amount), 0) / r.total_price) * 100, 100)
+          ELSE 0 
+        END as progress_percentage,
+        
+        -- Variance (positive = under budget, negative = over budget)
+        r.total_price - COALESCE(SUM(mc.amount), 0) as variance,
+        
+        -- Status
+        CASE 
+          WHEN COALESCE(SUM(mc.amount), 0) = 0 THEN 'not_started'
+          WHEN COALESCE(SUM(mc.amount), 0) >= r.total_price THEN 'completed'
+          WHEN COALESCE(SUM(mc.amount), 0) > r.total_price THEN 'over_budget'
+          ELSE 'in_progress'
+        END as realization_status,
+        
+        -- Latest realization date
+        MAX(mc.recorded_at) as last_realization_date
+        
+      FROM project_rab r
+      LEFT JOIN milestone_costs mc ON mc.rab_item_id = r.id 
+        AND mc.milestone_id = :milestoneId 
+        AND mc.deleted_at IS NULL
+      WHERE r.project_id = :projectId
+        AND r.category = :categoryName
+        AND r.is_approved = true
+        AND r.status = 'approved'
+      GROUP BY r.id
+      ORDER BY r.created_at ASC
+    `, {
+      replacements: { 
+        milestoneId,
+        projectId,
+        categoryName 
+      },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    // Format response
+    const formatted = rabItems.map(item => ({
+      ...item,
+      planned_amount: parseFloat(item.planned_amount),
+      actual_amount: parseFloat(item.actual_amount),
+      variance: parseFloat(item.variance),
+      progress_percentage: parseFloat(item.progress_percentage),
+      unit_price: parseFloat(item.unit_price),
+      quantity: parseFloat(item.quantity),
+      realization_count: parseInt(item.realization_count)
+    }));
+
+    // Calculate summary
+    const summary = {
+      total_planned: formatted.reduce((sum, item) => sum + item.planned_amount, 0),
+      total_actual: formatted.reduce((sum, item) => sum + item.actual_amount, 0),
+      total_variance: formatted.reduce((sum, item) => sum + item.variance, 0),
+      items_count: formatted.length,
+      completed_count: formatted.filter(i => i.realization_status === 'completed').length,
+      in_progress_count: formatted.filter(i => i.realization_status === 'in_progress').length,
+      not_started_count: formatted.filter(i => i.realization_status === 'not_started').length,
+      over_budget_count: formatted.filter(i => i.realization_status === 'over_budget').length
+    };
+
+    res.json({
+      success: true,
+      data: formatted,
+      summary
+    });
+
+  } catch (error) {
+    console.error('Error fetching RAB items:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch RAB items',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/projects/:projectId/milestones/:milestoneId/rab-items/:rabItemId/realizations
+ * @desc    Get all actual cost entries for specific RAB item
+ * @access  Private
+ */
+router.get('/:projectId/milestones/:milestoneId/rab-items/:rabItemId/realizations', async (req, res) => {
+  try {
+    const { milestoneId, rabItemId } = req.params;
+    
+    const costs = await sequelize.query(`
+      SELECT 
+        mc.*,
+        u.name as recorder_name,
+        ea.account_name as expense_account_name,
+        ea.account_code as expense_account_code,
+        sa.account_name as source_account_name,
+        sa.account_code as source_account_code
+      FROM milestone_costs mc
+      LEFT JOIN users u ON mc.recorded_by = u.id
+      LEFT JOIN chart_of_accounts ea ON mc.account_id = ea.id
+      LEFT JOIN chart_of_accounts sa ON mc.source_account_id = sa.id
+      WHERE mc.milestone_id = :milestoneId
+        AND mc.rab_item_id = :rabItemId
+        AND mc.deleted_at IS NULL
+      ORDER BY mc.recorded_at DESC
+    `, {
+      replacements: { milestoneId, rabItemId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    // Format amounts
+    const formatted = costs.map(cost => ({
+      ...cost,
+      amount: parseFloat(cost.amount),
+      rab_item_progress: parseFloat(cost.rab_item_progress)
+    }));
+
+    res.json({
+      success: true,
+      data: formatted,
+      count: formatted.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching realizations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch realizations',
+      details: error.message
+    });
+  }
+});
+
 /**
  * @route   POST /api/projects/:projectId/milestones/:milestoneId/costs
  * @desc    Add cost entry
@@ -661,8 +862,18 @@ router.get('/:projectId/milestones/:milestoneId/costs/summary', async (req, res)
  */
 router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
   try {
-    const { milestoneId } = req.params;
-    const { costCategory, costType, amount, description, referenceNumber, accountId, sourceAccountId } = req.body;
+    const { milestoneId, projectId } = req.params;
+    const { 
+      costCategory, 
+      costType, 
+      amount, 
+      description, 
+      referenceNumber, 
+      accountId, 
+      sourceAccountId,
+      rabItemId,           // NEW: Link to RAB item
+      rabItemProgress      // NEW: Progress percentage
+    } = req.body;
     const recordedBy = req.user?.id || null;
 
     if (!costCategory || !amount) {
@@ -670,6 +881,57 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
         success: false,
         error: 'Cost category and amount are required'
       });
+    }
+
+    // Validate rabItemId if provided
+    if (rabItemId) {
+      const [rabItem] = await sequelize.query(`
+        SELECT r.*, pm.category_link
+        FROM project_rab r
+        LEFT JOIN project_milestones pm ON pm.id = :milestoneId
+        WHERE r.id = :rabItemId 
+          AND r.project_id = :projectId
+          AND r.is_approved = true
+      `, {
+        replacements: { rabItemId, projectId, milestoneId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (!rabItem) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid RAB item ID or RAB item not approved'
+        });
+      }
+
+      // Check if RAB item matches milestone category
+      if (rabItem.category_link && rabItem.category_link.enabled) {
+        if (rabItem.category !== rabItem.category_link.category_name) {
+          return res.status(400).json({
+            success: false,
+            error: 'RAB item category does not match milestone category link'
+          });
+        }
+      }
+
+      // Check total realization doesn't exceed planned too much (warning only, not blocking)
+      const [existing] = await sequelize.query(`
+        SELECT COALESCE(SUM(amount), 0) as total_spent
+        FROM milestone_costs
+        WHERE rab_item_id = :rabItemId
+          AND milestone_id = :milestoneId
+          AND deleted_at IS NULL
+      `, {
+        replacements: { rabItemId, milestoneId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      const totalSpent = parseFloat(existing.total_spent) + parseFloat(amount);
+      const plannedAmount = parseFloat(rabItem.total_price);
+
+      if (totalSpent > plannedAmount * 1.2) {
+        console.warn(`[WARNING] RAB item ${rabItemId} exceeding budget by >20%: ${totalSpent} > ${plannedAmount * 1.2}`);
+      }
     }
 
     // Validate accountId if provided (Expense account)
@@ -744,10 +1006,12 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
     const [cost] = await sequelize.query(`
       INSERT INTO milestone_costs (
         milestone_id, cost_category, cost_type, amount, description,
-        reference_number, account_id, source_account_id, recorded_by, recorded_at, created_at, updated_at
+        reference_number, account_id, source_account_id, recorded_by, 
+        rab_item_id, rab_item_progress, recorded_at, created_at, updated_at
       ) VALUES (
         :milestoneId, :costCategory, :costType, :amount, :description,
-        :referenceNumber, :accountId, :sourceAccountId, :recordedBy, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+        :referenceNumber, :accountId, :sourceAccountId, :recordedBy, 
+        :rabItemId, :rabItemProgress, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
       ) RETURNING *
     `, {
       replacements: {
@@ -759,7 +1023,9 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
         referenceNumber,
         accountId: accountId || null,
         sourceAccountId: sourceAccountId || null,
-        recordedBy
+        recordedBy,
+        rabItemId: rabItemId || null,           // NEW
+        rabItemProgress: rabItemProgress || 0   // NEW
       },
       type: sequelize.QueryTypes.INSERT
     });

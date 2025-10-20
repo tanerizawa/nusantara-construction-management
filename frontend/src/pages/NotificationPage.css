@@ -1,0 +1,24 @@
+/* Notification Page Styles */
+
+.notification-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e293b 100%);
+  padding-top: 60px;
+}
+
+.notification-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .notification-page {
+    padding-top: 56px;
+  }
+
+  .notification-page-container {
+    padding: 16px;
+  }
+}

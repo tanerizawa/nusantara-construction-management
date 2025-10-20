@@ -101,9 +101,10 @@ export const useMilestones = (projectId) => {
 
       await projectAPI.updateMilestone(projectId, milestoneId, updatedData);
       
-      setMilestones(prev => prev.map(m => 
-        m.id === milestoneId ? { ...m, progress, status: updatedData.status } : m
-      ));
+      // ✅ AUTO-REFRESH: Reload all milestones after progress update
+      console.log('✅ Progress updated, reloading milestones...');
+      await loadMilestones();
+      
     } catch (error) {
       console.error('Error updating milestone progress:', error);
       alert('Error updating milestone progress. Please try again.');

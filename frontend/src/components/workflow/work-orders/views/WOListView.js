@@ -69,11 +69,25 @@ const WOListView = ({
     try {
       setGeneratingPDF(true);
       
-      // Get API URL and remove trailing /api if present
-      let API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      API_URL = API_URL.replace(/\/api\/?$/, ''); // Remove /api or /api/ from end
+      // Get API URL - use relative path in production (when accessed via domain)
+      // This allows Apache/Nginx proxy to route /api/* to backend
+      let API_URL;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // Development: use explicit backend URL
+        API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        API_URL = API_URL.replace(/\/api\/?$/, ''); // Remove /api or /api/ from end
+      } else {
+        // Production: use empty string for relative path (same domain)
+        API_URL = '';
+      }
       
       const token = localStorage.getItem('token');
+      
+      console.log('🔍 [PDF] Starting PDF generation for WO:', wo.id);
+      console.log('🔍 [PDF] Environment:', window.location.hostname);
+      console.log('🔍 [PDF] API URL:', API_URL || '(relative path)');
+      console.log('🔍 [PDF] Full URL:', `${API_URL}/api/projects/${projectId}/work-orders/${wo.id}/pdf`);
+      console.log('🔍 [PDF] Token exists:', !!token);
       
       const response = await fetch(`${API_URL}/api/projects/${projectId}/work-orders/${wo.id}/pdf`, {
         method: 'GET',
@@ -82,15 +96,22 @@ const WOListView = ({
         }
       });
 
+      console.log('🔍 [PDF] Response status:', response.status);
+      console.log('🔍 [PDF] Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Gagal generate Perintah Kerja PDF');
+        const errorText = await response.text();
+        console.error('❌ [PDF] Error response:', errorText);
+        throw new Error(`Gagal generate Perintah Kerja PDF (${response.status}): ${errorText}`);
       }
 
       // Get PDF blob
       const blob = await response.blob();
+      console.log('🔍 [PDF] PDF blob received, size:', blob.size, 'bytes');
       
       // Create blob URL and open in new tab
       const blobUrl = URL.createObjectURL(blob);
+      console.log('🔍 [PDF] Opening PDF in new tab');
       window.open(blobUrl, '_blank');
       
       // Clean up blob URL after a delay
@@ -106,7 +127,9 @@ const WOListView = ({
       }));
 
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('❌ [PDF] Error details:', error);
+      console.error('❌ [PDF] Error message:', error.message);
+      console.error('❌ [PDF] Error stack:', error.stack);
       window.dispatchEvent(new CustomEvent('show-notification', {
         detail: { 
           type: 'error', 

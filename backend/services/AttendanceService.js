@@ -263,17 +263,25 @@ class AttendanceService {
   /**
    * Get today's attendance for user
    * @param {UUID} userId - User ID
-   * @param {UUID} projectId - Project ID
+   * @param {UUID|null} projectId - Project ID (optional - if null, gets first today's attendance)
    * @returns {Promise<Object>} Today's attendance or null
    */
-  async getTodayAttendance(userId, projectId) {
+  async getTodayAttendance(userId, projectId = null) {
     const today = new Date().toISOString().split('T')[0];
+    
+    // Build where clause
+    const where = {
+      user_id: userId,
+      attendance_date: today,
+    };
+    
+    // Only filter by projectId if provided
+    if (projectId) {
+      where.project_id = projectId;
+    }
+    
     const attendance = await models.AttendanceRecord.findOne({
-      where: {
-        user_id: userId,
-        project_id: projectId,
-        attendance_date: today,
-      },
+      where,
       include: [
         {
           model: models.Project,
@@ -286,6 +294,7 @@ class AttendanceService {
           attributes: ['id', 'location_name', 'latitude', 'longitude', 'radius_meters'],
         },
       ],
+      order: [['clock_in_time', 'DESC']], // Get most recent if multiple
     });
 
     return attendance;

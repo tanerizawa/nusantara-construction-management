@@ -1,8 +1,8 @@
-/* AttendanceDashboard.css */
+/* AttendanceDashboard.css - Dark Matte Theme */
 
 .attendance-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a; /* Dark matte background */
   padding: 24px;
 }
 
@@ -12,12 +12,11 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #2d2d2d; /* Dark card */
   padding: 20px 24px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #404040;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .header-content h1 {
@@ -30,7 +29,7 @@
 
 .header-subtitle {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.7); /* Muted white for dark theme */
   margin: 0;
 }
 
@@ -44,8 +43,8 @@
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: #404040; /* Dark button */
+  border: 1px solid #505050;
   border-radius: 12px;
   color: white;
   font-size: 14px;
@@ -55,7 +54,8 @@
 }
 
 .refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: #505050; /* Lighter on hover */
+  border-color: #667eea; /* Purple accent */
   transform: translateY(-2px);
 }
 
@@ -64,18 +64,18 @@
   cursor: not-allowed;
 }
 
-.refresh-btn.refreshing .refresh-icon {
+.refresh-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.refresh-icon.refreshing {
   animation: rotate 1s linear infinite;
 }
 
 @keyframes rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-.refresh-icon {
-  font-size: 18px;
-  display: inline-block;
 }
 
 /* Error Alert */
@@ -103,7 +103,7 @@
 }
 
 .alert-icon {
-  font-size: 32px;
+  color: #dc3545; /* Red for error icon */
   flex-shrink: 0;
 }
 
@@ -163,20 +163,21 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: white;
+  background: #2d2d2d; /* Dark card */
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #404040;
   transition: all 0.3s ease;
 }
 
 .info-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-color: #667eea; /* Purple accent on hover */
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
 }
 
 .info-card-icon {
-  font-size: 48px;
+  color: #667eea; /* Purple icon color */
   flex-shrink: 0;
 }
 
@@ -187,13 +188,13 @@
 .info-card-content h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #212529;
+  color: #ffffff; /* White heading */
   margin: 0 0 4px 0;
 }
 
 .info-card-content p {
   font-size: 13px;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.6); /* Muted white */
   margin: 0;
   line-height: 1.5;
 }
@@ -203,16 +204,15 @@
   display: flex;
   gap: 16px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #2d2d2d; /* Dark card */
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #404040;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   color: white;
 }
 
 .help-icon {
-  font-size: 48px;
+  color: #667eea; /* Purple icon color */
   flex-shrink: 0;
 }
 
@@ -230,13 +230,13 @@
   font-size: 14px;
   line-height: 1.6;
   margin: 0 0 16px 0;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.7); /* Muted white */
 }
 
 .help-btn {
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.25);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: #667eea; /* Purple accent button */
+  border: none;
   border-radius: 8px;
   color: white;
   font-size: 14px;
@@ -246,7 +246,7 @@
 }
 
 .help-btn:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: #764ba2; /* Darker purple */
   transform: translateX(4px);
 }
 

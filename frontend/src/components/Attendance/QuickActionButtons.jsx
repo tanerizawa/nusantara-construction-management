@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Clock, LogOut, History, Lightbulb, Loader } from 'lucide-react';
 import './QuickActionButtons.css';
 
 /**
@@ -74,9 +75,9 @@ const QuickActionButtons = ({
       >
         <div className="btn-icon">
           {actionLoading === 'clockIn' ? (
-            <div className="spinner"></div>
+            <Loader className="spinner" size={48} />
           ) : (
-            '🕐'
+            <Clock size={48} />
           )}
         </div>
         <div className="btn-content">
@@ -102,9 +103,9 @@ const QuickActionButtons = ({
       >
         <div className="btn-icon">
           {actionLoading === 'clockOut' ? (
-            <div className="spinner"></div>
+            <Loader className="spinner" size={48} />
           ) : (
-            '🕔'
+            <LogOut size={48} />
           )}
         </div>
         <div className="btn-content">
@@ -128,7 +129,9 @@ const QuickActionButtons = ({
         onClick={handleViewHistory}
         disabled={isLoading}
       >
-        <div className="btn-icon">📋</div>
+        <div className="btn-icon">
+          <History size={48} />
+        </div>
         <div className="btn-content">
           <span className="btn-title">View History</span>
           <span className="btn-subtitle">Check your attendance records</span>
@@ -136,31 +139,10 @@ const QuickActionButtons = ({
         <div className="btn-arrow">→</div>
       </button>
 
-      {/* Additional Actions */}
-      <div className="additional-actions">
-        <button 
-          className="secondary-btn"
-          onClick={() => window.location.href = '/attendance/leave-request'}
-          disabled={isLoading}
-        >
-          <span className="secondary-icon">📝</span>
-          <span>Leave Request</span>
-        </button>
-
-        <button 
-          className="secondary-btn"
-          onClick={() => window.location.href = '/attendance/summary'}
-          disabled={isLoading}
-        >
-          <span className="secondary-icon">📊</span>
-          <span>Monthly Summary</span>
-        </button>
-      </div>
-
       {/* Status Hints */}
       {todayRecord && !todayRecord.clock_out_time && (
         <div className="status-hint active">
-          <div className="hint-icon">💡</div>
+          <Lightbulb className="hint-icon" size={24} />
           <div className="hint-content">
             <strong>You're clocked in!</strong>
             <p>Don't forget to clock out when you finish work.</p>

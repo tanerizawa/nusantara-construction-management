@@ -1,48 +1,20 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const monitoringService = require('../../services/systemMonitoringService');
+const { verifyToken } = require('../../middleware/auth');
 
 const router = express.Router();
 
 /**
- * Middleware to check admin role
+ * Middleware untuk monitoring - bisa diakses oleh semua authenticated users
+ * Tidak perlu admin, karena monitoring adalah fitur operational yang berguna untuk semua user
  */
-function requireAdmin(req, res, next) {
-  try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        error: 'No token provided'
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-    
-    // Check if user is admin
-    if (decoded.role !== 'admin' && decoded.role !== 'superadmin') {
-      return res.status(403).json({
-        success: false,
-        error: 'Access denied. Admin role required.'
-      });
-    }
-
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: 'Invalid token'
-    });
-  }
-}
 
 /**
  * @route   GET /api/monitoring/health
  * @desc    Get comprehensive system health
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/health', requireAdmin, async (req, res) => {
+router.get('/health', verifyToken, async (req, res) => {
   try {
     const health = await monitoringService.getSystemHealth();
     
@@ -63,9 +35,9 @@ router.get('/health', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/metrics
  * @desc    Get system metrics history
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/metrics', requireAdmin, async (req, res) => {
+router.get('/metrics', verifyToken, async (req, res) => {
   try {
     const history = monitoringService.getMetricsHistory();
     
@@ -86,9 +58,9 @@ router.get('/metrics', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/api-performance
  * @desc    Get API performance metrics
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/api-performance', requireAdmin, async (req, res) => {
+router.get('/api-performance', verifyToken, async (req, res) => {
   try {
     const metrics = monitoringService.getAPIMetrics();
     
@@ -109,9 +81,9 @@ router.get('/api-performance', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/alerts
  * @desc    Get system alerts
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/alerts', requireAdmin, async (req, res) => {
+router.get('/alerts', verifyToken, async (req, res) => {
   try {
     const alerts = await monitoringService.getSystemAlerts();
     
@@ -132,9 +104,9 @@ router.get('/alerts', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/cpu
  * @desc    Get CPU usage
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/cpu', requireAdmin, async (req, res) => {
+router.get('/cpu', verifyToken, async (req, res) => {
   try {
     const cpu = await monitoringService.getCPUUsage();
     
@@ -155,9 +127,9 @@ router.get('/cpu', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/memory
  * @desc    Get memory usage
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/memory', requireAdmin, async (req, res) => {
+router.get('/memory', verifyToken, async (req, res) => {
   try {
     const memory = await monitoringService.getMemoryUsage();
     
@@ -178,9 +150,9 @@ router.get('/memory', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/disk
  * @desc    Get disk usage
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/disk', requireAdmin, async (req, res) => {
+router.get('/disk', verifyToken, async (req, res) => {
   try {
     const disk = await monitoringService.getDiskUsage();
     
@@ -201,9 +173,9 @@ router.get('/disk', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/database
  * @desc    Get database metrics
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/database', requireAdmin, async (req, res) => {
+router.get('/database', verifyToken, async (req, res) => {
   try {
     const database = await monitoringService.getDatabaseMetrics();
     
@@ -224,9 +196,9 @@ router.get('/database', requireAdmin, async (req, res) => {
 /**
  * @route   GET /api/monitoring/active-users
  * @desc    Get active users count
- * @access  Admin
+ * @access  Authenticated users (tidak perlu admin)
  */
-router.get('/active-users', requireAdmin, async (req, res) => {
+router.get('/active-users', verifyToken, async (req, res) => {
   try {
     const count = await monitoringService.getActiveUsersCount();
     

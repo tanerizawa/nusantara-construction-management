@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { RefreshCw, Smartphone, MapPin, Camera, Lightbulb, AlertTriangle } from 'lucide-react';
 import TodayStatusCard from '../components/Attendance/TodayStatusCard';
 import QuickActionButtons from '../components/Attendance/QuickActionButtons';
 import AttendanceStats from '../components/Attendance/AttendanceStats';
@@ -37,6 +38,7 @@ const AttendanceDashboard = () => {
         throw new Error('Authentication required');
       }
 
+      // Note: projectId is optional - if not provided, backend will return first available or null
       const response = await fetch('/api/attendance/today', {
         method: 'GET',
         headers: {
@@ -49,8 +51,8 @@ const AttendanceDashboard = () => {
         if (response.status === 401) {
           throw new Error('Session expired. Please login again.');
         }
-        if (response.status === 404) {
-          // No record found for today
+        if (response.status === 404 || response.status === 400) {
+          // No record found or no project - this is OK, just return null
           setTodayRecord(null);
           return;
         }
@@ -61,7 +63,10 @@ const AttendanceDashboard = () => {
       setTodayRecord(data.data || null);
     } catch (err) {
       console.error('Error fetching today record:', err);
-      setError(err.message);
+      // Only set error for critical errors, not for missing data
+      if (!err.message.includes('404') && !err.message.includes('400')) {
+        setError(err.message);
+      }
       
       // Redirect to login if unauthorized
       if (err.message.includes('Authentication') || err.message.includes('Session expired')) {
@@ -191,7 +196,7 @@ const AttendanceDashboard = () => {
             disabled={refreshing}
             title="Refresh data"
           >
-            <span className="refresh-icon">🔄</span>
+            <RefreshCw className={`refresh-icon ${refreshing ? 'refreshing' : ''}`} size={18} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
@@ -199,7 +204,7 @@ const AttendanceDashboard = () => {
         {/* Error Alert */}
         {error && (
           <div className="error-alert">
-            <div className="alert-icon">⚠️</div>
+            <AlertTriangle className="alert-icon" size={32} />
             <div className="alert-content">
               <strong>Error</strong>
               <p>{error}</p>
@@ -242,7 +247,7 @@ const AttendanceDashboard = () => {
           {/* Additional Info Cards */}
           <div className="info-cards">
             <div className="info-card">
-              <div className="info-card-icon">📱</div>
+              <Smartphone className="info-card-icon" size={48} />
               <div className="info-card-content">
                 <h3>Mobile Friendly</h3>
                 <p>Clock in/out from anywhere using your phone</p>
@@ -250,7 +255,7 @@ const AttendanceDashboard = () => {
             </div>
 
             <div className="info-card">
-              <div className="info-card-icon">📍</div>
+              <MapPin className="info-card-icon" size={48} />
               <div className="info-card-content">
                 <h3>GPS Verified</h3>
                 <p>Accurate location tracking with GPS verification</p>
@@ -258,7 +263,7 @@ const AttendanceDashboard = () => {
             </div>
 
             <div className="info-card">
-              <div className="info-card-icon">📷</div>
+              <Camera className="info-card-icon" size={48} />
               <div className="info-card-content">
                 <h3>Photo Required</h3>
                 <p>Take a selfie for attendance verification</p>
@@ -268,7 +273,7 @@ const AttendanceDashboard = () => {
 
           {/* Help Section */}
           <div className="help-section">
-            <div className="help-icon">💡</div>
+            <Lightbulb className="help-icon" size={48} />
             <div className="help-content">
               <h3>Need Help?</h3>
               <p>

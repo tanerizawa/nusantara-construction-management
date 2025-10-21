@@ -1,4 +1,5 @@
 import React from 'react';
+import { Clock, MapPin, Camera, CheckCircle, AlertTriangle, FileText } from 'lucide-react';
 import './TodayStatusCard.css';
 
 /**
@@ -89,7 +90,7 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
   if (error) {
     return (
       <div className="today-status-card error">
-        <div className="error-icon">⚠️</div>
+        <AlertTriangle className="error-icon" size={64} />
         <h3>Failed to Load Status</h3>
         <p>{error}</p>
       </div>
@@ -116,7 +117,7 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
             {/* Clock In Info */}
             <div className="status-info-row">
               <div className="status-info-item">
-                <div className="info-icon clock-in">🕐</div>
+                <Clock className="info-icon clock-in" size={32} />
                 <div className="info-content">
                   <span className="info-label">Clock In</span>
                   <span className="info-value">
@@ -127,7 +128,7 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
 
               {/* Clock Out Info */}
               <div className="status-info-item">
-                <div className="info-icon clock-out">🕔</div>
+                <Clock className="info-icon clock-out" size={32} />
                 <div className="info-content">
                   <span className="info-label">Clock Out</span>
                   <span className="info-value">
@@ -139,7 +140,7 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
 
             {/* Work Duration */}
             <div className="status-duration">
-              <div className="duration-icon">⏱️</div>
+              <Clock className="duration-icon" size={36} />
               <div className="duration-content">
                 <span className="duration-label">Work Duration</span>
                 <span className="duration-value">{calculateDuration()}</span>
@@ -149,7 +150,7 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
             {/* Location Info */}
             {todayRecord.location_name && (
               <div className="status-location">
-                <div className="location-icon">📍</div>
+                <MapPin className="location-icon" size={24} />
                 <div className="location-content">
                   <span className="location-label">Location</span>
                   <span className="location-value">
@@ -165,9 +166,11 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
             {/* Status Info */}
             {todayRecord.status && todayRecord.status !== 'present' && (
               <div className={`status-alert ${todayRecord.status}`}>
-                <div className="alert-icon">
-                  {todayRecord.status === 'late' ? '⚠️' : 'ℹ️'}
-                </div>
+                {todayRecord.status === 'late' ? (
+                  <AlertTriangle className="alert-icon" size={24} />
+                ) : (
+                  <FileText className="alert-icon" size={24} />
+                )}
                 <div className="alert-content">
                   <span className="alert-label">Status</span>
                   <span className="alert-value">
@@ -182,7 +185,7 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
           </>
         ) : (
           <div className="status-empty">
-            <div className="empty-icon">📋</div>
+            <FileText className="empty-icon" size={64} />
             <h3>No Attendance Record</h3>
             <p>You haven't clocked in today</p>
             <p className="empty-hint">Tap "Clock In" button below to start</p>
@@ -194,21 +197,21 @@ const TodayStatusCard = ({ todayRecord, isLoading, error }) => {
       {todayRecord && (
         <div className="status-card-footer">
           <div className="quick-stat">
-            <span className="stat-icon">📷</span>
+            <Camera size={24} className="stat-icon" />
             <span className="stat-label">Photo</span>
             <span className="stat-value">
               {todayRecord.photo_url ? 'Yes' : 'No'}
             </span>
           </div>
           <div className="quick-stat">
-            <span className="stat-icon">🎯</span>
+            <MapPin size={24} className="stat-icon" />
             <span className="stat-label">Accuracy</span>
             <span className="stat-value">
               ±{todayRecord.accuracy || 0}m
             </span>
           </div>
           <div className="quick-stat">
-            <span className="stat-icon">✓</span>
+            <CheckCircle size={24} className="stat-icon" />
             <span className="stat-label">Verified</span>
             <span className="stat-value">
               {todayRecord.is_valid_location ? 'Yes' : 'No'}

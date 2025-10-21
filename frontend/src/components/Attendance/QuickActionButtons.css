@@ -1,4 +1,4 @@
-/* QuickActionButtons.css */
+/* QuickActionButtons.css - Dark Matte Theme */
 
 .quick-action-buttons {
   display: flex;
@@ -17,9 +17,9 @@
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
+  background: #2d2d2d; /* Dark base */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid #404040;
   text-align: left;
   width: 100%;
   position: relative;
@@ -33,7 +33,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -44,50 +44,57 @@
 
 .action-btn.active:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* Clock In Button */
+/* Clock In Button - Keep Green */
 .action-btn.clock-in.active {
   border-color: #28a745;
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
 }
 
 .action-btn.clock-in.active:hover {
-  background: linear-gradient(135deg, #c3e6cb 0%, #b1dfbb 100%);
+  background: linear-gradient(135deg, #20c997 0%, #17a589 100%);
+  box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
 }
 
-/* Clock Out Button */
+/* Clock Out Button - Keep Blue */
 .action-btn.clock-out.active {
   border-color: #007bff;
-  background: linear-gradient(135deg, #cce5ff 0%, #b8daff 100%);
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
 }
 
 .action-btn.clock-out.active:hover {
-  background: linear-gradient(135deg, #b8daff 0%, #9fcdff 100%);
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  box-shadow: 0 4px 16px rgba(0, 123, 255, 0.4);
 }
 
 /* View History Button */
 .action-btn.view-history {
-  border-color: #6c757d;
-  background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
 .action-btn.view-history:hover {
-  background: linear-gradient(135deg, #d6d8db 0%, #c8cbcf 100%);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
 }
 
 /* Disabled State */
 .action-btn.disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
-  background: #f8f9fa;
-  border-color: #dee2e6;
+  background: #1a1a1a; /* Dark disabled */
+  border-color: #404040;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .action-btn.disabled:hover {
   transform: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Button Icon */
@@ -98,15 +105,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent for dark theme */
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   flex-shrink: 0;
 }
 
 .action-btn.disabled .btn-icon {
-  opacity: 0.6;
-  background: #f8f9fa;
+  opacity: 0.3;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 /* Button Content */
@@ -120,24 +127,28 @@
 .btn-title {
   font-size: 18px;
   font-weight: 700;
-  color: #212529;
+  color: #ffffff; /* White for dark theme */
 }
 
 .btn-subtitle {
   font-size: 14px;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.7); /* Muted white */
 }
 
 .action-btn.disabled .btn-title {
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.action-btn.disabled .btn-subtitle {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 /* Button Arrow */
 .btn-arrow {
   font-size: 24px;
   font-weight: 700;
-  color: #212529;
-  opacity: 0.5;
+  color: #ffffff; /* White arrow */
+  opacity: 0.7;
   transition: all 0.3s ease;
 }
 

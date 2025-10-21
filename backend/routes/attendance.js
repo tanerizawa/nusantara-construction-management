@@ -154,24 +154,26 @@ router.post('/clock-out', verifyToken, upload.single('photo'), async (req, res) 
 
 /**
  * @route   GET /api/attendance/today
- * @desc    Get today's attendance
+ * @desc    Get today's attendance (projectId optional)
  * @access  Private
  */
 router.get('/today', verifyToken, async (req, res) => {
   try {
     const { projectId } = req.query;
 
-    if (!projectId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Project ID is required',
-      });
-    }
-
+    // If no projectId provided, try to get today's attendance for any project
     const attendance = await AttendanceService.getTodayAttendance(
       req.user.id,
-      projectId
+      projectId || null
     );
+
+    if (!attendance) {
+      return res.status(404).json({
+        success: false,
+        message: 'No attendance record found for today',
+        data: null
+      });
+    }
 
     res.json({
       success: true,

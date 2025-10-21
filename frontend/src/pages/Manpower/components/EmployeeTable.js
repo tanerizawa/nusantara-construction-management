@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Trash2, Users } from 'lucide-react';
+import { Eye, Trash2, Users, Shield, Key } from 'lucide-react';
 import { getStatusColor, formatStatus } from '../utils';
 
 /**
@@ -15,8 +15,21 @@ const EmployeeRow = ({
   return (
     <tr className="hover:bg-[#38383A]/30 transition-colors">
       <td className="px-3 py-3">
-        <div className="text-sm font-medium text-white">{employee.name}</div>
-        <div className="text-xs text-[#636366] mt-0.5">{employee.employeeId}</div>
+        <div className="flex items-center gap-2">
+          <div>
+            <div className="text-sm font-medium text-white">{employee.name}</div>
+            <div className="text-xs text-[#636366] mt-0.5">{employee.employeeId}</div>
+          </div>
+          {employee.userId && (
+            <div 
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#30D158]/20 text-[#30D158] rounded text-xs"
+              title={`Has user account: ${employee.username}`}
+            >
+              <Key className="h-3 w-3" />
+              <span className="hidden sm:inline">Access</span>
+            </div>
+          )}
+        </div>
       </td>
       <td className="px-3 py-3">
         <div className="text-sm text-white">{employee.position}</div>

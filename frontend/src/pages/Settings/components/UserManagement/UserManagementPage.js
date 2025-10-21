@@ -411,7 +411,15 @@ const UserManagementPage = () => {
                             <Users className="h-5 w-5 text-blue-400" />
                           </div>
                           <div>
-                            <div className="font-medium">{user.username}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{user.username}</span>
+                              {user.employee && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-xs" title={`Linked to employee: ${user.employee.name}`}>
+                                  <Shield className="h-3 w-3" />
+                                  Linked
+                                </span>
+                              )}
+                            </div>
                             <div className="text-sm text-gray-400">ID: {user.id}</div>
                           </div>
                         </div>
@@ -507,7 +515,8 @@ const InlineUserForm = ({ mode = 'add', user = null, onSave, onCancel }) => {
     fullName: user?.profile?.fullName || '',
     phone: user?.profile?.phone || '',
     position: user?.profile?.position || '',
-    department: user?.profile?.department || ''
+    department: user?.profile?.department || '',
+    employeeId: user?.employeeId || null
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -516,6 +525,12 @@ const InlineUserForm = ({ mode = 'add', user = null, onSave, onCancel }) => {
   const [loading, setLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [changePassword, setChangePassword] = useState(false);
+  
+  // Employee linking states
+  const [linkToEmployee, setLinkToEmployee] = useState(!!user?.employeeId);
+  const [availableEmployees, setAvailableEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   const calculatePasswordStrength = (password) => {
     let strength = 0;
@@ -526,6 +541,41 @@ const InlineUserForm = ({ mode = 'add', user = null, onSave, onCancel }) => {
     if (/[0-9]/.test(password)) strength += 20;
     if (/[^a-zA-Z0-9]/.test(password)) strength += 20;
     return strength;
+  };
+
+  // Fetch available employees when link checkbox is enabled
+  useEffect(() => {
+    if (linkToEmployee && availableEmployees.length === 0) {
+      fetchAvailableEmployees();
+    }
+  }, [linkToEmployee]);
+
+  // Set initial selected employee if editing
+  useEffect(() => {
+    if (mode === 'edit' && user?.employee) {
+      setSelectedEmployee(user.employee);
+    }
+  }, [mode, user]);
+
+  const fetchAvailableEmployees = async () => {
+    setLoadingEmployees(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/users/available-employees', {
+        headers: token ? {
+          'Authorization': `Bearer ${token}`
+        } : {}
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setAvailableEmployees(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching available employees:', error);
+    } finally {
+      setLoadingEmployees(false);
+    }
   };
 
   const handleChange = (field, value) => {
@@ -602,7 +652,8 @@ const InlineUserForm = ({ mode = 'add', user = null, onSave, onCancel }) => {
         fullName: formData.fullName,
         phone: formData.phone,
         position: formData.position,
-        department: formData.department
+        department: formData.department,
+        employeeId: linkToEmployee ? selectedEmployee?.id : null
       };
 
       // Include password only if adding or changing
@@ -946,6 +997,134 @@ const InlineUserForm = ({ mode = 'add', user = null, onSave, onCancel }) => {
             </div>
           </div>
 
+          {/* Employee Linking Section */}
+          <div className="bg-[#1A1A1A] rounded-lg p-6 space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-semibold">Employee Linking</h4>
+              <div className="text-xs text-gray-500">Optional</div>
+            </div>
+
+            {/* Link to Employee Checkbox */}
+            <div className="flex items-center gap-3 p-4 bg-[#0A0A0A] rounded-lg border border-gray-700">
+              <input
+                type="checkbox"
+                id="linkToEmployee"
+                checked={linkToEmployee}
+                onChange={(e) => setLinkToEmployee(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-600 bg-[#1A1A1A] checked:bg-blue-500"
+              />
+              <label htmlFor="linkToEmployee" className="flex-1 cursor-pointer">
+                <div className="font-medium">Link to Existing Employee</div>
+                <div className="text-sm text-gray-400">Connect this user account to an employee record</div>
+              </label>
+            </div>
+
+            {/* Employee Selection Dropdown */}
+            {linkToEmployee && (
+              <div className="space-y-3 animate-slideDown">
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                  <div className="flex items-start gap-2 text-sm text-blue-400">
+                    <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium mb-1">Employee Linking Benefits:</div>
+                      <ul className="text-xs space-y-1 text-blue-300">
+                        <li>• Automatically sync employee HR data with user account</li>
+                        <li>• Display employee information in user profile</li>
+                        <li>• Maintain bidirectional data integrity</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {loadingEmployees ? (
+                  <div className="flex items-center justify-center p-8 bg-[#0A0A0A] rounded-lg border border-gray-700">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                      <span className="text-sm text-gray-400">Loading employees...</span>
+                    </div>
+                  </div>
+                ) : availableEmployees.length === 0 ? (
+                  <div className="p-8 bg-[#0A0A0A] rounded-lg border border-gray-700 text-center">
+                    <Users className="h-12 w-12 mx-auto mb-3 text-gray-600" />
+                    <p className="text-gray-400 mb-2">No available employees</p>
+                    <p className="text-sm text-gray-500">All employees are already linked to user accounts</p>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Select Employee <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={selectedEmployee?.id || ''}
+                      onChange={(e) => {
+                        const employee = availableEmployees.find(emp => emp.id === e.target.value);
+                        setSelectedEmployee(employee);
+                      }}
+                      className="w-full bg-[#0A0A0A] border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                    >
+                      <option value="">-- Select an employee --</option>
+                      {availableEmployees.map(employee => (
+                        <option key={employee.id} value={employee.id}>
+                          {employee.name} - {employee.position} ({employee.employeeId})
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Selected Employee Preview */}
+                    {selectedEmployee && (
+                      <div className="mt-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-green-500/20 rounded-lg">
+                            <Users className="h-5 w-5 text-green-400" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-semibold text-green-400">{selectedEmployee.name}</span>
+                              <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-300 rounded">
+                                {selectedEmployee.employeeId}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-400 space-y-0.5">
+                              <div>Position: {selectedEmployee.position}</div>
+                              <div>Department: {selectedEmployee.department || 'N/A'}</div>
+                              {selectedEmployee.email && <div>Email: {selectedEmployee.email}</div>}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedEmployee(null)}
+                            className="p-1 hover:bg-red-500/20 rounded transition-colors"
+                            title="Remove selection"
+                          >
+                            <X className="h-4 w-4 text-red-400" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Current Link Info for Edit Mode */}
+                {mode === 'edit' && user?.employee && !selectedEmployee && (
+                  <div className="p-4 bg-gray-500/10 border border-gray-500/20 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-gray-500/20 rounded-lg">
+                        <Users className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-300 mb-1">Currently Linked Employee:</div>
+                        <div className="text-sm text-gray-400">
+                          <div>{user.employee.name} - {user.employee.position}</div>
+                          <div className="text-xs text-gray-500 mt-1">Select a new employee to change the link</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-4">
             <button
@@ -1072,6 +1251,41 @@ const UserDetailView = ({ user, onEdit }) => {
               </div>
             </div>
           </div>
+
+          {/* Employee Link */}
+          {user.employee && (
+            <div className="bg-[#1A1A1A] rounded-lg p-4 col-span-2">
+              <h4 className="font-semibold mb-4 flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-400" />
+                Linked Employee
+              </h4>
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-500/20 rounded-lg">
+                    <Shield className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-semibold text-blue-400 text-lg">{user.employee.name}</span>
+                      <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded">
+                        {user.employee.employeeId}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm text-gray-300">
+                      <div>
+                        <span className="text-gray-400">Position:</span>
+                        <span className="ml-2">{user.employee.position}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Department:</span>
+                        <span className="ml-2">{user.employee.department || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

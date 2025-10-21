@@ -7,7 +7,7 @@ const API_BASE_URL = API_URL;
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Increased from 10s to 30s for slow endpoints
   headers: {
     'Content-Type': 'application/json',
   },
@@ -66,7 +66,9 @@ apiClient.interceptors.response.use(
     });
     return response;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+    
     // Log all errors normally - all endpoints should exist
     console.error('API Error:', {
       url: error.config?.url,
@@ -75,23 +77,52 @@ apiClient.interceptors.response.use(
       responseData: error.response?.data
     });
     
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return Promise.reject(error);
     }
+    
+    // Retry logic for network errors and timeouts (max 2 retries)
+    if (!originalRequest._retry && 
+        (error.code === 'ECONNABORTED' || 
+         error.code === 'ERR_NETWORK' || 
+         error.code === 'ERR_NETWORK_CHANGED' ||
+         error.message.includes('timeout'))) {
+      
+      originalRequest._retry = (originalRequest._retry || 0) + 1;
+      
+      if (originalRequest._retry <= 2) {
+        console.log(`🔄 Retrying request (attempt ${originalRequest._retry}/2):`, error.config?.url);
+        
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, originalRequest._retry * 1000));
+        
+        return apiClient(originalRequest);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
 
 // Generic API methods
 const apiService = {
-  // GET request
-  get: async (endpoint, params = {}) => {
+  // GET request with retry logic
+  get: async (endpoint, params = {}, retries = 2) => {
     try {
       const response = await apiClient.get(endpoint, { params });
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch data');
+      // Better error messages
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error(`Request timeout - Server took too long to respond. Please try again.`);
+      }
+      if (error.code === 'ERR_NETWORK' || error.code === 'ERR_NETWORK_CHANGED') {
+        throw new Error(`Network error - Please check your internet connection.`);
+      }
+      throw new Error(error.response?.data?.message || error.response?.data?.error || 'Failed to fetch data');
     }
   },
 
@@ -162,13 +193,20 @@ const apiService = {
     }
   },
 
-  // DELETE request
+  // DELETE request with better error handling
   delete: async (endpoint) => {
     try {
       const response = await apiClient.delete(endpoint);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Failed to delete data');
+      // Better error messages
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error(`Request timeout - Server took too long to respond. Please try again.`);
+      }
+      if (error.code === 'ERR_NETWORK' || error.code === 'ERR_NETWORK_CHANGED') {
+        throw new Error(`Network error - Please check your internet connection and try again.`);
+      }
+      throw new Error(error.response?.data?.message || error.response?.data?.error || 'Failed to delete data');
     }
   },
 

@@ -75,6 +75,17 @@ const Manpower = sequelize.define('Manpower', {
       key: 'id'
     }
   },
+  // Optional link to user account
+  // NULL if employee does not need system access (e.g., field worker, laborer)
+  userId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'user_id',
+    references: {
+      model: 'users',
+      key: 'id'
+    }
+  },
   skills: {
     type: DataTypes.JSONB,
     allowNull: true
@@ -142,6 +153,42 @@ Manpower.getByProject = function(projectId) {
   return this.findAll({
     where: { currentProject: projectId },
     order: [['name', 'ASC']]
+  });
+};
+
+// Check if employee has user account
+Manpower.prototype.hasUserAccount = function() {
+  return !!this.userId;
+};
+
+// Get employee data with user account info
+Manpower.prototype.getWithUserAccount = async function() {
+  if (!this.userId) {
+    return this.toJSON();
+  }
+  
+  const User = require('./User');
+  const user = await User.findByPk(this.userId, {
+    attributes: { exclude: ['password'] }  // Don't expose password
+  });
+  
+  return {
+    ...this.toJSON(),
+    userAccount: user ? user.toSafeObject() : null
+  };
+};
+
+// Association method (will be called in models/index.js)
+Manpower.associate = function(models) {
+  Manpower.hasOne(models.User, {
+    foreignKey: 'employeeId',
+    as: 'userAccount'
+  });
+  
+  // Keep existing association
+  Manpower.belongsTo(models.Subsidiary, {
+    foreignKey: 'subsidiaryId',
+    as: 'subsidiary'
   });
 };
 

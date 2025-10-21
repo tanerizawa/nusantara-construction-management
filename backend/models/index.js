@@ -87,6 +87,24 @@ const setupAssociations = () => {
     as: 'approver'
   });
 
+  // ==========================================================================
+  // USER - EMPLOYEE LINKING (Optional bidirectional relationship)
+  // ==========================================================================
+  
+  // User -> Employee (optional link)
+  User.belongsTo(Manpower, {
+    foreignKey: 'employeeId',
+    as: 'employee',
+    constraints: false  // Optional relationship
+  });
+  
+  // Employee -> User (optional link)
+  Manpower.hasOne(User, {
+    foreignKey: 'employeeId',
+    as: 'userAccount',
+    constraints: false  // Optional relationship
+  });
+
   // Manpower - Project relationships (via currentProject field)
   Manpower.belongsTo(Project, {
     foreignKey: 'currentProject',

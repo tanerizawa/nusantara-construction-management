@@ -4,8 +4,10 @@
  */
 
 import axios from 'axios';
+import { API_URL } from '../utils/config';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Use centralized API configuration
+const API_BASE_URL = API_URL;
 
 // Create axios instance with auth token
 const createAuthHeader = () => {

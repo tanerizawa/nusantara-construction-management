@@ -1,7 +1,9 @@
 const express = require('express');
 const Joi = require('joi');
+const bcrypt = require('bcryptjs');
 const { Op, QueryTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -24,7 +26,24 @@ const employeeSchema = Joi.object({
     name: Joi.string().required(),
     level: Joi.string().valid('beginner', 'intermediate', 'advanced', 'expert').required(),
     certifiedDate: Joi.date().optional()
-  })).optional()
+  })).optional(),
+  // ⭐ NEW: User account creation fields
+  createUserAccount: Joi.boolean().optional(),
+  username: Joi.string().when('createUserAccount', {
+    is: true,
+    then: Joi.string().alphanum().min(3).max(30).required(),
+    otherwise: Joi.string().optional()
+  }),
+  userPassword: Joi.string().when('createUserAccount', {
+    is: true,
+    then: Joi.string().min(6).required(),
+    otherwise: Joi.string().optional()
+  }),
+  userRole: Joi.string().valid('admin', 'project_manager', 'finance_manager', 'inventory_manager', 'hr_manager', 'supervisor').when('createUserAccount', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  })
 });
 
 // @route   GET /api/manpower
@@ -101,9 +120,12 @@ router.get('/', async (req, res) => {
     `;
 
     const dataQuery = `
-      SELECT m.*, s.name as subsidiary_name, s.code as subsidiary_code
+      SELECT m.*, 
+             s.name as subsidiary_name, s.code as subsidiary_code,
+             u.id as user_id, u.username, u.role as user_role, u.is_active as user_is_active
       FROM manpower m
       LEFT JOIN subsidiaries s ON m.subsidiary_id = s.id
+      LEFT JOIN users u ON m.user_id = u.id
       ${whereClause}
       ORDER BY ${sortField} ${sortOrder}
       LIMIT :limit OFFSET :offset
@@ -138,6 +160,14 @@ router.get('/', async (req, res) => {
       projectName: employee.metadata?.projectName,
       skills: employee.skills || [],
       certifications: employee.metadata?.certifications || [],
+      // ⭐ NEW: User account info
+      userId: employee.user_id,
+      userAccount: employee.user_id ? {
+        id: employee.user_id,
+        username: employee.username,
+        role: employee.user_role,
+        isActive: employee.user_is_active
+      } : null,
       createdAt: employee.created_at,
       updatedAt: employee.updated_at
     }));
@@ -498,14 +528,19 @@ router.get('/reports', async (req, res) => {
 });
 
 // @route   GET /api/manpower/:id
-// @desc    Get single employee by ID
+// @desc    Get single employee by ID with user account info
 // @access  Private
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
     const [employee] = await sequelize.query(
-      'SELECT * FROM manpower WHERE id = :id',
+      `SELECT m.*, 
+              u.id as user_id, u.username, u.email as user_email, 
+              u.role as user_role, u.is_active as user_is_active
+       FROM manpower m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.id = :id`,
       {
         replacements: { id },
         type: QueryTypes.SELECT
@@ -538,6 +573,15 @@ router.get('/:id', async (req, res) => {
       projectName: employee.metadata?.projectName,
       skills: employee.skills || [],
       certifications: employee.metadata?.certifications || [],
+      // ⭐ NEW: User account info
+      userId: employee.user_id,
+      userAccount: employee.user_id ? {
+        id: employee.user_id,
+        username: employee.username,
+        email: employee.user_email,
+        role: employee.user_role,
+        isActive: employee.user_is_active
+      } : null,
       createdAt: employee.created_at,
       updatedAt: employee.updated_at
     };
@@ -557,7 +601,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // @route   POST /api/manpower
-// @desc    Create new employee
+// @desc    Create new employee with optional user account
 // @access  Private
 router.post('/', async (req, res) => {
   try {
@@ -569,6 +613,28 @@ router.post('/', async (req, res) => {
         error: 'Validation failed',
         details: error.details
       });
+    }
+
+    // ⭐ NEW: Validate user account creation if requested
+    let createdUser = null;
+    if (value.createUserAccount) {
+      // Check if username already exists
+      const existingUser = await User.findOne({
+        where: {
+          [Op.or]: [
+            { username: value.username },
+            { email: value.email }
+          ]
+        }
+      });
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          error: 'Username or email already has a user account',
+          details: 'The specified username or email is already registered'
+        });
+      }
     }
 
     // Generate employee ID
@@ -617,10 +683,66 @@ router.post('/', async (req, res) => {
       }
     });
 
+    // ⭐ NEW: Create user account if requested
+    if (value.createUserAccount) {
+      try {
+        const hashedPassword = await bcrypt.hash(value.userPassword, 10);
+        
+        // Generate user ID
+        const userCount = await User.count();
+        const userId = `U${String(userCount + 1).padStart(3, '0')}`;
+
+        createdUser = await User.create({
+          id: userId,
+          username: value.username,
+          email: value.email,
+          password: hashedPassword,
+          role: value.userRole,
+          employeeId: newEmployeeId, // ← Link to employee
+          profile: {
+            fullName: value.name,
+            phone: value.phone
+          },
+          isActive: true
+        });
+
+        // Update employee with userId
+        await sequelize.query(
+          'UPDATE manpower SET user_id = :userId WHERE id = :id',
+          {
+            replacements: { userId: createdUser.id, id: newEmployeeId }
+          }
+        );
+
+        console.log(`✅ Created user account ${createdUser.username} for employee ${value.name}`);
+      } catch (userError) {
+        console.error('Error creating user account:', userError);
+        // Employee created but user failed - still return success with warning
+        return res.status(201).json({
+          success: true,
+          data: { id: newEmployeeId, ...value },
+          message: 'Employee created successfully, but user account creation failed',
+          warning: 'User account could not be created. You can create it manually later.',
+          userError: userError.message
+        });
+      }
+    }
+
     res.status(201).json({
       success: true,
-      data: { id: newEmployeeId, ...value },
-      message: 'Employee created successfully'
+      data: { 
+        id: newEmployeeId, 
+        ...value,
+        userId: createdUser?.id,
+        userAccount: createdUser ? {
+          id: createdUser.id,
+          username: createdUser.username,
+          role: createdUser.role
+        } : null
+      },
+      message: createdUser 
+        ? 'Employee and user account created successfully'
+        : 'Employee created successfully'
     });
   } catch (error) {
     console.error('Error creating employee:', error);
@@ -633,15 +755,15 @@ router.post('/', async (req, res) => {
 });
 
 // @route   PUT /api/manpower/:id
-// @desc    Update employee
+// @desc    Update employee with optional user linking
 // @access  Private
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if employee exists
+    // Check if employee exists and get current user_id
     const [existing] = await sequelize.query(
-      'SELECT id FROM manpower WHERE id = :id',
+      'SELECT id, user_id FROM manpower WHERE id = :id',
       {
         replacements: { id },
         type: QueryTypes.SELECT
@@ -653,6 +775,33 @@ router.put('/:id', async (req, res) => {
         success: false,
         error: 'Employee not found'
       });
+    }
+
+    // ⭐ NEW: Handle user linking/unlinking
+    if (req.body.userId !== undefined) {
+      const oldUserId = existing.user_id;
+      const newUserId = req.body.userId;
+
+      // If userId changed, update bidirectional links
+      if (oldUserId !== newUserId) {
+        // Unlink old user if exists
+        if (oldUserId) {
+          await User.update(
+            { employeeId: null },
+            { where: { id: oldUserId } }
+          );
+          console.log(`✅ Unlinked old user ${oldUserId} from employee ${id}`);
+        }
+
+        // Link new user if provided
+        if (newUserId) {
+          await User.update(
+            { employeeId: id },
+            { where: { id: newUserId } }
+          );
+          console.log(`✅ Linked new user ${newUserId} to employee ${id}`);
+        }
+      }
     }
 
     // Validate input (make fields optional for update)
@@ -675,6 +824,9 @@ router.put('/:id', async (req, res) => {
     const replacements = { id };
 
     Object.keys(value).forEach(key => {
+      // Skip userId as it's handled separately above
+      if (key === 'userId') return;
+      
       const dbField = key === 'employeeId' ? 'employee_id' :
                      key === 'joinDate' ? 'join_date' :
                      key === 'birthDate' ? 'birth_date' :
@@ -690,6 +842,12 @@ router.put('/:id', async (req, res) => {
         replacements[key] = value[key];
       }
     });
+
+    // Add userId to update if provided
+    if (req.body.userId !== undefined) {
+      updateFields.push('user_id = :user_id');
+      replacements.user_id = req.body.userId;
+    }
 
     if (updateFields.length > 0) {
       await sequelize.query(`
@@ -714,14 +872,15 @@ router.put('/:id', async (req, res) => {
 });
 
 // @route   DELETE /api/manpower/:id
-// @desc    Delete employee
+// @desc    Delete employee and unlink user
 // @access  Private
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Get employee with user_id
     const [existing] = await sequelize.query(
-      'SELECT id FROM manpower WHERE id = :id',
+      'SELECT id, user_id FROM manpower WHERE id = :id',
       {
         replacements: { id },
         type: QueryTypes.SELECT
@@ -733,6 +892,15 @@ router.delete('/:id', async (req, res) => {
         success: false,
         error: 'Employee not found'
       });
+    }
+
+    // ⭐ NEW: Unlink user if exists
+    if (existing.user_id) {
+      await User.update(
+        { employeeId: null },
+        { where: { id: existing.user_id } }
+      );
+      console.log(`✅ Unlinked user ${existing.user_id} from employee ${id} before deletion`);
     }
 
     await sequelize.query('DELETE FROM manpower WHERE id = :id', {
@@ -857,6 +1025,39 @@ router.get('/statistics/by-subsidiary', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch subsidiary manpower statistics',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/manpower/available-users
+// @desc    Get users without employee links (available for linking)
+// @access  Private
+router.get('/available-users', async (req, res) => {
+  try {
+    const availableUsers = await User.findAll({
+      where: {
+        employeeId: null
+      },
+      attributes: ['id', 'username', 'email', 'role', 'isActive'],
+      order: [['username', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      data: availableUsers.map(user => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching available users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available users',
       details: error.message
     });
   }

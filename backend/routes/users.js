@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const User = require('../models/User');
+const Manpower = require('../models/Manpower');
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ const userSchema = Joi.object({
   password: Joi.string().min(6).required(),
   role: Joi.string().valid('admin', 'manager', 'staff').default('staff'),
   departmentId: Joi.string().allow('').optional(),
+  employeeId: Joi.string().allow('', null).optional(), // ← NEW: Link to employee
   isActive: Joi.boolean().default(true)
 });
 
@@ -69,7 +71,13 @@ router.get('/', async (req, res) => {
       order: [[sort, order.toUpperCase()]],
       limit: limitNum,
       offset: offset,
-      attributes: { exclude: ['password'] } // Don't return passwords
+      attributes: { exclude: ['password'] }, // Don't return passwords
+      include: [{
+        model: Manpower,
+        as: 'employee',
+        required: false, // Left join - not all users have employee records
+        attributes: ['id', 'employeeId', 'name', 'position', 'department', 'email']
+      }]
     });
 
     res.json({
@@ -93,13 +101,19 @@ router.get('/', async (req, res) => {
 });
 
 // @route   GET /api/users/:id
-// @desc    Get single user
+// @desc    Get single user with employee data
 // @access  Private
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findByPk(id, {
-      attributes: { exclude: ['password'] }
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Manpower,
+        as: 'employee',
+        required: false, // Left join
+        attributes: ['id', 'employeeId', 'name', 'position', 'department', 'email', 'phone', 'status']
+      }]
     });
     
     if (!user) {
@@ -124,7 +138,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // @route   POST /api/users
-// @desc    Create new user
+// @desc    Create new user with optional employee linking
 // @access  Private (Admin only)
 router.post('/', async (req, res) => {
   try {
@@ -154,6 +168,28 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // ⭐ NEW: Validate employee if provided
+    if (value.employeeId) {
+      const employee = await Manpower.findByPk(value.employeeId);
+      
+      if (!employee) {
+        return res.status(400).json({
+          success: false,
+          error: 'Employee not found',
+          details: 'The specified employee ID does not exist'
+        });
+      }
+      
+      // Check if employee already has a user account
+      if (employee.userId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Employee already has a user account',
+          details: `Employee ${employee.name} is already linked to another user account`
+        });
+      }
+    }
+
     // Hash password
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(value.password, saltRounds);
@@ -162,19 +198,40 @@ router.post('/', async (req, res) => {
     const userCount = await User.count();
     const userId = `U${String(userCount + 1).padStart(3, '0')}`;
 
+    // Create user
     const user = await User.create({
       id: userId,
       ...value,
       password: hashedPassword
     });
 
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user.toJSON();
+    // ⭐ NEW: Update employee with userId if linked
+    if (value.employeeId) {
+      await Manpower.update(
+        { userId: user.id },
+        { where: { id: value.employeeId } }
+      );
+      
+      console.log(`✅ Linked user ${user.username} to employee ${value.employeeId}`);
+    }
+
+    // Fetch user with employee data
+    const userWithEmployee = await User.findByPk(user.id, {
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Manpower,
+        as: 'employee',
+        required: false,
+        attributes: ['id', 'employeeId', 'name', 'position', 'department']
+      }]
+    });
 
     res.status(201).json({
       success: true,
-      data: userWithoutPassword,
-      message: 'User created successfully'
+      data: userWithEmployee,
+      message: value.employeeId 
+        ? 'User created and linked to employee successfully'
+        : 'User created successfully'
     });
   } catch (error) {
     console.error('Error creating user:', error);
@@ -187,7 +244,7 @@ router.post('/', async (req, res) => {
 });
 
 // @route   PUT /api/users/:id
-// @desc    Update user
+// @desc    Update user with employee linking support
 // @access  Private
 router.put('/:id', async (req, res) => {
   try {
@@ -215,6 +272,52 @@ router.put('/:id', async (req, res) => {
       });
     }
 
+    // ⭐ NEW: Validate employee if being updated
+    if (value.employeeId !== undefined) {
+      // If changing employee link
+      if (value.employeeId) {
+        const employee = await Manpower.findByPk(value.employeeId);
+        
+        if (!employee) {
+          return res.status(400).json({
+            success: false,
+            error: 'Employee not found',
+            details: 'The specified employee ID does not exist'
+          });
+        }
+        
+        // Check if employee already has a different user account
+        if (employee.userId && employee.userId !== id) {
+          return res.status(400).json({
+            success: false,
+            error: 'Employee already has a user account',
+            details: `Employee ${employee.name} is already linked to another user account`
+          });
+        }
+      }
+      
+      // ⭐ Handle employee link changes
+      const oldEmployeeId = user.employeeId;
+      
+      // If unlinking from old employee
+      if (oldEmployeeId && oldEmployeeId !== value.employeeId) {
+        await Manpower.update(
+          { userId: null },
+          { where: { id: oldEmployeeId } }
+        );
+        console.log(`✅ Unlinked user ${user.username} from employee ${oldEmployeeId}`);
+      }
+      
+      // If linking to new employee
+      if (value.employeeId) {
+        await Manpower.update(
+          { userId: user.id },
+          { where: { id: value.employeeId } }
+        );
+        console.log(`✅ Linked user ${user.username} to employee ${value.employeeId}`);
+      }
+    }
+
     // If password is being updated, hash it
     if (value.password) {
       const saltRounds = 10;
@@ -223,12 +326,20 @@ router.put('/:id', async (req, res) => {
 
     await user.update(value);
 
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user.toJSON();
+    // Fetch updated user with employee data
+    const updatedUser = await User.findByPk(id, {
+      attributes: { exclude: ['password'] },
+      include: [{
+        model: Manpower,
+        as: 'employee',
+        required: false,
+        attributes: ['id', 'employeeId', 'name', 'position', 'department']
+      }]
+    });
 
     res.json({
       success: true,
-      data: userWithoutPassword,
+      data: updatedUser,
       message: 'User updated successfully'
     });
   } catch (error) {
@@ -242,7 +353,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // @route   DELETE /api/users/:id
-// @desc    Delete user
+// @desc    Delete user and unlink from employee
 // @access  Private (Admin only)
 router.delete('/:id', async (req, res) => {
   try {
@@ -256,6 +367,15 @@ router.delete('/:id', async (req, res) => {
       });
     }
 
+    // ⭐ NEW: Unlink from employee if linked
+    if (user.employeeId) {
+      await Manpower.update(
+        { userId: null },
+        { where: { id: user.employeeId } }
+      );
+      console.log(`✅ Unlinked employee ${user.employeeId} from deleted user ${user.username}`);
+    }
+
     await user.destroy();
 
     res.json({
@@ -267,6 +387,35 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete user',
+      details: error.message
+    });
+  }
+});
+
+// @route   GET /api/users/available-employees
+// @desc    Get employees without user accounts (for linking)
+// @access  Private
+router.get('/available-employees', async (req, res) => {
+  try {
+    const employees = await Manpower.findAll({
+      where: {
+        userId: null, // Only employees without user accounts
+        status: 'active' // Only active employees
+      },
+      attributes: ['id', 'employeeId', 'name', 'position', 'department', 'email', 'phone'],
+      order: [['name', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      data: employees,
+      count: employees.length
+    });
+  } catch (error) {
+    console.error('Error fetching available employees:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available employees',
       details: error.message
     });
   }

@@ -52,8 +52,8 @@ const TransactionList = ({
    */
   const getTypeLabel = (type) => {
     const labels = {
-      income: 'Income',
-      expense: 'Expense',
+      income: 'Pendapatan',
+      expense: 'Pengeluaran',
       transfer: 'Transfer'
     };
     return labels[type] || type;
@@ -70,25 +70,25 @@ const TransactionList = ({
           <thead>
             <tr style={{ backgroundColor: '#1C1C1E' }}>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
-                Date
+                Tanggal
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
-                Type
+                Jenis
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
-                Category
+                Kategori
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
-                Description
+                Deskripsi
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
-                Amount
+                Nilai
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
                 Status
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#98989D' }}>
-                Actions
+                Aksi
               </th>
             </tr>
           </thead>
@@ -97,7 +97,7 @@ const TransactionList = ({
               <tr>
                 <td colSpan="8" className="px-6 py-12 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderColor: '#0A84FF' }}></div>
-                  <p className="mt-2" style={{ color: '#98989D' }}>Loading transactions...</p>
+                  <p className="mt-2" style={{ color: '#98989D' }}>Memuat transaksi...</p>
                 </td>
               </tr>
             ) : transactions.length === 0 ? (
@@ -108,8 +108,8 @@ const TransactionList = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium mb-2" style={{ color: '#FFFFFF' }}>No Transactions Found</h3>
-                  <p className="mb-4" style={{ color: '#98989D' }}>Get started by creating your first financial transaction.</p>
+                  <h3 className="text-lg font-medium mb-2" style={{ color: '#FFFFFF' }}>Tidak Ada Transaksi</h3>
+                  <p className="mb-4" style={{ color: '#98989D' }}>Mulailah dengan membuat transaksi keuangan pertama Anda.</p>
                   {onAddNew && (
                     <button 
                       onClick={onAddNew}
@@ -120,7 +120,7 @@ const TransactionList = ({
                         border: '1px solid rgba(10, 132, 255, 0.3)'
                       }}
                     >
-                      <span>Add First Transaction</span>
+                      <span>Tambah Transaksi Pertama</span>
                     </button>
                   )}
                 </td>
@@ -197,7 +197,7 @@ const TransactionList = ({
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(10, 132, 255, 0.15)'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          title="View Details"
+                          title="Lihat Detail"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -214,7 +214,7 @@ const TransactionList = ({
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(48, 209, 88, 0.15)'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          title="Edit Transaction"
+                          title="Sunting Transaksi"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -231,7 +231,7 @@ const TransactionList = ({
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 69, 58, 0.15)'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          title="Delete Transaction"
+                          title="Hapus Transaksi"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -251,7 +251,7 @@ const TransactionList = ({
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 159, 10, 0.15)'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          title="Void Transaction (Cancel)"
+                          title="Batalkan Transaksi (Void)"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
@@ -270,7 +270,7 @@ const TransactionList = ({
                           }}
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(191, 90, 242, 0.15)'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          title="Reverse & Correct Transaction"
+                          title="Balik & Koreksi Transaksi"
                         >
                           <RefreshCw className="w-4 h-4" />
                         </button>
@@ -291,7 +291,7 @@ const TransactionList = ({
           style={{ borderTop: '1px solid #38383A' }}
         >
           <div className="text-sm" style={{ color: '#98989D' }}>
-            Page {currentPage} of {totalPages}
+            Halaman {currentPage} dari {totalPages}
           </div>
           <div className="flex space-x-2">
             <button
@@ -304,7 +304,7 @@ const TransactionList = ({
                 border: currentPage === 1 ? '1px solid #38383A' : '1px solid rgba(10, 132, 255, 0.3)'
               }}
             >
-              Previous
+              Sebelumnya
             </button>
             <button
               onClick={() => onPageChange(currentPage + 1)}
@@ -316,7 +316,7 @@ const TransactionList = ({
                 border: currentPage === totalPages ? '1px solid #38383A' : '1px solid rgba(10, 132, 255, 0.3)'
               }}
             >
-              Next
+              Berikutnya
             </button>
           </div>
         </div>

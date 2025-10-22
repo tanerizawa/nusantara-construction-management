@@ -26,7 +26,7 @@ const ProjectToolbar = ({
     { value: '', label: `Semua Status` },
     { value: 'active', label: status.active },
     { value: 'completed', label: status.completed },
-    { value: 'on-hold', label: status.onHold },
+    { value: 'on_hold', label: status.onHold },
     { value: 'cancelled', label: status.canceled }
   ];
 

@@ -19,6 +19,7 @@ const DeliveryReceipt = require("../../models/DeliveryReceipt");
 const BeritaAcara = require("../../models/BeritaAcara");
 const WorkOrder = require("../../models/WorkOrder");
 const { verifyToken } = require("../../middleware/auth");
+const AttendanceService = require("../../services/AttendanceService");
 
 const router = express.Router();
 
@@ -29,6 +30,11 @@ const projectSchema = Joi.object({
   clientName: Joi.string().required(),
   clientContact: Joi.object().optional(),
   location: Joi.object().optional(),
+  coordinates: Joi.object({
+    latitude: Joi.number().min(-90).max(90).required(),
+    longitude: Joi.number().min(-180).max(180).required(),
+    radius: Joi.number().min(10).max(5000).default(100)
+  }).optional(),
   budget: Joi.number().min(0).optional(),
   startDate: Joi.date().required(),
   endDate: Joi.date().required(),
@@ -548,6 +554,28 @@ router.post("/", verifyToken, async (req, res) => {
       updated_by: req.user?.id,
     });
 
+    // Auto-create ProjectLocation if coordinates are provided
+    if (value.coordinates?.latitude && value.coordinates?.longitude) {
+      try {
+        await AttendanceService.createProjectLocation({
+          project_id: projectId,
+          location_name: value.name || 'Lokasi Proyek',
+          latitude: value.coordinates.latitude,
+          longitude: value.coordinates.longitude,
+          radius_meters: value.coordinates.radius || 100,
+          address: value.location?.address || '',
+          is_active: true,
+          created_by: req.user?.id
+        });
+        
+        console.log(`✅ ProjectLocation created for project ${projectId}`);
+      } catch (locationError) {
+        console.error('Error creating ProjectLocation:', locationError);
+        // Don't fail the whole request if location creation fails
+        // Project is still created successfully
+      }
+    }
+
     res.status(201).json({
       success: true,
       message: "Project created successfully",
@@ -684,6 +712,46 @@ router.put("/:id", verifyToken, async (req, res) => {
     console.log('[PUT /projects/:id] Updating project:', id, 'Data:', updateData, 'Quick update:', isQuickStatusUpdate);
 
     await project.update(updateData);
+
+    // Auto-create or update ProjectLocation if coordinates are provided (full update only)
+    if (!isQuickStatusUpdate && value.coordinates?.latitude && value.coordinates?.longitude) {
+      try {
+        // Check if ProjectLocation already exists for this project
+        const existingLocations = await AttendanceService.getProjectLocations(id);
+        
+        if (existingLocations && existingLocations.length > 0) {
+          // Update existing location
+          const locationId = existingLocations[0].id;
+          await AttendanceService.updateProjectLocation(locationId, {
+            location_name: value.name || project.name,
+            latitude: value.coordinates.latitude,
+            longitude: value.coordinates.longitude,
+            radius_meters: value.coordinates.radius || 100,
+            address: value.location?.address || '',
+            updated_by: req.user?.id
+          });
+          
+          console.log(`✅ ProjectLocation updated for project ${id}`);
+        } else {
+          // Create new location
+          await AttendanceService.createProjectLocation({
+            project_id: id,
+            location_name: value.name || project.name,
+            latitude: value.coordinates.latitude,
+            longitude: value.coordinates.longitude,
+            radius_meters: value.coordinates.radius || 100,
+            address: value.location?.address || '',
+            is_active: true,
+            created_by: req.user?.id
+          });
+          
+          console.log(`✅ ProjectLocation created for project ${id}`);
+        }
+      } catch (locationError) {
+        console.error('Error updating ProjectLocation:', locationError);
+        // Don't fail the whole request if location update fails
+      }
+    }
 
     res.json({
       success: true,

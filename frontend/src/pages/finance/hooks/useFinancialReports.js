@@ -32,7 +32,8 @@ export const useFinancialReports = (
       }
 
       if (selectedProject !== "all") {
-        params.project_id = selectedProject;
+        // Backend expects camelCase projectId
+        params.projectId = selectedProject;
       }
 
       const response = await financeAPI.getFinancialReports(params);

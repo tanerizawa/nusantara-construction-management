@@ -4,9 +4,10 @@ import { useState, useRef, useCallback, useEffect } from 'react';
  * Custom Hook for Camera Access
  * Provides camera stream, photo capture, and device management
  * 
+ * @param {Object} videoRef - Video element ref from component
  * @returns {Object} Camera utilities and state
  */
-const useCamera = () => {
+const useCamera = (videoRef) => {
   const [stream, setStream] = useState(null);
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState(null);
@@ -16,7 +17,7 @@ const useCamera = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
   
-  const videoRef = useRef(null);
+  // videoRef is now passed from component
   const canvasRef = useRef(null);
 
   /**
@@ -92,10 +93,27 @@ const useCamera = () => {
       setIsActive(true);
       setIsLoading(false);
 
-      // Attach to video element if ref exists
+      // CRITICAL: Store stream for later attachment
+      // Don't try to attach here - videoRef.current might be NULL
+      console.log('📹 Camera stream created, checking videoRef...', {
+        hasVideoRef: !!videoRef.current,
+        streamActive: mediaStream.active,
+        streamId: mediaStream.id
+      });
+
+      // If videoRef is ready now, attach immediately
       if (videoRef.current) {
+        console.log('✅ videoRef.current exists, attaching stream NOW');
         videoRef.current.srcObject = mediaStream;
-        await videoRef.current.play();
+        
+        try {
+          await videoRef.current.play();
+          console.log('🎥 Video playing immediately');
+        } catch (playError) {
+          console.error('❌ Video play error:', playError);
+        }
+      } else {
+        console.warn('⚠️ videoRef.current is NULL - stream will be attached by component');
       }
 
       return mediaStream;
@@ -115,7 +133,7 @@ const useCamera = () => {
       
       return null;
     }
-  }, [stream, currentDeviceId, facingMode]);
+  }, [stream, currentDeviceId, facingMode, videoRef]);
 
   /**
    * Stop camera stream
@@ -143,6 +161,17 @@ const useCamera = () => {
       return null;
     }
 
+    // Check if video has loaded metadata
+    if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
+      setError('Video not ready. Please wait...');
+      console.error('Video dimensions not ready:', {
+        videoWidth: videoRef.current.videoWidth,
+        videoHeight: videoRef.current.videoHeight,
+        readyState: videoRef.current.readyState
+      });
+      return null;
+    }
+
     const {
       width = videoRef.current.videoWidth,
       height = videoRef.current.videoHeight,
@@ -164,11 +193,25 @@ const useCamera = () => {
       context.drawImage(videoRef.current, 0, 0, width, height);
 
       // Convert to blob
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         canvas.toBlob(
           (blob) => {
+            if (!blob) {
+              console.error('Failed to create blob from canvas');
+              reject(new Error('Failed to create image blob'));
+              return;
+            }
+
             const dataUrl = canvas.toDataURL(format, quality);
             setCapturedPhoto(dataUrl);
+            
+            console.log('✅ Photo captured:', {
+              width,
+              height,
+              size: blob.size,
+              type: blob.type
+            });
+            
             resolve({
               blob,
               dataUrl,
@@ -279,7 +322,7 @@ const useCamera = () => {
     capturedPhoto,
     
     // Refs
-    videoRef,
+    // videoRef removed - now passed as parameter from component
     canvasRef,
     
     // Methods

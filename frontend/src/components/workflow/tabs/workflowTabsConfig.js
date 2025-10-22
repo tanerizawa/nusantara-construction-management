@@ -32,7 +32,7 @@ export const workflowTabsConfig = [
   },
   {
     id: 'budget',
-    label: 'Anggaran (RAB/PO/WO',
+    label: 'Anggaran (RAB/PO/WO)',
     icon: Calculator,
     description: 'Manajemen anggaran dan pembelian',
     hasChildren: true,
@@ -90,6 +90,14 @@ export const workflowTabsConfig = [
         description: 'Pembayaran Progres'
       }
     ]
+  },
+  {
+    id: 'approval-status',
+    label: 'Approval',
+    icon: ClipboardCheck,
+    path: 'approval-status',
+    description: 'Status & aksi approval',
+    hasChildren: false
   },
   {
     id: 'documents',

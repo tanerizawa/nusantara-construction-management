@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../services/api';
 import NotificationActions from './NotificationActions';
 import './NotificationList.css';
 
@@ -46,30 +47,67 @@ const NotificationList = () => {
     };
   }, []);
 
-  const fetchNotifications = () => {
+  const fetchNotifications = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Get from localStorage (in production, this would be an API call)
-      const stored = JSON.parse(localStorage.getItem('notifications') || '[]');
-      setNotifications(stored);
+      // Try backend first
+      const resp = await apiClient.get('/notifications', { params: { limit: 50, offset: 0 } });
+      const data = resp.data?.data || resp.data || {};
+      const list = Array.isArray(data.notifications) ? data.notifications : [];
+
+      // Map backend shape to UI shape
+      const mapped = list.map(n => ({
+        id: n.id,
+        title: n.subject || 'Notification',
+        body: n.message,
+        type: n.notificationType || 'info',
+        status: n.status,
+        read: n.status !== 'pending',
+        timestamp: n.created_at || n.createdAt,
+        data: {
+          type: n.notificationType,
+          instanceId: n.instanceId,
+          stepId: n.stepId
+        }
+      }));
+
+      setNotifications(mapped);
+      // Mirror into localStorage as cache
+      localStorage.setItem('notifications', JSON.stringify(mapped));
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('Error fetching notifications from API:', error);
+      // Fallback to localStorage
+      try {
+        const stored = JSON.parse(localStorage.getItem('notifications') || '[]');
+        setNotifications(stored);
+      } catch (e) {
+        setNotifications([]);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const markAsRead = (id) => {
-    const updated = notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    );
+  const markAsRead = async (id) => {
+    try {
+      // Best-effort backend update
+      await apiClient.put(`/notifications/${id}/read`);
+    } catch (e) {
+      // Ignore backend errors, still update UI/local
+    }
+
+    const updated = notifications.map(n => (n.id === id ? { ...n, read: true, status: 'read' } : n));
     setNotifications(updated);
     localStorage.setItem('notifications', JSON.stringify(updated));
   };
 
-  const markAllAsRead = () => {
-    const updated = notifications.map(n => ({ ...n, read: true }));
+  const markAllAsRead = async () => {
+    try {
+      await apiClient.put('/notifications/mark-all-read');
+    } catch (e) {
+      // ignore
+    }
+    const updated = notifications.map(n => ({ ...n, read: true, status: 'read' }));
     setNotifications(updated);
     localStorage.setItem('notifications', JSON.stringify(updated));
   };
@@ -132,12 +170,16 @@ const NotificationList = () => {
 
   const getNotificationIcon = (type) => {
     if (!type) return '🔔';
-    
-    if (type.includes('leave_approval_request')) return '📝';
-    if (type.includes('leave_approved') || type.includes('success')) return '✅';
-    if (type.includes('leave_rejected') || type.includes('error')) return '❌';
+
+    // Backend approval notifications
+    if (type.includes('approval_request')) return '📝';
+    if (type.includes('approved') || type.includes('completed') || type.includes('success')) return '✅';
+    if (type.includes('rejected') || type.includes('error')) return '❌';
+
+    // Attendance notifications
     if (type.includes('attendance_reminder')) return '⏰';
     if (type.includes('clockout_reminder')) return '🔔';
+
     if (type.includes('warning')) return '⚠️';
     if (type.includes('info')) return 'ℹ️';
     

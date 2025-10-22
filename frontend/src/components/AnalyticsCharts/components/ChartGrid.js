@@ -46,14 +46,14 @@ const ChartGrid = ({ data = {}, fetchFn = null }) => {
         {/* Category Distribution */}
         <ChartCard title={analytics.chartTitles.budgetAllocation}>
           <CategoryDistributionChart 
-            data={data.categoryDistribution || categoryDistributionData} 
+            data={(data.categoryDistribution ?? categoryDistributionData)} 
           />
         </ChartCard>
 
         {/* Warehouse Utilization */}
         <ChartCard title={analytics.chartTitles.resourceUtilization}>
           <WarehouseUtilizationChart 
-            data={data.warehouseUtilization || warehouseUtilizationData} 
+            data={(data.warehouseUtilization ?? warehouseUtilizationData)} 
           />
         </ChartCard>
       </div>
@@ -63,14 +63,14 @@ const ChartGrid = ({ data = {}, fetchFn = null }) => {
         {/* Supplier Performance */}
         <ChartCard title={analytics.chartTitles.projectPerformance}>
           <SupplierPerformanceChart 
-            data={data.supplierPerformance || supplierPerformanceData} 
+            data={(data.supplierPerformance ?? supplierPerformanceData)} 
           />
         </ChartCard>
 
         {/* Purchase Order Trend */}
         <ChartCard title={analytics.chartTitles.timeline}>
           <PurchaseOrderTrendChart 
-            data={data.purchaseOrderTrend || purchaseOrderTrendData} 
+            data={(data.purchaseOrderTrend ?? purchaseOrderTrendData)} 
           />
         </ChartCard>
       </div>
@@ -78,7 +78,7 @@ const ChartGrid = ({ data = {}, fetchFn = null }) => {
       {/* Full Width Chart */}
       <ChartCard title={analytics.chartTitles.projectPerformance}>
         <StockMovementChart 
-          data={data.stockMovement || stockMovementData} 
+          data={(data.stockMovement ?? stockMovementData)} 
         />
       </ChartCard>
     </div>

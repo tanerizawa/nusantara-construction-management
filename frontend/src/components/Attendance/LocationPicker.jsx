@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Circle, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import './LocationPicker.css';
 
@@ -209,7 +210,10 @@ const LocationPicker = ({
             >
               <Popup>
                 <div className="popup-content">
-                  <h4>📍 Your Location</h4>
+                  <h4>
+                    <MapPin size={18} style={{ display: 'inline-block', marginRight: '6px', verticalAlign: 'middle' }} />
+                    Your Location
+                  </h4>
                   <p>Lat: {currentPosition.latitude.toFixed(6)}</p>
                   <p>Lon: {currentPosition.longitude.toFixed(6)}</p>
                   {currentPosition.accuracy && (

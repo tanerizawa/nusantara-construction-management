@@ -80,7 +80,7 @@ export const createTabConfig = (workflowData) => [
     label: 'Berita Acara',
     icon: FileText,
     description: 'Manajemen Berita Acara dan handover',
-    badge: workflowData.beritaAcara?.pending || 0
+    badge: workflowData.beritaAcaraStatus?.pending || 0
   },
   {
     id: 'progress-payments',

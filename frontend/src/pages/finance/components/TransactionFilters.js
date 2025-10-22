@@ -43,7 +43,7 @@ const TransactionFilters = ({
         disabled={loadingSubsidiaries}
       >
         <option value="all" style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
-          {loadingSubsidiaries ? 'Loading...' : 'Semua Anak Perusahaan'}
+          {loadingSubsidiaries ? 'Memuat...' : 'Semua Anak Perusahaan'}
         </option>
         {subsidiaries.map(sub => (
           <option key={sub.id} value={sub.id} style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
@@ -65,7 +65,7 @@ const TransactionFilters = ({
         disabled={loadingProjects}
       >
         <option value="all" style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>
-          {loadingProjects ? 'Loading Projects...' : 'All Projects'}
+          {loadingProjects ? 'Memuat Proyek...' : 'Semua Proyek'}
         </option>
         {projects.map(project => (
           <option key={project.id} value={project.id} style={{ backgroundColor: '#2C2C2E', color: '#FFFFFF' }}>

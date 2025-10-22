@@ -162,7 +162,7 @@ const QuickActionButtons = ({
 
       {!todayRecord && (
         <div className="status-hint pending">
-          <div className="hint-icon">⏰</div>
+          <div className="hint-icon"><Clock size={24} /></div>
           <div className="hint-content">
             <strong>Ready to start?</strong>
             <p>Clock in to begin tracking your work hours.</p>

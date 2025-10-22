@@ -611,6 +611,136 @@ router.post("/logout-all", async (req, res) => {
 });
 
 /**
+ * @route   DELETE /api/auth/sessions/clear-old
+ * @desc    Clear old sessions (older than X days)
+ * @access  Private (Admin recommended)
+ * @note    MUST be before /sessions/:sessionId route
+ */
+router.delete("/sessions/clear-old", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: "No token provided",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { confirmationCode, daysOld = 7 } = req.body;
+    
+    // Require confirmation code for safety
+    if (confirmationCode !== 'CLEAR_OLD_SESSIONS') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid confirmation code'
+      });
+    }
+
+    const ActiveSession = require('../../models/ActiveSession');
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+    
+    // Delete old sessions
+    const { Op } = require('sequelize');
+    const deletedCount = await ActiveSession.destroy({
+      where: {
+        createdAt: {
+          [Op.lt]: cutoffDate
+        }
+      }
+    });
+    
+    console.log(`🗑️  Admin ${decoded.id} cleared ${deletedCount} old sessions (older than ${daysOld} days)`);
+    
+    res.json({
+      success: true,
+      data: {
+        deletedCount,
+        daysOld,
+        message: `Cleared ${deletedCount} sessions older than ${daysOld} days`
+      }
+    });
+  } catch (error) {
+    console.error("Clear old sessions error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error clearing sessions",
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/auth/sessions/clear-all
+ * @desc    Clear ALL sessions except current (DANGER: use with caution)
+ * @access  Private (Admin only recommended)
+ * @note    MUST be before /sessions/:sessionId route
+ */
+router.delete("/sessions/clear-all", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: "No token provided",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { confirmationCode } = req.body;
+    
+    // Require confirmation code for safety
+    if (confirmationCode !== 'CLEAR_ALL_SESSIONS') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid confirmation code. Please provide confirmationCode: "CLEAR_ALL_SESSIONS"'
+      });
+    }
+
+    const ActiveSession = require('../../models/ActiveSession');
+    const crypto = require('crypto');
+    
+    // Get current session ID from token hash
+    const currentTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const currentSession = await ActiveSession.findOne({
+      where: { 
+        userId: decoded.id,
+        token: currentTokenHash
+      }
+    });
+    
+    // Delete all sessions except current
+    const { Op } = require('sequelize');
+    const deletedCount = await ActiveSession.destroy({
+      where: {
+        id: {
+          [Op.ne]: currentSession?.id || 0 // Don't delete current session
+        }
+      }
+    });
+    
+    console.log(`🗑️  Admin ${decoded.id} cleared ALL ${deletedCount} sessions (except current)`);
+    
+    res.json({
+      success: true,
+      data: {
+        deletedCount,
+        message: `Successfully cleared ${deletedCount} sessions`,
+        warning: 'All users (except you) were logged out'
+      }
+    });
+  } catch (error) {
+    console.error("Clear all sessions error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error clearing sessions",
+      details: error.message
+    });
+  }
+});
+
+/**
  * @route   DELETE /api/auth/sessions/:sessionId
  * @desc    Logout from a specific device/session
  * @access  Private

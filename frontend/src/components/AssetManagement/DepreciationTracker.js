@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TrendingDown, Calculator, RefreshCw, Package, X, ChevronDown, ChevronUp
 } from 'lucide-react';
-import axios from 'axios';
+import { apiClient } from '../../services/api';
 
 const DepreciationTracker = () => {
   const [assets, setAssets] = useState([]);
@@ -20,7 +20,7 @@ const DepreciationTracker = () => {
   const fetchAssetsWithDepreciation = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/fixed-asset/list');
+      const response = await apiClient.get('/reports/fixed-asset/list');
       
       if (response.data.success) {
         const rawAssets = response.data.data || [];

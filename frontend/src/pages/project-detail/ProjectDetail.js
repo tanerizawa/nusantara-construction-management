@@ -13,11 +13,12 @@ import { createTabConfig } from './config';
 import { projectAPI } from '../../services/api';
 
 // Workflow components
-import {
+import { 
   QuickStatusBar,
   WorkflowTabsNavigation,
   ProjectRABWorkflow,
-  ProjectBudgetMonitoring
+  ProjectBudgetMonitoring,
+  ProfessionalApprovalDashboard
 } from '../../components/workflow';
 import { ReportGenerator } from '../../components/workflow/reports';
 import PurchaseOrdersManager from '../../components/workflow/purchase-orders/PurchaseOrdersManager';
@@ -44,6 +45,22 @@ const ProjectDetail = () => {
 
   // Tab configuration with workflow data
   const tabConfig = useMemo(() => createTabConfig(workflowData), [workflowData]);
+
+  // Sync main tab from URL hash (supports nested formats like #approval-status:tandaTerima)
+  React.useEffect(() => {
+    const hash = window.location.hash?.replace('#', '');
+    if (hash) {
+      const mainTab = hash.split(':')[0];
+      const allowed = [
+        'overview', 'rab-workflow', 'purchase-orders', 'work-orders',
+        'budget-monitoring', 'milestones', 'berita-acara', 'progress-payments',
+        'team', 'documents', 'reports', 'approval-status'
+      ];
+      if (allowed.includes(mainTab)) {
+        setActiveTab(mainTab);
+      }
+    }
+  }, []);
 
   // Loading state
   if (loading) {
@@ -201,6 +218,14 @@ const ProjectDetail = () => {
           
           {activeTab === 'budget-monitoring' && project && (
             <ProjectBudgetMonitoring projectId={id} project={project} onDataChange={fetchProject} />
+          )}
+
+          {activeTab === 'approval-status' && project && (
+            <ProfessionalApprovalDashboard 
+              projectId={id} 
+              project={project} 
+              onDataChange={fetchProject}
+            />
           )}
           
           {activeTab === 'milestones' && project && (

@@ -569,6 +569,26 @@ async function cleanupOldLogs(retentionDays = 90) {
   }
 }
 
+/**
+ * Clear ALL audit logs (DANGER: use with caution)
+ */
+async function clearAllLogs() {
+  try {
+    const count = await AuditLog.count();
+    
+    await AuditLog.destroy({
+      where: {},
+      truncate: true // Faster than delete
+    });
+
+    console.log(`🗑️  Cleared ALL ${count} audit logs`);
+    return count;
+  } catch (error) {
+    console.error('Error clearing all logs:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   logAudit,
   logCreate,
@@ -585,6 +605,9 @@ module.exports = {
   getUserActivity,
   getSystemActivity,
   cleanupOldLogs,
+  clearAllLogs,
   calculateChanges,
-  sanitizeData
+  sanitizeData,
+  // Backward compatibility
+  log: logAudit
 };

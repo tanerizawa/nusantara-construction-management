@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * Hook for fetching and managing chart data
@@ -48,19 +48,15 @@ export const useChartSize = () => {
     width: 0,
     height: 300 // Default height
   });
-  const ref = useState(null);
+  const ref = useRef(null);
 
   useEffect(() => {
     if (!ref.current) return;
 
     const resizeObserver = new ResizeObserver(entries => {
       if (!entries[0]) return;
-      
       const { width } = entries[0].contentRect;
-      setDimensions({
-        width,
-        height: 300 // Keep fixed height or implement dynamic height calculation
-      });
+      setDimensions({ width, height: 300 });
     });
 
     resizeObserver.observe(ref.current);
@@ -71,7 +67,7 @@ export const useChartSize = () => {
       }
       resizeObserver.disconnect();
     };
-  }, [ref]);
+  }, []);
 
   return { dimensions, ref };
 };

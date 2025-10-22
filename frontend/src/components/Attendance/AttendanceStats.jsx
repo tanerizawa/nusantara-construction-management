@@ -1,4 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import { 
+  CheckCircle2, 
+  AlertTriangle, 
+  XCircle, 
+  Clock, 
+  TrendingUp, 
+  Target, 
+  Calendar, 
+  Trophy, 
+  Star,
+  Circle
+} from 'lucide-react';
 import './AttendanceStats.css';
 
 /**
@@ -27,10 +39,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
       return;
     }
 
-    calculateStats();
-  }, [weeklyData]);
-
-  const calculateStats = () => {
+    // Calculate stats directly in useEffect to avoid stale closure
     const workingDays = 5; // Monday to Friday
     const presentDays = weeklyData.filter(r => r.status === 'present' || r.status === 'late').length;
     const lateDays = weeklyData.filter(r => r.status === 'late').length;
@@ -60,7 +69,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
       averageHours: parseFloat(averageHours),
       onTimePercentage: parseInt(onTimePercentage)
     });
-  };
+  }, [weeklyData]);
 
   // Get current week range
   const getWeekRange = () => {
@@ -106,16 +115,16 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
 
     if (record) {
       if (record.status === 'late') {
-        return { status: 'late', label: 'Late', icon: '⚠️' };
+        return { status: 'late', label: 'Late', icon: <AlertTriangle size={20} /> };
       }
-      return { status: 'present', label: 'Present', icon: '✓' };
+      return { status: 'present', label: 'Present', icon: <CheckCircle2 size={20} /> };
     }
 
     if (isToday) {
-      return { status: 'pending', label: 'Today', icon: '○' };
+      return { status: 'pending', label: 'Today', icon: <Circle size={20} /> };
     }
 
-    return { status: 'absent', label: 'Absent', icon: '✗' };
+    return { status: 'absent', label: 'Absent', icon: <XCircle size={20} /> };
   };
 
   if (isLoading) {
@@ -137,7 +146,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
   if (error) {
     return (
       <div className="attendance-stats error">
-        <div className="error-icon">⚠️</div>
+        <div className="error-icon"><AlertTriangle size={64} /></div>
         <h3>Failed to Load Statistics</h3>
         <p>{error}</p>
       </div>
@@ -149,7 +158,10 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
       {/* Header */}
       <div className="stats-header">
         <div className="stats-title">
-          <h2>📊 Weekly Summary</h2>
+          <h2>
+            <TrendingUp size={24} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+            Weekly Summary
+          </h2>
           <p className="stats-period">{getWeekRange()}</p>
         </div>
         <div className="stats-badge">
@@ -179,7 +191,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
       <div className="stats-grid">
         {/* Present Days */}
         <div className="stat-card present">
-          <div className="stat-icon">✓</div>
+          <div className="stat-icon"><CheckCircle2 size={36} /></div>
           <div className="stat-content">
             <span className="stat-label">Present</span>
             <span className="stat-value">{stats.presentDays}</span>
@@ -189,7 +201,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
 
         {/* Late Days */}
         <div className="stat-card late">
-          <div className="stat-icon">⚠️</div>
+          <div className="stat-icon"><AlertTriangle size={36} /></div>
           <div className="stat-content">
             <span className="stat-label">Late</span>
             <span className="stat-value">{stats.lateDays}</span>
@@ -199,7 +211,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
 
         {/* Absent Days */}
         <div className="stat-card absent">
-          <div className="stat-icon">✗</div>
+          <div className="stat-icon"><XCircle size={36} /></div>
           <div className="stat-content">
             <span className="stat-label">Absent</span>
             <span className="stat-value">{stats.absentDays}</span>
@@ -209,7 +221,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
 
         {/* Total Hours */}
         <div className="stat-card hours">
-          <div className="stat-icon">⏱️</div>
+          <div className="stat-icon"><Clock size={36} /></div>
           <div className="stat-content">
             <span className="stat-label">Total Hours</span>
             <span className="stat-value">{stats.totalHours}</span>
@@ -221,7 +233,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
       {/* Additional Metrics */}
       <div className="additional-metrics">
         <div className="metric-item">
-          <div className="metric-icon">📈</div>
+          <div className="metric-icon"><TrendingUp size={28} /></div>
           <div className="metric-content">
             <span className="metric-label">Average Hours/Day</span>
             <span className="metric-value">{stats.averageHours}h</span>
@@ -229,7 +241,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
         </div>
 
         <div className="metric-item">
-          <div className="metric-icon">🎯</div>
+          <div className="metric-icon"><Target size={28} /></div>
           <div className="metric-content">
             <span className="metric-label">On-Time Rate</span>
             <span className="metric-value">{stats.onTimePercentage}%</span>
@@ -237,7 +249,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
         </div>
 
         <div className="metric-item">
-          <div className="metric-icon">📅</div>
+          <div className="metric-icon"><Calendar size={28} /></div>
           <div className="metric-content">
             <span className="metric-label">Working Days</span>
             <span className="metric-value">{stats.totalDays} days</span>
@@ -248,7 +260,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
       {/* Performance Badge */}
       {stats.presentDays === stats.totalDays && stats.lateDays === 0 && (
         <div className="performance-badge excellent">
-          <div className="badge-icon">🏆</div>
+          <div className="badge-icon"><Trophy size={36} /></div>
           <div className="badge-content">
             <strong>Perfect Attendance!</strong>
             <p>You have 100% attendance this week. Excellent work!</p>
@@ -258,7 +270,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
 
       {stats.onTimePercentage >= 80 && stats.onTimePercentage < 100 && (
         <div className="performance-badge good">
-          <div className="badge-icon">⭐</div>
+          <div className="badge-icon"><Star size={36} /></div>
           <div className="badge-content">
             <strong>Great Performance!</strong>
             <p>Your on-time rate is {stats.onTimePercentage}%. Keep it up!</p>
@@ -268,7 +280,7 @@ const AttendanceStats = ({ weeklyData = [], isLoading, error }) => {
 
       {stats.absentDays > 2 && (
         <div className="performance-badge warning">
-          <div className="badge-icon">⚠️</div>
+          <div className="badge-icon"><AlertTriangle size={36} /></div>
           <div className="badge-content">
             <strong>Attendance Warning</strong>
             <p>You have {stats.absentDays} absent days this week. Please maintain regular attendance.</p>

@@ -324,8 +324,55 @@ router.post('/locations', verifyToken, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/attendance/settings
+ * @desc    Get attendance settings for user's current project
+ * @access  Private
+ */
+router.get('/settings', verifyToken, async (req, res) => {
+  try {
+    // For now, use a default project ID
+    // In production, this should come from user's assigned project in database
+    // Since we're in fallback mode, we'll use the first available project
+    
+    const defaultProjectId = 'PRJ-001'; // Default project for development
+    
+    try {
+      const settings = await AttendanceService.getAttendanceSettings(defaultProjectId);
+      
+      res.json({
+        success: true,
+        data: settings,
+      });
+    } catch (serviceError) {
+      // If AttendanceService fails, return default settings
+      console.warn('AttendanceService unavailable, returning defaults:', serviceError.message);
+      
+      res.json({
+        success: true,
+        data: {
+          latitude: -6.2088,
+          longitude: 106.8456,
+          radius: 100,
+          work_start_time: '08:00',
+          work_end_time: '17:00',
+          late_threshold_minutes: 15,
+          location_name: 'Default Project Location',
+          message: 'Using default settings (database unavailable)'
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Get attendance settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get attendance settings',
+    });
+  }
+});
+
+/**
  * @route   GET /api/attendance/settings/:projectId
- * @desc    Get attendance settings
+ * @desc    Get attendance settings for specific project (Admin/PM)
  * @access  Private
  */
 router.get('/settings/:projectId', verifyToken, async (req, res) => {
@@ -348,8 +395,46 @@ router.get('/settings/:projectId', verifyToken, async (req, res) => {
 });
 
 /**
+ * @route   PUT /api/attendance/settings
+ * @desc    Update attendance settings for user's current project (Admin/PM only)
+ * @access  Private (Admin/PM)
+ */
+router.put('/settings', verifyToken, async (req, res) => {
+  try {
+    // Check if user is admin or project manager
+    if (req.user.role !== 'admin' && req.user.role !== 'project_manager') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only admins and project managers can update settings',
+      });
+    }
+
+    // For now, use a default project ID
+    // In production, get from user's assigned project in database
+    const defaultProjectId = 'PRJ-001';
+
+    const settings = await AttendanceService.updateAttendanceSettings(
+      defaultProjectId,
+      req.body
+    );
+
+    res.json({
+      success: true,
+      message: 'Attendance settings updated successfully',
+      data: settings,
+    });
+  } catch (error) {
+    console.error('Update attendance settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to update attendance settings',
+    });
+  }
+});
+
+/**
  * @route   PUT /api/attendance/settings/:projectId
- * @desc    Update attendance settings (Admin only)
+ * @desc    Update attendance settings for specific project (Admin only)
  * @access  Private (Admin)
  */
 router.put('/settings/:projectId', verifyToken, async (req, res) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { FileText, Calendar, XCircle, CheckCircle2 } from 'lucide-react';
 import './LeaveRequestForm.css';
 
 const LeaveRequestForm = ({ onSubmit, onCancel, isSubmitting = false }) => {
@@ -176,7 +177,10 @@ const LeaveRequestForm = ({ onSubmit, onCancel, isSubmitting = false }) => {
   return (
     <form className="leave-request-form" onSubmit={handleSubmit}>
       <div className="form-header">
-        <h3>📝 Request Leave</h3>
+        <h3>
+          <FileText size={24} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+          Request Leave
+        </h3>
         <p>Fill in the details for your leave request</p>
       </div>
 
@@ -222,7 +226,7 @@ const LeaveRequestForm = ({ onSubmit, onCancel, isSubmitting = false }) => {
       {/* Duration Display */}
       {duration > 0 && (
         <div className="duration-display">
-          <span className="duration-icon">📅</span>
+          <span className="duration-icon"><Calendar size={20} /></span>
           <span className="duration-text">
             Duration: <strong>{duration}</strong> {duration === 1 ? 'day' : 'days'}
           </span>
@@ -317,7 +321,8 @@ const LeaveRequestForm = ({ onSubmit, onCancel, isSubmitting = false }) => {
               className="remove-attachment-btn"
               onClick={handleRemoveAttachment}
             >
-              ✗ Remove
+              <XCircle size={16} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+              Remove
             </button>
           </div>
         )}
@@ -351,7 +356,7 @@ const LeaveRequestForm = ({ onSubmit, onCancel, isSubmitting = false }) => {
             </>
           ) : (
             <>
-              <span>✓</span>
+              <CheckCircle2 size={18} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
               Submit Request
             </>
           )}

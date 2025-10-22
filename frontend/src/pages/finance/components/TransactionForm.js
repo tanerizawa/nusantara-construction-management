@@ -84,10 +84,10 @@ const TransactionForm = ({
     }}>
       <div className="p-6" style={{ borderBottom: '1px solid #38383A' }}>
         <h3 className="text-lg font-semibold" style={{ color: '#FFFFFF' }}>
-          {isEdit ? 'Edit Transaction' : 'Create New Transaction'}
+          {isEdit ? 'Sunting Transaksi' : 'Buat Transaksi Baru'}
         </h3>
         <p className="text-sm mt-1" style={{ color: '#98989D' }}>
-          {isEdit ? 'Update transaction details' : 'Add a new financial transaction to your records'}
+          {isEdit ? 'Perbarui detail transaksi' : 'Tambahkan transaksi keuangan baru ke pencatatan Anda'}
         </p>
       </div>
       
@@ -96,7 +96,7 @@ const TransactionForm = ({
           {/* Transaction Type */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Transaction Type *
+              Jenis Transaksi *
             </label>
             <select
               value={formData.type}
@@ -109,8 +109,8 @@ const TransactionForm = ({
               }}
               required
             >
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
+              <option value="expense">Pengeluaran</option>
+              <option value="income">Pendapatan</option>
               <option value="transfer">Transfer</option>
             </select>
             {errors.type && (
@@ -121,7 +121,7 @@ const TransactionForm = ({
           {/* Category */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Category *
+              Kategori *
             </label>
             <select
               value={formData.category}
@@ -134,16 +134,16 @@ const TransactionForm = ({
               }}
               required
             >
-              <option value="">Select Category</option>
-              <option value="Materials">Materials</option>
-              <option value="Labor">Labor</option>
-              <option value="Equipment">Equipment</option>
-              <option value="Subcontractor">Subcontractor</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Administrative">Administrative</option>
-              <option value="Project Revenue">Project Revenue</option>
-              <option value="Other Income">Other Income</option>
-              <option value="Other Expense">Other Expense</option>
+              <option value="">Pilih Kategori</option>
+              <option value="Materials">Material</option>
+              <option value="Labor">Tenaga Kerja</option>
+              <option value="Equipment">Peralatan</option>
+              <option value="Subcontractor">Subkontraktor</option>
+              <option value="Transportation">Transportasi</option>
+              <option value="Administrative">Administrasi</option>
+              <option value="Project Revenue">Pendapatan Proyek</option>
+              <option value="Other Income">Pendapatan Lainnya</option>
+              <option value="Other Expense">Pengeluaran Lainnya</option>
             </select>
             {errors.category && (
               <p className="mt-1 text-sm" style={{ color: '#FF453A' }}>{errors.category}</p>
@@ -153,7 +153,7 @@ const TransactionForm = ({
           {/* Amount */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Amount (IDR) *
+              Nilai (IDR) *
             </label>
             <input
               type="number"
@@ -178,7 +178,7 @@ const TransactionForm = ({
           {/* Date */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Transaction Date *
+              Tanggal Transaksi *
             </label>
             <input
               type="date"
@@ -200,7 +200,7 @@ const TransactionForm = ({
           {/* Project ID */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Project
+              Proyek
             </label>
             <select
               value={formData.projectId}
@@ -214,7 +214,7 @@ const TransactionForm = ({
               disabled={loadingProjects}
             >
               <option value="">
-                {loadingProjects ? 'Loading Projects...' : 'No Project'}
+                {loadingProjects ? 'Memuat Proyek...' : 'Tanpa Proyek'}
               </option>
               {projects.map(project => (
                 <option key={project.id} value={project.id}>
@@ -228,7 +228,7 @@ const TransactionForm = ({
           {formData.type !== 'transfer' && (
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                {formData.type === 'income' ? 'Receiving Account *' : 'Paying Account *'}
+                {formData.type === 'income' ? 'Rekening Penerima *' : 'Rekening Pembayar *'}
               </label>
               <select
                 value={formData.type === 'income' ? formData.accountTo : formData.accountFrom}
@@ -243,7 +243,7 @@ const TransactionForm = ({
                 disabled={loadingCashAccounts}
               >
                 <option value="">
-                  {loadingCashAccounts ? 'Loading accounts...' : 'Select Bank Account'}
+                  {loadingCashAccounts ? 'Memuat rekening...' : 'Pilih Rekening Bank'}
                 </option>
                 {cashAccounts.map(account => (
                   <option key={account.id} value={account.id}>
@@ -257,7 +257,7 @@ const TransactionForm = ({
                 </p>
               )}
               <p className="mt-1 text-xs" style={{ color: '#98989D' }}>
-                {formData.type === 'income' ? 'Account receiving the payment' : 'Account making the payment'}
+                {formData.type === 'income' ? 'Rekening yang menerima pembayaran' : 'Rekening yang melakukan pembayaran'}
               </p>
             </div>
           )}
@@ -267,7 +267,7 @@ const TransactionForm = ({
             <>
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                  From Account *
+                  Dari Rekening *
                 </label>
                 <select
                   value={formData.accountFrom}
@@ -281,7 +281,7 @@ const TransactionForm = ({
                   required
                   disabled={loadingCashAccounts}
                 >
-                  <option value="">Select source account</option>
+                  <option value="">Pilih rekening sumber</option>
                   {cashAccounts.map(account => (
                     <option 
                       key={account.id} 
@@ -299,7 +299,7 @@ const TransactionForm = ({
 
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                  To Account *
+                  Ke Rekening *
                 </label>
                 <select
                   value={formData.accountTo}
@@ -313,7 +313,7 @@ const TransactionForm = ({
                   required
                   disabled={loadingCashAccounts}
                 >
-                  <option value="">Select destination account</option>
+                  <option value="">Pilih rekening tujuan</option>
                   {cashAccounts.map(account => (
                     <option 
                       key={account.id} 
@@ -334,7 +334,7 @@ const TransactionForm = ({
           {/* Reference Number */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Reference Number
+              Nomor Referensi
             </label>
             <input
               type="text"
@@ -346,7 +346,7 @@ const TransactionForm = ({
                 color: '#FFFFFF',
                 border: errors.referenceNumber ? '1px solid #FF453A' : '1px solid #38383A'
               }}
-              placeholder="INV-001, REF-123, etc."
+              placeholder="INV-001, REF-123, dll."
             />
             {errors.referenceNumber && (
               <p className="mt-1 text-sm" style={{ color: '#FF453A' }}>{errors.referenceNumber}</p>
@@ -357,7 +357,7 @@ const TransactionForm = ({
         {/* Description */}
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-            Description *
+            Deskripsi *
           </label>
           <textarea
             value={formData.description}
@@ -368,7 +368,7 @@ const TransactionForm = ({
               color: '#FFFFFF',
               border: errors.description ? '1px solid #FF453A' : '1px solid #38383A'
             }}
-            placeholder="Enter transaction description"
+            placeholder="Masukkan deskripsi transaksi"
             rows="3"
             required
           />
@@ -380,7 +380,7 @@ const TransactionForm = ({
         {/* Notes */}
         <div>
           <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-            Additional Notes
+            Catatan Tambahan
           </label>
           <textarea
             value={formData.notes}
@@ -391,7 +391,7 @@ const TransactionForm = ({
               color: '#FFFFFF',
               border: '1px solid #38383A'
             }}
-            placeholder="Any additional notes or comments"
+            placeholder="Catatan atau komentar tambahan"
             rows="2"
           />
         </div>
@@ -409,7 +409,7 @@ const TransactionForm = ({
             }}
             disabled={isSubmitting}
           >
-            Cancel
+            Batalkan
           </button>
           <button
             type="submit"
@@ -424,10 +424,10 @@ const TransactionForm = ({
             {isSubmitting ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2" style={{ borderColor: '#0A84FF' }}></div>
-                <span>Saving...</span>
+                <span>Menyimpan...</span>
               </>
             ) : (
-              <span>{isEdit ? 'Update Transaction' : 'Create Transaction'}</span>
+              <span>{isEdit ? 'Perbarui Transaksi' : 'Buat Transaksi'}</span>
             )}
           </button>
         </div>

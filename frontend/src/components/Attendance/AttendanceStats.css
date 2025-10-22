@@ -136,27 +136,28 @@
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border-color: #667eea;
 }
 
 .stat-card.present {
-  background: #d4edda;
-  border-color: #28a745;
+  background: #2d2d2d; /* Dark grey */
+  border-color: #555555;
 }
 
 .stat-card.late {
-  background: #fff3cd;
-  border-color: #ffc107;
+  background: #2d2d2d; /* Dark grey */
+  border-color: #555555;
 }
 
 .stat-card.absent {
-  background: #f8d7da;
-  border-color: #dc3545;
+  background: #2d2d2d; /* Dark grey */
+  border-color: #555555;
 }
 
 .stat-card.hours {
-  background: #d1ecf1;
-  border-color: #17a2b8;
+  background: #2d2d2d; /* Dark grey */
+  border-color: #555555;
 }
 
 .stat-icon {
@@ -166,9 +167,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: #404040; /* Dark icon background */
   border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .stat-content {
@@ -181,7 +182,7 @@
 
 .stat-label {
   font-size: 12px;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.6); /* Muted white */
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -190,12 +191,12 @@
 .stat-value {
   font-size: 32px;
   font-weight: 700;
-  color: #212529;
+  color: #ffffff; /* White value */
 }
 
 .stat-unit {
   font-size: 14px;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.5); /* Lighter muted white */
 }
 
 /* Additional Metrics */
@@ -211,9 +212,9 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #f8f9fa;
+  background: #2d2d2d; /* Dark grey */
   border-radius: 12px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #404040;
 }
 
 .metric-icon {
@@ -228,7 +229,7 @@
 
 .metric-label {
   font-size: 11px;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.6); /* Muted white */
   text-transform: uppercase;
   font-weight: 600;
 }
@@ -236,7 +237,7 @@
 .metric-value {
   font-size: 18px;
   font-weight: 700;
-  color: #212529;
+  color: #ffffff; /* White value */
 }
 
 /* Performance Badge */
@@ -262,17 +263,17 @@
 }
 
 .performance-badge.excellent {
-  background: #d4edda;
+  background: #2d2d2d; /* Dark grey */
   border-color: #28a745;
 }
 
 .performance-badge.good {
-  background: #d1ecf1;
+  background: #2d2d2d; /* Dark grey */
   border-color: #17a2b8;
 }
 
 .performance-badge.warning {
-  background: #fff3cd;
+  background: #2d2d2d; /* Dark grey */
   border-color: #ffc107;
 }
 
@@ -289,13 +290,13 @@
   display: block;
   font-size: 16px;
   font-weight: 700;
-  color: #212529;
+  color: #ffffff; /* White text */
   margin-bottom: 4px;
 }
 
 .badge-content p {
   font-size: 14px;
-  color: #6c757d;
+  color: rgba(255, 255, 255, 0.7); /* Muted white */
   margin: 0;
 }
 

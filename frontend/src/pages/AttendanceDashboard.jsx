@@ -38,7 +38,6 @@ const AttendanceDashboard = () => {
         throw new Error('Authentication required');
       }
 
-      // Note: projectId is optional - if not provided, backend will return first available or null
       const response = await fetch('/api/attendance/today', {
         method: 'GET',
         headers: {
@@ -51,8 +50,8 @@ const AttendanceDashboard = () => {
         if (response.status === 401) {
           throw new Error('Session expired. Please login again.');
         }
-        if (response.status === 404 || response.status === 400) {
-          // No record found or no project - this is OK, just return null
+        if (response.status === 404) {
+          // No record found - this is expected if user hasn't clocked in today
           setTodayRecord(null);
           return;
         }
@@ -64,7 +63,7 @@ const AttendanceDashboard = () => {
     } catch (err) {
       console.error('Error fetching today record:', err);
       // Only set error for critical errors, not for missing data
-      if (!err.message.includes('404') && !err.message.includes('400')) {
+      if (!err.message.includes('404')) {
         setError(err.message);
       }
       

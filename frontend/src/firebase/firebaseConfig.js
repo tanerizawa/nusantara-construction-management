@@ -168,7 +168,8 @@ export const unregisterFCMToken = async () => {
       return; // Already logged out
     }
 
-    const response = await fetch('/api/fcm-notifications/unregister-token', {
+    // Unregister all tokens for current user (no body required)
+    const response = await fetch('/api/fcm-notifications/unregister-all', {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authToken}`

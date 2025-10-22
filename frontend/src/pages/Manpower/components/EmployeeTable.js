@@ -23,7 +23,7 @@ const EmployeeRow = ({
           {employee.userId && (
             <div 
               className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#30D158]/20 text-[#30D158] rounded text-xs"
-              title={`Has user account: ${employee.username}`}
+              title={`Has user account: ${employee.userAccount?.username || 'linked'}`}
             >
               <Key className="h-3 w-3" />
               <span className="hidden sm:inline">Access</span>

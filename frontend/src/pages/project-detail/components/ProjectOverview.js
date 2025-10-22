@@ -378,21 +378,24 @@ const renderLocationInfo = (location) => {
   return location || 'Lokasi belum ditentukan';
 };
 
-const getStatusColor = (status) => {
+const getStatusColor = (rawStatus) => {
+  // Normalize backend/legacy variants
+  const status = (rawStatus || '').replace('-', '_');
   const colorMap = {
     active: 'bg-[#30D158]/20 text-[#30D158]',
     planning: 'bg-[#0A84FF]/20 text-[#0A84FF]',
-    'on-hold': 'bg-[#FF9F0A]/20 text-[#FF9F0A]',
+    on_hold: 'bg-[#FF9F0A]/20 text-[#FF9F0A]',
     completed: 'bg-[#8E8E93]/20 text-[#8E8E93]'
   };
   return colorMap[status] || 'bg-[#8E8E93]/20 text-[#8E8E93]';
 };
 
-const getStatusText = (status) => {
+const getStatusText = (rawStatus) => {
+  const status = (rawStatus || '').replace('-', '_');
   const textMap = {
     active: 'Aktif',
     planning: 'Perencanaan',
-    'on-hold': 'Ditunda',
+    on_hold: 'Ditunda',
     completed: 'Selesai'
   };
   return textMap[status] || 'Tidak Diketahui';

@@ -147,6 +147,8 @@ router.get('/', async (req, res) => {
       type: transaction.type,
       amount: parseFloat(transaction.amount),
       desc: transaction.description,
+      // Keep 'description' for frontend compatibility
+      description: transaction.description,
       date: transaction.date,
       category: transaction.category,
       subcategory: transaction.subcategory,

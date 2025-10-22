@@ -53,36 +53,36 @@ const FinancialReportsView = ({
         {/* Income Statement Card */}
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Income Statement</h3>
+            <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Laporan Laba Rugi</h3>
             <Receipt className="w-5 h-5" style={{ color: '#636366' }} />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Revenue</span>
+              <span className="text-sm text-gray-600">Pendapatan</span>
               <span className="font-semibold text-green-600">
                 {formatCurrency(incomeStatement?.revenue || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Direct Costs</span>
+              <span className="text-sm text-gray-600">Biaya Langsung</span>
               <span className="font-semibold text-red-600">
                 ({formatCurrency(incomeStatement?.directCosts || 0)})
               </span>
             </div>
             <div className="flex justify-between border-t pt-3">
-              <span className="text-sm text-gray-600">Gross Profit</span>
+              <span className="text-sm text-gray-600">Laba Kotor</span>
               <span className="font-semibold text-blue-600">
                 {formatCurrency(incomeStatement?.grossProfit || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm" style={{ color: "#98989D" }}>Indirect Costs</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Biaya Tidak Langsung</span>
               <span className="font-semibold" style={{ color: "#FF453A" }}>
                 ({formatCurrency(incomeStatement?.indirectCosts || 0)})
               </span>
             </div>
             <div className="flex justify-between pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
-              <span style={{ color: "#FFFFFF" }}>Net Income</span>
+              <span style={{ color: "#FFFFFF" }}>Laba Bersih</span>
               <span style={{ color: (incomeStatement?.netIncome || 0) >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(incomeStatement?.netIncome || 0)}
               </span>
@@ -99,7 +99,7 @@ const FinancialReportsView = ({
               border: activeDetailedReport === 'income' ? 'none' : '1px solid rgba(10, 132, 255, 0.3)'
             }}
           >
-            {activeDetailedReport === 'income' ? 'Hide Detailed Report' : 'View Detailed Report'}
+            {activeDetailedReport === 'income' ? 'Sembunyikan Laporan Rinci' : 'Lihat Laporan Rinci'}
           </button>
         </div>
 
@@ -159,36 +159,36 @@ const FinancialReportsView = ({
         {/* Cash Flow Card */}
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Cash Flow Statement</h3>
+            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Laporan Arus Kas</h3>
             <Activity className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Operating Activities</span>
+              <span className="text-sm text-gray-600">Arus Kas Operasi</span>
               <span className={`font-semibold ${(cashFlow?.operating || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(cashFlow?.operating || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Investing Activities</span>
+              <span className="text-sm text-gray-600">Arus Kas Investasi</span>
               <span className={`font-semibold ${(cashFlow?.investing || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(cashFlow?.investing || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm" style={{ color: "#98989D" }}>Financing Activities</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Arus Kas Pendanaan</span>
               <span className="font-semibold" style={{ color: (cashFlow?.financing || 0) >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(cashFlow?.financing || 0)}
               </span>
             </div>
             <div className="flex justify-between pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
-              <span style={{ color: "#FFFFFF" }}>Net Cash Flow</span>
+              <span style={{ color: "#FFFFFF" }}>Arus Kas Bersih</span>
               <span style={{ color: (cashFlow?.netCashFlow || 0) >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(cashFlow?.netCashFlow || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm" style={{ color: "#98989D" }}>Cash Balance</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Saldo Kas</span>
               <span className="font-semibold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(cashFlow?.endingBalance || 0)}
               </span>
@@ -205,7 +205,7 @@ const FinancialReportsView = ({
               border: activeDetailedReport === 'cashflow' ? 'none' : '1px solid rgba(10, 132, 255, 0.3)'
             }}
           >
-            {activeDetailedReport === 'cashflow' ? 'Hide Detailed Report' : 'View Detailed Report'}
+            {activeDetailedReport === 'cashflow' ? 'Sembunyikan Laporan Rinci' : 'Lihat Laporan Rinci'}
           </button>
         </div>
       </div>
@@ -214,14 +214,14 @@ const FinancialReportsView = ({
       {activeDetailedReport === 'income' && (
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Detailed Income Statement</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Laporan Laba Rugi (Rinci)</h3>
             {onExport && (
               <button
                 onClick={() => onExport('income')}
                 className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm"
               >
                 <Download className="w-4 h-4" />
-                <span>Export</span>
+                <span>Ekspor</span>
               </button>
             )}
           </div>
@@ -232,14 +232,14 @@ const FinancialReportsView = ({
       {activeDetailedReport === 'balance' && (
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Detailed Balance Sheet</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Neraca (Rinci)</h3>
             {onExport && (
               <button
                 onClick={() => onExport('balance')}
                 className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm"
               >
                 <Download className="w-4 h-4" />
-                <span>Export</span>
+                <span>Ekspor</span>
               </button>
             )}
           </div>
@@ -250,14 +250,14 @@ const FinancialReportsView = ({
       {activeDetailedReport === 'cashflow' && (
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Detailed Cash Flow Statement</h3>
+            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>Laporan Arus Kas (Rinci)</h3>
             {onExport && (
               <button
                 onClick={() => onExport('cashflow')}
                 className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm"
               >
                 <Download className="w-4 h-4" />
-                <span>Export</span>
+                <span>Ekspor</span>
               </button>
             )}
           </div>
@@ -268,22 +268,22 @@ const FinancialReportsView = ({
       {/* Summary Information */}
       {summary && Object.keys(summary).length > 0 && (
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
-          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Financial Summary</h3>
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "#FFFFFF" }}>Ringkasan Keuangan</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(10, 132, 255, 0.2) 0%, rgba(10, 132, 255, 0.1) 100%)", border: "1px solid rgba(10, 132, 255, 0.3)" }}>
-              <p className="text-sm font-medium mb-1" style={{ color: "#0A84FF" }}>Total Income</p>
+              <p className="text-sm font-medium mb-1" style={{ color: "#0A84FF" }}>Total Pendapatan</p>
               <p className="text-2xl font-bold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(summary.totalIncome || 0)}
               </p>
             </div>
             <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(255, 69, 58, 0.2) 0%, rgba(255, 69, 58, 0.1) 100%)", border: "1px solid rgba(255, 69, 58, 0.3)" }}>
-              <p className="text-sm font-medium mb-1" style={{ color: "#FF453A" }}>Total Expenses</p>
+              <p className="text-sm font-medium mb-1" style={{ color: "#FF453A" }}>Total Pengeluaran</p>
               <p className="text-2xl font-bold" style={{ color: "#FF453A" }}>
                 {formatCurrency(summary.totalExpense || 0)}
               </p>
             </div>
             <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(48, 209, 88, 0.2) 0%, rgba(48, 209, 88, 0.1) 100%)", border: "1px solid rgba(48, 209, 88, 0.3)" }}>
-              <p className="text-sm font-medium mb-1" style={{ color: "#30D158" }}>Net Balance</p>
+              <p className="text-sm font-medium mb-1" style={{ color: "#30D158" }}>Saldo Bersih</p>
               <p className="text-2xl font-bold" style={{ color: "#30D158" }}>
                 {formatCurrency(summary.balance || 0)}
               </p>

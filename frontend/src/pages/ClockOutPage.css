@@ -1,7 +1,7 @@
 /* Clock Out Page Styling */
 .clock-out-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a;
   padding: 0;
 }
 
@@ -11,10 +11,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border-bottom: 1px solid #404040;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -29,8 +27,8 @@
 
 .back-btn {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-weight: 500;
@@ -39,7 +37,7 @@
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #4a4a4a;
   transform: translateY(-2px);
 }
 
@@ -96,8 +94,8 @@
 
 .back-to-dashboard {
   padding: 0.75rem 2rem;
-  background: white;
-  color: #667eea;
+  background: #667eea;
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -107,8 +105,9 @@
 }
 
 .back-to-dashboard:hover {
+  background: #5568d3;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Error Alert */
@@ -179,19 +178,17 @@
 .info-card,
 .duration-card,
 .notes-card {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
   animation: fadeInUp 0.4s ease;
 }
 
 .card-header {
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border-bottom: 1px solid #555555;
 }
 
 .card-header h2 {
@@ -291,8 +288,8 @@
 .notes-input {
   width: 100%;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-size: 1rem;
@@ -308,8 +305,8 @@
 
 .notes-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #4a4a4a;
+  border-color: #667eea;
 }
 
 .notes-hint {
@@ -325,11 +322,9 @@
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   animation: pulse 2s ease-in-out infinite;
 }
 

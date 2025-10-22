@@ -34,8 +34,15 @@ export const useProjectEditForm = (projectId) => {
     },
     location: {
       address: '',
+      village: '',
+      district: '',
       city: '',
       province: ''
+    },
+    coordinates: {
+      latitude: null,
+      longitude: null,
+      radius: 100
     },
     timeline: {
       startDate: '',
@@ -109,8 +116,15 @@ export const useProjectEditForm = (projectId) => {
         },
         location: {
           address: projectData.location?.address || '',
+          village: projectData.location?.village || '',   // NEW
+          district: projectData.location?.district || '', // NEW
           city: projectData.location?.city || '',
           province: projectData.location?.province || ''
+        },
+        coordinates: {
+          latitude: null,  // Will be loaded from ProjectLocation API in LocationSection
+          longitude: null,
+          radius: 100
         },
         timeline: {
           startDate: formatDateForInput(startDate),
@@ -215,9 +229,16 @@ export const useProjectEditForm = (projectId) => {
         },
         location: {
           address: formData.location.address.trim(),
+          village: formData.location.village.trim(),   // NEW
+          district: formData.location.district.trim(), // NEW
           city: formData.location.city.trim(),
           province: formData.location.province.trim()
         },
+        coordinates: (formData.coordinates?.latitude && formData.coordinates?.longitude) ? {
+          latitude: formData.coordinates.latitude,
+          longitude: formData.coordinates.longitude,
+          radius: formData.coordinates.radius || 100
+        } : null,
         budget: Number(formData.budget.contractValue) || 0,
         startDate: formData.timeline.startDate,
         endDate: formData.timeline.endDate,

@@ -38,15 +38,15 @@ const DashboardPage = () => {
   const handleRefresh = summaryData ? refreshSummary : fetchDashboardData;
 
   if (loading && !summaryData && !dashboardData) {
-    return <LoadingSpinner message="Loading dashboard data..." />;
+    return <LoadingSpinner message="Memuat data dasbor..." />;
   }
 
   if (error && !summaryData && !dashboardData) {
-    return <ErrorDisplay error={error} onRetry={handleRefresh} title="Dashboard Error" />;
+    return <ErrorDisplay error={error} onRetry={handleRefresh} title="Kesalahan Dasbor" />;
   }
 
   return (
-    <div className="p-6 bg-[#1C1C1E] min-h-screen">
+    <div className="p-5 bg-[#1C1C1E] min-h-screen">
       {/* Header */}
       <DashboardHeader 
         loading={loading} 
@@ -60,7 +60,7 @@ const DashboardPage = () => {
       <ApprovalSection />
 
       {/* Quick Links & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         {/* Quick Links - Revised */}
         <QuickLinks />
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * Calculate project stage based on sequential workflow logic
@@ -60,7 +60,7 @@ export const useWorkflowData = (project) => {
   });
 
   // Calculate enhanced workflow data
-  useMemo(() => {
+  useEffect(() => {
     if (!project) return;
 
     console.log('=== useWorkflowData: Processing project ===', {

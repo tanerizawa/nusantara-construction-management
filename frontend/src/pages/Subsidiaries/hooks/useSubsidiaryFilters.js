@@ -15,19 +15,22 @@ const useSubsidiaryFilters = (subsidiaries) => {
    * Get filtered subsidiaries based on filters
    */
   const filteredSubsidiaries = useMemo(() => {
-    return subsidiaries.filter(subsidiary => {
-      // Search term filter (case-insensitive)
-      const matchesSearch = !searchTerm || 
-        subsidiary.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        subsidiary.code.toLowerCase().includes(searchTerm.toLowerCase());
+    return (subsidiaries || []).filter(subsidiary => {
+      // Search term filter (case-insensitive) with null guards
+      const name = (subsidiary?.name || '').toString();
+      const code = (subsidiary?.code || '').toString();
+      const q = (searchTerm || '').toString().toLowerCase();
+      const matchesSearch = !q ||
+        name.toLowerCase().includes(q) ||
+        code.toLowerCase().includes(q);
       
       // Specialization filter
       const matchesSpecialization = !specializationFilter || 
-        subsidiary.specialization === specializationFilter;
+        (subsidiary?.specialization || '') === specializationFilter;
       
       // Status filter
       const matchesStatus = !statusFilter || 
-        subsidiary.status === statusFilter;
+        (subsidiary?.status || '') === statusFilter;
       
       // Return true if all conditions are met
       return matchesSearch && matchesSpecialization && matchesStatus;
@@ -46,7 +49,7 @@ const useSubsidiaryFilters = (subsidiaries) => {
   /**
    * Check if any filter is active
    */
-  const hasActiveFilters = searchTerm || specializationFilter || statusFilter;
+  const hasActiveFilters = !!(searchTerm || specializationFilter || statusFilter);
 
   return {
     searchTerm,

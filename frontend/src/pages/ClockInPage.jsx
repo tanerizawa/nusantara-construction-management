@@ -77,6 +77,18 @@ const ClockInPage = () => {
     try {
       setError(null);
       
+      // Validate photo data
+      if (!photoData || !photoData.blob || !photoData.dataUrl) {
+        throw new Error('Invalid photo data received');
+      }
+      
+      console.log('📸 Photo received:', {
+        hasBlob: !!photoData.blob,
+        blobSize: photoData.blob.size,
+        width: photoData.width,
+        height: photoData.height
+      });
+      
       // Store original photo
       setPhoto(photoData.dataUrl);
       setPhotoMetadata({

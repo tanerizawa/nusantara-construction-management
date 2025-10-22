@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import useCamera from '../../hooks/useCamera';
 import { hasFeature } from '../../utils/browserDetection';
 import './CameraCapture.css';
@@ -20,8 +20,11 @@ const CameraCapture = ({
   autoStart = true,
   facingMode: initialFacingMode = 'environment'
 }) => {
+  // Create videoRef in component, pass to hook
+  const videoRef = useRef(null);
+
   const {
-    videoRef,
+    stream,
     isActive,
     isLoading,
     error,
@@ -34,7 +37,7 @@ const CameraCapture = ({
     switchCamera,
     clearPhoto,
     isCameraSupported,
-  } = useCamera();
+  } = useCamera(videoRef); // Pass videoRef to hook
 
   const [showDeviceList, setShowDeviceList] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState('checking');
@@ -117,9 +120,9 @@ const CameraCapture = ({
     );
   }
 
-  // Auto start camera
-  useEffect(() => {
-    if (autoStart && isCameraSupported()) {
+  // Auto start camera with DOM-ready refs
+  useLayoutEffect(() => {
+    if (autoStart && isCameraSupported() && videoRef.current) {
       handleStartCamera();
     }
 
@@ -127,6 +130,48 @@ const CameraCapture = ({
       stopCamera();
     };
   }, [autoStart]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Attach stream to video element when available (robust fallback)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    if (video.srcObject !== stream) {
+      try {
+        video.srcObject = stream;
+      } catch (e) {
+        // Fallback for older browsers
+        video.src = window.URL.createObjectURL(stream);
+      }
+    }
+
+    const play = async () => {
+      try {
+        await video.play();
+      } catch (err) {
+        // Some browsers require a user gesture; ignore here
+        // The capture button interaction will trigger play if needed
+      }
+    };
+
+    if (video.readyState >= 2) {
+      // HAVE_CURRENT_DATA
+      play();
+    } else {
+      video.onloadedmetadata = () => play();
+    }
+
+    return () => {
+      if (video) {
+        video.onloadedmetadata = null;
+        try { video.pause(); } catch (_) {}
+        // Do not stop tracks here; stopCamera handles that
+        if (video.srcObject) {
+          video.srcObject = null;
+        }
+      }
+    };
+  }, [stream]);
 
   const handleStartCamera = async () => {
     setPermissionStatus('requesting');

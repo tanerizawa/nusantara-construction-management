@@ -2,7 +2,7 @@ import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 // Common Loading Component - Apple HIG Style
-export const LoadingSpinner = ({ message = "Loading..." }) => (
+export const LoadingSpinner = ({ message = "Memuat..." }) => (
   <div className="flex items-center justify-center h-64 bg-[#1C1C1E]">
     <div className="flex flex-col items-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A84FF]"></div>
@@ -12,7 +12,7 @@ export const LoadingSpinner = ({ message = "Loading..." }) => (
 );
 
 // Common Error Component - Apple HIG Style
-export const ErrorDisplay = ({ error, onRetry, title = "Error Loading Data" }) => (
+export const ErrorDisplay = ({ error, onRetry, title = "Kesalahan Memuat Data" }) => (
   <div className="flex items-center justify-center h-64 bg-[#1C1C1E]">
     <div className="text-center">
       <AlertCircle className="h-16 w-16 text-[#FF453A] mx-auto mb-4" />
@@ -24,7 +24,7 @@ export const ErrorDisplay = ({ error, onRetry, title = "Error Loading Data" }) =
           className="px-5 py-2.5 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0970DD] transition-colors duration-150 flex items-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
         >
           <RefreshCw className="h-4 w-4" />
-          Retry
+          Muat Ulang
         </button>
       )}
     </div>
@@ -32,11 +32,11 @@ export const ErrorDisplay = ({ error, onRetry, title = "Error Loading Data" }) =
 );
 
 // Common Chart Placeholder - Apple HIG Style
-export const ChartPlaceholder = ({ height = "h-64", title = "Chart" }) => (
+export const ChartPlaceholder = ({ height = "h-64", title = "Grafik" }) => (
   <div className={`${height} flex items-center justify-center bg-[#2C2C2E] rounded-xl border-2 border-dashed border-[#38383A]`}>
     <div className="text-center text-[#636366]">
       <div className="text-sm font-medium">{title}</div>
-      <div className="text-xs">No data available</div>
+      <div className="text-xs">Data tidak tersedia</div>
     </div>
   </div>
 );
@@ -66,7 +66,7 @@ export const StatsCard = ({
 
   return (
     <div 
-      className={`bg-[#2C2C2E] border rounded-xl p-5 transition-all duration-150 ${
+      className={`bg-[#2C2C2E] border rounded-xl p-4 transition-all duration-150 ${
         urgent 
           ? 'border-[#FF453A] animate-pulse' 
           : 'border-[#38383A] hover:border-[#48484A]'
@@ -75,15 +75,15 @@ export const StatsCard = ({
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-[#98989D] truncate mb-2">{title}</p>
-          <p className="text-2xl font-bold text-white mb-1">
+          <p className="text-xs text-[#98989D] truncate mb-1.5">{title}</p>
+          <p className="text-xl font-bold text-white mb-0.5">
             {typeof value === 'number' ? formatNumber(value) : value}
           </p>
           {subtitle && (
-            <p className="text-sm text-[#636366]">{subtitle}</p>
+            <p className="text-xs text-[#636366]">{subtitle}</p>
           )}
           {trend && (
-            <div className="flex items-center mt-2">
+            <div className="flex items-center mt-1.5">
               <span className={`text-xs font-medium ${trend.startsWith('+') ? 'text-[#30D158]' : trend.includes('⚠️') ? 'text-[#FF9F0A]' : 'text-[#98989D]'}`}>
                 {trend}
               </span>
@@ -91,8 +91,8 @@ export const StatsCard = ({
           )}
         </div>
         {Icon && (
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[color]}`}>
-            <Icon className="h-6 w-6" />
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[color]}`}>
+            <Icon className="h-5 w-5" />
           </div>
         )}
       </div>
@@ -130,8 +130,8 @@ export const formatCurrency = (amount, currency = 'IDR') => {
 
 // Empty state component - Apple HIG Style
 export const EmptyState = ({ 
-  title = "No data available", 
-  description = "There is no data to display at the moment.",
+  title = "Data tidak tersedia", 
+  description = "Tidak ada data untuk ditampilkan saat ini.",
   icon: Icon,
   action
 }) => (

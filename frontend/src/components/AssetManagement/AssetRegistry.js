@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { apiClient } from '../../services/api';
 import {
-  Plus, Search, Trash2, RefreshCw, Package, X, Check, Edit2, ChevronDown, ChevronUp
+  Plus, Search, Trash2, RefreshCw, Package, X, Check, Edit2, ChevronDown, ChevronUp, FilePlus2
 } from 'lucide-react';
+import AssetForm from './AssetForm';
 
 const AssetRegistry = () => {
   // State management
@@ -13,21 +14,30 @@ const AssetRegistry = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [isAddingInline, setIsAddingInline] = useState(false);
+  const [showFullAdd, setShowFullAdd] = useState(false);
+  const [savingFullAdd, setSavingFullAdd] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [expandedRow, setExpandedRow] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({});
 
   // Form data
+  const todayStr = new Date().toISOString().split('T')[0];
   const [formData, setFormData] = useState({
     assetName: '',
     assetCode: '',
     assetCategory: '',
     purchasePrice: '',
+    purchaseDate: todayStr,
     status: 'ACTIVE',
     condition: 'GOOD',
     location: '',
-    description: ''
+    description: '',
+    supplier: '',
+    invoiceNumber: '',
+    depreciationMethod: 'STRAIGHT_LINE',
+    usefulLife: '5',
+    salvageValue: ''
   });
 
   // Categories and status mapping
@@ -60,10 +70,16 @@ const AssetRegistry = () => {
       assetCode: '',
       assetCategory: '',
       purchasePrice: '',
+      purchaseDate: todayStr,
       status: 'ACTIVE',
       condition: 'GOOD',
       location: '',
-      description: ''
+      description: '',
+      supplier: '',
+      invoiceNumber: '',
+      depreciationMethod: 'STRAIGHT_LINE',
+      usefulLife: '5',
+      salvageValue: ''
     });
   };
 
@@ -78,7 +94,7 @@ const AssetRegistry = () => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.get('/api/reports/fixed-asset/list');
+      const response = await apiClient.get('/reports/fixed-asset/list');
       
       if (response.data.success) {
         const assetData = response.data.data || [];
@@ -103,16 +119,22 @@ const AssetRegistry = () => {
     setSubmitLoading(true);
     
     try {
-      const response = await axios.post('/api/reports/fixed-asset/register', {
+      const response = await apiClient.post('/reports/fixed-asset/register', {
         asset_name: formData.assetName,
         asset_code: formData.assetCode,
         asset_category: formData.assetCategory,
         purchase_price: parseFloat(formData.purchasePrice) || 0,
+        purchase_date: formData.purchaseDate,
         status: formData.status,
         condition: formData.condition,
         location: formData.location,
         description: formData.description,
-        purchase_date: new Date().toISOString().split('T')[0]
+        supplier: formData.supplier || undefined,
+        invoice_number: formData.invoiceNumber || undefined,
+        depreciation_method: formData.depreciationMethod || 'STRAIGHT_LINE',
+        useful_life: parseInt(formData.usefulLife || '5'),
+        salvage_value: formData.salvageValue ? parseFloat(formData.salvageValue) : 0,
+        depreciation_start_date: formData.purchaseDate
       });
       
       if (response.data.success) {
@@ -135,7 +157,7 @@ const AssetRegistry = () => {
     if (!window.confirm(`Hapus aset "${asset.assetName}"?\n\nTindakan ini tidak dapat dibatalkan.`)) return;
     
     try {
-      const response = await axios.delete(`/api/reports/fixed-asset/${asset.id}`);
+      const response = await apiClient.delete(`/reports/fixed-asset/${asset.id}`);
       
       if (response.data.success) {
         await fetchAssets();
@@ -179,7 +201,7 @@ const AssetRegistry = () => {
     setSubmitLoading(true);
     
     try {
-      const response = await axios.put(`/api/reports/fixed-asset/${assetId}`, {
+      const response = await apiClient.put(`/reports/fixed-asset/${assetId}`, {
         asset_name: editFormData.assetName,
         asset_code: editFormData.assetCode,
         asset_category: editFormData.assetCategory,
@@ -360,15 +382,91 @@ const AssetRegistry = () => {
               ))}
             </select>
 
-            <button
-              onClick={() => setIsAddingInline(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-all"
-            >
-              <Plus className="h-5 w-5" />
-              Tambah Aset
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => { setIsAddingInline(true); setShowFullAdd(false); }}
+                className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-all"
+              >
+                <Plus className="h-5 w-5" />
+                Tambah Cepat
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowFullAdd(true); setIsAddingInline(false); }}
+                className="flex items-center gap-2 px-4 py-2 bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90 transition-all"
+              >
+                <FilePlus2 className="h-5 w-5" />
+                Tambah Lengkap
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Full Add Form (Inline) */}
+        {showFullAdd && (
+          <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold">Tambah Aset (Lengkap)</h3>
+              <button
+                type="button"
+                onClick={() => setShowFullAdd(false)}
+                disabled={savingFullAdd}
+                className="px-3 py-1.5 text-sm bg-[#FF453A] text-white rounded-lg hover:bg-[#FF453A]/90 disabled:opacity-50"
+              >
+                Tutup
+              </button>
+            </div>
+            <div className="bg-[#1C1C1E] rounded-lg">
+              <AssetForm
+                mode="create"
+                theme="dark"
+                categories={Object.keys(categories)}
+                statusTypes={Object.keys(statusTypes)}
+                conditionTypes={Object.keys(conditionTypes)}
+                onCancel={() => setShowFullAdd(false)}
+                onSubmit={async (data) => {
+                  try {
+                    setSavingFullAdd(true);
+                    const payload = {
+                      asset_name: data.assetName,
+                      asset_code: data.assetCode,
+                      asset_category: data.assetCategory,
+                      asset_type: data.assetType || undefined,
+                      description: data.description || undefined,
+                      purchase_price: data.purchasePrice ? parseFloat(data.purchasePrice) : 0,
+                      purchase_date: data.purchaseDate,
+                      supplier: data.supplier || undefined,
+                      invoice_number: data.invoiceNumber || undefined,
+                      depreciation_method: data.depreciationMethod || 'STRAIGHT_LINE',
+                      useful_life: data.usefulLife ? parseInt(data.usefulLife) : 5,
+                      salvage_value: data.salvageValue ? parseFloat(data.salvageValue) : 0,
+                      depreciation_start_date: data.purchaseDate,
+                      location: data.location || undefined,
+                      department: data.department || undefined,
+                      responsible_person: data.responsiblePerson || undefined,
+                      cost_center: data.costCenter || undefined,
+                      status: data.status || 'ACTIVE',
+                      condition: data.condition || 'GOOD',
+                      serial_number: data.serialNumber || undefined,
+                      model_number: data.modelNumber || undefined,
+                      manufacturer: data.manufacturer || undefined
+                    };
+                    const res = await apiClient.post('/reports/fixed-asset/register', payload);
+                    if (!res.data?.success) throw new Error(res.data?.message || 'Gagal menyimpan aset');
+                    await fetchAssets();
+                    setShowFullAdd(false);
+                  } catch (err) {
+                    console.error('Gagal simpan aset:', err);
+                    alert(err.response?.data?.message || err.message);
+                  } finally {
+                    setSavingFullAdd(false);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Assets Table */}
         <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] overflow-hidden">
@@ -453,7 +551,14 @@ const AssetRegistry = () => {
                         value={formData.purchasePrice}
                         onChange={handleInputChange}
                         placeholder="Harga"
-                        className="w-full px-2 py-1 bg-[#2C2C2E] border border-[#38383A] rounded text-xs text-white placeholder-[#636366] focus:ring-1 focus:ring-[#0A84FF]"
+                        className="w-full px-2 py-1 bg-[#2C2C2E] border border-[#38383A] rounded text-xs text-white placeholder-[#636366] focus:ring-1 focus:ring-[#0A84FF] mb-1"
+                      />
+                      <input
+                        type="date"
+                        name="purchaseDate"
+                        value={formData.purchaseDate}
+                        onChange={handleInputChange}
+                        className="w-full px-2 py-1 bg-[#2C2C2E] border border-[#38383A] rounded text-xs text-white focus:ring-1 focus:ring-[#0A84FF]"
                       />
                     </td>
                     <td className="px-3 py-3">
@@ -586,145 +691,54 @@ const AssetRegistry = () => {
                         <tr className="bg-[#1C1C1E]/80">
                           <td colSpan="7" className="px-6 py-4">
                             {editingId === asset.id ? (
-                              /* EDIT MODE */
-                              <form onSubmit={(e) => handleUpdateAsset(e, asset.id)} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Nama Aset *
-                                    </label>
-                                    <input
-                                      type="text"
-                                      name="assetName"
-                                      value={editFormData.assetName}
-                                      onChange={handleEditInputChange}
-                                      required
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF]"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Kode Aset
-                                    </label>
-                                    <input
-                                      type="text"
-                                      name="assetCode"
-                                      value={editFormData.assetCode}
-                                      onChange={handleEditInputChange}
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF]"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Kategori *
-                                    </label>
-                                    <select
-                                      name="assetCategory"
-                                      value={editFormData.assetCategory}
-                                      onChange={handleEditInputChange}
-                                      required
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white focus:ring-2 focus:ring-[#0A84FF]"
-                                    >
-                                      <option value="">Pilih Kategori</option>
-                                      {Object.entries(categories).map(([key, value]) => (
-                                        <option key={key} value={key}>{value}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Lokasi
-                                    </label>
-                                    <input
-                                      type="text"
-                                      name="location"
-                                      value={editFormData.location}
-                                      onChange={handleEditInputChange}
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF]"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Harga Pembelian
-                                    </label>
-                                    <input
-                                      type="number"
-                                      name="purchasePrice"
-                                      value={editFormData.purchasePrice}
-                                      onChange={handleEditInputChange}
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF]"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Status
-                                    </label>
-                                    <select
-                                      name="status"
-                                      value={editFormData.status}
-                                      onChange={handleEditInputChange}
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white focus:ring-2 focus:ring-[#0A84FF]"
-                                    >
-                                      {Object.entries(statusTypes).map(([key, value]) => (
-                                        <option key={key} value={key}>{value}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div>
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Kondisi
-                                    </label>
-                                    <select
-                                      name="condition"
-                                      value={editFormData.condition}
-                                      onChange={handleEditInputChange}
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white focus:ring-2 focus:ring-[#0A84FF]"
-                                    >
-                                      {Object.entries(conditionTypes).map(([key, value]) => (
-                                        <option key={key} value={key}>{value}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  <div className="md:col-span-2">
-                                    <label className="block text-xs font-medium text-[#98989D] mb-1">
-                                      Deskripsi
-                                    </label>
-                                    <textarea
-                                      name="description"
-                                      value={editFormData.description}
-                                      onChange={handleEditInputChange}
-                                      rows="2"
-                                      className="w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-lg text-sm text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF]"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex gap-2 justify-end pt-2 border-t border-[#38383A]">
-                                  <button
-                                    type="button"
-                                    onClick={handleEditCancel}
-                                    className="px-4 py-2 bg-[#38383A] text-white rounded-lg hover:bg-[#38383A]/70 transition-colors text-sm"
-                                  >
-                                    Batal
-                                  </button>
-                                  <button
-                                    type="submit"
-                                    disabled={submitLoading}
-                                    className="px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors text-sm flex items-center gap-2 disabled:opacity-50"
-                                  >
-                                    {submitLoading ? (
-                                      <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        Menyimpan...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Check className="h-4 w-4" />
-                                        Simpan Perubahan
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                              </form>
+                              /* EDIT MODE - Full AssetForm */
+                              <AssetForm
+                                theme="dark"
+                                mode="edit"
+                                asset={asset}
+                                categories={Object.keys(categories)}
+                                statusTypes={Object.keys(statusTypes)}
+                                conditionTypes={Object.keys(conditionTypes)}
+                                onCancel={handleEditCancel}
+                                onSubmit={async (data) => {
+                                  try {
+                                    setSubmitLoading(true);
+                                    const payload = {
+                                      asset_name: data.assetName,
+                                      asset_code: data.assetCode,
+                                      asset_category: data.assetCategory,
+                                      asset_type: data.assetType || undefined,
+                                      description: data.description || undefined,
+                                      purchase_price: data.purchasePrice ? parseFloat(data.purchasePrice) : 0,
+                                      purchase_date: data.purchaseDate,
+                                      supplier: data.supplier || undefined,
+                                      invoice_number: data.invoiceNumber || undefined,
+                                      depreciation_method: data.depreciationMethod || 'STRAIGHT_LINE',
+                                      useful_life: data.usefulLife ? parseInt(data.usefulLife) : 5,
+                                      salvage_value: data.salvageValue ? parseFloat(data.salvageValue) : 0,
+                                      depreciation_start_date: data.purchaseDate,
+                                      location: data.location || undefined,
+                                      department: data.department || undefined,
+                                      responsible_person: data.responsiblePerson || undefined,
+                                      cost_center: data.costCenter || undefined,
+                                      status: data.status || 'ACTIVE',
+                                      condition: data.condition || 'GOOD',
+                                      serial_number: data.serialNumber || undefined,
+                                      model_number: data.modelNumber || undefined,
+                                      manufacturer: data.manufacturer || undefined
+                                    };
+                                    const res = await apiClient.put(`/reports/fixed-asset/${asset.id}`, payload);
+                                    if (!res.data?.success) throw new Error(res.data?.message || 'Gagal mengupdate aset');
+                                    await fetchAssets();
+                                    setEditingId(null);
+                                  } catch (err) {
+                                    console.error('Gagal update aset:', err);
+                                    alert(err.response?.data?.message || err.message);
+                                  } finally {
+                                    setSubmitLoading(false);
+                                  }
+                                }}
+                              />
                             ) : (
                               /* VIEW MODE */
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -794,6 +808,8 @@ const AssetRegistry = () => {
             </table>
           </div>
         </div>
+
+        {/* (Modal removed; form now inline) */}
 
       </div>
     </div>

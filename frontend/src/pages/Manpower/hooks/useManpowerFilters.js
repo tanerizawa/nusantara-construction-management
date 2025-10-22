@@ -15,6 +15,7 @@ const useManpowerFilters = (employees) => {
    * Reset all filters
    */
   const resetFilters = useCallback(() => {
+    setSearchTerm('');
     setDepartmentFilter('');
     setStatusFilter('');
   }, []);
@@ -38,8 +39,8 @@ const useManpowerFilters = (employees) => {
    * Check if any filters are active
    */
   const hasActiveFilters = useMemo(() => {
-    return departmentFilter !== '' || statusFilter !== '';
-  }, [departmentFilter, statusFilter]);
+    return searchTerm.trim() !== '' || departmentFilter !== '' || statusFilter !== '';
+  }, [searchTerm, departmentFilter, statusFilter]);
 
   return {
     searchTerm,

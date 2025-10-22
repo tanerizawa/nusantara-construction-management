@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { TrendingUp, BarChart3, Clock } from 'lucide-react';
 import './AttendanceCharts.css';
 
 const AttendanceCharts = ({ year, month, chartsData }) => {
@@ -57,7 +58,10 @@ const AttendanceCharts = ({ year, month, chartsData }) => {
       {/* Daily Trend Line Chart */}
       {daily && daily.length > 0 && (
         <div className="chart-container">
-          <h4 className="chart-title">📈 Daily Attendance Trend</h4>
+          <h4 className="chart-title">
+            <TrendingUp size={20} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+            Daily Attendance Trend
+          </h4>
           <div className="line-chart">
             <div className="chart-y-axis">
               {[...Array(5)].map((_, i) => (
@@ -116,7 +120,10 @@ const AttendanceCharts = ({ year, month, chartsData }) => {
       {/* Weekly Bar Chart */}
       {weekly && weekly.length > 0 && (
         <div className="chart-container">
-          <h4 className="chart-title">📊 Weekly Comparison</h4>
+          <h4 className="chart-title">
+            <BarChart3 size={20} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+            Weekly Comparison
+          </h4>
           <div className="bar-chart">
             {weekly.map((w, i) => (
               <div key={i} className="bar-item">
@@ -142,7 +149,10 @@ const AttendanceCharts = ({ year, month, chartsData }) => {
       {/* Monthly Summary Pie Chart */}
       {summaryPercentages.length > 0 && (
         <div className="chart-container">
-          <h4 className="chart-title">🥧 Monthly Summary</h4>
+          <h4 className="chart-title">
+            <BarChart3 size={20} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+            Monthly Summary
+          </h4>
           <div className="pie-chart-wrapper">
             <svg className="pie-chart" viewBox="0 0 120 120">
               <circle
@@ -195,7 +205,10 @@ const AttendanceCharts = ({ year, month, chartsData }) => {
       {/* Work Hours Stacked Bar */}
       {workHours && workHours.length > 0 && (
         <div className="chart-container">
-          <h4 className="chart-title">⏰ Work Hours by Week</h4>
+          <h4 className="chart-title">
+            <Clock size={20} style={{ display: 'inline-block', marginRight: '8px', verticalAlign: 'middle' }} />
+            Work Hours by Week
+          </h4>
           <div className="stacked-bar-chart">
             {workHours.map((w, i) => (
               <div key={i} className="stacked-bar-item">

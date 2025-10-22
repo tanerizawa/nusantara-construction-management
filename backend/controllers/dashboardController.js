@@ -359,7 +359,8 @@ exports.getPendingApprovals = async (req, res) => {
         notes: item.notes,
         createdBy: item.created_by_name,
         createdAt: item.created_at,
-        urgency: calculateUrgency(parseFloat(item.total_price), item.created_at)
+        // Use computed total_amount for urgency calculation
+        urgency: calculateUrgency(parseFloat(item.total_amount || 0), item.created_at)
       }));
     }
 
@@ -704,11 +705,12 @@ exports.quickApproval = async (req, res) => {
         break;
 
       case 'delivery':
-        const inspectionStatus = action === 'approve' ? 'passed' : 'failed';
+        // Align with schema used elsewhere (inspection_result)
+        const inspectionResult = action === 'approve' ? 'passed' : 'failed';
         const deliveryRows = await sequelize.query(`
           UPDATE delivery_receipts
           SET 
-            inspection_status = $1,
+            inspection_result = $1,
             inspected_by = $2,
             inspection_date = NOW(),
             inspection_notes = $3,
@@ -716,7 +718,7 @@ exports.quickApproval = async (req, res) => {
           WHERE id = $4 
           RETURNING *
         `, {
-          bind: [inspectionStatus, userId, comments || null, id],
+          bind: [inspectionResult, userId, comments || null, id],
           type: sequelize.QueryTypes.UPDATE
         });
         result = deliveryRows[0] && deliveryRows[0][0];

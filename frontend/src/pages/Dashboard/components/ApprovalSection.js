@@ -12,14 +12,14 @@ const UrgencyBadge = ({ urgency }) => {
       text: 'text-red-400',
       border: 'border-red-500/30',
       icon: '🔴',
-      label: 'URGENT'
+      label: 'MENDESAK'
     },
     medium: {
       bg: 'bg-yellow-500/20',
       text: 'text-yellow-400',
       border: 'border-yellow-500/30',
       icon: '🟡',
-      label: 'MEDIUM'
+      label: 'SEDANG'
     },
     normal: {
       bg: 'bg-green-500/20',
@@ -113,14 +113,14 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
               <div className="flex items-center text-xs">
                 <DollarSign className="h-4 w-4 text-[#0A84FF] mr-1.5" />
                 <div>
-                  <p className="text-[#98989D]">Total Amount</p>
+                  <p className="text-[#98989D]">Total Nilai</p>
                   <p className="font-semibold text-white">{formatRupiah(item.totalAmount)}</p>
                 </div>
               </div>
               <div className="flex items-center text-xs">
                 <Clock className="h-4 w-4 text-[#FF9F0A] mr-1.5" />
                 <div>
-                  <p className="text-[#98989D]">Quantity</p>
+                  <p className="text-[#98989D]">Kuantitas</p>
                   <p className="font-semibold text-white">{item.quantity} {item.unit}</p>
                 </div>
               </div>
@@ -141,7 +141,7 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <h4 className="text-sm font-semibold text-white mb-1">
-                  Pembayaran #{item.paymentNumber}
+                  Pembayaran #{item.invoiceNumber || item.id}
                 </h4>
                 <p className="text-xs text-[#98989D]">
                   {item.projectName} ({item.projectCode})
@@ -155,14 +155,14 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
                 <DollarSign className="h-4 w-4 text-[#30D158] mr-1.5" />
                 <div>
                   <p className="text-[#98989D]">Jumlah Bayar</p>
-                  <p className="font-semibold text-white">{formatRupiah(item.paymentAmount)}</p>
+                  <p className="font-semibold text-white">{formatRupiah(item.amount)}</p>
                 </div>
               </div>
               <div className="flex items-center text-xs">
                 <CheckCircle className="h-4 w-4 text-[#64D2FF] mr-1.5" />
                 <div>
                   <p className="text-[#98989D]">Progress</p>
-                  <p className="font-semibold text-white">{item.workCompletedPercentage}%</p>
+                  <p className="font-semibold text-white">{item.percentage}%</p>
                 </div>
               </div>
             </div>
@@ -196,14 +196,14 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
               <div className="flex items-center text-xs">
                 <DollarSign className="h-4 w-4 text-[#30D158] mr-1.5" />
                 <div>
-                  <p className="text-[#98989D]">Total Amount</p>
+                  <p className="text-[#98989D]">Total Nilai</p>
                   <p className="font-semibold text-white">{formatRupiah(item.totalAmount)}</p>
                 </div>
               </div>
               <div className="flex items-center text-xs">
                 <Calendar className="h-4 w-4 text-[#64D2FF] mr-1.5" />
                 <div>
-                  <p className="text-[#98989D]">Delivery Date</p>
+                  <p className="text-[#98989D]">Tanggal Pengiriman</p>
                   <p className="font-semibold text-white">
                     {item.deliveryDate ? new Date(item.deliveryDate).toLocaleDateString('id-ID') : 'TBD'}
                   </p>
@@ -213,7 +213,7 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
 
             {item.paymentTerms && (
               <div className="text-xs text-[#98989D] mb-3">
-                <p className="font-medium mb-1">Payment Terms:</p>
+                <p className="font-medium mb-1">Syarat Pembayaran:</p>
                 <p className="text-[#636366]">{item.paymentTerms}</p>
               </div>
             )}
@@ -236,7 +236,7 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
                   WO #{item.woNumber}
                 </h4>
                 <p className="text-xs text-[#98989D]">
-                  {item.workType}
+                  {item.contractorName || '—'}
                   {item.projectName && ` • ${item.projectName}`}
                 </p>
               </div>
@@ -295,8 +295,8 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
               <div className="flex items-center text-xs">
                 <DollarSign className="h-4 w-4 text-[#FF9F0A] mr-1.5" />
                 <div>
-                  <p className="text-[#98989D]">Total Items</p>
-                  <p className="font-semibold text-white">{item.totalItems} items</p>
+                  <p className="text-[#98989D]">Penerima</p>
+                  <p className="font-semibold text-white">{item.receiverName || '—'}</p>
                 </div>
               </div>
               <div className="flex items-center text-xs">

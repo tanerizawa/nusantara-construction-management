@@ -43,8 +43,8 @@ export const useProjects = (options = {}) => {
     filters: {
       status: '',
       priority: '',
-      sortBy: 'created_at',
-      sortOrder: 'desc'
+      sortBy: 'createdAt',
+      sortOrder: 'DESC'
     }
   });
 
@@ -69,8 +69,8 @@ export const useProjects = (options = {}) => {
       const params = {
         status: state.filters.status || undefined,
         priority: state.filters.priority || undefined,
-        sort: state.filters.sortBy,
-        order: state.filters.sortOrder,
+        sortBy: state.filters.sortBy,
+        sortOrder: state.filters.sortOrder,
         limit: state.pageSize,
         page: state.page
       };
@@ -88,19 +88,24 @@ export const useProjects = (options = {}) => {
 
       const data = response.data || response || []; // Handle different response structures
       const allProjects = allProjectsResponse.data || allProjectsResponse || [];
-      const pagination = response.pagination || { 
-        current: state.page, 
-        total: Math.ceil((data.length || 0) / state.pageSize), 
-        count: data.length || 0
+      // Normalize pagination shape from backend (page, totalPages, total)
+      const normalizedPagination = response.pagination ? {
+        current: parseInt(response.pagination.page || state.page, 10),
+        totalPages: parseInt(response.pagination.totalPages || 1, 10),
+        totalItems: parseInt(response.pagination.total || (Array.isArray(data) ? data.length : 0), 10)
+      } : {
+        current: state.page,
+        totalPages: Math.ceil((Array.isArray(data) ? data.length : 0) / state.pageSize),
+        totalItems: Array.isArray(data) ? data.length : 0
       };
 
       updateState({
         projects: data,
         allProjects: allProjects, // Store all projects for stats
         serverPagination: {
-          current: parseInt(pagination.current || 1, 10),
-          total: parseInt(pagination.total || 1, 10),
-          count: parseInt(pagination.count || data.length || 0, 10)
+          current: normalizedPagination.current,
+          total: normalizedPagination.totalPages,
+          count: normalizedPagination.totalItems
         },
         loading: false
       });

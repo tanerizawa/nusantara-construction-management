@@ -22,7 +22,7 @@ const EnhancedStatsGrid = ({ data }) => {
   if (!data) return null;
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {/* 1. Projects */}
       <StatsCard
         title="Total Proyek"
@@ -35,14 +35,14 @@ const EnhancedStatsGrid = ({ data }) => {
       
       {/* 2. Pending Approvals - URGENT */}
       <StatsCard
-        title="Pending Approvals"
+        title="Persetujuan Tertunda"
         value={data.approvals?.total || 0}
         subtitle={data.approvals?.rab?.urgent > 0 || data.approvals?.progressPayments?.urgent > 0 
-          ? `⚠️ ${(data.approvals.rab?.urgent || 0) + (data.approvals.progressPayments?.urgent || 0)} urgent!` 
+          ? `⚠️ ${(data.approvals.rab?.urgent || 0) + (data.approvals.progressPayments?.urgent || 0)} mendesak!` 
           : 'Semua terkendali'}
         icon={AlertCircle}
         color="orange"
-        trend={data.approvals?.rab?.pending > 0 ? `${data.approvals.rab.pending} RAB pending` : null}
+        trend={data.approvals?.rab?.pending > 0 ? `${data.approvals.rab.pending} RAB tertunda` : null}
         urgent={data.approvals?.rab?.urgent > 0 || data.approvals?.progressPayments?.urgent > 0}
       />
       
@@ -60,16 +60,16 @@ const EnhancedStatsGrid = ({ data }) => {
       
       {/* 4. Pending Documents */}
       <StatsCard
-        title="Dokumen Pending"
+        title="Dokumen Tertunda"
         value={(data.documents?.pending?.ba || 0) + (data.documents?.pending?.deliveryReceipts || 0)}
-        subtitle={`${data.documents?.pending?.ba || 0} BA, ${data.documents?.pending?.deliveryReceipts || 0} Delivery`}
+        subtitle={`${data.documents?.pending?.ba || 0} BA, ${data.documents?.pending?.deliveryReceipts || 0} Tanda Terima`}
         icon={FileText}
         color="purple"
       />
       
       {/* 5. Budget Overview */}
       <StatsCard
-        title="Total Budget"
+        title="Total Anggaran"
         value={formatCurrency(data.financial?.budget?.total || 0)}
         subtitle={`${data.financial?.budget?.percentage || 0}% terpakai`}
         icon={DollarSign}
@@ -79,7 +79,7 @@ const EnhancedStatsGrid = ({ data }) => {
       
       {/* 6. Outstanding Payments */}
       <StatsCard
-        title="Pembayaran Pending"
+        title="Pembayaran Tertunda"
         value={data.financial?.payments?.pending || 0}
         subtitle={data.financial?.payments?.overdue > 0 
           ? `⚠️ ${data.financial.payments.overdue} terlambat!` 
@@ -92,7 +92,7 @@ const EnhancedStatsGrid = ({ data }) => {
       
       {/* 7. Material Items */}
       <StatsCard
-        title="Material Items"
+        title="Material"
         value={data.materials?.total || 0}
         subtitle={data.materials?.lowStock > 0 
           ? `${data.materials.lowStock} stok rendah` 

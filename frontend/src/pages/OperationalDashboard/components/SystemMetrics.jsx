@@ -1,40 +1,6 @@
 /**
  * System Metrics Component
- * Displays real-time system health and perf      console.log('💚 Processed Health:', healthData);
-     const getStatusColor = (status) => {
-    switch (status) {
-      case 'healthy': return 'text-green-400 bg-green-900/30 border border-green-700/50';
-      case 'warning': return 'text-yellow-400 bg-yellow-900/30 border border-yellow-700/50';
-      case 'critical': return 'text-red-400 bg-red-900/30 border border-red-700/50';
-      default: return 'text-gray-400 bg-gray-900/30 border border-gray-700/50';
-    }
-  };
-
-  const getProgressColor = (value) => {
-    if (value < 50) return 'bg-green-500';
-    if (value < 75) return 'bg-yellow-500';
-    return 'bg-red-500';g('📈 Processed Metrics History:', metricsHistory);
-
-      // Use health data for current metrics
-      setMetrics({
-        cpu: healthData.cpu || { usage: 0, cores: 0, loadAverage: [0, 0, 0] },
-        memory: healthData.memory || { total: 0, used: 0, free: 0, usagePercent: 0, totalBytes: 0, usedBytes: 0 },
-        disk: healthData.disk || { total: 0, used: 0, free: 0, usagePercent: 0, totalBytes: 0, usedBytes: 0 },
-        database: {
-          activeConnections: healthData.database?.activeConnections || 0,
-          maxConnections: healthData.database?.maxConnections || 100,
-          databaseSize: healthData.database?.databaseSize || healthData.database?.sizeBytes ? (healthData.database.sizeBytes / (1024 * 1024)).toFixed(2) : 0,
-          status: healthData.database?.status || 'unknown'
-        },
-        process: healthData.process || null
-      });
-      
-      console.log('📊 Database metrics set:', {
-        activeConnections: healthData.database?.activeConnections,
-        maxConnections: healthData.database?.maxConnections,
-        databaseSize: healthData.database?.databaseSize,
-        sizeBytes: healthData.database?.sizeBytes
-      });rics
+ * Displays real-time system health and performance metrics
  */
 
 import React, { useState, useEffect } from 'react';

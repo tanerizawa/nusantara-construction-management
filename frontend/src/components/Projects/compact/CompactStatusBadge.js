@@ -32,6 +32,18 @@ const CompactStatusBadge = ({ status, size = 'sm' }) => {
       color: 'text-[#8E8E93]',
       dot: 'bg-[#8E8E93]'
     },
+    'on_hold': {
+      label: 'Ditunda',
+      bg: 'bg-[#8E8E93]/10',
+      color: 'text-[#8E8E93]',
+      dot: 'bg-[#8E8E93]'
+    },
+    planning: {
+      label: 'Perencanaan',
+      bg: 'bg-[#5E5CE6]/10',
+      color: 'text-[#5E5CE6]',
+      dot: 'bg-[#5E5CE6]'
+    },
     cancelled: {
       label: 'Dibatalkan',
       bg: 'bg-[#FF3B30]/10',
@@ -46,9 +58,10 @@ const CompactStatusBadge = ({ status, size = 'sm' }) => {
     md: 'text-sm px-2.5 py-1 gap-2'
   };
 
-  // Normalize status ke lowercase dan handle various formats
-  const normalizedStatus = status?.toLowerCase().trim();
-  const config = statusConfig[normalizedStatus] || statusConfig.pending;
+  // Normalize status: lowercase, trim, convert underscores to hyphens for consistency
+  const normalizedStatus = status?.toLowerCase().trim().replace(/_/g, '-');
+  // Prefer exact match, but also allow raw value (e.g., on_hold)
+  const config = statusConfig[normalizedStatus] || statusConfig[status?.toLowerCase()] || statusConfig.pending;
 
   return (
     <div className={`inline-flex items-center rounded-full font-medium ${sizeClasses[size]} ${config.bg} ${config.color} border border-current border-opacity-20`}>

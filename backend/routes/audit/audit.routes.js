@@ -369,4 +369,57 @@ router.post('/cleanup', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * @route   DELETE /api/audit/logs/clear-all
+ * @desc    Clear ALL audit logs (DANGER: irreversible)
+ * @access  Admin (SuperAdmin only recommended)
+ */
+router.delete('/logs/clear-all', requireAdmin, async (req, res) => {
+  try {
+    const { confirmationCode } = req.body;
+    
+    // Require confirmation code for safety
+    if (confirmationCode !== 'CLEAR_ALL_LOGS') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid confirmation code. Please provide confirmationCode: "CLEAR_ALL_LOGS"'
+      });
+    }
+
+    // Log this dangerous action BEFORE deleting
+    await auditService.log({
+      userId: req.user.id,
+      username: req.user.username || req.user.email,
+      action: 'DELETE',
+      entityType: 'audit_logs',
+      entityId: 'ALL',
+      entityName: 'All Audit Logs',
+      description: `Admin ${req.user.username} cleared ALL audit logs`,
+      ipAddress: req.ip || req.connection.remoteAddress,
+      method: req.method,
+      endpoint: req.originalUrl,
+      statusCode: 200
+    });
+
+    // Clear all logs
+    const deletedCount = await auditService.clearAllLogs();
+
+    res.json({
+      success: true,
+      data: {
+        deletedCount,
+        message: `Successfully cleared ${deletedCount} audit logs`,
+        warning: 'This action is irreversible'
+      }
+    });
+  } catch (error) {
+    console.error('Clear all audit logs error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clear audit logs',
+      details: error.message
+    });
+  }
+});
+
 module.exports = router;

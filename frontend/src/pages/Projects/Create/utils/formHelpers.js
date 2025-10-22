@@ -52,9 +52,16 @@ export const getInitialFormData = () => ({
     phone: ''
   },
   location: {
-    city: '',
-    province: '',
-    address: ''
+    village: '',      // Desa/Kelurahan
+    district: '',     // Kecamatan
+    city: '',         // Kabupaten/Kota
+    province: '',     // Provinsi
+    address: ''       // Alamat lengkap (opsional)
+  },
+  coordinates: {
+    latitude: null,
+    longitude: null,
+    radius: 100
   },
   timeline: {
     startDate: '',
@@ -90,10 +97,17 @@ export const transformToAPIFormat = (formData) => ({
     email: formData.client.email || ''
   },
   location: {
-    address: formData.location?.address || '',
+    village: formData.location?.village || '',
+    district: formData.location?.district || '',
     city: formData.location?.city || '',
-    province: formData.location?.province || ''
+    province: formData.location?.province || '',
+    address: formData.location?.address || ''
   },
+  coordinates: (formData.coordinates?.latitude && formData.coordinates?.longitude) ? {
+    latitude: formData.coordinates.latitude,
+    longitude: formData.coordinates.longitude,
+    radius: formData.coordinates.radius || 100
+  } : null,
   budget: formData.budget.contractValue,
   status: 'planning',
   priority: formData.priority || 'medium',

@@ -38,76 +38,76 @@ const TransactionStatusBadge = ({
   const getStatusConfig = () => {
     const configs = {
       draft: {
-        label: 'Draft',
+        label: 'Draf',
         icon: FileText,
         bgColor: 'rgba(142, 142, 147, 0.15)',
         textColor: '#8E8E93',
         borderColor: 'rgba(142, 142, 147, 0.3)',
-        description: 'Editable'
+        description: 'Dapat disunting'
       },
       pending: {
-        label: 'Pending',
+        label: 'Tertunda',
         icon: Clock,
         bgColor: 'rgba(255, 159, 10, 0.15)',
         textColor: '#FF9F0A',
         borderColor: 'rgba(255, 159, 10, 0.3)',
-        description: 'Awaiting approval'
+        description: 'Menunggu persetujuan'
       },
       approved: {
-        label: 'Approved',
+        label: 'Disetujui',
         icon: CheckCircle,
         bgColor: 'rgba(48, 209, 88, 0.15)',
         textColor: '#30D158',
         borderColor: 'rgba(48, 209, 88, 0.3)',
-        description: 'Approved, not posted'
+        description: 'Disetujui, belum diposting'
       },
       posted: {
-        label: 'Posted',
+        label: 'Diposting',
         icon: CheckCircle,
         bgColor: 'rgba(10, 132, 255, 0.15)',
         textColor: '#0A84FF',
         borderColor: 'rgba(10, 132, 255, 0.3)',
-        description: 'Posted to ledger'
+        description: 'Diposting ke buku besar'
       },
       completed: {
-        label: 'Posted',
+        label: 'Diposting',
         icon: CheckCircle,
         bgColor: 'rgba(10, 132, 255, 0.15)',
         textColor: '#0A84FF',
         borderColor: 'rgba(10, 132, 255, 0.3)',
-        description: 'Posted to ledger'
+        description: 'Diposting ke buku besar'
       },
       voided: {
-        label: 'Voided',
+        label: 'Dibatalkan',
         icon: XCircle,
         bgColor: 'rgba(255, 69, 58, 0.15)',
         textColor: '#FF453A',
         borderColor: 'rgba(255, 69, 58, 0.3)',
-        description: 'Cancelled'
+        description: 'Dibatalkan'
       },
       reversed: {
-        label: 'Reversed',
+        label: 'Dibalik',
         icon: RefreshCw,
         bgColor: 'rgba(255, 149, 0, 0.15)',
         textColor: '#FF9500',
         borderColor: 'rgba(255, 149, 0, 0.3)',
-        description: 'Corrected'
+        description: 'Dikoreksi'
       },
       cancelled: {
-        label: 'Cancelled',
+        label: 'Dibatalkan',
         icon: XCircle,
         bgColor: 'rgba(255, 69, 58, 0.15)',
         textColor: '#FF453A',
         borderColor: 'rgba(255, 69, 58, 0.3)',
-        description: 'Cancelled'
+        description: 'Dibatalkan'
       },
       failed: {
-        label: 'Failed',
+        label: 'Gagal',
         icon: AlertCircle,
         bgColor: 'rgba(255, 69, 58, 0.15)',
         textColor: '#FF453A',
         borderColor: 'rgba(255, 69, 58, 0.3)',
-        description: 'Failed'
+        description: 'Gagal'
       }
     };
 

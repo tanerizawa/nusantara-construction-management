@@ -15,7 +15,7 @@ import { PIE_CHART_COLORS, CHART_STYLES } from '../../config/chartConfig';
  * @param {Object} props - Component props
  * @param {Array} props.data - Chart data array
  */
-const CategoryDistributionChart = ({ data }) => {
+const CategoryDistributionChart = ({ data = [] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
@@ -29,7 +29,7 @@ const CategoryDistributionChart = ({ data }) => {
           fill="#8884d8"
           dataKey="value"
         >
-          {data.map((entry, index) => (
+          {(data || []).map((entry, index) => (
             <Cell 
               key={`cell-${index}`} 
               fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} 

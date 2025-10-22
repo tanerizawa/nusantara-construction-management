@@ -33,14 +33,20 @@ const useManpowerForm = (onSuccess) => {
    * Handle form submission
    * @param {Event} e - Form event
    */
-  const handleSubmitEmployee = async (e) => {
-    e.preventDefault();
+  const handleSubmitEmployee = async (dataOrEvent) => {
+    // Support both onSubmit(event) and direct payload submission
+    const isEvent = dataOrEvent && typeof dataOrEvent.preventDefault === 'function';
+    if (isEvent) {
+      dataOrEvent.preventDefault();
+    }
+
     setSubmitLoading(true);
-    
+
     try {
+      const base = isEvent ? formData : (dataOrEvent || formData);
       const payload = {
-        ...formData,
-        salary: formData.salary ? parseFloat(formData.salary) : undefined
+        ...base,
+        salary: base.salary ? parseFloat(base.salary) : undefined
       };
 
       const result = await employeeAPI.create(payload);

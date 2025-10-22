@@ -24,9 +24,19 @@ const RecentActivities = ({ activities = [] }) => {
     }
   };
   
+  const formatTimestamp = (ts) => {
+    if (!ts) return '';
+    try {
+      const d = new Date(ts);
+      return d.toLocaleString('id-ID');
+    } catch (_) {
+      return String(ts);
+    }
+  };
+
   return (
-    <div className="lg:col-span-2 bg-[#2C2C2E] border border-[#38383A] p-6 rounded-xl hover:border-[#48484A] transition-colors">
-      <h3 className="text-lg font-semibold text-white mb-4">Aktivitas Terbaru</h3>
+    <div className="lg:col-span-2 bg-[#2C2C2E] border border-[#38383A] p-5 rounded-xl hover:border-[#48484A] transition-colors">
+      <h3 className="text-base font-semibold text-white mb-3">Aktivitas Terbaru</h3>
       <div className="space-y-4">
         {activities.length === 0 ? (
           <div className="text-center py-8 text-[#636366]">
@@ -35,14 +45,16 @@ const RecentActivities = ({ activities = [] }) => {
           </div>
         ) : (
           activities.map((activity, index) => (
-            <div key={index} className="flex items-start space-x-3 py-3 border-b border-[#38383A] last:border-b-0">
+            <div key={index} className="flex items-start space-x-3 py-2.5 border-b border-[#38383A] last:border-b-0">
               <div className="flex-shrink-0">
                 {getActivityIcon(activity.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white">{activity.title}</p>
-                <p className="text-sm text-[#98989D]">{activity.description}</p>
-                <p className="text-xs text-[#636366] mt-1">{activity.timestamp}</p>
+                <p className="text-sm font-medium text-white leading-snug">{activity.title || activity.description || activity.type || 'Aktivitas'}</p>
+                {activity.description && (
+                  <p className="text-xs text-[#98989D]">{activity.description}</p>
+                )}
+                <p className="text-xs text-[#636366] mt-1">{activity.timestamp || formatTimestamp(activity.date)}</p>
               </div>
             </div>
           ))

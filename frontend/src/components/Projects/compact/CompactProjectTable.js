@@ -149,7 +149,7 @@ const CompactProjectTable = memo(({
                       <div className="flex items-center gap-2 mt-0.5">
                         <CompactStatusBadge status={project.status} size="xs" />
                         <span className="text-xs font-mono text-[#636366]">
-                          #{project.projectCode}
+                          #{project.projectCode || project.code || project.id}
                         </span>
                       </div>
                     </div>

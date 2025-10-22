@@ -89,37 +89,37 @@ const Finance = () => {
   const tabs = [
     {
       id: 'workspace',
-      label: 'Financial Workspace',
+      label: 'Ruang Kerja Keuangan',
       icon: Banknote,
       description: 'Dashboard keuangan terintegrasi dengan analisis PSAK'
     },
     {
       id: 'transactions',
-      label: 'Transactions',
+      label: 'Transaksi',
       icon: Receipt,
       description: 'Manajemen transaksi keuangan harian'
     },
     {
       id: 'reports',
-      label: 'Financial Reports',
+      label: 'Laporan Keuangan',
       icon: BarChart3,
       description: 'Laporan keuangan lengkap (Neraca, L/R, Arus Kas)'
     },
     {
       id: 'tax-management',
-      label: 'Tax Management',
+      label: 'Manajemen Pajak',
       icon: Calculator,
       description: 'Manajemen pajak dan kepatuhan fiskal'
     },
     {
       id: 'projects',
-      label: 'Project Finance',
+      label: 'Keuangan Proyek',
       icon: Building2,
       description: 'Integrasi keuangan proyek konstruksi'
     },
     {
       id: 'chart-of-accounts',
-      label: 'Chart of Accounts',
+      label: 'Bagan Akun',
       icon: BookOpen,
       description: 'Bagan akun standar PSAK dengan struktur hierarkis'
     }
@@ -147,7 +147,7 @@ const Finance = () => {
             }}>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
-                  Transaction Management
+                  Manajemen Transaksi
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   <TransactionFilters
@@ -175,7 +175,7 @@ const Finance = () => {
                       border: transactions.showTransactionForm ? '1px solid rgba(255, 69, 58, 0.3)' : '1px solid rgba(10, 132, 255, 0.3)'
                     }}
                   >
-                    <span>{transactions.showTransactionForm ? 'Cancel' : 'New Transaction'}</span>
+                    <span>{transactions.showTransactionForm ? 'Batalkan' : 'Transaksi Baru'}</span>
                   </button>
                 </div>
               </div>
@@ -195,14 +195,14 @@ const Finance = () => {
                   </div>
                   <div className="flex-1">
                     <h4 className="text-sm font-semibold mb-1" style={{ color: '#0A84FF' }}>
-                      Manual Finance Transactions
+                      Transaksi Keuangan Manual
                     </h4>
                     <p className="text-xs leading-relaxed" style={{ color: '#98989D' }}>
-                      Tab ini untuk transaksi keuangan manual (biaya operasional, pendapatan lain-lain, dll). 
-                      Untuk data konstruksi (pembayaran progress, biaya milestone), lihat tab <strong>Financial Workspace</strong> atau <strong>Project Finance</strong>.
+                      Tab ini untuk transaksi keuangan manual (biaya operasional, pendapatan lain-lain, dan sebagainya).
+                      Untuk data konstruksi (pembayaran progres, biaya milestone), lihat tab <strong>Ruang Kerja Keuangan</strong> atau <strong>Keuangan Proyek</strong>.
                     </p>
                     <div className="mt-2 text-xs" style={{ color: '#98989D' }}>
-                      💡 <strong>Tip:</strong> Klik tombol "<span style={{ color: '#0A84FF' }}>Add Transaction</span>" untuk menambah transaksi keuangan baru.
+                      💡 <strong>Tips:</strong> Klik tombol "<span style={{ color: '#0A84FF' }}>Tambah Transaksi</span>" untuk menambahkan transaksi keuangan baru.
                     </div>
                   </div>
                 </div>
@@ -217,36 +217,36 @@ const Finance = () => {
                   border: '1px solid rgba(48, 209, 88, 0.3)'
                 }}>
                   <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
-                    Total Income
+                    Total Pendapatan
                   </p>
                   <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.income)}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Manual transactions only</p>
+                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Hanya transaksi manual</p>
                 </div>
                 <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
                   background: 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 69, 58, 0.05))',
                   border: '1px solid rgba(255, 69, 58, 0.3)'
                 }}>
                   <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
-                    Total Expenses
+                    Total Pengeluaran
                   </p>
                   <p className="text-2xl font-bold" style={{ color: '#FF453A' }}>
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.expense)}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Manual transactions only</p>
+                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Hanya transaksi manual</p>
                 </div>
                 <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
                   background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
                   border: '1px solid rgba(10, 132, 255, 0.3)'
                 }}>
                   <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
-                    Net Balance
+                    Saldo Bersih
                   </p>
                   <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.balance)}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Manual transactions only</p>
+                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Hanya transaksi manual</p>
                 </div>
               </div>
             )}
@@ -408,7 +408,7 @@ const Finance = () => {
             }}>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
-                  Project Finance
+                  Keuangan Proyek
                 </h2>
                 <TransactionFilters
                   selectedSubsidiary={financeData.selectedSubsidiary}
@@ -444,7 +444,7 @@ const Finance = () => {
             border: '1px solid #38383A'
           }}>
             <FileText className="w-16 h-16 mx-auto mb-4" style={{ color: '#636366' }} />
-            <p style={{ color: '#98989D' }}>Select a tab to view content</p>
+            <p style={{ color: '#98989D' }}>Pilih tab untuk melihat konten</p>
           </div>
         );
     }
@@ -464,10 +464,10 @@ const Finance = () => {
                 <Banknote className="w-10 h-10 mr-4" style={{ color: '#0A84FF' }} />
                 <div>
                   <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>
-                    Financial Management System
+                    Sistem Manajemen Keuangan
                   </h1>
                   <p className="mt-1" style={{ color: '#98989D', fontSize: '0.95rem' }}>
-                    PSAK-compliant financial management for Nusantara Construction Group
+                    Manajemen keuangan sesuai PSAK untuk Nusantara Construction Group
                   </p>
                 </div>
               </div>
@@ -483,7 +483,7 @@ const Finance = () => {
                   <DollarSign className="w-8 h-8" style={{ color: '#0A84FF' }} />
                   <div className="ml-3">
                     <p className="text-xs font-medium" style={{ color: '#98989D' }}>
-                      Total Income
+                      Total Pendapatan
                     </p>
                     <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
                       {new Intl.NumberFormat('id-ID', { 
@@ -505,7 +505,7 @@ const Finance = () => {
                   <TrendingUp className="w-8 h-8" style={{ color: '#30D158' }} />
                   <div className="ml-3">
                     <p className="text-xs font-medium" style={{ color: '#98989D' }}>
-                      Net Balance
+                      Saldo Bersih
                     </p>
                     <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
                       {new Intl.NumberFormat('id-ID', { 

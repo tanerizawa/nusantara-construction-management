@@ -9,42 +9,49 @@ const initialState = {
   purchasePrice: '',
   purchaseDate: '',
   supplier: '',
+  invoiceNumber: '',
   location: '',
   department: '',
   responsiblePerson: '',
-  status: '',
-  condition: '',
+  costCenter: '',
+  status: 'ACTIVE',
+  condition: 'GOOD',
   serialNumber: '',
   manufacturer: '',
   usefulLife: '',
-  salvageValue: ''
+  salvageValue: '',
+  depreciationMethod: 'STRAIGHT_LINE'
 };
 
-const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTypes = [], conditionTypes = [] }) => {
+const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTypes = [], conditionTypes = [], theme = 'light' }) => {
   console.log('🔄 AssetForm component rendered with:', { mode, asset: asset?.id });
   console.log('🔄 Component render timestamp:', new Date().toISOString());
+  const isDark = theme === 'dark';
+  
+  // DarkMatte theming helpers
+  const labelCls = isDark
+    ? 'block text-sm font-medium text-[#98989D] mb-2'
+    : 'block text-sm font-medium text-gray-700 mb-2';
+  const inputBase = isDark
+    ? 'w-full px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-md text-white placeholder-[#636366] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] transition-colors'
+    : 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors';
+  const selectCls = inputBase + (isDark ? '' : ' bg-white');
+  const textAreaCls = inputBase + ' resize-vertical';
+  const sectionHeaderCls = isDark
+    ? 'text-lg font-semibold text-white mb-4 pb-2 border-b border-[#38383A]'
+    : 'text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200';
+  const titleCls = isDark ? 'text-2xl font-bold mb-6 text-white' : 'text-2xl font-bold mb-6 text-gray-900';
+  const cancelBtnCls = isDark
+    ? 'px-6 py-2 border border-[#38383A] text-[#98989D] rounded-md hover:bg-[#38383A]/40 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors'
+    : 'px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors';
+  const submitBtnCls = isDark
+    ? 'px-6 py-2 bg-[#0A84FF] text-white rounded-md hover:bg-[#0A84FF]/90 focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-colors'
+    : 'px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors';
+  const currencyPrefixCls = isDark ? 'absolute left-3 top-2 text-[#98989D]' : 'absolute left-3 top-2 text-gray-500';
+  const dividerBorderCls = isDark ? 'border-t border-[#38383A]' : 'border-t border-gray-200';
   
   // Initialize form with default values
-  const [formData, setFormData] = useState({
-    assetName: '',
-    assetCode: '',
-    assetCategory: '',
-    assetType: '',
-    description: '',
-    purchasePrice: '',
-    purchaseDate: '',
-    supplier: '',
-    location: '',
-    department: '',
-    responsiblePerson: '',
-    status: 'ACTIVE',
-    condition: 'GOOD',
-    serialNumber: '',
-    manufacturer: '',
-    usefulLife: '',
-    salvageValue: '',
-    depreciationMethod: 'STRAIGHT_LINE'
-  });
+  const [formData, setFormData] = useState({ ...initialState });
 
   const [errors, setErrors] = useState({});
 
@@ -65,9 +72,11 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
         purchasePrice: asset.purchasePrice ? asset.purchasePrice.toString() : '',
         purchaseDate: asset.purchaseDate ? asset.purchaseDate.split('T')[0] : '', // Format for input date
         supplier: asset.supplier || '',
+        invoiceNumber: asset.invoiceNumber || '',
         location: asset.location || '',
         department: asset.department || '',
         responsiblePerson: asset.responsiblePerson || '',
+        costCenter: asset.costCenter || '',
         status: asset.status || 'ACTIVE',
         condition: asset.condition || 'GOOD',
         serialNumber: asset.serialNumber || '',
@@ -147,6 +156,8 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
     if (!formData.assetCategory) newErrors.assetCategory = 'Category is required';
     if (!formData.purchasePrice) newErrors.purchasePrice = 'Purchase price is required';
     if (!formData.purchaseDate) newErrors.purchaseDate = 'Purchase date is required';
+    if (!formData.usefulLife) newErrors.usefulLife = 'Useful life is required';
+    if (!formData.depreciationMethod) newErrors.depreciationMethod = 'Depreciation method is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -176,41 +187,41 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
       )}
       
       <form onSubmit={handleSubmit} className="space-y-8">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900">{mode === 'edit' ? 'Edit Asset' : 'Add New Asset'}</h2>
+        <h2 className={titleCls}>{mode === 'edit' ? 'Edit Asset' : 'Add New Asset'}</h2>
         
         {/* Basic Information Section */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Basic Information</h3>
+          <h3 className={sectionHeaderCls}>Basic Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Asset Name *</label>
+            <label className={labelCls}>Asset Name *</label>
             <input 
               name="assetName" 
               value={formData.assetName || ''} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter asset name"
             />
             {errors.assetName && <span className="text-red-500 text-xs mt-1 block">{errors.assetName}</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Asset Code *</label>
+            <label className={labelCls}>Asset Code *</label>
             <input 
               name="assetCode" 
               value={formData.assetCode || ''} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter asset code"
             />
             {errors.assetCode && <span className="text-red-500 text-xs mt-1 block">{errors.assetCode}</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+            <label className={labelCls}>Category *</label>
             <select 
               name="assetCategory" 
               value={formData.assetCategory} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className={selectCls}
             >
               <option value="">Select Category</option>
               {categories.map((cat) => <option key={cat} value={cat}>{categoryLabels[cat] || cat}</option>)}
@@ -218,23 +229,23 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
             {errors.assetCategory && <span className="text-red-500 text-xs mt-1 block">{errors.assetCategory}</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label className={labelCls}>Type</label>
             <input 
               name="assetType" 
               value={formData.assetType} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter asset type"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className={labelCls}>Description</label>
             <textarea 
               name="description" 
               value={formData.description} 
               onChange={handleChange} 
               rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical"
+              className={textAreaCls}
               placeholder="Enter asset description"
             />
           </div>
@@ -243,59 +254,115 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
         
         {/* Purchase Information Section */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Purchase Information</h3>
+          <h3 className={sectionHeaderCls}>Purchase Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Purchase Price *</label>
+            <label className={labelCls}>Purchase Price *</label>
             <div className="relative">
-              <span className="absolute left-3 top-2 text-gray-500">IDR</span>
+              <span className={currencyPrefixCls}>IDR</span>
               <input 
                 name="purchasePrice" 
                 type="number" 
                 value={formData.purchasePrice} 
                 onChange={handleChange} 
-                className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className={`${inputBase} pl-12`}
                 placeholder="0"
               />
             </div>
             {errors.purchasePrice && <span className="text-red-500 text-xs mt-1 block">{errors.purchasePrice}</span>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Purchase Date *</label>
+            <label className={labelCls}>Purchase Date *</label>
             <input 
               name="purchaseDate" 
               type="date" 
               value={formData.purchaseDate} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
             />
             {errors.purchaseDate && <span className="text-red-500 text-xs mt-1 block">{errors.purchaseDate}</span>}
+          </div>
+          <div>
+            <label className={labelCls}>Invoice Number</label>
+            <input 
+              name="invoiceNumber" 
+              value={formData.invoiceNumber}
+              onChange={handleChange}
+              className={inputBase}
+              placeholder="e.g. INV/2025/001"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Depreciation Method *</label>
+            <select
+              name="depreciationMethod"
+              value={formData.depreciationMethod}
+              onChange={handleChange}
+              className={selectCls}
+            >
+              <option value="STRAIGHT_LINE">Straight Line</option>
+              <option value="DECLINING_BALANCE">Declining Balance</option>
+              <option value="DOUBLE_DECLINING">Double Declining</option>
+              <option value="UNITS_OF_PRODUCTION">Units of Production</option>
+              <option value="SUM_OF_YEARS_DIGITS">Sum of Years Digits</option>
+            </select>
+            {errors.depreciationMethod && <span className="text-red-500 text-xs mt-1 block">{errors.depreciationMethod}</span>}
           </div>
         </div>
         </div>
         
         {/* Location & Assignment Section */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Location & Assignment</h3>
+          <h3 className={sectionHeaderCls}>Location & Assignment</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Supplier</label>
+            <label className={labelCls}>Supplier</label>
             <input 
               name="supplier" 
               value={formData.supplier} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter supplier name"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <label className={labelCls}>Location</label>
             <input 
-              name="location" 
+              name="location"
               value={formData.location} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter asset location"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Department</label>
+            <input 
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              className={inputBase}
+              placeholder="Enter department"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Responsible Person</label>
+            <input 
+              name="responsiblePerson"
+              value={formData.responsiblePerson}
+              onChange={handleChange}
+              className={inputBase}
+              placeholder="Enter PIC"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Cost Center</label>
+            <input 
+              name="costCenter"
+              value={formData.costCenter}
+              onChange={handleChange}
+              className={inputBase}
+              placeholder="e.g. CC-001"
             />
           </div>
           <div>
@@ -323,39 +390,39 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
         
         {/* Status & Condition Section */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Status & Condition</h3>
+          <h3 className={sectionHeaderCls}>Status & Condition</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <label className={labelCls}>Status</label>
             <select 
               name="status" 
               value={formData.status} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className={selectCls}
             >
               <option value="">Select Status</option>
               {statusTypes.map((s) => <option key={s} value={s}>{statusLabels[s] || s}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Condition</label>
+            <label className={labelCls}>Condition</label>
             <select 
               name="condition" 
               value={formData.condition} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white"
+              className={selectCls}
             >
               <option value="">Select Condition</option>
               {conditionTypes.map((c) => <option key={c} value={c}>{conditionLabels[c] || c}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Serial Number</label>
+            <label className={labelCls}>Serial Number</label>
             <input 
               name="serialNumber" 
               value={formData.serialNumber} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter serial number"
             />
           </div>
@@ -364,41 +431,41 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
         
         {/* Additional Details Section */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Additional Details</h3>
+          <h3 className={sectionHeaderCls}>Additional Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Manufacturer</label>
+            <label className={labelCls}>Manufacturer</label>
             <input 
               name="manufacturer" 
               value={formData.manufacturer} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter manufacturer"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Useful Life (years)</label>
+            <label className={labelCls}>Useful Life (years)</label>
             <input 
               name="usefulLife" 
               type="number" 
               value={formData.usefulLife} 
               onChange={handleChange} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className={inputBase}
               placeholder="Enter useful life in years"
               min="1"
               max="50"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Salvage Value</label>
+            <label className={labelCls}>Salvage Value</label>
             <div className="relative">
-              <span className="absolute left-3 top-2 text-gray-500">IDR</span>
+              <span className={currencyPrefixCls}>IDR</span>
               <input 
                 name="salvageValue" 
                 type="number" 
                 value={formData.salvageValue} 
                 onChange={handleChange} 
-                className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className={`${inputBase} pl-12`}
                 placeholder="0"
               />
             </div>
@@ -407,17 +474,17 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
         </div>
         
         {/* Action Buttons */}
-        <div className="flex justify-end mt-8 pt-6 border-t border-gray-200 gap-3">
+        <div className={`flex justify-end mt-8 pt-6 ${dividerBorderCls} gap-3`}>
           <button 
             type="button" 
             onClick={onCancel}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+            className={cancelBtnCls}
           >
             Cancel
           </button>
           <button 
             type="submit" 
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            className={submitBtnCls}
           >
             {mode === 'edit' ? 'Update Asset' : 'Create Asset'}
           </button>

@@ -87,7 +87,7 @@ services:
     command: npm run dev
 
   # ========================================
-  # Frontend React App (Development)
+  # Frontend React App (Production Build)
   # ========================================
   frontend:
     build:
@@ -96,18 +96,10 @@ services:
     container_name: nusantara-frontend
     restart: unless-stopped
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       REACT_APP_API_URL: http://localhost:5000
       GENERATE_SOURCEMAP: "false"
-      ESLINT_NO_DEV_ERRORS: "true"
-      TSC_COMPILE_ON_ERROR: "true"
       DISABLE_ESLINT_PLUGIN: "true"
-      CHOKIDAR_USEPOLLING: "false"
-      WATCHPACK_POLLING: "false"
-      WDS_SOCKET_HOST: "0.0.0.0"
-      WDS_SOCKET_PORT: "0"
-      WDS_SOCKET_PATH: "/ws"
-      FAST_REFRESH: "false"
       # Firebase config for push notifications
       REACT_APP_FIREBASE_API_KEY: ${REACT_APP_FIREBASE_API_KEY:-}
       REACT_APP_FIREBASE_PROJECT_ID: ${REACT_APP_FIREBASE_PROJECT_ID:-}
@@ -118,6 +110,8 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+      - ./frontend/craco.config.js:/app/craco.config.js
       - frontend_node_modules:/app/node_modules
     networks:
       - nusantara-network
@@ -129,6 +123,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    command: sh -c "if [ ! -f build/index.html ]; then react-scripts build; fi && npx serve -s build -l 3000"
 
   # ========================================
   # Migration Runner (One-time execution)

@@ -19,8 +19,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
   color: white;
   font-weight: 600;
@@ -29,7 +29,7 @@
 }
 
 .toggle-filters-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #404040;
   transform: translateY(-2px);
 }
 
@@ -74,19 +74,17 @@
   font-size: 0.9375rem;
   font-weight: 600;
   color: white;
-  background: rgba(255, 255, 255, 0.15);
+  background: #404040;
   padding: 0.5rem 1rem;
   border-radius: 8px;
 }
 
 /* Filter Content */
 .filters-content {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
   padding: 1.5rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   animation: slideDown 0.3s ease;
 }
 
@@ -134,8 +132,8 @@
 .date-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-size: 1rem;
@@ -145,8 +143,8 @@
 
 .date-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #4a4a4a;
+  border-color: #667eea;
 }
 
 .date-input::-webkit-calendar-picker-indicator {
@@ -173,8 +171,8 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-weight: 500;
@@ -183,14 +181,14 @@
 }
 
 .status-option:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #4a4a4a;
   transform: translateY(-2px);
 }
 
 .status-option.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
   font-weight: 600;
 }
 
@@ -219,8 +217,8 @@
 .search-input {
   width: 100%;
   padding: 0.875rem 1rem 0.875rem 3rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-size: 1rem;
@@ -234,8 +232,8 @@
 
 .search-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #4a4a4a;
+  border-color: #667eea;
 }
 
 .clear-search-btn {
@@ -246,7 +244,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: #555555;
   border: none;
   border-radius: 50%;
   color: white;
@@ -256,7 +254,7 @@
 }
 
 .clear-search-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #666666;
 }
 
 /* Filter Actions */
@@ -281,23 +279,24 @@
 }
 
 .reset-filters-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border: 1px solid #555555;
   color: white;
 }
 
 .reset-filters-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #4a4a4a;
 }
 
 .apply-filters-btn {
-  background: white;
-  color: #667eea;
+  background: #667eea;
+  color: white;
 }
 
 .apply-filters-btn:hover {
+  background: #5568d3;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Animations */

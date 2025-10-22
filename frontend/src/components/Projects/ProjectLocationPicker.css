@@ -1,0 +1,370 @@
+/* ProjectLocationPicker.css */
+/* Dark theme styling for project location picker */
+
+.project-location-picker {
+  width: 100%;
+  background: #1C1C1E;
+  border: 1px solid #38383A;
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+}
+
+/* Header */
+.location-picker-header {
+  margin-bottom: 20px;
+}
+
+.header-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.header-icon {
+  color: #0A84FF;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.header-title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.header-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #98989D;
+  line-height: 1.4;
+}
+
+.header-subtitle span {
+  color: #0A84FF;
+  font-weight: 500;
+}
+
+/* Controls Bar */
+.location-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.control-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control-button.primary {
+  background: #0A84FF;
+  color: white;
+}
+
+.control-button.primary:hover:not(:disabled) {
+  background: #0077ED;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+}
+
+.control-button.primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.control-button.secondary {
+  background: #2C2C2E;
+  color: white;
+  border: 1px solid #38383A;
+}
+
+.control-button.secondary:hover:not(:disabled) {
+  background: #38383A;
+}
+
+/* Radius Control */
+.radius-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #2C2C2E;
+  border: 1px solid #38383A;
+  border-radius: 8px;
+  margin-left: auto;
+}
+
+.radius-control label {
+  font-size: 13px;
+  color: #98989D;
+  white-space: nowrap;
+}
+
+.radius-input {
+  width: 80px;
+  padding: 6px 10px;
+  background: #1C1C1E;
+  border: 1px solid #38383A;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+}
+
+.radius-input:focus {
+  outline: none;
+  border-color: #0A84FF;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+}
+
+.radius-unit {
+  font-size: 13px;
+  color: #98989D;
+}
+
+/* Coordinates Display */
+.coordinates-display {
+  display: flex;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #2C2C2E;
+  border: 1px solid #38383A;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.coordinate-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.coordinate-label {
+  font-size: 12px;
+  color: #98989D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.coordinate-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0A84FF;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* Map Wrapper */
+.map-wrapper {
+  position: relative;
+  height: 450px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #38383A;
+  margin-bottom: 16px;
+}
+
+/* Leaflet Map Overrides */
+.map-wrapper .leaflet-container {
+  background: #2C2C2E;
+  font-family: inherit;
+}
+
+.map-wrapper .leaflet-control-zoom {
+  border: 1px solid #38383A !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.map-wrapper .leaflet-control-zoom a {
+  background: #2C2C2E !important;
+  color: white !important;
+  border-bottom: 1px solid #38383A !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+}
+
+.map-wrapper .leaflet-control-zoom a:hover {
+  background: #38383A !important;
+}
+
+.map-wrapper .leaflet-control-attribution {
+  background: rgba(28, 28, 30, 0.9) !important;
+  color: #98989D !important;
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+}
+
+.map-wrapper .leaflet-control-attribution a {
+  color: #0A84FF !important;
+}
+
+/* Map Overlay Hint */
+.map-overlay-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 1000;
+  pointer-events: none;
+  background: rgba(28, 28, 30, 0.95);
+  padding: 32px;
+  border-radius: 16px;
+  border: 2px dashed #38383A;
+  backdrop-filter: blur(10px);
+}
+
+.hint-icon {
+  color: #98989D;
+  margin-bottom: 12px;
+  opacity: 0.5;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.hint-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0 0 8px 0;
+}
+
+.hint-subtext {
+  font-size: 13px;
+  color: #98989D;
+  margin: 0;
+}
+
+/* Info Box */
+.location-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: #2C2C2E;
+  border: 1px solid #38383A;
+  border-radius: 8px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #98989D;
+  line-height: 1.5;
+}
+
+.info-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.info-text {
+  flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .project-location-picker {
+    padding: 16px;
+  }
+
+  .location-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .radius-control {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .coordinates-display {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .map-wrapper {
+    height: 350px;
+  }
+
+  .map-overlay-hint {
+    padding: 24px;
+  }
+
+  .hint-text {
+    font-size: 14px;
+  }
+}
+
+/* Loading State */
+.control-button.primary:disabled {
+  background: #38383A;
+  cursor: wait;
+}
+
+/* Focus States */
+.control-button:focus-visible {
+  outline: 2px solid #0A84FF;
+  outline-offset: 2px;
+}
+
+.radius-input:focus-visible {
+  outline: none;
+  border-color: #0A84FF;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.2);
+}
+
+/* Success State (when marker is placed) */
+.project-location-picker.has-marker .map-wrapper {
+  border-color: #0A84FF;
+}
+
+/* Error State */
+.project-location-picker.has-error .map-wrapper {
+  border-color: #FF3B30;
+}
+
+/* Hover Effects */
+.map-wrapper:hover {
+  border-color: #48484A;
+  transition: border-color 0.2s ease;
+}
+
+.project-location-picker.has-marker .map-wrapper:hover {
+  border-color: #0A84FF;
+}

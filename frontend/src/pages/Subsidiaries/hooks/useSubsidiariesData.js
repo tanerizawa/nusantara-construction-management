@@ -29,7 +29,7 @@ const useSubsidiariesData = () => {
       if (response.success) {
         setSubsidiaries(response.data || []);
       } else {
-        setError(response.message || 'Failed to fetch subsidiaries');
+        setError(response.error || response.message || 'Failed to fetch subsidiaries');
       }
     } catch (error) {
       console.error('Error fetching subsidiaries:', error);
@@ -91,7 +91,7 @@ const useSubsidiariesData = () => {
         await fetchSubsidiaries();
         await fetchStats();
       } else {
-        alert('Gagal menghapus anak usaha: ' + (response.message || 'Unknown error'));
+        alert('Gagal menghapus anak usaha: ' + (response.error || response.message || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error deleting subsidiary:', error);

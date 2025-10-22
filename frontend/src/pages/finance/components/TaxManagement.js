@@ -103,7 +103,7 @@ const TaxManagement = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold" style={{ color: "#FFFFFF" }}>Tax Management Dashboard</h2>
+        <h2 className="text-2xl font-semibold" style={{ color: "#FFFFFF" }}>Dasbor Manajemen Pajak</h2>
         <button 
           onClick={onToggleForm}
           className="px-4 py-2 rounded-lg transition-colors duration-150 flex items-center space-x-2"
@@ -115,7 +115,7 @@ const TaxManagement = ({
           }}
         >
           <Plus className="w-4 h-4" />
-          <span>{showForm ? 'Cancel' : 'New Tax Filing'}</span>
+          <span>{showForm ? 'Batalkan' : 'Entri Pajak Baru'}</span>
         </button>
       </div>
 
@@ -123,8 +123,8 @@ const TaxManagement = ({
       {showForm && (
         <div className="rounded-lg shadow-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="p-6" style={{ borderBottom: "1px solid #38383A" }}>
-            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Create New Tax Filing</h3>
-            <p className="text-sm mt-1" style={{ color: "#98989D" }}>Add a new tax obligation record</p>
+            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Buat Entri Pajak Baru</h3>
+            <p className="text-sm mt-1" style={{ color: "#98989D" }}>Tambahkan catatan kewajiban pajak baru</p>
           </div>
           
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -132,7 +132,7 @@ const TaxManagement = ({
               {/* Tax Type */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                  Tax Type *
+                  Jenis Pajak *
                 </label>
                 <select
                   value={formData.type}
@@ -150,7 +150,7 @@ const TaxManagement = ({
                   <option value="pph21">PPh 21 (Pajak Gaji)</option>
                   <option value="pph23">PPh 23 (Pajak Jasa)</option>
                   <option value="pph4_ayat2">PPh Final (Pasal 4 Ayat 2)</option>
-                  <option value="other">Other Tax</option>
+                  <option value="other">Pajak Lainnya</option>
                 </select>
                 {errors.type && (
                   <p className="mt-1 text-sm" style={{ color: "#FF453A" }}>{errors.type}</p>
@@ -160,7 +160,7 @@ const TaxManagement = ({
               {/* Amount */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                  Tax Amount (IDR) *
+                  Nilai Pajak (IDR) *
                 </label>
                 <input
                   type="number"
@@ -185,7 +185,7 @@ const TaxManagement = ({
               {/* Period */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                  Tax Period (Month-Year) *
+                  Periode Pajak (Bulan-Tahun) *
                 </label>
                 <input
                   type="month"
@@ -207,7 +207,7 @@ const TaxManagement = ({
               {/* Status */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                  Payment Status *
+                  Status Pembayaran *
                 </label>
                 <select
                   value={formData.status}
@@ -220,18 +220,18 @@ const TaxManagement = ({
                   }}
                   required
                 >
-                  <option value="draft">Draft</option>
-                  <option value="calculated">Calculated</option>
-                  <option value="filed">Filed</option>
-                  <option value="paid">Paid</option>
-                  <option value="overdue">Overdue</option>
+                  <option value="draft">Draf</option>
+                  <option value="calculated">Dihitung</option>
+                  <option value="filed">Dilaporkan</option>
+                  <option value="paid">Dibayar</option>
+                  <option value="overdue">Terlambat</option>
                 </select>
               </div>
 
               {/* Due Date */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                  Due Date
+                  Jatuh Tempo
                 </label>
                 <input
                   type="date"
@@ -249,7 +249,7 @@ const TaxManagement = ({
               {/* Tax Rate */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                  Tax Rate (%)
+                  Tarif Pajak (%)
                 </label>
                 <input
                   type="number"
@@ -272,7 +272,7 @@ const TaxManagement = ({
             {/* Description */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                Description *
+                Deskripsi *
               </label>
               <input
                 type="text"
@@ -284,7 +284,7 @@ const TaxManagement = ({
                   color: "#FFFFFF",
                   border: errors.description ? "1px solid #FF453A" : "1px solid #38383A"
                 }}
-                placeholder="Enter tax description or notes"
+                placeholder="Masukkan deskripsi atau catatan pajak"
                 required
               />
               {errors.description && (
@@ -295,7 +295,7 @@ const TaxManagement = ({
             {/* Reference */}
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-                Reference Number
+                Nomor Referensi
               </label>
               <input
                 type="text"
@@ -307,7 +307,7 @@ const TaxManagement = ({
                   color: "#FFFFFF",
                   border: "1px solid #38383A"
                 }}
-                placeholder="SPT number, NTPN, or other reference"
+                placeholder="Nomor SPT, NTPN, atau referensi lain"
               />
             </div>
 
@@ -320,7 +320,7 @@ const TaxManagement = ({
                 style={{ backgroundColor: "rgba(152, 152, 157, 0.15)", border: "1px solid #38383A", color: "#98989D" }}
                 disabled={isSubmitting}
               >
-                Cancel
+                Batalkan
               </button>
               <button
                 type="submit"
@@ -331,10 +331,10 @@ const TaxManagement = ({
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Saving...</span>
+                    <span>Menyimpan...</span>
                   </>
                 ) : (
-                  <span>Create Tax Filing</span>
+                  <span>Buat Entri Pajak</span>
                 )}
               </button>
             </div>
@@ -376,22 +376,22 @@ const TaxManagement = ({
                 <tr>
                   <td colSpan="7" className="px-6 py-12 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto" style={{ borderBottomColor: "#0A84FF" }}></div>
-                    <p className="mt-2" style={{ color: "#98989D" }}>Loading tax records...</p>
+                  <p className="mt-2" style={{ color: "#98989D" }}>Memuat catatan pajak...</p>
                   </td>
                 </tr>
               ) : taxRecords.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-12 text-center">
                     <Calculator className="w-12 h-12 mx-auto mb-3" style={{ color: "#636366" }} />
-                    <h3 className="text-lg font-medium mb-2" style={{ color: "#FFFFFF" }}>No Tax Records Found</h3>
-                    <p className="mb-4" style={{ color: "#98989D" }}>No tax filings have been recorded yet.</p>
+                    <h3 className="text-lg font-medium mb-2" style={{ color: "#FFFFFF" }}>Belum Ada Catatan Pajak</h3>
+                    <p className="mb-4" style={{ color: "#98989D" }}>Belum ada entri pajak yang dicatat.</p>
                     <button 
                       onClick={onToggleForm}
                       className="px-4 py-2 rounded-lg transition-colors duration-150 flex items-center space-x-2 mx-auto"
                       style={{ background: "linear-gradient(135deg, #0A84FF 0%, #0066CC 100%)", color: "#FFFFFF" }}
                     >
                       <Plus className="w-4 h-4" />
-                      <span>Add First Tax Filing</span>
+                      <span>Tambah Entri Pajak Pertama</span>
                     </button>
                   </td>
                 </tr>
@@ -459,33 +459,33 @@ const TaxManagement = ({
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-bold mb-2" style={{ color: "#FFFFFF" }}>
-                Confirm Delete Tax Record
+                Konfirmasi Hapus Catatan Pajak
               </h3>
               <p className="mb-4" style={{ color: "#98989D" }}>
-                Are you sure you want to delete this tax record? This action cannot be undone.
+                Anda yakin ingin menghapus catatan pajak ini? Tindakan ini tidak dapat dibatalkan.
               </p>
               <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: "#1C1C1E", border: "1px solid #38383A" }}>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Tax Type</p>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Jenis Pajak</p>
                     <p className="font-semibold" style={{ color: "#FFFFFF" }}>
                       {getTaxTypeLabel(selectedTax.type)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Amount</p>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Nilai</p>
                     <p className="font-semibold" style={{ color: "#FFFFFF" }}>
                       {formatCurrency(selectedTax.amount)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Period</p>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Periode</p>
                     <p className="font-semibold" style={{ color: "#FFFFFF" }}>
                       {selectedTax.period}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Reference</p>
+                    <p className="text-xs mb-1" style={{ color: "#98989D" }}>Referensi</p>
                     <p className="font-semibold" style={{ color: "#FFFFFF" }}>
                       {selectedTax.reference || selectedTax.id}
                     </p>
@@ -498,7 +498,7 @@ const TaxManagement = ({
                   className="px-4 py-2 rounded-lg transition-colors duration-150 hover:bg-opacity-20"
                   style={{ backgroundColor: "rgba(152, 152, 157, 0.15)", border: "1px solid #38383A", color: "#98989D" }}
                 >
-                  Cancel
+                  Batalkan
                 </button>
                 <button
                   onClick={onConfirmDelete}
@@ -508,7 +508,7 @@ const TaxManagement = ({
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  <span>Delete Tax Record</span>
+                  <span>Hapus Catatan Pajak</span>
                 </button>
               </div>
             </div>

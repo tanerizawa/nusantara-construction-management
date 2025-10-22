@@ -68,7 +68,7 @@ const ChartOfAccountsView = ({
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold flex items-center" style={{ color: "#FFFFFF" }}>
           <BookOpen className="w-7 h-7 mr-3" style={{ color: "#0A84FF" }} />
-          Chart of Accounts (PSAK Compliant)
+          Bagan Akun (Sesuai PSAK)
         </h2>
         <div className="flex items-center space-x-3">
           <button
@@ -93,7 +93,7 @@ const ChartOfAccountsView = ({
             style={{ backgroundColor: "#2C2C2E", color: "#FFFFFF" }}
           >
             <Download className="w-4 h-4" />
-            <span>Export CSV</span>
+            <span>Ekspor CSV</span>
           </button>
         </div>
       </div>
@@ -126,18 +126,18 @@ const ChartOfAccountsView = ({
       {/* Info Panel */}
       <div className="rounded-lg p-4" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
         <h3 className="text-sm font-medium mb-2" style={{ color: "#FFFFFF" }}>
-          About Chart of Accounts
+          Tentang Bagan Akun
         </h3>
         <p className="text-sm mb-2" style={{ color: "#98989D" }}>
-          The Chart of Accounts (COA) is structured according to PSAK (Indonesian Financial 
-          Accounting Standards) requirements, ensuring compliance with local regulations.
+          Bagan Akun (COA) disusun sesuai ketentuan PSAK (Standar Akuntansi Keuangan),
+          untuk memastikan kepatuhan terhadap regulasi lokal.
         </p>
         <ul className="text-sm list-disc list-inside space-y-1" style={{ color: "#98989D" }}>
-          <li>Asset accounts (1000-1999)</li>
-          <li>Liability accounts (2000-2999)</li>
-          <li>Equity accounts (3000-3999)</li>
-          <li>Revenue accounts (4000-4999)</li>
-          <li>Expense accounts (5000-9999)</li>
+          <li>Akun Aset (1000-1999)</li>
+          <li>Akun Liabilitas (2000-2999)</li>
+          <li>Akun Ekuitas (3000-3999)</li>
+          <li>Akun Pendapatan (4000-4999)</li>
+          <li>Akun Beban (5000-9999)</li>
         </ul>
       </div>
     </div>

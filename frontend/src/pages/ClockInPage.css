@@ -1,7 +1,7 @@
 /* Clock In Page Styling */
 .clock-in-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a;
   padding: 0;
 }
 
@@ -11,10 +11,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border-bottom: 1px solid #404040;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -30,8 +28,8 @@
 .back-btn,
 .cancel-btn {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-weight: 500;
@@ -41,7 +39,7 @@
 
 .back-btn:hover,
 .cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #4a4a4a;
   transform: translateY(-2px);
 }
 
@@ -83,8 +81,8 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: #404040;
+  border: 2px solid #555555;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -95,10 +93,10 @@
 }
 
 .step.active .step-number {
-  background: white;
-  color: #667eea;
-  border-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .step.completed .step-number {
@@ -115,7 +113,7 @@
 .step-line {
   width: 60px;
   height: 2px;
-  background: rgba(255, 255, 255, 0.3);
+  background: #404040;
   margin: 0 0.5rem;
   transition: all 0.3s ease;
 }
@@ -219,14 +217,15 @@
   align-items: center;
   gap: 1.5rem;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
 }
 
 .retry-btn {
   padding: 0.75rem 2rem;
-  background: white;
-  color: #667eea;
+  background: #667eea;
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -236,8 +235,9 @@
 }
 
 .retry-btn:hover {
+  background: #5568d3;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Step 3: Verify */
@@ -283,12 +283,10 @@
 }
 
 .confirm-section {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
   padding: 1.5rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
 
 .confirm-section h3 {
@@ -350,15 +348,15 @@
   text-align: center;
   margin: 0;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: #404040;
   border-radius: 8px;
 }
 
 .notes-input {
   width: 100%;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-size: 1rem;
@@ -373,8 +371,8 @@
 
 .notes-input:focus {
   outline: none;
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: #4a4a4a;
+  border-color: #667eea;
 }
 
 .submit-btn {

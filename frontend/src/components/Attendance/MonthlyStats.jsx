@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Calendar, CheckCircle2, Clock, XCircle, TrendingUp, Target } from 'lucide-react';
 import './MonthlyStats.css';
 
 const MonthlyStats = ({ stats }) => {
@@ -34,14 +35,14 @@ const MonthlyStats = ({ stats }) => {
   // Stats configuration
   const statsConfig = [
     {
-      icon: '📅',
+      icon: <Calendar size={28} />,
       label: 'Total Working Days',
       value: totalWorkingDays,
       color: '#667eea',
       description: 'Days in month'
     },
     {
-      icon: '✓',
+      icon: <CheckCircle2 size={28} />,
       label: 'Present',
       value: presentDays,
       color: '#28a745',
@@ -49,7 +50,7 @@ const MonthlyStats = ({ stats }) => {
       percentage: totalWorkingDays > 0 ? ((presentDays / totalWorkingDays) * 100).toFixed(0) + '%' : '0%'
     },
     {
-      icon: '⏰',
+      icon: <Clock size={28} />,
       label: 'Late',
       value: lateDays,
       color: '#ffc107',
@@ -57,7 +58,7 @@ const MonthlyStats = ({ stats }) => {
       percentage: totalWorkingDays > 0 ? ((lateDays / totalWorkingDays) * 100).toFixed(0) + '%' : '0%'
     },
     {
-      icon: '✗',
+      icon: <XCircle size={28} />,
       label: 'Absent',
       value: absentDays,
       color: '#dc3545',
@@ -65,7 +66,7 @@ const MonthlyStats = ({ stats }) => {
       percentage: totalWorkingDays > 0 ? ((absentDays / totalWorkingDays) * 100).toFixed(0) + '%' : '0%'
     },
     {
-      icon: '🏖️',
+      icon: <Calendar size={28} />,
       label: 'On Leave',
       value: leaveDays,
       color: '#007bff',
@@ -73,28 +74,28 @@ const MonthlyStats = ({ stats }) => {
       percentage: totalWorkingDays > 0 ? ((leaveDays / totalWorkingDays) * 100).toFixed(0) + '%' : '0%'
     },
     {
-      icon: '🕐',
+      icon: <Clock size={28} />,
       label: 'Total Hours',
       value: totalHours,
       color: '#6f42c1',
       description: 'Time worked'
     },
     {
-      icon: '⏱️',
+      icon: <Clock size={28} />,
       label: 'Average Hours',
       value: avgHours,
       color: '#fd7e14',
       description: 'Per day'
     },
     {
-      icon: '📊',
+      icon: <TrendingUp size={28} />,
       label: 'Attendance Rate',
       value: attendanceRate + '%',
       color: attendanceRate >= 90 ? '#28a745' : attendanceRate >= 75 ? '#ffc107' : '#dc3545',
       description: 'Overall rate'
     },
     {
-      icon: '🎯',
+      icon: <Target size={28} />,
       label: 'On-Time Rate',
       value: onTimeRate + '%',
       color: onTimeRate >= 90 ? '#28a745' : onTimeRate >= 75 ? '#ffc107' : '#dc3545',

@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { CheckCircle2, Clock, XCircle, Calendar, AlertTriangle } from 'lucide-react';
 import './AttendanceCalendar.css';
 
 const AttendanceCalendar = ({ year, month, attendanceData, onDayClick }) => {
@@ -64,19 +65,19 @@ const AttendanceCalendar = ({ year, month, attendanceData, onDayClick }) => {
     
     switch (attendance.status) {
       case 'present':
-        return '✓';
+        return <CheckCircle2 size={14} />;
       case 'late':
-        return '⏰';
+        return <Clock size={14} />;
       case 'absent':
-        return '✗';
+        return <XCircle size={14} />;
       case 'leave':
-        return '🏖️';
+        return <Calendar size={14} />;
       case 'sick':
-        return '🤒';
+        return <AlertTriangle size={14} />;
       case 'weekend':
-        return '🏠';
+        return <Calendar size={14} />;
       case 'holiday':
-        return '🎉';
+        return <Calendar size={14} />;
       default:
         return '';
     }
@@ -156,15 +157,15 @@ const AttendanceCalendar = ({ year, month, attendanceData, onDayClick }) => {
         <div className="legend-title">Legend:</div>
         <div className="legend-items">
           <div className="legend-item">
-            <span className="legend-box present">✓</span>
+            <span className="legend-box present"><CheckCircle2 size={14} /></span>
             <span>Present</span>
           </div>
           <div className="legend-item">
-            <span className="legend-box late">⏰</span>
+            <span className="legend-box late"><Clock size={14} /></span>
             <span>Late</span>
           </div>
           <div className="legend-item">
-            <span className="legend-box absent">✗</span>
+            <span className="legend-box absent"><XCircle size={14} /></span>
             <span>Absent</span>
           </div>
           <div className="legend-item">

@@ -1,7 +1,7 @@
 /* Attendance Success Page Styling */
 .attendance-success {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,11 +81,9 @@
 
 /* Summary Card */
 .summary-card {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 16px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
   margin-bottom: 1.5rem;
   animation: slideInUp 0.6s ease 0.2s backwards;
@@ -93,8 +91,8 @@
 
 .summary-header {
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: #404040;
+  border-bottom: 1px solid #555555;
 }
 
 .summary-header h2 {
@@ -156,7 +154,7 @@
 }
 
 .duration-row {
-  background: rgba(255, 255, 255, 0.05);
+  background: #404040;
   padding: 1rem;
   border-radius: 8px;
   margin-top: 0.5rem;
@@ -191,21 +189,20 @@
 }
 
 .stat-item {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
 
 .stat-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  border-color: #667eea;
 }
 
 .stat-icon {
@@ -244,20 +241,21 @@
   width: 100%;
   max-width: 300px;
   padding: 1rem 2rem;
-  background: white;
-  color: #667eea;
+  background: #667eea;
+  color: white;
   border: none;
   border-radius: 12px;
   font-size: 1.125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .btn-dashboard:hover {
+  background: #5568d3;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
 .auto-redirect {
@@ -280,8 +278,8 @@
   gap: 0.75rem;
   margin-top: 2rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 12px;
   animation: fadeIn 1s ease 0.5s backwards;
 }

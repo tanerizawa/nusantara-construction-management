@@ -21,7 +21,7 @@ const ProjectFinanceView = ({
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold flex items-center" style={{ color: "#FFFFFF" }}>
           <Building2 className="w-7 h-7 mr-3" style={{ color: "#0A84FF" }} />
-          Project Finance Integration
+          Integrasi Keuangan Proyek
         </h2>
       </div>
 
@@ -37,12 +37,12 @@ const ProjectFinanceView = ({
       {/* Additional Info */}
       <div className="rounded-lg p-4" style={{ background: "linear-gradient(135deg, rgba(10, 132, 255, 0.2) 0%, rgba(10, 132, 255, 0.1) 100%)", border: "1px solid rgba(10, 132, 255, 0.3)" }}>
         <h3 className="text-sm font-medium mb-2" style={{ color: "#0A84FF" }}>
-          About Project Finance Integration
+          Tentang Integrasi Keuangan Proyek
         </h3>
         <p className="text-sm" style={{ color: "#98989D" }}>
-          This dashboard integrates financial data with project management, 
-          providing real-time insights into project costs, budget utilization, 
-          and financial performance across all construction projects.
+          Dasbor ini mengintegrasikan data keuangan dengan manajemen proyek,
+          memberikan insight real-time terkait biaya proyek, pemakaian anggaran,
+          dan kinerja keuangan di seluruh proyek konstruksi.
         </p>
       </div>
     </div>

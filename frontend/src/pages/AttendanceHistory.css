@@ -1,7 +1,7 @@
 /* Attendance History Page Styling */
 .attendance-history {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a;
   padding-bottom: 2rem;
 }
 
@@ -11,10 +11,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border-bottom: 1px solid #404040;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -42,8 +40,8 @@
 .back-btn,
 .export-btn {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #404040;
+  border: 1px solid #555555;
   border-radius: 8px;
   color: white;
   font-weight: 500;
@@ -54,7 +52,7 @@
 
 .back-btn:hover,
 .export-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #4a4a4a;
   transform: translateY(-2px);
 }
 
@@ -167,9 +165,10 @@
 .page-info {
   font-size: 0.875rem;
   opacity: 0.9;
-  background: rgba(255, 255, 255, 0.15);
+  background: #404040;
   padding: 0.5rem 1rem;
   border-radius: 8px;
+  color: rgba(255,255,255,0.9);
 }
 
 /* Records List */
@@ -193,8 +192,8 @@
   min-width: 40px;
   height: 40px;
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #2d2d2d;
+  border: 1px solid #404040;
   border-radius: 8px;
   color: white;
   font-weight: 500;
@@ -203,14 +202,14 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
+  background: #404040;
   transform: translateY(-2px);
 }
 
 .pagination-btn.active {
-  background: white;
-  color: #667eea;
-  border-color: white;
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
   font-weight: 600;
 }
 
@@ -260,8 +259,8 @@
 
 .reset-btn {
   padding: 0.75rem 2rem;
-  background: white;
-  color: #667eea;
+  background: #667eea;
+  color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -271,8 +270,9 @@
 }
 
 .reset-btn:hover {
+  background: #5568d3;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Animations */

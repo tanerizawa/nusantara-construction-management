@@ -78,6 +78,7 @@ const ProjectEdit = () => {
             formData={formData} 
             handleInputChange={handleInputChange} 
             saving={saving}
+            projectId={id}
           />
           
           {/* Financial Information */}

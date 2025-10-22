@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar, AlertTriangle, CheckCircle, RefreshCw, Package, X
 } from 'lucide-react';
-import axios from 'axios';
+import { apiClient } from '../../services/api';
 
 const MaintenanceScheduler = () => {
   const [assets, setAssets] = useState([]);
@@ -13,7 +13,7 @@ const MaintenanceScheduler = () => {
   const fetchAssets = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/reports/fixed-asset/list');
+      const response = await apiClient.get('/reports/fixed-asset/list');
       
       if (response.data.success) {
         const rawAssets = response.data.data || [];

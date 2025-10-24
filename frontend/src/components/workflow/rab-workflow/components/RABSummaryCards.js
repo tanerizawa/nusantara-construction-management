@@ -4,7 +4,7 @@ import { calculateTotalRAB } from '../utils/rabCalculations';
 
 /**
  * RABSummaryCards Component
- * Displays summary statistics for RAB items
+ * Displays summary statistics for RAP items
  */
 const RABSummaryCards = ({ rabItems, approvalStatus }) => {
   const totalRAB = calculateTotalRAB(rabItems);
@@ -18,7 +18,7 @@ const RABSummaryCards = ({ rabItems, approvalStatus }) => {
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-[#30D158]">{formatCurrency(totalRAB)}</div>
-          <div className="text-sm text-[#8E8E93]">Total RAB</div>
+          <div className="text-sm text-[#8E8E93]">Total RAP</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-[#FF9F0A]">

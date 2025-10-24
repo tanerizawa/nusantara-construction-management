@@ -164,7 +164,7 @@ const RABItemsTable = ({
         <tfoot className="bg-[#1C1C1E] border-t-2 border-[#38383A]">
           <tr>
             <td colSpan="5" className="px-4 py-4 text-right text-sm font-semibold text-white">
-              Total RAB:
+              Total RAP:
             </td>
             <td colSpan="2" className="px-4 py-4">
               <div className="flex items-center justify-between">

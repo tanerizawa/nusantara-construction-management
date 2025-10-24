@@ -32,7 +32,7 @@ const RABItemForm = ({
     <div className="px-4 py-3 bg-[#0A84FF]/10 border-b border-[#0A84FF]/30">
       <div className="flex items-center justify-between mb-4">
         <h4 className="text-md font-medium text-blue-900">
-          {editingItem ? 'Edit Item RAB' : 'Tambah Item RAB Baru'}
+          {editingItem ? 'Edit Item RAP' : 'Tambah Item RAP Baru'}
         </h4>
         <button
           onClick={onCancel}

@@ -23,18 +23,18 @@ const ProjectOverview = ({ project, workflowData }) => {
       console.log('=== ProjectOverview Debug ===');
       console.log('Project Budget:', project.budget || project.totalBudget);
       console.log('Budget Summary:', workflowData.budgetSummary);
-      console.log('RAB Items Count:', project.rabItems?.length);
+      console.log('RAP Items Count:', project.rabItems?.length);
       console.log('PO Count:', workflowData.purchaseOrders?.length);
       
       if (project.rabItems?.length > 0) {
-        const sampleRAB = project.rabItems[0];
-        console.log('Sample RAB Item:', {
-          id: sampleRAB.id,
-          description: sampleRAB.description,
-          totalPrice: sampleRAB.totalPrice,
-          amount: sampleRAB.amount,
-          status: sampleRAB.status,
-          isApproved: sampleRAB.isApproved
+        const sampleRAP = project.rabItems[0];
+        console.log('Sample RAP Item:', {
+          id: sampleRAP.id,
+          description: sampleRAP.description,
+          totalPrice: sampleRAP.totalPrice,
+          amount: sampleRAP.amount,
+          status: sampleRAP.status,
+          isApproved: sampleRAP.isApproved
         });
       }
     }

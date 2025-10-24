@@ -32,9 +32,9 @@ const FinancialSummary = ({ project, workflowData }) => {
           </div>
           <div 
             className="flex justify-between items-center p-3 bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-lg hover:bg-[#0A84FF]/20 transition-colors cursor-default"
-            title="Total RAB yang telah disetujui"
+            title="Total RAP yang telah disetujui"
           >
-            <span className="text-sm font-medium text-[#8E8E93]">RAB Approved</span>
+            <span className="text-sm font-medium text-[#8E8E93]">RAP Approved</span>
             <span className="text-base font-semibold text-[#0A84FF]">
               {formatCurrency(workflowData.budgetSummary?.approvedAmount || 0)}
             </span>

@@ -21,7 +21,7 @@ const QuickStats = ({ project, workflowData }) => {
               <div className="p-2 bg-[#0A84FF]/20 rounded-lg">
                 <Calculator className="h-4 w-4 text-[#0A84FF]" />
               </div>
-              <span className="text-sm font-medium text-[#98989D]">RAB Items</span>
+              <span className="text-sm font-medium text-[#98989D]">RAP Items</span>
             </div>
             <span className="text-base font-bold text-white">
               {project.rabItems?.length || 0}

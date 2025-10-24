@@ -32,14 +32,14 @@ export const workflowTabsConfig = [
   },
   {
     id: 'budget',
-    label: 'Anggaran (RAB/PO/WO)',
+    label: 'Anggaran (RAP/PO/WO)',
     icon: Calculator,
     description: 'Manajemen anggaran dan pembelian',
     hasChildren: true,
     children: [
       {
         id: 'rab-workflow',
-        label: 'RAB',
+        label: 'RAP',
         path: 'rab-workflow',
         icon: Calculator,
         description: 'Rencana Anggaran Biaya'

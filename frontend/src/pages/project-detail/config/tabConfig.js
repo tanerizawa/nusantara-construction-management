@@ -25,9 +25,9 @@ export const createTabConfig = (workflowData) => [
   },
   {
     id: 'rab-workflow',
-    label: 'RAB & BOQ',
+    label: 'RAP & BOQ',
     icon: Calculator,
-    description: 'Rencana Anggaran Biaya dan Bill of Quantity',
+    description: 'Rencana Anggaran Pelaksanaan (RAP) dan Bill of Quantity',
     badge: workflowData.rabStatus?.pendingApproval || 0
   },
   {
@@ -104,9 +104,9 @@ export const workflowStages = [
   },
   { 
     id: 'rab-approval', 
-    label: 'Approval RAB', 
+    label: 'Approval RAP', 
     icon: Calculator,
-    description: 'Persetujuan Rencana Anggaran Biaya'
+    description: 'Persetujuan Rencana Anggaran Pelaksanaan'
   },
   { 
     id: 'procurement', 

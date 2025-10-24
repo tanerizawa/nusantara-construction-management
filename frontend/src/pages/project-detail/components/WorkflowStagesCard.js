@@ -223,8 +223,8 @@ const getStageDetails = (stageId, project, workflowData) => {
       return (
         <p>
           {project.rabItems?.length > 0 
-            ? `${project.rabItems.length} item RAB - ${workflowData.rabStatus?.approved ? 'Sudah disetujui' : 'Menunggu persetujuan'}`
-            : 'Belum ada item RAB'}
+            ? `${project.rabItems.length} item RAP - ${workflowData.rabStatus?.approved ? 'Sudah disetujui' : 'Menunggu persetujuan'}`
+            : 'Belum ada item RAP'}
         </p>
       );
     case 'procurement':

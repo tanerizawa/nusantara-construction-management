@@ -43,13 +43,13 @@ const RecentActivity = ({ project, workflowData }) => {
       }
     };
     
-    // Add RAB approvals
+    // Add RAP approvals
     if (Array.isArray(workflowData?.rabStatus?.data)) {
       workflowData.rabStatus.data.forEach(rab => {
         if (rab?.approvedAt) {
           insertActivity({
             type: 'approval',
-            title: 'RAB Item disetujui',
+            title: 'Item RAP disetujui',
             description: rab.description || 'Item budget',
             timestamp: rab.approvedAt,
             icon: CheckCircle,

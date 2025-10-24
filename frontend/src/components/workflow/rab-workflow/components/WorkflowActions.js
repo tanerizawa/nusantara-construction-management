@@ -3,7 +3,7 @@ import { CheckCircle, TrendingUp, ShoppingCart, AlertCircle, Package, FileCheck,
 
 /**
  * WorkflowActions Component
- * Displays RAB status and next steps guide with dynamic workflow progress
+ * Displays RAP status and next steps guide with dynamic workflow progress
  */
 const WorkflowActions = ({ 
   approvalStatus, 
@@ -83,7 +83,7 @@ const WorkflowActions = ({
     <div className="bg-gradient-to-br from-[#2C2C2E] to-[#1C1C1E] rounded-lg border border-[#38383A] p-6">
       <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
         <TrendingUp className="h-5 w-5 mr-2 text-[#0A84FF]" />
-        Status RAB & Langkah Selanjutnya
+        Status RAP & Langkah Selanjutnya
       </h3>
       
       <div className="space-y-4">
@@ -95,9 +95,9 @@ const WorkflowActions = ({
                 <CheckCircle className="h-5 w-5 text-[#30D158]" />
               </div>
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">RAB Sudah Disetujui</h4>
+                <h4 className="text-sm font-semibold text-white mb-1">RAP Sudah Disetujui</h4>
                 <p className="text-xs text-[#8E8E93] mb-3">
-                  RAB telah disetujui dan siap untuk proses selanjutnya
+                  RAP telah disetujui dan siap untuk proses selanjutnya
                 </p>
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0A84FF]/10 text-[#0A84FF] rounded-md">
@@ -115,9 +115,9 @@ const WorkflowActions = ({
                 <AlertCircle className="h-5 w-5 text-[#FF9F0A]" />
               </div>
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">RAB Menunggu Approval</h4>
+                <h4 className="text-sm font-semibold text-white mb-1">RAP Menunggu Approval</h4>
                 <p className="text-xs text-[#8E8E93] mb-3">
-                  RAB perlu disetujui sebelum melanjutkan ke tahap procurement
+                  RAP perlu disetujui sebelum melanjutkan ke tahap procurement
                 </p>
                 <button
                   onClick={onApprove}
@@ -125,7 +125,7 @@ const WorkflowActions = ({
                   className="inline-flex items-center gap-2 px-4 py-2 bg-[#30D158] text-white text-sm font-medium rounded-lg hover:bg-[#30D158]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <CheckCircle className="h-4 w-4" />
-                  {isSubmitting ? 'Mengapprove...' : 'Approve RAB Sekarang'}
+                  {isSubmitting ? 'Mengapprove...' : 'Approve RAP Sekarang'}
                 </button>
               </div>
             </>
@@ -156,12 +156,12 @@ const WorkflowActions = ({
           </div>
           
           <div className="flex items-center gap-3">
-            {/* RAB */}
+            {/* RAP */}
             <div className="flex flex-col items-center gap-1.5 group relative">
               <div className={`w-8 h-8 rounded-full ${getStepColor(getStepStatus('rab'))} flex items-center justify-center transition-all`}>
                 <CheckCircle className="h-4 w-4 text-white" />
               </div>
-              <span className="text-[10px] text-[#8E8E93] font-medium">RAB</span>
+              <span className="text-[10px] text-[#8E8E93] font-medium">RAP</span>
               <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-[#2C2C2E] border border-[#38383A] px-2 py-1 rounded text-[9px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                 Approved
               </div>

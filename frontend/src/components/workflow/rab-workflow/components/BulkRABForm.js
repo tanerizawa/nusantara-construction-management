@@ -6,7 +6,7 @@ import { validateRABForm, isFormValid } from '../utils/rabValidation';
 
 /**
  * BulkRABForm Component
- * Enhanced form for adding multiple RAB items with Excel import/export functionality
+ * Enhanced form for adding multiple RAP items with Excel import/export functionality
  */
 const BulkRABForm = ({ 
   onSubmit, 
@@ -63,7 +63,7 @@ const BulkRABForm = ({
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'template-rab-import.csv';
+    link.download = 'template-rap-import.csv';
     link.click();
   };
 
@@ -246,9 +246,9 @@ const BulkRABForm = ({
       <div className="bg-[#1C1C1E] px-6 py-4 border-b border-[#38383A]">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-white">Kelola RAB Project</h3>
+            <h3 className="text-xl font-bold text-white">Kelola RAP Project</h3>
             <p className="text-sm text-[#8E8E93] mt-1">
-              Input, edit, dan kelola item RAB secara efisien
+              Input, edit, dan kelola item RAP secara efisien
             </p>
           </div>
           <button

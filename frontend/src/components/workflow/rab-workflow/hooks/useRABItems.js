@@ -221,13 +221,13 @@ const useRABItems = (projectId, onDataChange) => {
 
   const updateRABItem = async (itemId, itemData) => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/rab`, {
+      const response = await fetch(`/api/projects/${projectId}/rab/${itemId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ ...itemData, id: itemId })
+        body: JSON.stringify(itemData)
       });
 
       if (response.ok) {

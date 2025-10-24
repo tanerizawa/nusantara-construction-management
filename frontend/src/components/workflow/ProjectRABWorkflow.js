@@ -26,6 +26,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   const [loadedDraftItems, setLoadedDraftItems] = useState([]);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [isApproving, setIsApproving] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   const [workflowStats, setWorkflowStats] = useState({
     totalPOs: 0,
     approvedPOs: 0,
@@ -97,7 +98,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     await refetch(); // Refresh data
     const totalItems = results.reduce((sum, r) => sum + r.count, 0);
     showNotification(
-      `${totalItems} item RAB berhasil ditambahkan!`,
+      `${totalItems} item RAP berhasil ditambahkan!`,
       'success'
     );
   }, [refetch, showNotification]); // Include showNotification in dependencies
@@ -217,9 +218,42 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   }, [saveDraft, showNotification]);
 
   const handleEditItem = useCallback((item) => {
-    // For now, editing will be done within the bulk form or a modal
-    // This is a placeholder for future edit functionality
     console.log('Edit item:', item);
+    // Set the item to be edited, which will show the edit form
+    setEditingItem(item);
+    // Hide bulk form if it's open
+    setShowBulkForm(false);
+  }, []);
+
+  const handleUpdateItem = useCallback(async (itemData) => {
+    try {
+      // Map frontend camelCase to backend format
+      const backendData = {
+        category: itemData.category,
+        description: itemData.description,
+        unit: itemData.unit,
+        quantity: parseFloat(itemData.quantity),
+        unitPrice: parseFloat(itemData.unitPrice),
+        // totalPrice will be calculated by backend
+        notes: itemData.specifications || '',
+        updatedBy: localStorage.getItem('userId') // Add current user
+      };
+      
+      const result = await updateRABItem(editingItem.id, backendData);
+      if (result.success) {
+        showNotification(
+          `Item RAP berhasil diupdate!${result.demo ? ' (Mode Demo)' : ''}`,
+          'success'
+        );
+        setEditingItem(null); // Close edit form
+      }
+    } catch (error) {
+      showNotification('Gagal update item RAP', 'error');
+    }
+  }, [editingItem, updateRABItem, showNotification]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingItem(null);
   }, []);
 
   const handleDeleteItem = useCallback(async (itemId, description) => {
@@ -240,7 +274,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   const handleApproveItem = useCallback(async (item) => {
     const result = await approveItem(item);
     if (result.success) {
-      showNotification('Item RAB berhasil diapprove!', 'success');
+      showNotification('Item RAP berhasil diapprove!', 'success');
     }
   }, [approveItem, showNotification]);
 
@@ -249,7 +283,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     if (reason && reason.trim()) {
       const result = await rejectItem(item, reason);
       if (result.success) {
-        showNotification('Item RAB ditolak', 'warning');
+        showNotification('Item RAP ditolak', 'warning');
       }
     }
   }, [rejectItem, showNotification]);
@@ -273,7 +307,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
 
   const handleApproveRAB = useCallback(async () => {
     if (rabItems.length === 0) {
-      alert('Tidak ada item RAB untuk diapprove');
+      alert('Tidak ada item RAP untuk diapprove');
       return;
     }
 
@@ -282,9 +316,9 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
     setIsApproving(false);
 
     if (result.success) {
-      showNotification('RAB berhasil diapprove!', 'success');
+      showNotification('RAP berhasil diapprove!', 'success');
     } else {
-      showNotification(result.error || 'Gagal approve RAB. Silakan coba lagi.', 'error');
+      showNotification(result.error || 'Gagal approve RAP. Silakan coba lagi.', 'error');
     }
   }, [rabItems.length, approveRAB, showNotification]);
 
@@ -309,8 +343,8 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">RAB Management</h2>
-          <p className="text-sm text-[#8E8E93]">Rencana Anggaran Biaya untuk {project.name}</p>
+          <h2 className="text-lg font-semibold text-white">RAP Management</h2>
+          <p className="text-sm text-[#8E8E93]">Rencana Anggaran Pelaksanaan untuk {project.name}</p>
         </div>
         
         <div className="flex items-center space-x-3">
@@ -319,21 +353,21 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
             <StatusBadge status={approvalStatus.status} />
           )}
 
-          {/* Add RAB Button - Only show if not approved */}
+          {/* Add RAP Button - Only show if not approved */}
           {canAddItems(approvalStatus) && (
             <button
               onClick={handleAddClick}
               className="flex items-center px-6 py-3 bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90 transition-colors font-medium"
             >
               <List className="h-5 w-5 mr-2" />
-              Kelola RAB
+              Kelola RAP
             </button>
           )}
           
-          {/* Show message when RAB is approved */}
+          {/* Show message when RAP is approved */}
           {approvalStatus?.status === 'approved' && (
             <div className="text-sm text-[#98989D] italic">
-              RAB telah disetujui - tidak dapat menambah item baru
+              RAP telah disetujui - tidak dapat menambah item baru
             </div>
           )}
         </div>
@@ -345,11 +379,11 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       {/* RAB Items Table with Inline Approval */}
       <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
         <div className="px-4 py-3 border-b border-[#38383A]">
-          <h3 className="text-base font-semibold text-white">Daftar Item RAB</h3>
+          <h3 className="text-base font-semibold text-white">Daftar Item RAP</h3>
         </div>
         
         {/* Bulk Input Form */}
-        {showBulkForm && (
+        {showBulkForm && !editingItem && (
           <BulkRABForm
             onSubmit={handleBulkSubmit}
             onSaveDraft={handleSaveDraft}
@@ -358,8 +392,17 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
           />
         )}
         
+        {/* Edit Item Form */}
+        {editingItem && (
+          <EditItemForm
+            item={editingItem}
+            onSave={handleUpdateItem}
+            onCancel={handleCancelEdit}
+          />
+        )}
+        
         {/* Items Table or Empty State */}
-        {!showBulkForm && (
+        {!showBulkForm && !editingItem && (
           rabItems.length > 0 ? (
             <RABItemsTable
               rabItems={rabItems}
@@ -394,6 +437,173 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
         onApprove={handleApproveRAB}
         workflowStats={workflowStats}
       />
+    </div>
+  );
+};
+
+/**
+ * EditItemForm Component
+ * Inline form for editing a single RAP item
+ */
+const EditItemForm = ({ item, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({
+    category: item.category || '',
+    description: item.name || item.description || '',
+    unit: item.unit || '',
+    quantity: item.quantity || 0,
+    unitPrice: item.unitPrice || item.unit_price || 0,
+    itemType: item.itemType || item.item_type || 'material',
+    specifications: item.specifications || ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Calculate total
+    const totalPrice = parseFloat(formData.quantity) * parseFloat(formData.unitPrice);
+    
+    // Prepare data for API
+    const submitData = {
+      category: formData.category,
+      description: formData.description,
+      unit: formData.unit,
+      quantity: parseFloat(formData.quantity),
+      unitPrice: parseFloat(formData.unitPrice),
+      totalPrice: totalPrice,
+      itemType: formData.itemType,
+      specifications: formData.specifications
+    };
+
+    await onSave(submitData);
+    setIsSubmitting(false);
+  };
+
+  const totalPreview = parseFloat(formData.quantity || 0) * parseFloat(formData.unitPrice || 0);
+
+  return (
+    <div className="px-4 py-4 bg-[#0A84FF]/10 border-b border-[#0A84FF]/30">
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="text-md font-medium text-white">
+          Edit Item RAP: {item.name || item.description}
+        </h4>
+        <button
+          onClick={onCancel}
+          className="text-[#8E8E93] hover:text-white transition-colors"
+        >
+          ✕
+        </button>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-[#98989D] mb-1">
+              Kategori Pekerjaan
+            </label>
+            <input
+              type="text"
+              value={formData.category}
+              onChange={(e) => handleChange('category', e.target.value)}
+              className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
+              required
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-[#98989D] mb-1">
+              Deskripsi
+            </label>
+            <input
+              type="text"
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
+              required
+            />
+          </div>
+
+          {/* Unit */}
+          <div>
+            <label className="block text-sm font-medium text-[#98989D] mb-1">
+              Satuan
+            </label>
+            <input
+              type="text"
+              value={formData.unit}
+              onChange={(e) => handleChange('unit', e.target.value)}
+              className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
+              required
+            />
+          </div>
+
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-medium text-[#98989D] mb-1">
+              Quantity
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.quantity}
+              onChange={(e) => handleChange('quantity', e.target.value)}
+              className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
+              required
+            />
+          </div>
+
+          {/* Unit Price */}
+          <div>
+            <label className="block text-sm font-medium text-[#98989D] mb-1">
+              Harga Satuan
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.unitPrice}
+              onChange={(e) => handleChange('unitPrice', e.target.value)}
+              className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
+              required
+            />
+          </div>
+
+          {/* Total Preview */}
+          <div>
+            <label className="block text-sm font-medium text-[#98989D] mb-1">
+              Total
+            </label>
+            <div className="px-3 py-2 bg-[#2C2C2E] border border-[#38383A] rounded-md text-[#30D158] font-semibold">
+              Rp {totalPreview.toLocaleString('id-ID')}
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-3 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 bg-[#3A3A3C] text-white rounded-md hover:bg-[#48484A] transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 bg-[#0A84FF] text-white rounded-md hover:bg-[#0A84FF]/90 transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

@@ -38,6 +38,20 @@ const ProjectCard = ({ project, animated, delay = 0 }) => {
   const statusColor = isCompleted ? 'text-green-600 bg-green-50' : 'text-blue-600 bg-blue-50';
   const StatusIcon = isCompleted ? CheckCircle : Clock;
 
+  // Format date safely
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Tahun 2024';
+    try {
+      return new Date(dateString).toLocaleDateString('id-ID', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    } catch {
+      return 'Tahun 2024';
+    }
+  };
+
   return (
     <div
       className={`bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 transform hover:scale-[1.02] overflow-hidden ${
@@ -56,29 +70,36 @@ const ProjectCard = ({ project, animated, delay = 0 }) => {
           </span>
         </div>
 
-        {project.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">{project.description}</p>
+        {project.client && (
+          <p className="text-gray-600 text-sm mb-2">
+            <span className="font-semibold">Klien:</span> {project.client}
+          </p>
+        )}
+
+        {project.location && (
+          <p className="text-gray-500 text-sm mb-4">
+            📍 {project.location}
+          </p>
         )}
 
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="inline-flex items-center">
             <Calendar size={16} className="mr-1" />
-            {new Date(project.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {formatDate(project.createdAt)}
           </div>
-          {typeof project.progress === 'number' && (
-            <div className="font-semibold text-gray-700">Progress: {project.progress}%</div>
+          {project.value && (
+            <div className="font-semibold text-gray-700">
+              Rp {(project.value / 1000000000).toFixed(1)}M
+            </div>
           )}
         </div>
       </div>
 
+      {/* Remove link for showcase data */}
       <div className="px-6 pb-6">
-        <a
-          href={`/projects/${project.id}`}
-          className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-700 transition-colors"
-        >
-          Lihat Detail
-          <ChevronRight size={18} className="ml-1" />
-        </a>
+        <div className="text-gray-400 text-sm italic">
+          *Data sampel untuk showcase
+        </div>
       </div>
     </div>
   );

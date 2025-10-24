@@ -19,7 +19,6 @@ const AssetRegistry = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [expandedRow, setExpandedRow] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [editFormData, setEditFormData] = useState({});
 
   // Form data
   const todayStr = new Date().toISOString().split('T')[0];
@@ -173,59 +172,11 @@ const AssetRegistry = () => {
 
   const handleEditClick = (asset) => {
     setEditingId(asset.id);
-    setEditFormData({
-      assetName: asset.assetName || '',
-      assetCode: asset.assetCode || '',
-      assetCategory: asset.assetCategory || '',
-      purchasePrice: asset.purchasePrice || '',
-      status: asset.status || 'ACTIVE',
-      condition: asset.condition || 'GOOD',
-      location: asset.location || '',
-      description: asset.description || ''
-    });
     setExpandedRow(asset.id);
   };
 
   const handleEditCancel = () => {
     setEditingId(null);
-    setEditFormData({});
-  };
-
-  const handleEditInputChange = (e) => {
-    const { name, value } = e.target;
-    setEditFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleUpdateAsset = async (e, assetId) => {
-    e.preventDefault();
-    setSubmitLoading(true);
-    
-    try {
-      const response = await apiClient.put(`/reports/fixed-asset/${assetId}`, {
-        asset_name: editFormData.assetName,
-        asset_code: editFormData.assetCode,
-        asset_category: editFormData.assetCategory,
-        purchase_price: parseFloat(editFormData.purchasePrice) || 0,
-        status: editFormData.status,
-        condition: editFormData.condition,
-        location: editFormData.location,
-        description: editFormData.description
-      });
-      
-      if (response.data.success) {
-        await fetchAssets();
-        setEditingId(null);
-        setEditFormData({});
-        setError(null);
-      } else {
-        throw new Error(response.data.message || 'Gagal mengupdate aset');
-      }
-    } catch (error) {
-      console.error('Error updating asset:', error);
-      setError(error.response?.data?.message || error.message);
-    } finally {
-      setSubmitLoading(false);
-    }
   };
 
   const toggleRowExpand = (assetId) => {

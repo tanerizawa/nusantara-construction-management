@@ -34,14 +34,14 @@ const ChartOfAccountsView = ({
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `chart-of-accounts-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `bagan-akun-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting COA:', error);
-      alert('Failed to export Chart of Accounts');
+      alert('Gagal mengekspor Bagan Akun');
     }
   };
 

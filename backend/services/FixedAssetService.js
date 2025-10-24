@@ -359,41 +359,84 @@ class FixedAssetService {
    */
   async updateAsset(assetId, updateData) {
     try {
-      // In real implementation, this would update database record
-      // For now, return mock success response
+      // Find the asset first
+      const asset = await FixedAsset.findByPk(assetId);
       
-      const updatedAsset = {
-        id: assetId,
-        assetCode: updateData.asset_code,
-        assetName: updateData.asset_name,
-        assetCategory: updateData.asset_category,
-        assetType: updateData.asset_type,
-        description: updateData.description,
+      if (!asset) {
+        return {
+          success: false,
+          message: 'Asset not found',
+          error: 'Asset with given ID does not exist'
+        };
+      }
+
+      // Update the asset with new data
+      await asset.update({
+        asset_code: updateData.asset_code || asset.asset_code,
+        asset_name: updateData.asset_name || asset.asset_name,
+        asset_category: updateData.asset_category || asset.asset_category,
+        asset_type: updateData.asset_type || asset.asset_type,
+        description: updateData.description !== undefined ? updateData.description : asset.description,
         
         // Financial Information
-        purchasePrice: parseFloat(updateData.purchase_price),
-        purchaseDate: new Date(updateData.purchase_date),
-        supplier: updateData.supplier,
+        purchase_price: updateData.purchase_price !== undefined ? parseFloat(updateData.purchase_price) : asset.purchase_price,
+        purchase_date: updateData.purchase_date || asset.purchase_date,
+        supplier: updateData.supplier !== undefined ? updateData.supplier : asset.supplier,
+        invoice_number: updateData.invoice_number !== undefined ? updateData.invoice_number : asset.invoice_number,
+        
+        // Depreciation
+        depreciation_method: updateData.depreciation_method || asset.depreciation_method,
+        useful_life: updateData.useful_life !== undefined ? parseInt(updateData.useful_life) : asset.useful_life,
+        salvage_value: updateData.salvage_value !== undefined ? parseFloat(updateData.salvage_value) : asset.salvage_value,
         
         // Location & Assignment
-        location: updateData.location,
-        department: updateData.department,
-        responsiblePerson: updateData.responsible_person,
+        location: updateData.location !== undefined ? updateData.location : asset.location,
+        department: updateData.department !== undefined ? updateData.department : asset.department,
+        responsible_person: updateData.responsible_person !== undefined ? updateData.responsible_person : asset.responsible_person,
+        cost_center: updateData.cost_center !== undefined ? updateData.cost_center : asset.cost_center,
         
         // Status & Tracking
-        status: updateData.status,
-        condition: updateData.condition,
-        serialNumber: updateData.serial_number,
-        manufacturer: updateData.manufacturer,
-        
-        // Metadata
-        updatedAt: new Date()
+        status: updateData.status || asset.status,
+        condition: updateData.condition || asset.condition,
+        serial_number: updateData.serial_number !== undefined ? updateData.serial_number : asset.serial_number,
+        model_number: updateData.model_number !== undefined ? updateData.model_number : asset.model_number,
+        manufacturer: updateData.manufacturer !== undefined ? updateData.manufacturer : asset.manufacturer
+      });
+
+      // Reload to get updated data
+      await asset.reload();
+
+      // Return formatted data
+      const formattedAsset = {
+        id: asset.id,
+        assetCode: asset.asset_code,
+        assetName: asset.asset_name,
+        assetCategory: asset.asset_category,
+        assetType: asset.asset_type,
+        description: asset.description,
+        purchasePrice: parseFloat(asset.purchase_price),
+        purchaseDate: asset.purchase_date,
+        supplier: asset.supplier,
+        invoiceNumber: asset.invoice_number,
+        depreciationMethod: asset.depreciation_method,
+        usefulLife: asset.useful_life,
+        salvageValue: parseFloat(asset.salvage_value),
+        location: asset.location,
+        department: asset.department,
+        responsiblePerson: asset.responsible_person,
+        costCenter: asset.cost_center,
+        status: asset.status,
+        condition: asset.condition,
+        serialNumber: asset.serial_number,
+        modelNumber: asset.model_number,
+        manufacturer: asset.manufacturer,
+        updatedAt: asset.updatedAt
       };
 
       return {
         success: true,
         message: 'Asset updated successfully',
-        data: updatedAsset
+        data: formattedAsset
       };
 
     } catch (error) {

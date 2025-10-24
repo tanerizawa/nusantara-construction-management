@@ -34,7 +34,7 @@ const projectSchema = Joi.object({
     latitude: Joi.number().min(-90).max(90).required(),
     longitude: Joi.number().min(-180).max(180).required(),
     radius: Joi.number().min(10).max(5000).default(100)
-  }).optional(),
+  }).optional().allow(null),
   budget: Joi.number().min(0).optional(),
   startDate: Joi.date().required(),
   endDate: Joi.date().required(),
@@ -288,6 +288,26 @@ router.get("/:id", async (req, res) => {
       });
     }
 
+    // Fetch ProjectLocation coordinates
+    let coordinates = null;
+    try {
+      const projectLocations = await AttendanceService.getProjectLocations(id);
+      if (projectLocations && projectLocations.length > 0) {
+        const location = projectLocations[0]; // Get the first active location
+        coordinates = {
+          latitude: parseFloat(location.latitude),
+          longitude: parseFloat(location.longitude),
+          radius: parseInt(location.radius_meters) || 100,
+          locationName: location.location_name,
+          address: location.address,
+          isActive: location.is_active
+        };
+      }
+    } catch (locationError) {
+      console.error('Error fetching ProjectLocation:', locationError);
+      // Continue without coordinates
+    }
+
     // Calculate statistics
     const rabItems = project.rabItemsList || [];
     const teamMembers = project.teamMembersList || [];
@@ -356,6 +376,7 @@ router.get("/:id", async (req, res) => {
       clientName: project.clientName,
       clientContact: project.clientContact || {},
       location: project.location,
+      coordinates: coordinates, // Add GPS coordinates from ProjectLocation
       budget: totalBudget,
       totalBudget: totalBudget,
       status: project.status,

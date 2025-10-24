@@ -49,20 +49,22 @@ export const DateInputWithIcon = ({
 }) => {
   return (
     <div className="relative">
-      {/* Icon calendar - hanya ini yang putih, tidak mengubah background input */}
+      {/* Icon calendar - putih untuk visibility di dark mode */}
       <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-        <CalendarIconWhite size={18} className="opacity-70" />
+        <CalendarIconWhite size={18} className="text-white" />
       </div>
-      {/* Input tetap menggunakan className dan style yang diberikan dari parent */}
+      {/* Input dengan text putih untuk dark mode */}
       <input
         type="date"
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`pl-11 ${className}`} // Tambah padding kiri untuk icon, sisanya dari parent
+        className={`pl-11 ${className}`}
         style={{
-          colorScheme: 'dark', // Pastikan calendar picker browser juga dark
-          ...style // Style dari parent dipertahankan
+          colorScheme: 'dark',
+          color: '#FFFFFF', // Force white text color
+          WebkitTextFillColor: '#FFFFFF', // Override webkit styling
+          ...style
         }}
         {...props}
       />

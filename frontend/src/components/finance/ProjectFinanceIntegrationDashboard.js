@@ -82,7 +82,7 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
       <div className="flex items-center justify-center p-8">
         <div className="flex items-center space-x-2">
           <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "#0A84FF" }} />
-          <span style={{ color: "#98989D" }}>Loading integrated financial data...</span>
+          <span style={{ color: "#98989D" }}>Memuat data keuangan terintegrasi...</span>
         </div>
       </div>
     );
@@ -93,7 +93,7 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
       <div className="rounded-lg p-6" style={{ backgroundColor: "rgba(255, 69, 58, 0.1)", border: "1px solid #FF453A" }}>
         <div className="flex items-center space-x-2">
           <AlertCircle className="w-5 h-5" style={{ color: "#FF453A" }} />
-          <span className="font-medium" style={{ color: "#FF453A" }}>Error loading data</span>
+          <span className="font-medium" style={{ color: "#FF453A" }}>Gagal memuat data</span>
         </div>
         <p className="text-sm mt-2" style={{ color: "#FF453A" }}>{error}</p>
         <button
@@ -101,7 +101,7 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
           className="mt-3 px-4 py-2 rounded-md text-sm transition-colors duration-150"
           style={{ backgroundColor: "rgba(255, 69, 58, 0.15)", border: "1px solid #FF453A", color: "#FF453A" }}
         >
-          Try Again
+          Coba Lagi
         </button>
       </div>
     );
@@ -111,7 +111,7 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
     return (
       <div className="text-center p-8">
         <FileText className="w-12 h-12 mx-auto mb-4" style={{ color: "#636366" }} />
-        <p style={{ color: "#98989D" }}>No integrated financial data available</p>
+        <p style={{ color: "#98989D" }}>Tidak ada data keuangan terintegrasi</p>
       </div>
     );
   }
@@ -165,9 +165,9 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
         <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Active Projects</p>
+              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Proyek Aktif</p>
               <p className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>{metrics.overview.activeProjects}</p>
-              <p className="text-xs" style={{ color: "#636366" }}>of {metrics.overview.totalProjects} total</p>
+              <p className="text-xs" style={{ color: "#636366" }}>dari total {metrics.overview.totalProjects}</p>
             </div>
             <Building2 className="w-8 h-8" style={{ color: "#0A84FF" }} />
           </div>
@@ -176,9 +176,9 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
         <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Total Income</p>
+              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Total Pendapatan</p>
               <p className="text-2xl font-bold" style={{ color: "#32D74B" }}>{formatCurrency(metrics.overview.totalIncome)}</p>
-              <p className="text-xs" style={{ color: "#636366" }}>{metrics.overview.totalTransactions} transactions</p>
+              <p className="text-xs" style={{ color: "#636366" }}>{metrics.overview.totalTransactions} transaksi</p>
             </div>
             <TrendingUp className="w-8 h-8" style={{ color: "#32D74B" }} />
           </div>
@@ -187,9 +187,9 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
         <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Total Expenses</p>
+              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Total Pengeluaran</p>
               <p className="text-2xl font-bold" style={{ color: "#FF453A" }}>{formatCurrency(metrics.overview.totalExpense)}</p>
-              <p className="text-xs" style={{ color: "#636366" }}>including PO commitments</p>
+              <p className="text-xs" style={{ color: "#636366" }}>termasuk komitmen PO</p>
             </div>
             <TrendingDown className="w-8 h-8" style={{ color: "#FF453A" }} />
           </div>
@@ -198,7 +198,7 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
         <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium" style={{ color: "#98989D" }}>PO Transactions</p>
+              <p className="text-sm font-medium" style={{ color: "#98989D" }}>Transaksi PO</p>
               <p className="text-2xl font-bold" style={{ color: "#0A84FF" }}>{metrics.overview.poTransactions}</p>
               <p className="text-xs" style={{ color: "#636366" }}>{formatCurrency(metrics.overview.totalPOAmount)}</p>
             </div>
@@ -210,29 +210,29 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
       {/* Net Income Summary */}
       <div className="p-6 rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Financial Summary</h4>
+          <h4 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Ringkasan Keuangan</h4>
           <div className={`px-3 py-1 rounded-full text-sm font-medium`} style={{
             backgroundColor: metrics.overview.netIncome >= 0 ? "rgba(50, 215, 75, 0.15)" : "rgba(255, 69, 58, 0.15)",
             color: metrics.overview.netIncome >= 0 ? "#32D74B" : "#FF453A"
           }}>
-            Net Income: {formatCurrency(metrics.overview.netIncome)}
+            Laba Bersih: {formatCurrency(metrics.overview.netIncome)}
           </div>
         </div>
         
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-4 rounded-lg" style={{ backgroundColor: "rgba(50, 215, 75, 0.1)", border: "1px solid rgba(50, 215, 75, 0.3)" }}>
-            <p className="text-sm" style={{ color: "#98989D" }}>Income</p>
+            <p className="text-sm" style={{ color: "#98989D" }}>Pendapatan</p>
             <p className="text-xl font-bold" style={{ color: "#32D74B" }}>{formatCurrency(metrics.overview.totalIncome)}</p>
           </div>
           <div className="p-4 rounded-lg" style={{ backgroundColor: "rgba(255, 69, 58, 0.1)", border: "1px solid rgba(255, 69, 58, 0.3)" }}>
-            <p className="text-sm" style={{ color: "#98989D" }}>Expenses</p>
+            <p className="text-sm" style={{ color: "#98989D" }}>Pengeluaran</p>
             <p className="text-xl font-bold" style={{ color: "#FF453A" }}>{formatCurrency(metrics.overview.totalExpense)}</p>
           </div>
           <div className={`p-4 rounded-lg`} style={{
             backgroundColor: metrics.overview.netIncome >= 0 ? "rgba(10, 132, 255, 0.1)" : "rgba(255, 159, 10, 0.1)",
             border: metrics.overview.netIncome >= 0 ? "1px solid rgba(10, 132, 255, 0.3)" : "1px solid rgba(255, 159, 10, 0.3)"
           }}>
-            <p className="text-sm" style={{ color: "#98989D" }}>Net Result</p>
+            <p className="text-sm" style={{ color: "#98989D" }}>Hasil Bersih</p>
             <p className={`text-xl font-bold`} style={{
               color: metrics.overview.netIncome >= 0 ? "#0A84FF" : "#FF9F0A"
             }}>
@@ -246,8 +246,8 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
       {!compact && metrics.projectBreakdown.length > 0 && (
         <div className="rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="p-6" style={{ borderBottom: "1px solid #38383A" }}>
-            <h4 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Project Breakdown</h4>
-            <p className="text-sm" style={{ color: "#98989D" }}>Financial performance by project</p>
+            <h4 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Rincian Proyek</h4>
+            <p className="text-sm" style={{ color: "#98989D" }}>Kinerja keuangan per proyek</p>
           </div>
           
           <div className="p-6">
@@ -255,12 +255,12 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
               <table className="min-w-full" style={{ borderCollapse: "collapse" }}>
                 <thead style={{ backgroundColor: "#1C1C1E" }}>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Project</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Income</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Expenses</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Net Income</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>PO Count</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Transactions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Proyek</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Pendapatan</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Pengeluaran</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Laba Bersih</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Jumlah PO</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>Transaksi</th>
                   </tr>
                 </thead>
                 <tbody style={{ backgroundColor: "#2C2C2E" }}>
@@ -313,8 +313,8 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
       {!compact && metrics.recentActivity.length > 0 && (
         <div className="rounded-lg shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="p-6" style={{ borderBottom: "1px solid #38383A" }}>
-            <h4 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Recent Financial Activity</h4>
-            <p className="text-sm" style={{ color: "#98989D" }}>Latest transactions across all projects</p>
+            <h4 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Aktivitas Keuangan Terbaru</h4>
+            <p className="text-sm" style={{ color: "#98989D" }}>Transaksi terbaru di seluruh proyek</p>
           </div>
           
           <div className="p-6">
@@ -333,10 +333,10 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
                     </div>
                     <div>
                       <p className="text-sm font-medium" style={{ color: "#FFFFFF" }}>
-                        {transaction.description || transaction.desc || 'No description'}
+                        {transaction.description || transaction.desc || 'Tanpa deskripsi'}
                       </p>
                       <p className="text-xs" style={{ color: "#98989D" }}>
-                        {transaction.date ? new Date(transaction.date).toLocaleDateString('id-ID') : 'No date'}
+                        {transaction.date ? new Date(transaction.date).toLocaleDateString('id-ID') : 'Tanpa tanggal'}
                         {transaction.category && ` • ${transaction.category}`}
                       </p>
                     </div>
@@ -350,7 +350,7 @@ const ProjectFinanceIntegrationDashboard = ({ selectedSubsidiary, selectedProjec
                       {formatCurrency(transaction.amount)}
                     </p>
                     {transaction.purchaseOrderId && (
-                      <p className="text-xs" style={{ color: "#0A84FF" }}>PO Linked</p>
+                      <p className="text-xs" style={{ color: "#0A84FF" }}>Tertaut ke PO</p>
                     )}
                   </div>
                 </div>

@@ -91,11 +91,11 @@ const TaxManagement = ({
    */
   const getStatusLabel = (status) => {
     const labels = {
-      paid: 'Paid',
-      filed: 'Filed',
-      calculated: 'Calculated',
-      draft: 'Draft',
-      overdue: 'Overdue'
+      paid: 'Dibayar',
+      filed: 'Dilaporkan',
+      calculated: 'Dihitung',
+      draft: 'Draf',
+      overdue: 'Terlambat'
     };
     return labels[status] || status;
   };
@@ -349,25 +349,25 @@ const TaxManagement = ({
             <thead style={{ backgroundColor: "#1C1C1E" }}>
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
-                  Reference
+                  Referensi
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
-                  Tax Type
+                  Jenis Pajak
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
-                  Period
+                  Periode
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
-                  Amount
+                  Nilai
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
-                  Due Date
+                  Jatuh Tempo
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{ color: "#98989D", borderBottom: "1px solid #38383A" }}>
-                  Actions
+                  Aksi
                 </th>
               </tr>
             </thead>

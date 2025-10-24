@@ -1,6 +1,6 @@
 import React from 'react';
-import { ArrowRight, Play } from 'lucide-react';
-import { StatsCard, TrustBadges, CTAButtons } from '../components/UIComponents';
+import { ArrowRight, Play, Building2, TrendingUp, Award, Users } from 'lucide-react';
+import { TrustBadges, CTAButtons } from '../components/UIComponents';
 import { LANDING_CONFIG, TRUST_BADGES } from '../config/landingConfig';
 import { useCTAActions } from '../hooks/useInteractions';
 
@@ -23,10 +23,8 @@ export const HeroSection = ({ stats, className = '' }) => {
             onSecondaryClick={handlePortfolioClick}
           />
           
-          {/* Hero Stats */}
-          <div className="relative">
-            <StatsCard stats={stats} />
-          </div>
+          {/* Hero Image/Illustration */}
+          <HeroVisual stats={stats} />
         </div>
       </div>
     </section>
@@ -68,6 +66,68 @@ const HeroContent = ({ primaryCTA, secondaryCTA, onPrimaryClick, onSecondaryClic
 
     {/* Trust Badges */}
     <TrustBadges badges={TRUST_BADGES} />
+  </div>
+);
+
+// Hero Visual - Modern illustration with floating stats
+const HeroVisual = ({ stats }) => (
+  <div className="relative">
+    {/* Main illustration container */}
+    <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl shadow-2xl overflow-hidden aspect-square">
+      {/* Construction illustration using icons */}
+      <div className="absolute inset-0 flex items-center justify-center p-12">
+        <div className="grid grid-cols-2 gap-8 w-full">
+          {/* Building icon - large */}
+          <div className="col-span-2 flex items-center justify-center">
+            <div className="relative">
+              <Building2 size={120} className="text-white/20" strokeWidth={1.5} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Building2 size={80} className="text-white animate-pulse" strokeWidth={2} />
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative icons */}
+          <div className="flex items-center justify-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 transform hover:scale-110 transition-transform duration-300">
+              <TrendingUp size={40} className="text-white" strokeWidth={2} />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 transform hover:scale-110 transition-transform duration-300">
+              <Award size={40} className="text-white" strokeWidth={2} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating stats badges */}
+      <div className="absolute top-6 right-6 bg-white rounded-2xl shadow-xl p-4 animate-float">
+        <div className="text-3xl font-bold text-blue-600">{stats[0]?.number || '150+'}</div>
+        <div className="text-xs text-gray-600 font-semibold">{stats[0]?.label || 'Proyek'}</div>
+      </div>
+
+      <div className="absolute bottom-6 left-6 bg-white rounded-2xl shadow-xl p-4 animate-float-delayed">
+        <div className="text-3xl font-bold text-green-600">{stats[2]?.number || '125+'}</div>
+        <div className="text-xs text-gray-600 font-semibold">{stats[2]?.label || 'Selesai'}</div>
+      </div>
+
+      {/* Decorative elements */}
+      <div className="absolute top-1/4 left-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-0 w-40 h-40 bg-indigo-400/20 rounded-full blur-3xl"></div>
+    </div>
+
+    {/* Additional floating stat */}
+    <div className="absolute -bottom-6 -right-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl shadow-2xl p-6 animate-float">
+      <div className="flex items-center gap-3">
+        <Users size={32} className="text-white" />
+        <div>
+          <div className="text-2xl font-bold text-white">15+</div>
+          <div className="text-xs text-white/90 font-semibold">Tahun</div>
+        </div>
+      </div>
+    </div>
   </div>
 );
 

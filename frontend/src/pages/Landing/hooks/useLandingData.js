@@ -1,57 +1,49 @@
 import { useState, useEffect } from 'react';
-import { apiClient } from '../../../services/api';
 
 // Hook for managing landing page data
+// FIXED: Use static data instead of real API calls for public landing page
 export const useLandingData = () => {
-  const [stats, setStats] = useState(null);
-  const [recentProjects, setRecentProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading needed for static data
   const [error, setError] = useState(null);
 
-  // Fetch landing page stats
-  const fetchStats = async () => {
-    try {
-      const response = await apiClient.get('/stats/overview');
-      if (response.data?.success) {
-        setStats(response.data.data);
-      }
-    } catch (err) {
-      console.error('Error fetching stats:', err);
-      setError('Failed to load statistics');
-    }
+  // Static stats data for landing page (not real data)
+  const stats = {
+    totalProjects: 150,      // Static number for showcase
+    activeProjects: 25,      // Static number for showcase
+    completedProjects: 125,  // Static number for showcase
+    totalValue: 75000000000  // Static number for showcase (75 Miliar)
   };
 
-  // Fetch recent projects for showcase
-  const fetchRecentProjects = async () => {
-    try {
-      const response = await apiClient.get('/stats/recent-projects?limit=6');
-      if (response.data?.success) {
-        setRecentProjects(response.data.data);
-      }
-    } catch (err) {
-      console.error('Error fetching recent projects:', err);
-      setError('Failed to load recent projects');
+  // Static recent projects showcase data
+  const recentProjects = [
+    {
+      id: 'showcase-1',
+      name: 'Pembangunan Gedung Perkantoran',
+      client: 'PT. Modern Office',
+      location: 'Jakarta Selatan',
+      status: 'completed',
+      image: '/images/projects/office-building.jpg',
+      value: 15000000000
+    },
+    {
+      id: 'showcase-2',
+      name: 'Konstruksi Jalan Tol',
+      client: 'Pemerintah DKI Jakarta',
+      location: 'Jakarta Timur',
+      status: 'active',
+      image: '/images/projects/highway.jpg',
+      value: 50000000000
+    },
+    {
+      id: 'showcase-3',
+      name: 'Renovasi Gedung Sekolah',
+      client: 'Dinas Pendidikan',
+      location: 'Tangerang',
+      status: 'completed',
+      image: '/images/projects/school.jpg',
+      value: 5000000000
     }
-  };
-
-  // Initialize data on mount
-  useEffect(() => {
-    const initializeData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([
-          fetchStats(),
-          fetchRecentProjects()
-        ]);
-      } catch (err) {
-        setError('Failed to initialize landing page data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initializeData();
-  }, []);
+  ];
 
   return {
     stats,
@@ -59,8 +51,8 @@ export const useLandingData = () => {
     loading,
     error,
     refetch: () => {
-      fetchStats();
-      fetchRecentProjects();
+      // No-op for static data
+      console.log('Landing page using static showcase data');
     }
   };
 };

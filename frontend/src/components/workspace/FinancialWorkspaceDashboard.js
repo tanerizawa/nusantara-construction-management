@@ -310,7 +310,7 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
       <div className="rounded-xl p-8 shadow-lg" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#0A84FF' }}></div>
-          <span className="ml-3" style={{ color: '#98989D' }}>Loading Financial Data...</span>
+          <span className="ml-3" style={{ color: '#98989D' }}>Memuat Data Keuangan...</span>
         </div>
       </div>
     );
@@ -462,7 +462,7 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         }}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Net Profit</p>
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Laba Bersih</p>
               <p className="text-lg font-bold mt-1 truncate" style={{ color: '#0A84FF' }}>
                 {formatCurrency(dashboard?.netProfit || incomeStatement?.statement?.netIncome)}
               </p>
@@ -486,14 +486,14 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         }}>
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Cash & Bank</p>
+              <p className="text-sm font-medium" style={{ color: '#98989D' }}>Kas & Bank</p>
               <p className="text-lg font-bold mt-1 truncate" style={{ color: '#AF52DE' }}>
                 {formatCurrency(dashboard?.totalCash || balanceSheet?.assets?.current?.cash)}
               </p>
               <div className="flex items-center mt-2">
                 <Wallet className="w-4 h-4 mr-1 flex-shrink-0" style={{ color: '#AF52DE' }} />
                 <span className="text-xs truncate" style={{ color: '#AF52DE' }}>
-                  {dashboard?.cashAccounts?.length || 0} accounts
+                  {dashboard?.cashAccounts?.length || 0} rekening
                 </span>
               </div>
             </div>
@@ -509,15 +509,15 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         {/* Financial Trends Chart */}
         <div className="lg:col-span-2 rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Revenue & Profit Trends</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Tren Pendapatan & Laba</h3>
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs" style={{ backgroundColor: "rgba(10, 132, 255, 0.15)", color: "#0A84FF" }}>
                 <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: "#0A84FF" }}></div>
-                Revenue
+                Pendapatan
               </span>
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs" style={{ backgroundColor: "rgba(48, 209, 88, 0.15)", color: "#30D158" }}>
                 <div className="w-2 h-2 rounded-full mr-1" style={{ backgroundColor: "#30D158" }}></div>
-                Profit
+                Laba
               </span>
             </div>
           </div>
@@ -538,7 +538,7 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
                 <XAxis dataKey="month" className="text-xs" />
                 <YAxis className="text-xs" tickFormatter={(value) => `${(value/1000000).toFixed(0)}M`} />
                 <Tooltip 
-                  formatter={(value, name) => [formatCurrency(value), name === 'revenue' ? 'Revenue' : 'Profit']}
+                  formatter={(value, name) => [formatCurrency(value), name === 'revenue' ? 'Pendapatan' : 'Laba']}
                   labelStyle={{ color: '#374151' }}
                 />
                 <Area type="monotone" dataKey="revenue" stroke="#3B82F6" fillOpacity={1} fill="url(#colorRevenue)" strokeWidth={2} />
@@ -551,7 +551,7 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         {/* Expense Breakdown */}
         <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Cost Breakdown</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Rincian Biaya</h3>
             <Eye className="w-5 h-5 cursor-pointer" style={{ color: "#98989D" }} />
           </div>
           <div className="h-64">
@@ -597,36 +597,36 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         {/* Income Statement Summary */}
         <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Income Statement</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Laporan Laba Rugi</h3>
             <Receipt className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: "#98989D" }}>Revenue</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Pendapatan</span>
               <span className="font-semibold" style={{ color: "#30D158" }}>
                 {formatCurrency(incomeStatement?.statement?.revenues?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: "#98989D" }}>Direct Costs</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Biaya Langsung</span>
               <span className="font-semibold" style={{ color: "#FF453A" }}>
                 ({formatCurrency(incomeStatement?.statement?.directCosts?.total)})
               </span>
             </div>
             <div className="flex justify-between items-center pt-3" style={{ borderTop: "1px solid #38383A" }}>
-              <span className="text-sm" style={{ color: "#98989D" }}>Gross Profit</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Laba Kotor</span>
               <span className="font-semibold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(incomeStatement?.statement?.grossProfit)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: "#98989D" }}>Indirect Costs</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Biaya Tidak Langsung</span>
               <span className="font-semibold" style={{ color: "#FF453A" }}>
                 ({formatCurrency(incomeStatement?.statement?.indirectCosts?.total)})
               </span>
             </div>
             <div className="flex justify-between items-center pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
-              <span style={{ color: "#FFFFFF" }}>Net Income</span>
+              <span style={{ color: "#FFFFFF" }}>Laba Bersih</span>
               <span style={{ color: "#30D158" }}>
                 {formatCurrency(incomeStatement?.statement?.netIncome)}
               </span>
@@ -637,31 +637,31 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         {/* Balance Sheet Summary */}
         <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Balance Sheet</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Neraca</h3>
             <Building2 className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Assets</span>
+                <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Aset</span>
                 <span className="font-semibold" style={{ color: "#0A84FF" }}>
                   {formatCurrency(balanceSheet?.assets?.total)}
                 </span>
               </div>
               <div className="ml-2 space-y-1">
                 <div className="flex justify-between text-xs" style={{ color: "#98989D" }}>
-                  <span>• Current Assets</span>
+                  <span>• Aset Lancar</span>
                   <span>{formatCurrency(balanceSheet?.assets?.current?.total)}</span>
                 </div>
                 <div className="flex justify-between text-xs" style={{ color: "#98989D" }}>
-                  <span>• Fixed Assets</span>
+                  <span>• Aset Tetap</span>
                   <span>{formatCurrency(balanceSheet?.assets?.fixed?.total)}</span>
                 </div>
               </div>
             </div>
             <div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Liabilities</span>
+                <span className="text-sm font-medium" style={{ color: "#FFFFFF" }}>Kewajiban</span>
                 <span className="font-semibold" style={{ color: "#FF453A" }}>
                   {formatCurrency(balanceSheet?.liabilities?.total)}
                 </span>
@@ -669,7 +669,7 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
             </div>
             <div className="pt-3" style={{ borderTop: "1px solid #38383A" }}>
               <div className="flex justify-between items-center font-bold">
-                <span style={{ color: "#FFFFFF" }}>Equity</span>
+                <span style={{ color: "#FFFFFF" }}>Ekuitas</span>
                 <span style={{ color: "#30D158" }}>
                   {formatCurrency(balanceSheet?.equity?.total)}
                 </span>
@@ -681,30 +681,30 @@ const FinancialWorkspaceDashboard = ({ userDetails }) => {
         {/* Cash Flow Summary */}
         <div className="rounded-xl p-6 shadow-sm" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Cash Flow</h3>
+            <h3 className="text-lg font-semibold" style={{ color: "#FFFFFF" }}>Arus Kas</h3>
             <Activity className="w-5 h-5" style={{ color: "#98989D" }} />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: "#98989D" }}>Operating</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Operasi</span>
               <span className="font-semibold" style={{ color: "#30D158" }}>
                 {formatCurrency(cashFlow?.operating?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: "#98989D" }}>Investing</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Investasi</span>
               <span className="font-semibold" style={{ color: "#FF453A" }}>
                 {formatCurrency(cashFlow?.investing?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: "#98989D" }}>Financing</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Pendanaan</span>
               <span className="font-semibold" style={{ color: "#0A84FF" }}>
                 {formatCurrency(cashFlow?.financing?.total)}
               </span>
             </div>
             <div className="flex justify-between items-center pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
-              <span style={{ color: "#FFFFFF" }}>Net Change</span>
+              <span style={{ color: "#FFFFFF" }}>Perubahan Bersih</span>
               <span style={{ color: cashFlow?.netChange >= 0 ? '#30D158' : '#FF453A' }}>
                 {formatCurrency(cashFlow?.netChange)}
               </span>

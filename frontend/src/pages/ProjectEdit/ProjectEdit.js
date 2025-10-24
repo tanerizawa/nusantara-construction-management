@@ -43,8 +43,8 @@ const ProjectEdit = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000]">
-      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#1C1C1E]">
+      <div className="container mx-auto px-4 py-6 max-w-5xl">
         {/* Header */}
         <PageHeader projectId={id} projectName={project?.name} />
 
@@ -55,7 +55,7 @@ const ProjectEdit = () => {
         <AlertMessage type="error" message={error} />
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Basic Information */}
           <BasicInfoSection 
             formData={formData} 

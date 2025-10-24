@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Map, ChevronDown, ChevronUp } from 'lucide-react';
+import { Map, ChevronDown, ChevronUp } from 'lucide-react';
 import ProjectLocationPicker from '../../../components/Projects/ProjectLocationPicker';
-import api from '../../../utils/api';
+import axios from 'axios';
+import { API_URL } from '../../../utils/config';
 
 /**
  * LocationSection component for the project's location information
@@ -26,21 +27,36 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
       
       try {
         setLoadingLocation(true);
-        const response = await api.get(`/attendance/locations?projectId=${projectId}`);
+        const token = localStorage.getItem('token');
         
-        if (response.data.success && response.data.data.length > 0) {
+        // Fixed: Use path parameter instead of query string (backend expects :projectId)
+        const response = await axios.get(`${API_URL}/attendance/locations/${projectId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.data.success && response.data.data && response.data.data.length > 0) {
           const location = response.data.data[0]; // Get first active location
           setExistingLocation(location);
           
           // Update form data with existing coordinates
           handleInputChange('coordinates', {
-            latitude: location.latitude,
-            longitude: location.longitude,
-            radius: location.radius_meters || 100
+            latitude: parseFloat(location.latitude),
+            longitude: parseFloat(location.longitude),
+            radius: parseInt(location.radius_meters) || 100
+          });
+          
+          console.log('✅ Existing project location loaded:', {
+            lat: location.latitude,
+            lng: location.longitude,
+            radius: location.radius_meters
           });
         }
       } catch (error) {
-        console.error('Error fetching project location:', error);
+        // Don't show error to user - it's OK if no location exists yet
+        console.warn('⚠️ No existing project location found (or error fetching):', error.message);
       } finally {
         setLoadingLocation(false);
       }
@@ -61,43 +77,25 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
   };
 
   return (
-    <div 
-      style={{
-        backgroundColor: '#1C1C1E',
-        border: '1px solid #38383A'
-      }}
-      className="rounded-xl p-6"
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg bg-[#FF9F0A]/10 flex items-center justify-center">
-          <MapPin className="w-5 h-5 text-[#FF9F0A]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-white">
-            Lokasi Proyek
-          </h2>
-          <p className="text-sm text-[#8E8E93]">
-            Alamat lokasi proyek
-          </p>
-        </div>
-      </div>
+    <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
+      <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <span className="w-1 h-5 bg-[#FF9F0A] rounded-full"></span>
+        Lokasi Proyek
+      </h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Alamat (Optional) */}
-        <div className="md:col-span-2">
+        <div className="md:col-span-3">
           <label className="block text-sm font-medium text-[#98989D] mb-2">
-            Alamat <span className="text-xs text-[#636366]">(opsional)</span>
+            Alamat Lengkap (Opsional)
           </label>
           <input
             type="text"
             value={formData.location.address || ''}
             onChange={(e) => handleInputChange('location.address', e.target.value)}
-            style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A',
-              color: 'white'
-            }}
-            className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                     bg-[#1C1C1E] text-white placeholder-[#636366]"
             placeholder="Nama jalan, nomor, patokan (opsional)"
             disabled={saving}
           />
@@ -106,18 +104,15 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
         {/* Desa/Kelurahan */}
         <div>
           <label className="block text-sm font-medium text-[#98989D] mb-2">
-            Desa/Kelurahan <span className="text-red-500">*</span>
+            Desa / Kelurahan <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.location.village || ''}
             onChange={(e) => handleInputChange('location.village', e.target.value)}
-            style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A',
-              color: 'white'
-            }}
-            className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                     bg-[#1C1C1E] text-white placeholder-[#636366]"
             placeholder="Nama desa atau kelurahan"
             disabled={saving}
             required
@@ -133,12 +128,9 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
             type="text"
             value={formData.location.district || ''}
             onChange={(e) => handleInputChange('location.district', e.target.value)}
-            style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A',
-              color: 'white'
-            }}
-            className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                     bg-[#1C1C1E] text-white placeholder-[#636366]"
             placeholder="Nama kecamatan"
             disabled={saving}
             required
@@ -148,18 +140,15 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
         {/* Kabupaten/Kota */}
         <div>
           <label className="block text-sm font-medium text-[#98989D] mb-2">
-            Kabupaten/Kota <span className="text-red-500">*</span>
+            Kabupaten / Kota <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.location.city || ''}
             onChange={(e) => handleInputChange('location.city', e.target.value)}
-            style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A',
-              color: 'white'
-            }}
-            className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                     bg-[#1C1C1E] text-white placeholder-[#636366]"
             placeholder="Nama kabupaten atau kota"
             disabled={saving}
             required
@@ -167,7 +156,7 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
         </div>
         
         {/* Provinsi */}
-        <div>
+        <div className="md:col-span-3">
           <label className="block text-sm font-medium text-[#98989D] mb-2">
             Provinsi <span className="text-red-500">*</span>
           </label>
@@ -175,12 +164,9 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
             type="text"
             value={formData.location.province || ''}
             onChange={(e) => handleInputChange('location.province', e.target.value)}
-            style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A',
-              color: 'white'
-            }}
-            className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                     bg-[#1C1C1E] text-white placeholder-[#636366]"
             placeholder="Nama provinsi"
             disabled={saving}
             required
@@ -214,16 +200,9 @@ const LocationSection = ({ formData, handleInputChange, saving, projectId }) => 
 
         {/* Coordinate Summary */}
         {(formData.coordinates?.latitude && formData.coordinates?.longitude) && (
-          <div className="mb-4 p-4 bg-[#2C2C2E] border border-[#38383A] rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-[#98989D]">
-                {existingLocation ? 'Koordinat Saat Ini:' : 'Koordinat Terpilih:'}
-              </div>
-              {existingLocation && (
-                <div className="text-xs px-2 py-1 bg-[#34C759]/10 text-[#34C759] rounded">
-                  Aktif
-                </div>
-              )}
+          <div className="mb-4 p-4 bg-[#1C1C1E] border border-[#38383A] rounded-lg">
+            <div className="text-sm text-[#98989D] mb-2">
+              {existingLocation ? 'Koordinat Saat Ini:' : 'Koordinat Terpilih:'}
             </div>
             <div className="flex flex-wrap gap-4 text-sm">
               <div>

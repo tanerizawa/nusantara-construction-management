@@ -429,15 +429,9 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully');
     
-    // Sync database models (create tables if they don't exist)
-    // Note: Using alter: false to avoid conflicts with database views
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: false }); // Changed to false to prevent view conflicts
-      console.log('🔄 Database models synchronized (no alter)');
-    } else {
-      await sequelize.sync();
-      console.log('🔒 Database models verified');
-    }
+    // Skip model sync - database schema already exists
+    // Sync disabled to prevent enum casting issues
+    console.log('✅ Using existing database schema (sync disabled)');
 
     // Initialize Firebase Cloud Messaging for push notifications
     try {

@@ -68,14 +68,14 @@ const InlineCashFlowStatement = ({
             className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
           >
             <Printer className="w-4 h-4" />
-            <span>Print</span>
+            <span>Cetak</span>
           </button>
           <button
             onClick={() => {/* TODO: Implement PDF export */}}
             className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
           >
             <Download className="w-4 h-4" />
-            <span>PDF</span>
+            <span>Unduh PDF</span>
           </button>
           <button
             onClick={onClose}

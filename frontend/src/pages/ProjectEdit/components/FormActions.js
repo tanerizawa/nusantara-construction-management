@@ -10,13 +10,12 @@ import { Save } from 'lucide-react';
  */
 const FormActions = ({ saving }) => {
   return (
-    <div className="flex justify-end">
+    <div className="flex justify-end pt-2">
       <button
         type="submit"
-        style={{
-          backgroundColor: saving ? 'rgba(10, 132, 255, 0.6)' : '#0A84FF'
-        }}
-        className="inline-flex items-center px-6 py-3 rounded-lg text-white font-medium hover:bg-[#0A84FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center px-6 py-2.5 rounded-lg text-white font-medium 
+                 bg-[#0A84FF] hover:bg-[#0077ED] transition-colors 
+                 disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={saving}
       >
         {saving ? (

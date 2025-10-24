@@ -58,8 +58,8 @@ const transformStatsToDisplay = (apiStats) => {
 };
 
 const Landing = () => {
-  // Data management
-  const { stats, recentProjects, loading, error } = useLandingData();
+  // Data management - now uses static showcase data
+  const { stats, recentProjects } = useLandingData();
   
   // Navigation state
   const { isMenuOpen, activeSection, toggleMenu, setSection } = useNavigation();
@@ -67,17 +67,8 @@ const Landing = () => {
   // Smooth scrolling
   useSmoothScroll();
 
-  // Transform API stats to display format or use fallback
+  // Transform stats to display format
   const displayStats = transformStatsToDisplay(stats);
-
-  if (loading) {
-    return <LandingLoader />;
-  }
-
-  if (error) {
-    console.error('Landing page error:', error);
-    // Continue with static data even if API fails
-  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -104,15 +95,5 @@ const Landing = () => {
     </div>
   );
 };
-
-// Loading component
-const LandingLoader = () => (
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-gray-600">Memuat halaman...</p>
-    </div>
-  </div>
-);
 
 export default Landing;

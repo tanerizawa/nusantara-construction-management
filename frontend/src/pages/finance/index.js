@@ -352,7 +352,7 @@ const Finance = () => {
             }}>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
-                  Financial Reports (PSAK Compliant)
+                  Laporan Keuangan (Sesuai PSAK)
                 </h2>
                 <TransactionFilters
                   selectedSubsidiary={financeData.selectedSubsidiary}

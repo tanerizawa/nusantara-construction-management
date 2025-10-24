@@ -106,36 +106,36 @@ const FinancialReportsView = ({
         {/* Balance Sheet Card */}
         <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Balance Sheet</h3>
+            <h3 className="text-lg font-medium" style={{ color: "#FFFFFF" }}>Neraca</h3>
             <Building2 className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-sm text-gray-600">Total Assets</span>
+              <span className="text-sm text-gray-600">Total Aset</span>
               <span className="font-semibold text-blue-600">
                 {formatCurrency(balanceSheet?.totalAssets || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm" style={{ color: "#98989D" }}>Current Assets</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Aset Lancar</span>
               <span className="font-medium" style={{ color: "#FFFFFF" }}>
                 {formatCurrency(balanceSheet?.currentAssets || 0)}
               </span>
             </div>
             <div className="flex justify-between pt-3" style={{ borderTop: "1px solid #38383A" }}>
-              <span className="text-sm" style={{ color: "#98989D" }}>Total Liabilities</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Total Kewajiban</span>
               <span className="font-semibold" style={{ color: "#FF453A" }}>
                 {formatCurrency(balanceSheet?.totalLiabilities || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm" style={{ color: "#98989D" }}>Current Liabilities</span>
+              <span className="text-sm" style={{ color: "#98989D" }}>Kewajiban Lancar</span>
               <span className="font-medium" style={{ color: "#FFFFFF" }}>
                 {formatCurrency(balanceSheet?.currentLiabilities || 0)}
               </span>
             </div>
             <div className="flex justify-between pt-3 font-bold" style={{ borderTop: "1px solid #38383A" }}>
-              <span style={{ color: "#FFFFFF" }}>Equity</span>
+              <span style={{ color: "#FFFFFF" }}>Ekuitas</span>
               <span style={{ color: "#30D158" }}>
                 {formatCurrency(balanceSheet?.equity || 0)}
               </span>
@@ -152,7 +152,7 @@ const FinancialReportsView = ({
               border: activeDetailedReport === 'balance' ? 'none' : '1px solid rgba(10, 132, 255, 0.3)'
             }}
           >
-            {activeDetailedReport === 'balance' ? 'Hide Detailed Report' : 'View Detailed Report'}
+            {activeDetailedReport === 'balance' ? 'Sembunyikan Laporan Rinci' : 'Lihat Laporan Rinci'}
           </button>
         </div>
 

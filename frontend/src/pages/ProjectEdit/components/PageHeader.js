@@ -12,28 +12,22 @@ import { Link } from 'react-router-dom';
  */
 const PageHeader = ({ projectId, projectName }) => {
   return (
-    <div className="mb-8">
-      <div className="flex items-center gap-4 mb-6">
+    <div className="mb-6">
+      <div className="flex items-center gap-4 mb-4">
         <Link 
           to={`/admin/projects/${projectId}`}
-          style={{
-            backgroundColor: '#1C1C1E',
-            border: '1px solid #38383A'
-          }}
-          className="inline-flex items-center px-4 py-2.5 rounded-lg text-sm font-medium text-white hover:bg-[#2C2C2E] transition-colors"
+          className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium 
+                   text-[#0A84FF] hover:text-[#0A84FF]/80 hover:bg-[#0A84FF]/10 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-1.5" />
           Kembali
         </Link>
       </div>
       
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Edit Proyek
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-white">
+          Edit Proyek: {projectName}
         </h1>
-        <p className="text-[#8E8E93]">
-          {projectName}
-        </p>
       </div>
     </div>
   );

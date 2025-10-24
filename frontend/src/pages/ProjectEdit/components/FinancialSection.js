@@ -1,5 +1,4 @@
 import React from 'react';
-import { DollarSign } from 'lucide-react';
 import { CurrencyInput } from '../../../components/ui/NumberInput';
 
 /**
@@ -17,41 +16,23 @@ const FinancialSection = ({ formData, handleInputChange, saving }) => {
   };
   
   return (
-    <div 
-      style={{
-        backgroundColor: '#1C1C1E',
-        border: '1px solid #38383A'
-      }}
-      className="rounded-xl p-6"
-    >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-lg bg-[#32D74B]/10 flex items-center justify-center">
-          <DollarSign className="w-5 h-5 text-[#32D74B]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-white">
-            Informasi Keuangan
-          </h2>
-          <p className="text-sm text-[#8E8E93]">
-            Anggaran dan nilai kontrak
-          </p>
-        </div>
-      </div>
+    <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
+      <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <span className="w-1 h-5 bg-[#32D74B] rounded-full"></span>
+        Informasi Keuangan
+      </h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-[#98989D] mb-2">
-            Nilai Kontrak <span className="text-[#FF3B30]">*</span>
+            Nilai Kontrak <span className="text-red-500">*</span>
           </label>
           <CurrencyInput
             value={formData.budget.contractValue}
             onChange={handleCurrencyChange}
-            style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A',
-              color: 'white'
-            }}
-            className="w-full px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-[#0A84FF] outline-none transition-all placeholder-[#636366]"
+            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
+                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
+                     bg-[#1C1C1E] text-white placeholder-[#636366]"
             placeholder="0"
             required
             disabled={saving}

@@ -90,14 +90,19 @@ const AssetForm = ({ asset, mode, onSubmit, onCancel, categories = [], statusTyp
       console.log('🎯 Specifically setting assetName to:', newFormData.assetName);
       console.log('🎯 Specifically setting assetCode to:', newFormData.assetCode);
       
-      // Use direct state update without callback to avoid conflicts
-      setFormData({ ...newFormData });
+      // Prevent unnecessary updates if data hasn't changed
+      const hasChanged = JSON.stringify(formData) !== JSON.stringify(newFormData);
+      if (hasChanged) {
+        setFormData({ ...newFormData });
+      } else {
+        console.log('⏭️ Skipping formData update - data unchanged');
+      }
       
     } else if (mode === 'create') {
       console.log('➕ Setting form to create mode with initial state');
       setFormData({ ...initialState });
     }
-  }, [mode, asset?.id]);
+  }, [mode, asset]); // Changed from [mode, asset?.id] to [mode, asset] to watch entire asset object
 
   // Debug: Log formData changes
   useEffect(() => {

@@ -66,36 +66,36 @@ const ReverseTransactionModal = ({
 
     // Validate reason
     if (!reason || reason.trim() === '') {
-      newErrors.reason = 'Reversal reason is required for audit trail';
+      newErrors.reason = 'Alasan pembalikan wajib diisi untuk jejak audit';
     } else if (reason.trim().length < 15) {
-      newErrors.reason = 'Reason must be at least 15 characters';
+      newErrors.reason = 'Alasan minimal 15 karakter';
     }
 
     // Validate corrected amount
     if (!correctedData.amount || correctedData.amount <= 0) {
-      newErrors.amount = 'Amount must be greater than 0';
+      newErrors.amount = 'Nilai harus lebih dari 0';
     }
 
     // Validate description
     if (!correctedData.description || correctedData.description.trim() === '') {
-      newErrors.description = 'Description is required';
+      newErrors.description = 'Deskripsi wajib diisi';
     }
 
     // Validate accounts based on type
     if (correctedData.type === 'income') {
       if (!correctedData.accountTo) {
-        newErrors.accountTo = 'Destination account is required for income';
+        newErrors.accountTo = 'Rekening tujuan wajib diisi untuk pendapatan';
       }
     } else if (correctedData.type === 'expense') {
       if (!correctedData.accountFrom) {
-        newErrors.accountFrom = 'Source account is required for expense';
+        newErrors.accountFrom = 'Rekening sumber wajib diisi untuk pengeluaran';
       }
     } else if (correctedData.type === 'transfer') {
       if (!correctedData.accountFrom) {
-        newErrors.accountFrom = 'Source account is required';
+        newErrors.accountFrom = 'Rekening sumber wajib diisi';
       }
       if (!correctedData.accountTo) {
-        newErrors.accountTo = 'Destination account is required';
+        newErrors.accountTo = 'Rekening tujuan wajib diisi';
       }
     }
 
@@ -197,10 +197,10 @@ const ReverseTransactionModal = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold" style={{ color: '#FFFFFF' }}>
-                Reverse & Correct Transaction
+                Balik & Koreksi Transaksi
               </h3>
               <p className="text-xs" style={{ color: '#98989D' }}>
-                Create correction with proper audit trail
+                Buat koreksi dengan jejak audit yang tepat
               </p>
             </div>
           </div>
@@ -232,11 +232,11 @@ const ReverseTransactionModal = ({
           <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#0A84FF' }} />
           <div>
             <p className="text-sm font-medium" style={{ color: '#0A84FF' }}>
-              How Reversal Works
+              Cara Kerja Pembalikan
             </p>
             <p className="text-xs mt-1" style={{ color: '#98989D' }}>
-              This will create 3 linked transactions: Original (kept), Reversal (opposite), 
-              and Corrected (your new data). All balances will be updated accordingly.
+              Ini akan membuat 3 transaksi yang saling terkait: Asli (dipertahankan), Pembalikan (kebalikan), 
+              dan Koreksi (data baru Anda). Semua saldo akan diperbarui sesuai.
             </p>
           </div>
         </div>
@@ -245,7 +245,7 @@ const ReverseTransactionModal = ({
           {/* Original Transaction */}
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center space-x-2">
-              <span style={{ color: '#98989D' }}>Original Transaction</span>
+              <span style={{ color: '#98989D' }}>Transaksi Asli</span>
               <span 
                 className="px-2 py-0.5 text-xs rounded"
                 style={{
@@ -253,7 +253,7 @@ const ReverseTransactionModal = ({
                   color: '#8E8E93'
                 }}
               >
-                Will be marked as REVERSED
+                Akan ditandai sebagai DIBALIK
               </span>
             </h4>
             <div 
@@ -271,19 +271,19 @@ const ReverseTransactionModal = ({
                   </span>
                 </div>
                 <div>
-                  <span className="text-xs block" style={{ color: '#636366' }}>Date</span>
+                  <span className="text-xs block" style={{ color: '#636366' }}>Tanggal</span>
                   <span className="text-sm" style={{ color: '#FFFFFF' }}>
                     {formatDate(transaction.date)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-xs block" style={{ color: '#636366' }}>Amount</span>
+                  <span className="text-xs block" style={{ color: '#636366' }}>Nilai</span>
                   <span className="text-sm font-semibold" style={{ color: '#FF9500' }}>
                     {formatCurrency(transaction.amount)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-xs block" style={{ color: '#636366' }}>Type</span>
+                  <span className="text-xs block" style={{ color: '#636366' }}>Jenis</span>
                   <span className="text-sm capitalize" style={{ color: '#FFFFFF' }}>
                     {transaction.type}
                   </span>
@@ -295,7 +295,7 @@ const ReverseTransactionModal = ({
           {/* Reversal Reason */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-              Reversal Reason <span style={{ color: '#FF453A' }}>*</span>
+              Alasan Pembalikan <span style={{ color: '#FF453A' }}>*</span>
             </label>
             <textarea
               value={reason}
@@ -305,7 +305,7 @@ const ReverseTransactionModal = ({
                   setErrors({ ...errors, reason: null });
                 }
               }}
-              placeholder="e.g., Amount was incorrect, should be 30 million not 50 million"
+              placeholder="contoh: Nilai salah, seharusnya 30 juta bukan 50 juta"
               rows={3}
               className="w-full px-4 py-3 rounded-lg text-sm transition-all duration-200 focus:outline-none"
               style={{
@@ -335,7 +335,7 @@ const ReverseTransactionModal = ({
           {/* Corrected Transaction Data */}
           <div>
             <h4 className="text-sm font-medium mb-3 flex items-center space-x-2">
-              <span style={{ color: '#FFFFFF' }}>Corrected Transaction Data</span>
+              <span style={{ color: '#FFFFFF' }}>Data Transaksi yang Dikoreksi</span>
               <span 
                 className="px-2 py-0.5 text-xs rounded"
                 style={{
@@ -343,7 +343,7 @@ const ReverseTransactionModal = ({
                   color: '#30D158'
                 }}
               >
-                New correct entry
+                Entri benar yang baru
               </span>
             </h4>
 
@@ -351,7 +351,7 @@ const ReverseTransactionModal = ({
               {/* Amount */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                  Corrected Amount <span style={{ color: '#FF453A' }}>*</span>
+                  Nilai yang Dikoreksi <span style={{ color: '#FF453A' }}>*</span>
                 </label>
                 <input
                   type="number"
@@ -386,12 +386,12 @@ const ReverseTransactionModal = ({
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                  Description <span style={{ color: '#FF453A' }}>*</span>
+                  Deskripsi <span style={{ color: '#FF453A' }}>*</span>
                 </label>
                 <textarea
                   value={correctedData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
-                  placeholder="Enter transaction description"
+                  placeholder="Masukkan deskripsi transaksi"
                   rows={2}
                   className="w-full px-4 py-3 rounded-lg text-sm transition-all duration-200 focus:outline-none"
                   style={{
@@ -422,7 +422,7 @@ const ReverseTransactionModal = ({
               {(correctedData.type === 'expense' || correctedData.type === 'transfer') && (
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                    Source Account <span style={{ color: '#FF453A' }}>*</span>
+                    Rekening Sumber <span style={{ color: '#FF453A' }}>*</span>
                   </label>
                   <select
                     value={correctedData.accountFrom}
@@ -435,7 +435,7 @@ const ReverseTransactionModal = ({
                     }}
                     disabled={loading}
                   >
-                    <option value="">Select source account...</option>
+                    <option value="">Pilih rekening sumber...</option>
                     {sourceAccounts.map(acc => (
                       <option key={acc.id} value={acc.id}>
                         {acc.accountCode} - {acc.accountName}
@@ -453,7 +453,7 @@ const ReverseTransactionModal = ({
               {(correctedData.type === 'income' || correctedData.type === 'transfer') && (
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-                    Destination Account <span style={{ color: '#FF453A' }}>*</span>
+                    Rekening Tujuan <span style={{ color: '#FF453A' }}>*</span>
                   </label>
                   <select
                     value={correctedData.accountTo}
@@ -466,7 +466,7 @@ const ReverseTransactionModal = ({
                     }}
                     disabled={loading}
                   >
-                    <option value="">Select destination account...</option>
+                    <option value="">Pilih rekening tujuan...</option>
                     {destinationAccounts.map(acc => (
                       <option key={acc.id} value={acc.id}>
                         {acc.accountCode} - {acc.accountName}
@@ -493,23 +493,23 @@ const ReverseTransactionModal = ({
               }}
             >
               <h4 className="text-sm font-medium mb-2" style={{ color: '#0A84FF' }}>
-                Balance Effect
+                Dampak Saldo
               </h4>
               <div className="space-y-1 text-xs" style={{ color: '#98989D' }}>
                 <div className="flex justify-between">
-                  <span>Original:</span>
+                  <span>Asli:</span>
                   <span style={{ color: '#FF9500' }}>
                     -{formatCurrency(transaction.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Reversal:</span>
+                  <span>Pembalikan:</span>
                   <span style={{ color: '#30D158' }}>
                     +{formatCurrency(transaction.amount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Corrected:</span>
+                  <span>Koreksi:</span>
                   <span style={{ color: '#FF9500' }}>
                     -{formatCurrency(correctedData.amount)}
                   </span>
@@ -518,7 +518,7 @@ const ReverseTransactionModal = ({
                   className="flex justify-between pt-2 mt-2 font-semibold"
                   style={{ borderTop: '1px solid rgba(10, 132, 255, 0.3)' }}
                 >
-                  <span style={{ color: '#FFFFFF' }}>Net Effect:</span>
+                  <span style={{ color: '#FFFFFF' }}>Dampak Bersih:</span>
                   <span style={{ color: '#0A84FF' }}>
                     -{formatCurrency(correctedData.amount)}
                   </span>
@@ -563,7 +563,7 @@ const ReverseTransactionModal = ({
             onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = 'rgba(56, 56, 58, 0.7)')}
             onMouseLeave={(e) => !loading && (e.currentTarget.style.backgroundColor = 'rgba(56, 56, 58, 0.5)')}
           >
-            Cancel
+            Batal
           </button>
           <button
             onClick={handleReverse}
@@ -584,12 +584,12 @@ const ReverseTransactionModal = ({
                 <div 
                   className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"
                 />
-                <span>Reversing...</span>
+                <span>Membalikkan...</span>
               </>
             ) : (
               <>
                 <RefreshCw className="w-4 h-4" />
-                <span>Reverse & Correct</span>
+                <span>Balik & Koreksi</span>
               </>
             )}
           </button>

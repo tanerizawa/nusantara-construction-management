@@ -133,7 +133,7 @@ export const useProjectEditForm = (projectId) => {
         budget: {
           contractValue: Number(budgetValue) || 0
         },
-        status: projectData.status || 'planning',
+        status: (projectData.status === 'in_progress' ? 'active' : (projectData.status || 'planning')),
         priority: projectData.priority || 'medium',
         progress: Number(progress) || 0,
         subsidiary: {
@@ -234,15 +234,10 @@ export const useProjectEditForm = (projectId) => {
           city: formData.location.city.trim(),
           province: formData.location.province.trim()
         },
-        coordinates: (formData.coordinates?.latitude && formData.coordinates?.longitude) ? {
-          latitude: formData.coordinates.latitude,
-          longitude: formData.coordinates.longitude,
-          radius: formData.coordinates.radius || 100
-        } : null,
         budget: Number(formData.budget.contractValue) || 0,
         startDate: formData.timeline.startDate,
         endDate: formData.timeline.endDate,
-        status: formData.status,
+        status: (formData.status === 'in_progress' ? 'active' : formData.status),
         priority: formData.priority,
         progress: Number(formData.progress) || 0,
         subsidiary: {
@@ -251,6 +246,15 @@ export const useProjectEditForm = (projectId) => {
           name: formData.subsidiary.name
         }
       };
+
+      // Only add coordinates if they exist (don't send null)
+      if (formData.coordinates?.latitude && formData.coordinates?.longitude) {
+        updateData.coordinates = {
+          latitude: formData.coordinates.latitude,
+          longitude: formData.coordinates.longitude,
+          radius: formData.coordinates.radius || 100
+        };
+      }
 
       const response = await projectAPI.update(projectId, updateData);
       

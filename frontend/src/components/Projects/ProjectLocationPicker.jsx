@@ -158,89 +158,448 @@ const ProjectLocationPicker = ({
     );
   };
 
-  // Search location by address using Nominatim (OpenStreetMap Geocoding)
+  // ============================================================================
+  // ENHANCED GEOCODING WITH FUZZY SEARCH & MULTI-LEVEL FALLBACK
+  // ============================================================================
+  
+  /**
+   * Normalize address text for better matching
+   * - Lowercase, trim spaces, standardize abbreviations
+   */
+  const normalizeAddress = (text) => {
+    if (!text) return '';
+    
+    let normalized = text.toLowerCase().trim();
+    
+    // Standardize common abbreviations
+    const replacements = {
+      'jl.': 'jalan',
+      'jln.': 'jalan',
+      'kel.': 'kelurahan',
+      'kec.': 'kecamatan',
+      'kab.': 'kabupaten',
+      'prov.': 'provinsi',
+      'no.': 'nomor',
+      'rt.': 'rt',
+      'rw.': 'rw',
+      'ds.': 'desa',
+      // Common typos for Indonesian cities
+      'kerawang': 'karawang',
+      'jakrta': 'jakarta',
+      'bandng': 'bandung',
+      'surabya': 'surabaya',
+      'yogjakarta': 'yogyakarta',
+      'yogya': 'yogyakarta',
+    };
+    
+    Object.entries(replacements).forEach(([from, to]) => {
+      const regex = new RegExp(`\\b${from}\\b`, 'gi');
+      normalized = normalized.replace(regex, to);
+    });
+    
+    // Remove extra spaces
+    normalized = normalized.replace(/\s+/g, ' ').trim();
+    
+    return normalized;
+  };
+
+  /**
+   * Calculate similarity score between two strings (0-1)
+   * Uses Levenshtein distance for fuzzy matching
+   */
+  const calculateSimilarity = (str1, str2) => {
+    const s1 = normalizeAddress(str1);
+    const s2 = normalizeAddress(str2);
+    
+    if (s1 === s2) return 1.0;
+    if (!s1 || !s2) return 0.0;
+    
+    // Levenshtein distance
+    const matrix = [];
+    for (let i = 0; i <= s2.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= s1.length; j++) {
+      matrix[0][j] = j;
+    }
+    for (let i = 1; i <= s2.length; i++) {
+      for (let j = 1; j <= s1.length; j++) {
+        if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    
+    const distance = matrix[s2.length][s1.length];
+    const maxLength = Math.max(s1.length, s2.length);
+    return 1 - (distance / maxLength);
+  };
+
+  /**
+   * Score and rank geocoding results based on relevance
+   */
+  const scoreResult = (result, inputCity, inputProvince) => {
+    let score = 0;
+    const resultAddress = result.address || {};
+    
+    // Exact match for city/province gets highest score
+    if (inputCity && resultAddress.city && 
+        normalizeAddress(resultAddress.city) === normalizeAddress(inputCity)) {
+      score += 50;
+    } else if (inputCity && resultAddress.county &&
+               normalizeAddress(resultAddress.county) === normalizeAddress(inputCity)) {
+      score += 40;
+    } else if (inputCity) {
+      // Fuzzy match
+      const citySimilarity = calculateSimilarity(resultAddress.city || resultAddress.county || '', inputCity);
+      score += citySimilarity * 30;
+    }
+    
+    if (inputProvince && resultAddress.state &&
+        normalizeAddress(resultAddress.state) === normalizeAddress(inputProvince)) {
+      score += 30;
+    } else if (inputProvince) {
+      const provinceSimilarity = calculateSimilarity(resultAddress.state || '', inputProvince);
+      score += provinceSimilarity * 20;
+    }
+    
+    // Bonus for complete address
+    if (resultAddress.road) score += 10;
+    if (resultAddress.village || resultAddress.suburb) score += 5;
+    if (result.importance) score += result.importance * 10;
+    
+    return score;
+  };
+
+  /**
+   * Enhanced geocoding with aggressive multi-level fallback strategy
+   * Designed to handle incomplete address data in Indonesia
+   */
+  const searchWithFallback = async (queries) => {
+    for (let i = 0; i < queries.length; i++) {
+      const query = queries[i];
+      console.log(`🔍 Level ${i + 1} search:`, query);
+      
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?` +
+          `q=${encodeURIComponent(query)}` +
+          `&format=json` +
+          `&limit=10` + // Increased to 10 for better ranking
+          `&addressdetails=1` +
+          `&countrycodes=id`, // Restrict to Indonesia
+          {
+            headers: {
+              'Accept': 'application/json',
+              'Accept-Language': 'id,en;q=0.9',
+              'User-Agent': 'NusantaraConstructionApp/1.0 (Contact: admin@nusantaragroup.co)'
+            }
+          }
+        );
+
+        // Check for rate limiting or server errors
+        if (response.status === 503) {
+          console.warn(`⚠️ Nominatim rate limited (503), waiting longer...`);
+          await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3s
+          continue; // Skip to next query
+        }
+
+        if (response.status === 429) {
+          console.warn(`⚠️ Too many requests (429), waiting...`);
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
+          continue;
+        }
+
+        if (!response.ok) {
+          console.warn(`⚠️ HTTP ${response.status}: ${response.statusText}`);
+          continue; // Try next query level
+        }
+
+        // Safely parse JSON
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          console.error(`❌ Invalid JSON response (possibly HTML error page):`, jsonError.message);
+          console.log(`Response status: ${response.status}, Content-Type: ${response.headers.get('content-type')}`);
+          continue; // Try next query level
+        }
+        
+        if (data && data.length > 0) {
+          // Score and rank results
+          const scoredResults = data.map(result => ({
+            ...result,
+            score: scoreResult(result, city, province)
+          }));
+          
+          // Sort by score (highest first)
+          scoredResults.sort((a, b) => b.score - a.score);
+          
+          console.log('📊 Scored results:', scoredResults.map(r => ({
+            name: r.display_name.substring(0, 60) + '...',
+            score: r.score.toFixed(2),
+            type: r.type,
+            importance: r.importance
+          })));
+          
+          // LOWERED THRESHOLD - Accept results with score > 10 (was 20)
+          // This is more forgiving for areas not well-mapped
+          if (scoredResults[0].score > 10) {
+            return {
+              success: true,
+              result: scoredResults[0],
+              level: i + 1,
+              totalResults: data.length,
+              allResults: scoredResults.slice(0, 3) // Top 3 for debugging
+            };
+          } else {
+            console.log(`⚠️ Best score (${scoredResults[0].score.toFixed(2)}) below threshold (10), trying next level...`);
+          }
+        } else {
+          console.log(`⚠️ No results found at level ${i + 1}`);
+        }
+        
+        // Add delay between requests to respect rate limiting
+        if (i < queries.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1200)); // 1.2s to be safe
+        }
+      } catch (error) {
+        console.error(`Level ${i + 1} search error:`, error);
+        continue;
+      }
+    }
+    
+    return { success: false };
+  };
+
+  /**
+   * Main search function with enhanced fuzzy matching
+   * AGGRESSIVE FALLBACK STRATEGY for Indonesia addresses
+   */
   const handleSearchByAddress = async () => {
-    // Build search query from address fields (most specific to general)
-    const searchParts = [];
-    if (address) searchParts.push(address);           // Jalan, nomor (optional)
-    if (village) searchParts.push(village);           // Desa/Kelurahan
-    if (district) searchParts.push(district);         // Kecamatan
-    if (city) searchParts.push(city);                 // Kabupaten/Kota
-    if (province) searchParts.push(province);         // Provinsi
-    searchParts.push('Indonesia');                    // Country
-    
-    const searchQuery = searchParts.join(', ');
-    
-    // Must have at least village or city
-    if (!village && !city) {
-      alert('Mohon isi minimal Desa/Kelurahan atau Kabupaten/Kota terlebih dahulu');
+    // Must have at least city or village
+    if (!city && !village && !district) {
+      alert('Mohon isi minimal Kecamatan, Desa/Kelurahan, atau Kabupaten/Kota terlebih dahulu');
       return;
     }
 
     setSearchingAddress(true);
     
     try {
-      console.log('🔍 Searching location:', searchQuery);
+      // Normalize all inputs
+      const normAddress = normalizeAddress(address);
+      const normVillage = normalizeAddress(village);
+      const normDistrict = normalizeAddress(district);
+      const normCity = normalizeAddress(city);
+      const normProvince = normalizeAddress(province);
       
-      // Use Nominatim API (OpenStreetMap Geocoding - FREE)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(searchQuery)}` +
-        `&format=json` +
-        `&limit=1` +
-        `&addressdetails=1`,
-        {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'NusantaraConstructionApp/1.0'
+      // Build AGGRESSIVE fallback queries with many variations
+      const queries = [];
+      
+      // LEVEL 1: Full address (most specific)
+      if (normAddress || normVillage) {
+        const parts = [];
+        if (normAddress) parts.push(normAddress);
+        if (normVillage) parts.push(normVillage);
+        if (normDistrict) parts.push(normDistrict);
+        if (normCity) parts.push(normCity);
+        if (normProvince) parts.push(normProvince);
+        parts.push('indonesia');
+        queries.push(parts.join(', '));
+      }
+      
+      // LEVEL 2: Without street name (village + district + city + province)
+      if (normVillage && (normDistrict || normCity)) {
+        const parts = [];
+        if (normVillage) parts.push(normVillage);
+        if (normDistrict) parts.push(normDistrict);
+        if (normCity) parts.push(normCity);
+        if (normProvince) parts.push(normProvince);
+        parts.push('indonesia');
+        queries.push(parts.join(', '));
+      }
+      
+      // LEVEL 3: Without street AND village (district + city + province)
+      // Useful when village name is not in database
+      if (normDistrict && normCity) {
+        const parts = [];
+        if (normDistrict) parts.push(normDistrict);
+        if (normCity) parts.push(normCity);
+        if (normProvince) parts.push(normProvince);
+        parts.push('indonesia');
+        queries.push(parts.join(', '));
+      }
+      
+      // LEVEL 4: City + Province only
+      if (normCity) {
+        const parts = [];
+        if (normCity) parts.push(normCity);
+        if (normProvince) parts.push(normProvince);
+        parts.push('indonesia');
+        queries.push(parts.join(', '));
+      }
+      
+      // LEVEL 5: City with common variations
+      // Try different city name formats
+      if (normCity) {
+        // Remove common prefixes
+        const cityVariations = [
+          normCity.replace(/^kabupaten\s+/i, '').replace(/^kota\s+/i, ''),
+          normCity.replace(/^kab\.\s+/i, '').replace(/^kab\s+/i, ''),
+        ];
+        
+        for (const cityVar of cityVariations) {
+          if (cityVar !== normCity && cityVar.length > 3) {
+            queries.push(`${cityVar}, ${normProvince || ''}, indonesia`.replace(', ,', ','));
           }
         }
-      );
-
-      const data = await response.json();
+      }
       
-      if (data && data.length > 0) {
-        const result = data[0];
+      // LEVEL 6: District only (if village search failed)
+      if (normDistrict && normProvince) {
+        queries.push(`${normDistrict}, ${normProvince}, indonesia`);
+      }
+      
+      // LEVEL 7: Province only (last resort)
+      if (normProvince) {
+        queries.push(`${normProvince}, indonesia`);
+      }
+      
+      // Remove duplicates
+      const uniqueQueries = [...new Set(queries)];
+      
+      console.log(`🔍 Starting search with ${uniqueQueries.length} fallback queries:`, uniqueQueries);
+      
+      // Execute search with fallback
+      const searchResult = await searchWithFallback(uniqueQueries);
+      
+      if (searchResult.success) {
+        const result = searchResult.result;
         const latitude = parseFloat(result.lat);
         const longitude = parseFloat(result.lon);
         const newPos = [latitude, longitude];
         
+        // Determine confidence level based on score
+        let confidenceLevel = 'low';
+        let confidenceMessage = '';
+        let zoomLevel = 12;
+        
+        if (result.score > 50) {
+          confidenceLevel = 'high';
+          confidenceMessage = '✅ Lokasi ditemukan dengan akurat';
+          zoomLevel = 16;
+        } else if (result.score > 25) {
+          confidenceLevel = 'medium';
+          confidenceMessage = '⚠️ Lokasi ditemukan (perkiraan area)';
+          zoomLevel = 14;
+        } else {
+          confidenceLevel = 'low';
+          confidenceMessage = '⚠️ Lokasi ditemukan (perkiraan luas)';
+          zoomLevel = 12;
+        }
+        
         console.log('✅ Location found:', {
+          level: searchResult.level,
           display_name: result.display_name,
           lat: latitude,
-          lon: longitude
+          lon: longitude,
+          score: result.score.toFixed(2),
+          confidence: confidenceLevel,
+          type: result.type,
+          importance: result.importance
         });
         
-        // Update state - let useEffect handle map movement
+        // Update state
         setCenter(newPos);
         setMarker(newPos);
-        setZoom(16);
+        setZoom(zoomLevel);
         onCoordinatesChange({ latitude, longitude });
         setSearchingAddress(false);
         
+        // Show detailed feedback to user
+        const locationInfo = result.display_name.length > 100 
+          ? result.display_name.substring(0, 97) + '...'
+          : result.display_name;
+        
+        const detailMessage = 
+          `${confidenceMessage}\n\n` +
+          `📍 ${locationInfo}\n\n` +
+          `Tingkat Pencarian: Level ${searchResult.level} dari ${uniqueQueries.length}\n` +
+          `Skor Kecocokan: ${result.score.toFixed(0)}/100\n\n` +
+          `${confidenceLevel === 'high' 
+            ? '✓ Silakan klik peta untuk fine-tuning posisi yang lebih tepat.' 
+            : confidenceLevel === 'medium'
+            ? '⚠ Mohon cek visual di peta dan sesuaikan posisi jika perlu.'
+            : '⚠ Ini perkiraan area luas. Harap zoom in dan pilih lokasi tepat di peta.'}`;
+        
+        // Use setTimeout to allow map to update first
+        setTimeout(() => {
+          alert(detailMessage);
+        }, 500);
+        
       } else {
-        alert('Lokasi tidak ditemukan. Coba perbaiki alamat atau pilih lokasi manual di peta.');
         setSearchingAddress(false);
+        
+        // More helpful error message with suggestions
+        const addressSummary = [normVillage, normDistrict, normCity, normProvince]
+          .filter(Boolean)
+          .join(', ');
+        
+        alert(
+          `❌ Lokasi tidak ditemukan setelah ${uniqueQueries.length} percobaan pencarian.\n\n` +
+          `Alamat yang dicari:\n"${addressSummary}"\n\n` +
+          `Kemungkinan penyebab:\n` +
+          `• Nama desa/kelurahan tidak ada dalam database peta OpenStreetMap\n` +
+          `• Ejaan nama lokasi berbeda dengan database\n` +
+          `• Area terlalu baru (belum di-mapping)\n\n` +
+          `Solusi:\n` +
+          `1. Coba ubah "Kabupaten Karawang" menjadi "Karawang" saja\n` +
+          `2. Periksa ejaan kecamatan dan desa\n` +
+          `3. Gunakan nama yang lebih umum/dikenal\n` +
+          `4. Atau pilih lokasi manual di peta (scroll & zoom, lalu klik)\n\n` +
+          `Catatan: Database peta mungkin tidak lengkap untuk semua desa di Indonesia.\n` +
+          `Pencarian manual di peta tetap sangat akurat!`
+        );
       }
     } catch (error) {
       console.error('Geocoding error:', error);
-      alert('Gagal mencari lokasi. Silakan pilih manual di peta.');
       setSearchingAddress(false);
+      
+      // Check if it's a rate limiting issue
+      const isRateLimitError = error.message.includes('503') || 
+                               error.message.includes('429') ||
+                               error.message.includes('rate limit') ||
+                               error.message.includes('too many');
+      
+      if (isRateLimitError) {
+        alert(
+          `⚠️ Server peta sedang sibuk (terlalu banyak permintaan).\n\n` +
+          `Silakan:\n` +
+          `1. Tunggu 30 detik, lalu coba lagi\n` +
+          `2. Atau pilih lokasi manual dengan klik di peta\n\n` +
+          `Tips: Pencarian manual di peta tetap sangat akurat!`
+        );
+      } else {
+        alert(
+          `❌ Gagal mencari lokasi karena error teknis.\n\n` +
+          `Error: ${error.message}\n\n` +
+          `Silakan:\n` +
+          `• Coba lagi dalam beberapa saat\n` +
+          `• Atau pilih lokasi manual di peta (klik pada peta)`
+        );
+      }
     }
   };
 
-  // Auto-search when address fields change (with debounce)
-  useEffect(() => {
-    // Only auto-search if we don't have coordinates yet and address fields are filled
-    if (!marker && (address || village || district || city || province)) {
-      const timer = setTimeout(() => {
-        handleSearchByAddress();
-      }, 500); // Debounce 500ms
-
-      return () => clearTimeout(timer);
-    }
-  }, [address, village, district, city, province]);
-
+  // REMOVED: Auto-search was causing unwanted coordinate changes
+  // User must explicitly click "Cari Lokasi dari Alamat" button to trigger search
+  
   // Reset/clear location
   const handleClearLocation = () => {
     setMarker(null);
@@ -406,7 +765,7 @@ const ProjectLocationPicker = ({
       {/* Info Box */}
       <div className="location-info-box">
         <div className="info-item">
-          <span className="info-icon">�</span>
+          <span className="info-icon">ℹ️</span>
           <span className="info-text">
             {(address || city || province) 
               ? 'Klik "Cari Lokasi dari Alamat" untuk auto-detect berdasarkan alamat yang diisi'
@@ -414,7 +773,7 @@ const ProjectLocationPicker = ({
           </span>
         </div>
         <div className="info-item">
-          <span className="info-icon">�📍</span>
+          <span className="info-icon">📍</span>
           <span className="info-text">
             Atau klik pada peta untuk menandai lokasi manual
           </span>

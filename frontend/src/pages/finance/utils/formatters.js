@@ -108,15 +108,15 @@ export const formatPeriod = (period) => {
  */
 export const convertCOAToCSV = (accounts) => {
   const headers = [
-    "Account Code",
-    "Account Name",
-    "Account Type",
-    "Account Sub Type",
+    "Kode Akun",
+    "Nama Akun",
+    "Tipe Akun",
+    "Sub Tipe Akun",
     "Level",
-    "Normal Balance",
-    "Description",
-    "Construction Specific",
-    "VAT Applicable",
+    "Saldo Normal",
+    "Deskripsi",
+    "Khusus Konstruksi",
+    "PPN Berlaku",
     "Status",
   ];
   const rows = [headers.join(",")];
@@ -131,9 +131,9 @@ export const convertCOAToCSV = (accounts) => {
         account.level,
         `"${account.normalBalance}"`,
         `"${account.description || ""}"`,
-        account.constructionSpecific ? "Yes" : "No",
-        account.vatApplicable ? "Yes" : "No",
-        account.isActive ? "Active" : "Inactive",
+        account.constructionSpecific ? "Ya" : "Tidak",
+        account.vatApplicable ? "Ya" : "Tidak",
+        account.isActive ? "Aktif" : "Nonaktif",
       ];
       rows.push(row.join(","));
 

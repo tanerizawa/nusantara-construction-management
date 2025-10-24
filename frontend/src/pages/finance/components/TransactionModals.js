@@ -14,7 +14,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
       <div className="rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" style={{ backgroundColor: '#2C2C2E', border: '1px solid #38383A' }}>
         <div className="p-6 flex justify-between items-center" style={{ borderBottom: '1px solid #38383A' }}>
-          <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Transaction Details</h3>
+          <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Detail Transaksi</h3>
           <button
             onClick={onClose}
             className="transition-colors"
@@ -49,14 +49,14 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
                   : '1px solid rgba(10, 132, 255, 0.3)'
               }}
             >
-              {transaction.type === 'income' ? 'Income' :
-               transaction.type === 'expense' ? 'Expense' : 'Transfer'}
+              {transaction.type === 'income' ? 'Pendapatan' :
+               transaction.type === 'expense' ? 'Pengeluaran' : 'Transfer'}
             </span>
           </div>
 
           {/* Amount */}
           <div className="rounded-lg p-4" style={{ backgroundColor: '#1C1C1E' }}>
-            <p className="text-sm mb-1" style={{ color: '#98989D' }}>Amount</p>
+            <p className="text-sm mb-1" style={{ color: '#98989D' }}>Nilai</p>
             <p 
               className="text-2xl font-bold"
               style={{ 
@@ -70,11 +70,11 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Category</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Kategori</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.category}</p>
             </div>
             <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Date</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Tanggal</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{formatDate(transaction.date, true)}</p>
             </div>
             
@@ -82,7 +82,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
             {(transaction.type === 'expense' || transaction.type === 'transfer') && transaction.accountFrom && (
               <div>
                 <p className="text-sm mb-1" style={{ color: '#98989D' }}>
-                  {transaction.type === 'transfer' ? 'From Account' : 'Paying Account'}
+                  {transaction.type === 'transfer' ? 'Dari Rekening' : 'Rekening Pembayar'}
                 </p>
                 <p className="font-medium" style={{ color: '#FFFFFF' }}>
                   {transaction.accountFrom}
@@ -94,7 +94,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
             {(transaction.type === 'income' || transaction.type === 'transfer') && transaction.accountTo && (
               <div>
                 <p className="text-sm mb-1" style={{ color: '#98989D' }}>
-                  {transaction.type === 'transfer' ? 'To Account' : 'Receiving Account'}
+                  {transaction.type === 'transfer' ? 'Ke Rekening' : 'Rekening Penerima'}
                 </p>
                 <p className="font-medium" style={{ color: '#FFFFFF' }}>
                   {transaction.accountTo}
@@ -105,7 +105,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
             {/* Legacy Payment Method (for old transactions) */}
             {transaction.paymentMethod && (
               <div>
-                <p className="text-sm mb-1" style={{ color: '#98989D' }}>Payment Method</p>
+                <p className="text-sm mb-1" style={{ color: '#98989D' }}>Metode Pembayaran</p>
                 <p className="font-medium" style={{ color: '#FFFFFF' }}>
                   {getPaymentMethodLabel(transaction.paymentMethod)}
                 </p>
@@ -113,7 +113,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
             )}
             
             <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Reference Number</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Nomor Referensi</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.referenceNumber || '-'}</p>
             </div>
           </div>
@@ -121,7 +121,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
           {/* Subsidiary Info */}
           {subsidiaryInfo && (
             <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Subsidiary</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Anak Perusahaan</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{subsidiaryInfo.name}</p>
             </div>
           )}
@@ -129,30 +129,30 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
           {/* Project Info */}
           {transaction.projectId && (
             <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Project</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Proyek</p>
               <p className="font-medium" style={{ color: '#FFFFFF' }}>{transaction.projectName || transaction.projectId}</p>
             </div>
           )}
 
           {/* Description */}
           <div>
-            <p className="text-sm mb-1" style={{ color: '#98989D' }}>Description</p>
+            <p className="text-sm mb-1" style={{ color: '#98989D' }}>Deskripsi</p>
             <p style={{ color: '#FFFFFF' }}>{transaction.description}</p>
           </div>
 
           {/* Notes */}
           {transaction.notes && (
             <div>
-              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Notes</p>
+              <p className="text-sm mb-1" style={{ color: '#98989D' }}>Catatan</p>
               <p className="text-sm rounded p-3" style={{ color: '#98989D', backgroundColor: '#1C1C1E' }}>{transaction.notes}</p>
             </div>
           )}
 
           {/* Metadata */}
           <div className="pt-4 text-xs" style={{ borderTop: '1px solid #38383A', color: '#636366' }}>
-            <p>Transaction ID: {transaction.id}</p>
+            <p>ID Transaksi: {transaction.id}</p>
             {transaction.createdAt && (
-              <p>Created: {formatDate(transaction.createdAt, true)}</p>
+              <p>Dibuat: {formatDate(transaction.createdAt, true)}</p>
             )}
           </div>
         </div>
@@ -167,7 +167,7 @@ const ViewTransactionModal = ({ transaction, subsidiaryInfo, onClose }) => {
               border: '1px solid rgba(10, 132, 255, 0.3)'
             }}
           >
-            Close
+            Tutup
           </button>
         </div>
       </div>
@@ -191,15 +191,15 @@ const DeleteTransactionModal = ({ transaction, onConfirm, onCancel, isDeleting }
             <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(255, 69, 58, 0.15)' }}>
               <AlertTriangle className="w-5 h-5" style={{ color: '#FF453A' }} />
             </div>
-            <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Delete Transaction</h3>
+            <h3 className="text-lg font-medium" style={{ color: '#FFFFFF' }}>Hapus Transaksi</h3>
           </div>
           
           <p className="mb-4" style={{ color: '#98989D' }}>
-            Are you sure you want to delete this transaction? This action cannot be undone.
+            Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.
           </p>
 
           <div className="rounded-lg p-3 mb-4 text-sm" style={{ backgroundColor: '#1C1C1E' }}>
-            <p style={{ color: '#98989D' }}>Transaction Details:</p>
+            <p style={{ color: '#98989D' }}>Detail Transaksi:</p>
             <p className="font-medium mt-1" style={{ color: '#FFFFFF' }}>{transaction.description}</p>
             <p 
               className="font-semibold mt-1"
@@ -223,7 +223,7 @@ const DeleteTransactionModal = ({ transaction, onConfirm, onCancel, isDeleting }
               }}
               disabled={isDeleting}
             >
-              Cancel
+              Batal
             </button>
             <button
               onClick={onConfirm}
@@ -238,10 +238,10 @@ const DeleteTransactionModal = ({ transaction, onConfirm, onCancel, isDeleting }
               {isDeleting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Deleting...</span>
+                  <span>Menghapus...</span>
                 </>
               ) : (
-                <span>Delete Transaction</span>
+                <span>Hapus Transaksi</span>
               )}
             </button>
           </div>

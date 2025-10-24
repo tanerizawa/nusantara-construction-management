@@ -6,7 +6,8 @@ import { useAnimatedCounter, useIntersectionObserver } from '../hooks/useLanding
 export const StatsCard = ({ 
   stats = COMPANY_STATS, 
   className = '',
-  animated = true 
+  animated = true,
+  showHeader = false  // Add option to show/hide header
 }) => {
   const { elementRef, hasIntersected } = useIntersectionObserver();
 
@@ -15,10 +16,13 @@ export const StatsCard = ({
       ref={elementRef}
       className={`bg-white/90 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 hover:shadow-3xl transition-all duration-500 transform hover:scale-105 ${className}`}
     >
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Pencapaian Kami</h3>
-        <p className="text-gray-600">Rekam jejak yang membanggakan</p>
-      </div>
+      {/* Header removed - cleaner design without "Pencapaian Kami" text */}
+      {showHeader && (
+        <div className="text-center mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">Statistik</h3>
+          <p className="text-gray-600">Data perusahaan</p>
+        </div>
+      )}
       
       <div className="grid grid-cols-2 gap-6">
         {stats.map((stat, index) => (

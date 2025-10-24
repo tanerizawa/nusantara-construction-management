@@ -37,9 +37,9 @@ const VoidTransactionModal = ({
     const newErrors = {};
 
     if (!reason || reason.trim() === '') {
-      newErrors.reason = 'Void reason is required for audit trail';
+      newErrors.reason = 'Alasan pembatalan wajib diisi untuk jejak audit';
     } else if (reason.trim().length < 10) {
-      newErrors.reason = 'Reason must be at least 10 characters';
+      newErrors.reason = 'Alasan minimal 10 karakter';
     }
 
     setErrors(newErrors);
@@ -105,10 +105,10 @@ const VoidTransactionModal = ({
             </div>
             <div>
               <h3 className="text-lg font-semibold" style={{ color: '#FFFFFF' }}>
-                Void Transaction
+                Batalkan Transaksi
               </h3>
               <p className="text-xs" style={{ color: '#98989D' }}>
-                Cancel this transaction permanently
+                Batalkan transaksi ini secara permanen
               </p>
             </div>
           </div>
@@ -140,11 +140,11 @@ const VoidTransactionModal = ({
           <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#FF9F0A' }} />
           <div>
             <p className="text-sm font-medium" style={{ color: '#FF9F0A' }}>
-              This action cannot be undone
+              Tindakan ini tidak dapat dibatalkan
             </p>
             <p className="text-xs mt-1" style={{ color: '#98989D' }}>
-              The transaction will be marked as VOIDED and account balances will be reversed. 
-              Original transaction data will be kept for audit trail.
+              Transaksi akan ditandai sebagai DIBATALKAN dan saldo akun akan disesuaikan. 
+              Data transaksi asli akan disimpan untuk jejak audit.
             </p>
           </div>
         </div>
@@ -152,7 +152,7 @@ const VoidTransactionModal = ({
         {/* Transaction Details */}
         <div className="px-6 py-4">
           <h4 className="text-sm font-medium mb-3" style={{ color: '#98989D' }}>
-            Transaction Details
+            Detail Transaksi
           </h4>
           <div 
             className="rounded-lg p-4 space-y-2"
@@ -168,13 +168,13 @@ const VoidTransactionModal = ({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: '#98989D' }}>Date:</span>
+              <span className="text-sm" style={{ color: '#98989D' }}>Tanggal:</span>
               <span className="text-sm" style={{ color: '#FFFFFF' }}>
                 {formatDate(transaction.date)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: '#98989D' }}>Type:</span>
+              <span className="text-sm" style={{ color: '#98989D' }}>Jenis:</span>
               <span 
                 className="text-sm px-2 py-0.5 rounded"
                 style={{
@@ -188,7 +188,7 @@ const VoidTransactionModal = ({
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm" style={{ color: '#98989D' }}>Amount:</span>
+              <span className="text-sm" style={{ color: '#98989D' }}>Nilai:</span>
               <span 
                 className="text-sm font-semibold"
                 style={{ color: transaction.type === 'income' ? '#30D158' : '#FF453A' }}
@@ -197,7 +197,7 @@ const VoidTransactionModal = ({
               </span>
             </div>
             <div className="flex justify-between items-start">
-              <span className="text-sm" style={{ color: '#98989D' }}>Description:</span>
+              <span className="text-sm" style={{ color: '#98989D' }}>Deskripsi:</span>
               <span className="text-sm text-right max-w-xs" style={{ color: '#FFFFFF' }}>
                 {transaction.description || '-'}
               </span>
@@ -208,7 +208,7 @@ const VoidTransactionModal = ({
         {/* Void Reason Input */}
         <div className="px-6 pb-4">
           <label className="block text-sm font-medium mb-2" style={{ color: '#FFFFFF' }}>
-            Void Reason <span style={{ color: '#FF453A' }}>*</span>
+            Alasan Pembatalan <span style={{ color: '#FF453A' }}>*</span>
           </label>
           <textarea
             value={reason}
@@ -218,7 +218,7 @@ const VoidTransactionModal = ({
                 setErrors({ ...errors, reason: null });
               }
             }}
-            placeholder="e.g., Transaction was entered twice (duplicate)"
+            placeholder="contoh: Transaksi tercatat dua kali (duplikat)"
             rows={4}
             className="w-full px-4 py-3 rounded-lg text-sm transition-all duration-200 focus:outline-none"
             style={{
@@ -244,7 +244,7 @@ const VoidTransactionModal = ({
             </p>
           )}
           <p className="mt-1 text-xs" style={{ color: '#636366' }}>
-            Minimum 10 characters. This will be recorded in the audit trail.
+            Minimal 10 karakter. Ini akan direkam dalam jejak audit.
           </p>
         </div>
 
@@ -280,7 +280,7 @@ const VoidTransactionModal = ({
             onMouseEnter={(e) => !loading && (e.currentTarget.style.backgroundColor = 'rgba(56, 56, 58, 0.7)')}
             onMouseLeave={(e) => !loading && (e.currentTarget.style.backgroundColor = 'rgba(56, 56, 58, 0.5)')}
           >
-            Cancel
+            Batal
           </button>
           <button
             onClick={handleVoid}
@@ -299,12 +299,12 @@ const VoidTransactionModal = ({
                 <div 
                   className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"
                 />
-                <span>Voiding...</span>
+                <span>Membatalkan...</span>
               </>
             ) : (
               <>
                 <XCircle className="w-4 h-4" />
-                <span>Void Transaction</span>
+                <span>Batalkan Transaksi</span>
               </>
             )}
           </button>

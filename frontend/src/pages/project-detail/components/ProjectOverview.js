@@ -317,6 +317,35 @@ const ProjectInformationCard = ({ project }) => {
                 </p>
               </div>
             </div>
+            
+            {/* GPS Coordinates Display */}
+            {(project.coordinates?.latitude && project.coordinates?.longitude) && (
+              <div>
+                <label className="block text-xs font-medium text-[#8E8E93] mb-1">Koordinat GPS</label>
+                <div className="bg-[#1C1C1E] px-3 py-2 rounded-lg border border-[#38383A]">
+                  <div className="flex items-start space-x-2">
+                    <MapPin className="h-4 w-4 text-[#0A84FF] mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-[#8E8E93]">Latitude:</span>
+                        <span className="text-sm text-white font-mono">{project.coordinates.latitude.toFixed(6)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-[#8E8E93]">Longitude:</span>
+                        <span className="text-sm text-white font-mono">{project.coordinates.longitude.toFixed(6)}</span>
+                      </div>
+                      {project.coordinates.radius && (
+                        <div className="flex items-center justify-between pt-1 border-t border-[#38383A]">
+                          <span className="text-xs text-[#8E8E93]">Radius Area:</span>
+                          <span className="text-sm text-[#0A84FF]">{project.coordinates.radius}m</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div>
               <label className="block text-xs font-medium text-[#8E8E93] mb-1">Durasi Proyek</label>
               <div className="flex items-center space-x-2">

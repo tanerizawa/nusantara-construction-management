@@ -17,12 +17,20 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    
+    // Log request data based on method
+    let dataLog = 'N/A';
+    const method = config.method?.toLowerCase();
+    if (['post', 'put', 'patch'].includes(method)) {
+      dataLog = config.data;
+    }
+    
     console.log('🔐 AXIOS REQUEST DEBUG:', {
       url: config.url,
       method: config.method,
       hasToken: !!token,
       tokenPreview: token ? token.substring(0, 20) + '...' : 'No token',
-      data: config.method?.toLowerCase() === 'post' ? config.data : 'N/A (GET request)'
+      data: dataLog
     });
     
     if (token) {

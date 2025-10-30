@@ -19,8 +19,8 @@ export const validateRABForm = (formData) => {
   
   if (!formData.description?.trim()) {
     errors.description = 'Deskripsi pekerjaan harus diisi';
-  } else if (formData.description.trim().length < 10) {
-    errors.description = 'Deskripsi minimal 10 karakter';
+  } else if (formData.description.trim().length < 5) {
+    errors.description = 'Deskripsi minimal 5 karakter';
   }
   
   if (!formData.unit?.trim()) {

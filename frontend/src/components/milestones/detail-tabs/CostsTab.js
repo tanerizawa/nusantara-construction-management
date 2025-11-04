@@ -1,6 +1,6 @@
 // Costs Tab - Cost tracking and budget management with RAB integration
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, DollarSign, TrendingUp, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, DollarSign, TrendingUp, Edit, Trash2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useMilestoneCosts } from '../hooks/useMilestoneCosts';
 import { useRABItems } from '../hooks/useRABItems';
 import { COST_CATEGORIES, COST_TYPES } from '../services/milestoneDetailAPI';
@@ -9,7 +9,7 @@ import api from '../../../services/api';
 
 // New RAB Integration Components
 import EnhancedBudgetSummary from './costs/EnhancedBudgetSummary';
-import RABItemsSection from './costs/RABItemsSection';
+import SimplifiedRABTable from './costs/SimplifiedRABTable';
 import AdditionalCostsSection from './costs/AdditionalCostsSection';
 
 const CostsTab = ({ milestone, projectId }) => {
@@ -20,7 +20,9 @@ const CostsTab = ({ milestone, projectId }) => {
     rabItems, 
     summary: rabSummary, 
     loading: loadingRAB, 
-    getRealizations 
+    getRealizations,
+    refresh: refreshRABItems,
+    fallbackUnapproved
   } = useRABItems(projectId, milestone.id);
   
   const [showAddForm, setShowAddForm] = useState(false);
@@ -31,6 +33,7 @@ const CostsTab = ({ milestone, projectId }) => {
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [sourceAccounts, setSourceAccounts] = useState([]);
   const [loadingSourceAccounts, setLoadingSourceAccounts] = useState(false);
+  const [additionalCostsExpanded, setAdditionalCostsExpanded] = useState(false);
   const [formData, setFormData] = useState({
     costCategory: 'materials',
     costType: 'actual',
@@ -171,20 +174,36 @@ const CostsTab = ({ milestone, projectId }) => {
       }
       
       if (accountsData.length > 0) {
-        // Filter for CASH_AND_BANK accounts (level >= 3 for actual bank/cash accounts)
+        // Filter for CASH_AND_BANK accounts
+        // More flexible filter: check subType OR account code pattern (110x)
         const accounts = accountsData.filter(account => {
-          return (
-            account.accountType === 'ASSET' && 
-            account.accountSubType === 'CASH_AND_BANK' &&
-            account.level >= 3 && 
-            !account.isControlAccount
-          );
+          const isAsset = account.accountType === 'ASSET';
+          const isCashBank = account.accountSubType === 'CASH_AND_BANK';
+          const hasValidLevel = account.level >= 3;
+          const notControl = !account.isControlAccount;
+          
+          // Also check account code pattern: 110x.xx (cash/bank codes)
+          const accountCode = account.accountCode || '';
+          const isCashBankCode = accountCode.startsWith('1101.') || // Detail accounts like 1101.01
+                                accountCode.startsWith('110') && accountCode.includes('.'); // Any 110x.xx
+          
+          // Must have decimal point in code (means it's a detail account, not parent)
+          const isDetailAccount = accountCode.includes('.');
+          
+          return isAsset && (isCashBank || isCashBankCode) && hasValidLevel && notControl && isDetailAccount;
         });
         
         console.log('[CostsTab] ✅ Loaded source accounts (bank/cash):', {
           totalFromAPI: accountsData.length,
           filteredCount: accounts.length,
-          accounts: accounts
+          sampleAccount: accounts[0],
+          accounts: accounts.map(a => ({ 
+            code: a.accountCode, 
+            name: a.accountName,
+            subType: a.accountSubType,
+            level: a.level,
+            isControl: a.isControlAccount
+          }))
         });
         setSourceAccounts(accounts);
       } else {
@@ -259,7 +278,7 @@ const CostsTab = ({ milestone, projectId }) => {
         accountId: inlineFormData.accountId,
         sourceAccountId: inlineFormData.sourceAccountId,
         rabItemId: rabItemId,
-        rabItemProgress: parseFloat(inlineFormData.progress)
+        rabItemProgress: parseFloat(inlineFormData.progress) || 0
       };
       
       console.log('[CostsTab] 📤 Sending inline realization data:', data);
@@ -267,8 +286,9 @@ const CostsTab = ({ milestone, projectId }) => {
       const result = await addCost(data);
       console.log('[CostsTab] ✅ Inline realization added:', result);
       
-      // Refresh source accounts
+      // Refresh source accounts and RAB items to update actual amounts
       await fetchSourceAccounts();
+      await refreshRABItems();
       
       return result;
     } catch (error) {
@@ -283,6 +303,42 @@ const CostsTab = ({ milestone, projectId }) => {
     
     console.log('[CostsTab] 🚀 Form submitted!');
     console.log('[CostsTab] 📦 Form data:', formData);
+    
+    // Client-side validation for balance (only for bank accounts, not cash)
+    if (formData.sourceAccountId) {
+      const selectedAccount = sourceAccounts.find(a => a.id === formData.sourceAccountId);
+      
+      if (selectedAccount) {
+        // Check if it's Kas Tunai (owner's unlimited cash - no validation needed)
+        const isKasTunai = selectedAccount.accountName.toLowerCase().includes('kas tunai') ||
+                          selectedAccount.accountCode === '1101.07';
+        
+        if (isKasTunai) {
+          console.log('[CostsTab] ✓ Kas Tunai (Owner Capital) - UNLIMITED, skipping all validation');
+          // Skip all validation for Kas Tunai - treat as unlimited owner's capital
+        } else {
+          // For other accounts (bank or kas kecil)
+          const isKasKecil = selectedAccount.accountName.toLowerCase().includes('kas kecil') ||
+                            selectedAccount.accountCode === '1101.08';
+          
+          if (!isKasKecil) {
+            // Regular bank account - validate balance
+            const balance = parseFloat(selectedAccount.currentBalance || 0);
+            const amount = parseFloat(formData.amount || 0);
+            
+            if (amount > balance) {
+              alert(`Saldo tidak cukup di ${selectedAccount.accountName}!\nTersedia: ${formatCurrency(balance)}\nDibutuhkan: ${formatCurrency(amount)}`);
+              return; // Stop submission
+            }
+            console.log('[CostsTab] ✓ Bank account - balance sufficient');
+          } else {
+            console.log('[CostsTab] ✓ Kas Kecil - skipping balance validation');
+          }
+        }
+      }
+    } else {
+      console.log('[CostsTab] ✓ No source (Owner Personal Cash) - unlimited, no validation');
+    }
     
     try {
       const data = {
@@ -422,38 +478,116 @@ const CostsTab = ({ milestone, projectId }) => {
         />
       )}
 
-      {/* RAB Items Section (if milestone has RAB link) */}
-      {!loadingRAB && rabItems && rabItems.length > 0 && (
-        <RABItemsSection
-          rabItems={rabItems}
-          onAddRealization={handleAddRealizationFromRAB}
-          getRealizations={getRealizations}
-          expenseAccounts={expenseAccounts}
-          sourceAccounts={sourceAccounts}
-          onSubmitRealization={handleSubmitInlineRealization}
-        />
+      {/* Info: RAB Link Not Configured */}
+      {!loadingRAB && (!rabItems || rabItems.length === 0) && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-blue-400 mb-1">
+                RAB Tracking Belum Diaktifkan
+              </h4>
+              <p className="text-sm text-gray-300 mb-2">
+                Milestone ini belum di-link ke kategori RAB. Untuk melacak actual cost dari item-item RAB secara otomatis:
+              </p>
+              <ol className="text-sm text-gray-300 space-y-1 ml-4 list-decimal">
+                <li>Klik tombol <span className="font-mono text-blue-400">Edit</span> pada milestone ini</li>
+                <li>Pilih kategori RAB yang sesuai di bagian <span className="font-semibold text-blue-400">RAB Link</span></li>
+                <li>Simpan perubahan</li>
+              </ol>
+              <p className="text-xs text-gray-400 mt-2">
+                💡 Dengan RAB link, Anda dapat mencatat actual cost per item RAB dan sistem akan otomatis menghitung variance (selisih anggaran vs realisasi).
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Additional Costs Section (Non-RAB costs) */}
-      <AdditionalCostsSection
-        costs={costs}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onAddNew={() => {
-          setFormData({
-            costCategory: 'materials',
-            costType: 'actual',
-            amount: '',
-            description: '',
-            referenceNumber: '',
-            accountId: '',
-            sourceAccountId: '',
-            rabItemId: null,
-            rabItemProgress: 0
-          });
-          setShowAddForm(true);
-        }}
-      />
+      {/* RAB Items Section (if milestone has RAB link) */}
+      {!loadingRAB && rabItems && rabItems.length > 0 && (
+        <div className="space-y-4">
+          {/* Section Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-white flex items-center gap-2 text-lg">
+              <DollarSign size={20} className="text-blue-400" />
+              RAB Tracking (Planned vs Actual)
+              <span className="ml-1 px-2 py-0.5 bg-blue-400/10 border border-blue-400/30 rounded-full text-xs text-blue-400 font-medium">
+                {rabItems.length} items
+              </span>
+            </h3>
+          </div>
+
+          {/* Simplified RAB Table with Inline Edit */}
+          {fallbackUnapproved && (
+            <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded text-sm text-yellow-300">
+              Warning: No approved RAB items were found for the linked category — showing draft/unapproved items so you can record actual costs. Please review RAB approval status when ready.
+            </div>
+          )}
+
+          <SimplifiedRABTable
+            rabItems={rabItems}
+            onAddRealization={handleAddRealizationFromRAB}
+            getRealizations={getRealizations}
+            expenseAccounts={expenseAccounts}
+            sourceAccounts={sourceAccounts}
+            onSubmitRealization={handleSubmitInlineRealization}
+          />
+        </div>
+      )}
+
+      {/* Additional Costs Section (Non-RAB costs) - COLLAPSIBLE */}
+      <div className="space-y-3">
+        {/* Collapsible Header */}
+        <button
+          onClick={() => setAdditionalCostsExpanded(!additionalCostsExpanded)}
+          className="w-full flex items-center justify-between p-4 bg-[#2C2C2E] hover:bg-[#3C3C3E] rounded-lg border border-[#3C3C3E] transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <DollarSign size={18} className="text-purple-400" />
+            <h3 className="font-semibold text-white">
+              Additional Costs (Diluar RAB)
+            </h3>
+            {costs.filter(cost => {
+              const hasRABLink = cost.rabItemId || cost.rab_item_id || cost.rabItem || cost.rab_item;
+              return !hasRABLink;
+            }).length > 0 && (
+              <span className="px-2 py-0.5 bg-purple-400/10 border border-purple-400/30 rounded-full text-xs text-purple-400 font-medium">
+                {costs.filter(cost => {
+                  const hasRABLink = cost.rabItemId || cost.rab_item_id || cost.rabItem || cost.rab_item;
+                  return !hasRABLink;
+                }).length}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Kasbon, overhead, biaya tak terduga</span>
+            {additionalCostsExpanded ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+          </div>
+        </button>
+
+        {/* Collapsible Content */}
+        {additionalCostsExpanded && (
+          <AdditionalCostsSection
+            costs={costs}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onAddNew={() => {
+              setFormData({
+                costCategory: 'materials',
+                costType: 'actual',
+                amount: '',
+                description: '',
+                referenceNumber: '',
+                accountId: '',
+                sourceAccountId: '',
+                rabItemId: null,
+                rabItemProgress: 0
+              });
+              setShowAddForm(true);
+            }}
+          />
+        )}
+      </div>
 
       {/* Add/Edit Form */}
       {showAddForm && (
@@ -618,61 +752,110 @@ const CostsTab = ({ milestone, projectId }) => {
 
             {/* Sumber Dana (Bank/Cash Source) */}
             <div>
-              <label className="block text-xs text-[#8E8E93] mb-1">Sumber Dana (Bank/Kas) *</label>
+              <label className="block text-xs text-[#8E8E93] mb-1">Sumber Dana (Bank/Kas)</label>
               <select
                 value={formData.sourceAccountId}
                 onChange={(e) => {
                   console.log('Source account selected:', e.target.value);
                   setFormData(prev => ({ ...prev, sourceAccountId: e.target.value }));
                 }}
-                required
                 className={`w-full px-3 py-2 bg-[#1C1C1E] border rounded text-sm text-white focus:border-[#0A84FF] focus:outline-none ${
-                  !formData.sourceAccountId ? 'border-[#FF453A]' : 'border-[#38383A]'
+                  'border-[#38383A]'
                 }`}
                 disabled={loadingSourceAccounts}
               >
                 <option value="">
-                  {loadingSourceAccounts ? 'Loading...' : '-- Pilih Sumber Dana --'}
+                  {loadingSourceAccounts ? 'Loading...' : '� Uang Pribadi Owner (Unlimited)'}
                 </option>
                 
-                {sourceAccounts.length > 0 ? (
-                  sourceAccounts.map(account => (
-                    <option key={account.id} value={account.id}>
-                      {account.accountCode} - {account.accountName}
-                      {account.currentBalance !== undefined && account.currentBalance !== null 
-                        ? ` (Saldo: ${formatCurrency(account.currentBalance)})`
-                        : ''
-                      }
-                    </option>
-                  ))
-                ) : (
-                  !loadingSourceAccounts && <option disabled>No bank/cash accounts found</option>
+                {sourceAccounts.length > 0 && (
+                  sourceAccounts.map(account => {
+                    // Check if account is Kas Tunai (unlimited owner cash)
+                    const isKasTunai = account.accountName.toLowerCase().includes('kas tunai') ||
+                                      account.accountCode === '1101.07';
+                    
+                    // Check if account is Kas Kecil (petty cash)
+                    const isKasKecil = account.accountName.toLowerCase().includes('kas kecil') ||
+                                      account.accountCode === '1101.08';
+                    
+                    // Regular bank account
+                    const isBank = !isKasTunai && !isKasKecil;
+                    
+                    return (
+                      <option key={account.id} value={account.id}>
+                        {account.accountCode} - {account.accountName}
+                        {isKasTunai && ' (Unlimited - Modal Owner)'}
+                        {isBank && account.currentBalance !== undefined && account.currentBalance !== null 
+                          ? ` (Saldo: ${formatCurrency(account.currentBalance)})`
+                          : ''
+                        }
+                      </option>
+                    );
+                  })
                 )}
               </select>
               
-              {!formData.sourceAccountId && (
-                <p className="text-xs text-[#FF453A] mt-1">
-                  Sumber dana pembayaran wajib dipilih
-                </p>
-              )}
+              {formData.sourceAccountId && sourceAccounts.length > 0 && (() => {
+                const selectedAccount = sourceAccounts.find(a => a.id === formData.sourceAccountId);
+                
+                if (!selectedAccount) return null;
+                
+                // Check if Kas Tunai (unlimited owner capital)
+                const isKasTunai = selectedAccount.accountName.toLowerCase().includes('kas tunai') ||
+                                  selectedAccount.accountCode === '1101.07';
+                
+                // Check if Kas Kecil
+                const isKasKecil = selectedAccount.accountName.toLowerCase().includes('kas kecil') ||
+                                  selectedAccount.accountCode === '1101.08';
+                
+                const balance = selectedAccount?.currentBalance;
+                const amount = parseFloat(formData.amount) || 0;
+                
+                // For Kas Tunai - show unlimited message
+                if (isKasTunai) {
+                  return (
+                    <p className="text-xs text-[#30D158] mt-1">
+                      ✓ {selectedAccount.accountName} - <strong>Unlimited (Modal Owner)</strong>
+                      <br />
+                      <span className="text-[#8E8E93]">💡 Transaksi tercatat sebagai injeksi modal pemilik</span>
+                    </p>
+                  );
+                }
+                
+                // For Kas Kecil - show no validation message
+                if (isKasKecil) {
+                  return (
+                    <p className="text-xs text-[#30D158] mt-1">
+                      ✓ {selectedAccount.accountName}
+                    </p>
+                  );
+                }
+                
+                // For bank accounts - show balance and validation
+                if (balance !== undefined && balance !== null) {
+                  if (amount > balance) {
+                    return (
+                      <p className="text-xs text-[#FF453A] mt-1">
+                        ⚠️ Saldo tidak cukup! (Tersedia: {formatCurrency(balance)})
+                      </p>
+                    );
+                  } else {
+                    return (
+                      <p className="text-xs text-[#30D158] mt-1">
+                        ✓ {selectedAccount.accountName} - Saldo: {formatCurrency(balance)}
+                      </p>
+                    );
+                  }
+                }
+                
+                return null;
+              })()}
               
-              {formData.sourceAccountId && sourceAccounts.length > 0 && (
-                <p className="text-xs text-[#30D158] mt-1">
-                  ✓ {sourceAccounts.find(a => a.id === formData.sourceAccountId)?.accountName}
-                  {(() => {
-                    const selectedAccount = sourceAccounts.find(a => a.id === formData.sourceAccountId);
-                    const balance = selectedAccount?.currentBalance;
-                    const amount = parseFloat(formData.amount) || 0;
-                    
-                    if (balance !== undefined && balance !== null) {
-                      if (amount > balance) {
-                        return <span className="text-[#FF453A]"> - ⚠️ Saldo tidak cukup! (Saldo: {formatCurrency(balance)})</span>;
-                      } else {
-                        return <span className="text-[#8E8E93]"> - Saldo: {formatCurrency(balance)}</span>;
-                      }
-                    }
-                    return null;
-                  })()}
+              {!formData.sourceAccountId && (
+                <p className="text-xs text-[#8E8E93] mt-1">
+                  � Pilih sumber dana atau biarkan kosong untuk uang pribadi owner
+                  <br />
+                  <span className="text-[#30D158]">✓ Unlimited - tidak ada batasan saldo</span>
                 </p>
               )}
             </div>

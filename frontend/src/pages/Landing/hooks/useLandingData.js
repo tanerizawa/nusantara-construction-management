@@ -22,7 +22,9 @@ export const useLandingData = () => {
       client: 'PT. Modern Office',
       location: 'Jakarta Selatan',
       status: 'completed',
-      image: '/images/projects/office-building.jpg',
+      image: '/images/projects/office-building.svg',
+      imageJpg: '/images/projects/office-building.jpg',
+      imageWebp: '/images/projects/office-building.webp',
       value: 15000000000
     },
     {
@@ -31,7 +33,9 @@ export const useLandingData = () => {
       client: 'Pemerintah DKI Jakarta',
       location: 'Jakarta Timur',
       status: 'active',
-      image: '/images/projects/highway.jpg',
+      image: '/images/projects/highway.svg',
+      imageJpg: '/images/projects/highway.jpg',
+      imageWebp: '/images/projects/highway.webp',
       value: 50000000000
     },
     {
@@ -40,7 +44,9 @@ export const useLandingData = () => {
       client: 'Dinas Pendidikan',
       location: 'Tangerang',
       status: 'completed',
-      image: '/images/projects/school.jpg',
+      image: '/images/projects/school.svg',
+      imageJpg: '/images/projects/school.jpg',
+      imageWebp: '/images/projects/school.webp',
       value: 5000000000
     }
   ];

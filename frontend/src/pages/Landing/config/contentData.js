@@ -52,7 +52,9 @@ export const SERVICES_DATA = [
     description: 'Pembangunan infrastruktur jalan, jembatan, dan fasilitas umum dengan teknologi modern dan standar internasional',
     icon: Building2,
     projects: ['Jalan Raya & Highways', 'Jembatan & Flyover', 'Sistem Drainase', 'Irigasi & Water Management'],
-    image: '/services/sipil.jpg',
+    image: '/images/services/sipil.svg',
+    imageJpg: '/images/services/sipil.jpg',
+    imageWebp: '/images/services/sipil.webp',
     stats: { projects: '45+', experience: '15 tahun' }
   },
   {
@@ -60,7 +62,9 @@ export const SERVICES_DATA = [
     description: 'Konstruksi gedung perkantoran, sekolah, dan fasilitas publik dengan desain arsitektur yang fungsional',
     icon: Briefcase,
     projects: ['Gedung Perkantoran', 'Fasilitas Pendidikan', 'Fasilitas Kesehatan', 'Balai Serbaguna'],
-    image: '/services/gedung.jpg',
+    image: '/images/services/gedung.svg',
+    imageJpg: '/images/services/gedung.jpg',
+    imageWebp: '/images/services/gedung.webp',
     stats: { projects: '30+', experience: '12 tahun' }
   },
   {
@@ -68,17 +72,19 @@ export const SERVICES_DATA = [
     description: 'Spesialisasi dalam tender pemerintah, penunjukan langsung dan pengadaan infrastruktur publik',
     icon: Target,
     projects: ['Tender Pemerintah', 'Penunjukan Langsung', 'Pengadaan Infrastruktur', 'Fasilitas Publik'],
-    image: '/services/pemerintah.jpg',
+    image: '/images/services/pemerintah.svg',
+    imageJpg: '/images/services/pemerintah.jpg',
+    imageWebp: '/images/services/pemerintah.webp',
     stats: { projects: '60+', experience: '15 tahun' }
   }
 ];
 
 // Clients data
 export const CLIENTS_DATA = [
-  { name: 'Pemkab Karawang', short: 'PK', logo: '/clients/pemkab.png' },
-  { name: 'LPSE Karawang', short: 'LPSE', logo: '/clients/lpse.png' },
-  { name: 'KADIN Karawang', short: 'KADIN', logo: '/clients/kadin.png' },
-  { name: 'BUMD Karawang', short: 'BUMD', logo: '/clients/bumd.png' }
+  { name: 'Pemkab Karawang', short: 'PK', logo: '/images/clients/pemkab.svg' },
+  { name: 'LPSE Karawang', short: 'LPSE', logo: '/images/clients/lpse.svg' },
+  { name: 'KADIN Karawang', short: 'KADIN', logo: '/images/clients/kadin.svg' },
+  { name: 'BUMD Karawang', short: 'BUMD', logo: '/images/clients/bumd.svg' }
 ];
 
 // Testimonials data

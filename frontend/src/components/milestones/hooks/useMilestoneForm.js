@@ -99,7 +99,22 @@ export const useMilestoneForm = (projectId, milestone, onSuccess) => {
 
       // Add RAB link if exists (new field to replace category_link)
       if (formData.rabLink) {
-        milestoneItemData.rab_link = formData.rabLink;
+        // Ensure categoryName is present for backend mapping. Some older UI
+        // flows only provide totalValue/totalItems (complete RAB summary)
+        // while backend expects a specific category name when querying
+        // per-category RAB items. Use available fallbacks safely.
+        const rab = { ...formData.rabLink };
+        if (!rab.categoryName && !rab.category_name) {
+          // Prefer explicit `categories[0].category` when available
+          const fallbackCategory = rab.categories && rab.categories.length > 0
+            ? rab.categories[0].category
+            : undefined;
+          if (fallbackCategory) {
+            rab.categoryName = fallbackCategory;
+          }
+        }
+
+        milestoneItemData.rab_link = rab;
       }
 
       console.log('[useMilestoneForm] Submitting milestone data:', milestoneItemData);

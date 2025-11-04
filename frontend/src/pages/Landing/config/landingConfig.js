@@ -24,7 +24,7 @@ export const LANDING_CONFIG = {
   socialMedia: {
     linkedin: '#',
     instagram: '#',
-    email: 'info@nusantaragroup.co.id',
+    email: 'info@nusantaragroup.co',
     phone: '+62 267 123456'
   },
   
@@ -32,7 +32,7 @@ export const LANDING_CONFIG = {
   contact: {
     address: 'Jl. Raya Karawang No. 123, Karawang Barat, Kab. Karawang',
     phone: '+62 267 123456',
-    email: 'info@nusantaragroup.co.id',
+    email: 'info@nusantaragroup.co',
     workingHours: 'Senin - Jumat: 08:00 - 17:00 WIB'
   },
   
@@ -42,6 +42,8 @@ export const LANDING_CONFIG = {
     { href: '#about', label: 'Tentang' },
     { href: '#services', label: 'Layanan' },
     { href: '#projects', label: 'Proyek' },
+    { href: '#clients', label: 'Klien' },
+    { href: '#testimonials', label: 'Testimoni' },
     { href: '#contact', label: 'Kontak' }
   ],
   

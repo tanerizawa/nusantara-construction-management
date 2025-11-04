@@ -96,7 +96,7 @@ services:
     container_name: nusantara-frontend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       REACT_APP_API_URL: http://localhost:5000
       GENERATE_SOURCEMAP: "false"
       DISABLE_ESLINT_PLUGIN: "true"
@@ -123,7 +123,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    command: sh -c "if [ ! -f build/index.html ]; then react-scripts build; fi && npx serve -s build -l 3000"
+    command: react-scripts start
 
   # ========================================
   # Migration Runner (One-time execution)

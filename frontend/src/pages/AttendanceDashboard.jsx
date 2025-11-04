@@ -35,7 +35,7 @@ const AttendanceDashboard = () => {
     try {
       const token = getToken();
       if (!token) {
-        throw new Error('Authentication required');
+        throw new Error('Autentikasi diperlukan');
       }
 
       const response = await fetch('/api/attendance/today', {
@@ -48,7 +48,7 @@ const AttendanceDashboard = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Session expired. Please login again.');
+          throw new Error('Sesi berakhir. Silakan masuk kembali.');
         }
         if (response.status === 404) {
           // No record found - this is expected if user hasn't clocked in today
@@ -68,7 +68,7 @@ const AttendanceDashboard = () => {
       }
       
       // Redirect to login if unauthorized
-      if (err.message.includes('Authentication') || err.message.includes('Session expired')) {
+      if (err.message.includes('Autentikasi') || err.message.includes('Sesi berakhir')) {
         setTimeout(() => navigate('/login'), 2000);
       }
     }
@@ -79,7 +79,7 @@ const AttendanceDashboard = () => {
     try {
       const token = getToken();
       if (!token) {
-        throw new Error('Authentication required');
+        throw new Error('Autentikasi diperlukan');
       }
 
       // Get current week's Monday and Friday
@@ -108,7 +108,7 @@ const AttendanceDashboard = () => {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('Session expired. Please login again.');
+          throw new Error('Sesi berakhir. Silakan masuk kembali.');
         }
         throw new Error(`Failed to fetch weekly data: ${response.statusText}`);
       }

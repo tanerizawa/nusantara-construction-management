@@ -75,6 +75,12 @@ const ProjectMilestone = sequelize.define('ProjectMilestone', {
     type: DataTypes.TEXT,
     allowNull: true
   },
+  categoryLink: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    field: 'category_link',
+    comment: 'RAB category link configuration {enabled, category_name, total_value, total_items}'
+  },
   createdBy: {
     type: DataTypes.STRING,
     allowNull: true

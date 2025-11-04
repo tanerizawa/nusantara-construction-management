@@ -25,6 +25,7 @@ const RABSelector = ({ projectId, value, onChange }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isLinked, setIsLinked] = useState(value || false);
+  const [selectedCategory, setSelectedCategory] = useState(value?.categoryName || value?.category_name || null);
 
   useEffect(() => {
     if (projectId) {
@@ -60,16 +61,58 @@ const RABSelector = ({ projectId, value, onChange }) => {
 
   const handleToggleLink = () => {
     const newValue = !isLinked;
+    
+    if (newValue && !selectedCategory) {
+      alert('Silakan pilih kategori RAB terlebih dahulu!');
+      return;
+    }
+    
     setIsLinked(newValue);
     
     if (onChange) {
-      onChange(newValue ? {
+      if (newValue) {
+        // When linking, must have selected category
+        const categoryToUse = selectedCategory;
+        
+        if (!categoryToUse) {
+          alert('Tidak ada kategori RAB yang dipilih. Silakan pilih kategori terlebih dahulu.');
+          return;
+        }
+        
+        onChange({
+          enabled: true,
+          categoryName: categoryToUse, // ✅ REQUIRED: Backend needs this to filter RAB items
+          category_name: categoryToUse, // Support both naming conventions
+          totalValue: rabSummary.totalValue,
+          totalItems: rabSummary.totalItems,
+          approvedDate: rabSummary.approvedDate,
+          linkedAt: new Date().toISOString(),
+          categories: rabSummary.categories // Pass full categories for reference
+        });
+      } else {
+        // When unlinking
+        onChange(null);
+        setSelectedCategory(null);
+      }
+    }
+  };
+
+  const handleCategoryChange = (e) => {
+    const newCategory = e.target.value;
+    setSelectedCategory(newCategory);
+    
+    // Update the rab_link with new category if already linked
+    if (isLinked && onChange) {
+      onChange({
         enabled: true,
+        categoryName: newCategory,
+        category_name: newCategory,
         totalValue: rabSummary.totalValue,
         totalItems: rabSummary.totalItems,
         approvedDate: rabSummary.approvedDate,
-        linkedAt: new Date().toISOString()
-      } : null);
+        linkedAt: new Date().toISOString(),
+        categories: rabSummary.categories
+      });
     }
   };
 
@@ -172,29 +215,30 @@ const RABSelector = ({ projectId, value, onChange }) => {
                 </p>
               </div>
 
-              {/* Categories Breakdown */}
+              {/* Category Selection Dropdown - REQUIRED */}
               {rabSummary.categories && rabSummary.categories.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-[#38383A]">
-                  <p className="text-xs font-medium text-[#8E8E93] mb-2">
-                    Breakdown per kategori:
-                  </p>
-                  <div className="space-y-1">
-                    {rabSummary.categories.slice(0, 5).map((cat, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-xs">
-                        <span className="text-[#8E8E93]">
-                          • {cat.category}
-                        </span>
-                        <span className="text-[#8E8E93] font-mono">
-                          {formatCurrency(cat.totalValue)} ({cat.percentage}%)
-                        </span>
-                      </div>
+                  <label className="block text-xs font-medium text-white mb-2">
+                    Pilih Kategori RAB untuk Milestone Ini: <span className="text-[#FF453A]">*</span>
+                  </label>
+                  <select
+                    value={selectedCategory || ''}
+                    onChange={handleCategoryChange}
+                    className="w-full px-3 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+                    required
+                  >
+                    <option value="" disabled>
+                      -- Pilih kategori yang akan di-track --
+                    </option>
+                    {rabSummary.categories.map((cat, idx) => (
+                      <option key={idx} value={cat.category}>
+                        {cat.category} - {formatCurrency(cat.totalValue)} ({cat.percentage}%)
+                      </option>
                     ))}
-                    {rabSummary.categories.length > 5 && (
-                      <p className="text-xs text-[#8E8E93] italic">
-                        +{rabSummary.categories.length - 5} kategori lainnya
-                      </p>
-                    )}
-                  </div>
+                  </select>
+                  <p className="text-xs text-[#8E8E93] mt-1">
+                    💡 Milestone ini akan track item RAB dari kategori yang dipilih
+                  </p>
                 </div>
               )}
             </div>

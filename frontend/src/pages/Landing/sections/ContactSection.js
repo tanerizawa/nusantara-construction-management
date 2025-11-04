@@ -90,12 +90,15 @@ const ContactInfo = ({ contact }) => {
         ))}
       </div>
 
-      {/* Map Placeholder */}
-      <div className="bg-gray-200 rounded-2xl h-64 flex items-center justify-center">
-        <div className="text-center">
-          <MapPin size={48} className="text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500">Peta Lokasi</p>
-        </div>
+      {/* Map Embed */}
+      <div className="rounded-2xl overflow-hidden shadow-lg">
+        <iframe
+          title="Peta Lokasi Kantor Nusantara Group"
+          src="https://www.google.com/maps?q=Karawang&output=embed"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          className="w-full h-64 border-0"
+        ></iframe>
       </div>
     </div>
   );

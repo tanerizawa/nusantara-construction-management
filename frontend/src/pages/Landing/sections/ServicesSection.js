@@ -54,19 +54,23 @@ const ServiceCard = ({ service, animated, delay = 0 }) => {
     >
       {/* Service Image */}
       <div className="relative h-48 bg-gradient-to-br from-blue-600 to-indigo-600 overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
+        {(service.imageWebp || service.imageJpg || service.image) && (
+          <picture>
+            {service.imageWebp && <source srcSet={service.imageWebp} type="image/webp" />}
+            {service.imageJpg && <source srcSet={service.imageJpg} type="image/jpeg" />}
+            <img
+              src={service.imageJpg || service.image}
+              alt={`Layanan ${service.title}`}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => { if (service.image && e.currentTarget.src !== window.location.origin + service.image) e.currentTarget.src = service.image; }}
+              className="absolute inset-0 w-full h-full object-cover opacity-85"
+            />
+          </picture>
+        )}
+        <div className="absolute inset-0 bg-black/25"></div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <IconComponent size={64} className="text-white group-hover:scale-110 transition-transform duration-300" />
-        </div>
-        
-        {/* Stats Badge */}
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-          <div className="text-sm font-semibold text-gray-900">
-            {service.stats.projects}
-          </div>
-          <div className="text-xs text-gray-600">
-            Proyek
-          </div>
+          <IconComponent size={64} className="text-white drop-shadow-md group-hover:scale-110 transition-transform duration-300" />
         </div>
       </div>
 

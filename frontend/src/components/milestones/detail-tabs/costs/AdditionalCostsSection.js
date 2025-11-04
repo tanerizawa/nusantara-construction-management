@@ -9,8 +9,12 @@ import { formatCurrency, formatDate } from '../../../../utils/formatters';
  * These are additional costs like kasbon, overhead, unforeseen expenses, etc.
  */
 const AdditionalCostsSection = ({ costs, onEdit, onDelete, onAddNew }) => {
-  // Filter only non-RAB costs
-  const additionalCosts = costs.filter(cost => !cost.rabItemId && !cost.rab_item_id);
+  // Filter only non-RAB costs (costs without rab_item_id)
+  // These are costs added manually, not from RAB item realizations
+  const additionalCosts = costs.filter(cost => {
+    const hasRABLink = cost.rabItemId || cost.rab_item_id || cost.rabItem || cost.rab_item;
+    return !hasRABLink;
+  });
 
   // Cost category colors
   const categoryColors = {
@@ -35,15 +39,20 @@ const AdditionalCostsSection = ({ costs, onEdit, onDelete, onAddNew }) => {
     <div className="space-y-3">
       {/* Section Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-white flex items-center gap-2">
-          <DollarSign size={18} className="text-purple-400" />
-          Additional Costs (Diluar RAB)
-          {additionalCosts.length > 0 && (
-            <span className="ml-1 px-2 py-0.5 bg-purple-400/10 border border-purple-400/30 rounded-full text-xs text-purple-400 font-medium">
-              {additionalCosts.length}
-            </span>
-          )}
-        </h3>
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">
+            <DollarSign size={18} className="text-purple-400" />
+            Additional Costs (Diluar RAB)
+            {additionalCosts.length > 0 && (
+              <span className="ml-1 px-2 py-0.5 bg-purple-400/10 border border-purple-400/30 rounded-full text-xs text-purple-400 font-medium">
+                {additionalCosts.length}
+              </span>
+            )}
+          </h3>
+          <p className="text-xs text-gray-500 mt-1 ml-7">
+            Kasbon, overhead, dan biaya tak terduga yang tidak termasuk dalam RAB
+          </p>
+        </div>
         <button
           onClick={onAddNew}
           className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
@@ -154,7 +163,7 @@ const AdditionalCostsSection = ({ costs, onEdit, onDelete, onAddNew }) => {
             <div>
               <div className="text-white font-medium mb-1">No Additional Costs</div>
               <div className="text-sm text-gray-400">
-                Add costs for kasbon, overhead, or other expenses outside the RAB
+                Tambahkan biaya untuk kasbon, overhead, atau pengeluaran lain di luar RAB
               </div>
             </div>
             <button
@@ -172,8 +181,9 @@ const AdditionalCostsSection = ({ costs, onEdit, onDelete, onAddNew }) => {
       {additionalCosts.length > 0 && (
         <div className="bg-purple-400/5 border border-purple-400/20 rounded-lg p-4">
           <div className="text-xs text-gray-300">
-            <span className="font-medium text-purple-400">Additional Costs:</span> These costs are not linked to RAB items. 
-            They include kasbon, overhead, unforeseen expenses, or other costs that were not part of the original budget plan.
+            <span className="font-medium text-purple-400">Additional Costs (Diluar RAB):</span> Biaya-biaya yang tidak terkait dengan item RAB. 
+            Termasuk kasbon, overhead, biaya tak terduga, atau pengeluaran lain yang tidak termasuk dalam rencana anggaran awal (RAB). 
+            Realisasi biaya dari item RAB akan ditampilkan di section "RAB Items" di atas.
           </div>
         </div>
       )}

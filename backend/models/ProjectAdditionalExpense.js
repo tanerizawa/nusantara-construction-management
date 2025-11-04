@@ -83,6 +83,16 @@ const ProjectAdditionalExpense = sequelize.define('ProjectAdditionalExpense', {
     defaultValue: 'cash',
     field: 'payment_method'
   },
+  sourceAccountId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'source_account_id',
+    comment: 'Chart of Accounts ID for payment source (bank/cash). NULL for personal cash not tracked in system.',
+    references: {
+      model: 'chart_of_accounts',
+      key: 'id'
+    }
+  },
   
   // Documentation
   receiptUrl: {

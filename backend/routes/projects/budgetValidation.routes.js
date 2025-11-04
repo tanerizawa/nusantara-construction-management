@@ -97,6 +97,67 @@ router.post('/additional-expenses', verifyToken, async (req, res) => {
     
     console.log(`[Budget Validation] Adding additional expense: ${expenseData.expenseType}`);
     
+    // Validate sourceAccountId if provided (optional for personal cash)
+    if (expenseData.sourceAccountId) {
+      const ChartOfAccounts = require('../../models/ChartOfAccounts');
+      const sourceAccount = await ChartOfAccounts.findByPk(expenseData.sourceAccountId);
+      
+      if (!sourceAccount) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid source account ID'
+        });
+      }
+      
+      // Verify it's a cash/bank account
+      if (sourceAccount.accountSubType !== 'CASH_AND_BANK') {
+        return res.status(400).json({
+          success: false,
+          error: 'Source account must be a cash or bank account',
+          details: `Account type: ${sourceAccount.accountSubType}`
+        });
+      }
+      
+      // Check if it's a "Kas Tunai" account (owner's unlimited cash)
+      const isKasTunai = sourceAccount.accountName.toLowerCase().includes('kas tunai') ||
+                        sourceAccount.accountCode === '1101.07';
+      
+      if (isKasTunai) {
+        console.log(`[Budget Validation] ✓ Kas Tunai (Owner's Capital) - UNLIMITED, no balance check`);
+        // Skip balance validation - treat as owner's capital injection
+      } else {
+        // Check balance only for regular bank accounts (not Kas Tunai or Kas Kecil)
+        const isKasKecil = sourceAccount.accountName.toLowerCase().includes('kas kecil') ||
+                          sourceAccount.accountCode === '1101.08';
+        
+        if (!isKasKecil) {
+          // Regular bank account - validate balance
+          const balance = parseFloat(sourceAccount.currentBalance || 0);
+          const amount = parseFloat(expenseData.amount);
+          
+          if (balance < amount) {
+            return res.status(400).json({
+              success: false,
+              error: 'Insufficient balance in source account',
+              details: {
+                available: balance,
+                required: amount,
+                accountName: sourceAccount.accountName
+              }
+            });
+          }
+          
+          console.log(`[Budget Validation] ✓ Bank account validated - sufficient balance`);
+        } else {
+          console.log(`[Budget Validation] ✓ Kas Kecil - no balance validation`);
+        }
+      }
+      
+      console.log(`[Budget Validation] Source account: ${sourceAccount.accountName} (${sourceAccount.accountCode})`);
+    } else {
+      console.log(`[Budget Validation] ✓ No source account - Owner's personal cash (unlimited)`);
+    }
+    
     const result = await budgetValidationService.addAdditionalExpense(
       projectId,
       expenseData,

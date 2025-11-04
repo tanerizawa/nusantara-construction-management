@@ -702,6 +702,20 @@ router.get('/:projectId/milestones/:milestoneId/rab-items', async (req, res) => 
 
     const categoryName = milestone.category_link.category_name;
 
+    // Debug log
+    console.log('[RAB Items] Milestone:', milestoneId);
+    console.log('[RAB Items] Category Link:', milestone.category_link);
+    console.log('[RAB Items] Category Name:', categoryName);
+
+    if (!categoryName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Category name not found in milestone RAB link. Please edit and re-link the milestone.',
+        details: 'The milestone was created with an older format. Please edit the milestone and select the RAB category again to update the link.',
+        fix: 'Go to milestone edit form → Select RAB category from dropdown → Save'
+      });
+    }
+
     // Get RAB items with actual cost summary
     const rabItems = await sequelize.query(`
       SELECT 
@@ -763,7 +777,7 @@ router.get('/:projectId/milestones/:milestoneId/rab-items', async (req, res) => 
     });
 
     // Format response
-    const formatted = rabItems.map(item => ({
+    let formatted = rabItems.map(item => ({
       ...item,
       planned_amount: parseFloat(item.planned_amount),
       actual_amount: parseFloat(item.actual_amount),
@@ -773,6 +787,66 @@ router.get('/:projectId/milestones/:milestoneId/rab-items', async (req, res) => 
       quantity: parseFloat(item.quantity),
       realization_count: parseInt(item.realization_count)
     }));
+
+    // If no approved/active RAB items found for this category, try a relaxed query
+    // to surface draft/unapproved items so users can still attach realizations.
+    let fallback = false;
+    if (formatted.length === 0) {
+      const relaxed = await sequelize.query(`
+        SELECT 
+          r.id,
+          r.project_id,
+          r.category,
+          r.description,
+          r.unit,
+          r.quantity,
+          r.unit_price,
+          r.total_price as planned_amount,
+          r.item_type,
+          r.is_approved,
+          r.approved_at,
+          r.notes,
+          COALESCE(SUM(mc.amount), 0) as actual_amount,
+          COUNT(mc.id) as realization_count,
+          CASE 
+            WHEN r.total_price > 0 THEN LEAST((COALESCE(SUM(mc.amount), 0) / r.total_price) * 100, 100)
+            ELSE 0
+          END as progress_percentage,
+          r.total_price - COALESCE(SUM(mc.amount), 0) as variance,
+          CASE 
+            WHEN COALESCE(SUM(mc.amount), 0) = 0 THEN 'not_started'
+            WHEN COALESCE(SUM(mc.amount), 0) >= r.total_price THEN 'completed'
+            WHEN COALESCE(SUM(mc.amount), 0) > r.total_price THEN 'over_budget'
+            ELSE 'in_progress'
+          END as realization_status,
+          MAX(mc.recorded_at) as last_realization_date
+        FROM project_rab r
+        LEFT JOIN milestone_costs mc ON mc.rab_item_id = r.id 
+          AND mc.milestone_id = :milestoneId 
+          AND mc.deleted_at IS NULL
+        WHERE r.project_id = :projectId
+          AND r.category = :categoryName
+        GROUP BY r.id
+        ORDER BY r.created_at ASC
+      `, {
+        replacements: { milestoneId, projectId, categoryName },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (relaxed && relaxed.length > 0) {
+        fallback = true;
+        formatted = relaxed.map(item => ({
+          ...item,
+          planned_amount: parseFloat(item.planned_amount),
+          actual_amount: parseFloat(item.actual_amount),
+          variance: parseFloat(item.variance),
+          progress_percentage: parseFloat(item.progress_percentage),
+          unit_price: parseFloat(item.unit_price),
+          quantity: parseFloat(item.quantity),
+          realization_count: parseInt(item.realization_count)
+        }));
+      }
+    }
 
     // Calculate summary
     const summary = {
@@ -789,7 +863,9 @@ router.get('/:projectId/milestones/:milestoneId/rab-items', async (req, res) => 
     res.json({
       success: true,
       data: formatted,
-      summary
+      summary,
+      fallback_unapproved: fallback,
+      message: fallback ? 'No approved RAB items found for this category — showing draft/unapproved items.' : undefined
     });
 
   } catch (error) {
@@ -883,30 +959,36 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       });
     }
 
-    // Validate rabItemId if provided
+    // Validate rabItemId if provided. Allow unapproved/draft items (relaxed) so users can record actuals
     if (rabItemId) {
       const [rabItem] = await sequelize.query(`
-        SELECT r.*, pm.category_link
+        SELECT r.*
         FROM project_rab r
-        LEFT JOIN project_milestones pm ON pm.id = :milestoneId
         WHERE r.id = :rabItemId 
           AND r.project_id = :projectId
-          AND r.is_approved = true
       `, {
-        replacements: { rabItemId, projectId, milestoneId },
+        replacements: { rabItemId, projectId },
         type: sequelize.QueryTypes.SELECT
       });
 
       if (!rabItem) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid RAB item ID or RAB item not approved'
+          error: 'Invalid RAB item ID'
         });
       }
 
-      // Check if RAB item matches milestone category
-      if (rabItem.category_link && rabItem.category_link.enabled) {
-        if (rabItem.category !== rabItem.category_link.category_name) {
+      // Fetch milestone's category_link to ensure category alignment if configured
+      const [milestoneRow] = await sequelize.query(`
+        SELECT category_link FROM project_milestones WHERE id = :milestoneId
+      `, {
+        replacements: { milestoneId },
+        type: sequelize.QueryTypes.SELECT
+      });
+
+      if (milestoneRow && milestoneRow.category_link && milestoneRow.category_link.enabled) {
+        const categoryName = milestoneRow.category_link.category_name;
+        if (rabItem.category !== categoryName) {
           return res.status(400).json({
             success: false,
             error: 'RAB item category does not match milestone category link'
@@ -927,9 +1009,9 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
       });
 
       const totalSpent = parseFloat(existing.total_spent) + parseFloat(amount);
-      const plannedAmount = parseFloat(rabItem.total_price);
+      const plannedAmount = parseFloat(rabItem.total_price || 0);
 
-      if (totalSpent > plannedAmount * 1.2) {
+      if (plannedAmount > 0 && totalSpent > plannedAmount * 1.2) {
         console.warn(`[WARNING] RAB item ${rabItemId} exceeding budget by >20%: ${totalSpent} > ${plannedAmount * 1.2}`);
       }
     }
@@ -962,7 +1044,7 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
     // Validate sourceAccountId if provided (Bank/Cash account)
     if (sourceAccountId) {
       const [sourceAccount] = await sequelize.query(`
-        SELECT id, account_type, account_sub_type, current_balance, account_name 
+        SELECT id, account_type, account_sub_type, current_balance, account_name, account_code 
         FROM chart_of_accounts 
         WHERE id = :sourceAccountId AND is_active = true
       `, {
@@ -984,23 +1066,36 @@ router.post('/:projectId/milestones/:milestoneId/costs', async (req, res) => {
         });
       }
 
-      // Check if balance is sufficient
-      const currentBalance = parseFloat(sourceAccount.current_balance) || 0;
-      const requestedAmount = parseFloat(amount) || 0;
+      // Check if it's "Kas Tunai" - owner's unlimited capital
+      const isKasTunai = sourceAccount.account_name.toLowerCase().includes('kas tunai') ||
+                        sourceAccount.account_code === '1101.07';
+      
+      if (isKasTunai) {
+        console.log(`[Milestone Cost] ✓ Kas Tunai (Owner's Capital) - UNLIMITED, no balance check`);
+        // Skip balance validation - treat as owner's capital injection
+      } else {
+        // Check if balance is sufficient for regular bank accounts
+        const currentBalance = parseFloat(sourceAccount.current_balance) || 0;
+        const requestedAmount = parseFloat(amount) || 0;
 
-      if (currentBalance < requestedAmount) {
-        return res.status(400).json({
-          success: false,
-          error: 'Insufficient balance',
-          message: `Saldo tidak cukup! Saldo ${sourceAccount.account_name}: Rp ${currentBalance.toLocaleString('id-ID')}, Dibutuhkan: Rp ${requestedAmount.toLocaleString('id-ID')}`,
-          details: {
-            accountName: sourceAccount.account_name,
-            currentBalance: currentBalance,
-            requestedAmount: requestedAmount,
-            shortfall: requestedAmount - currentBalance
-          }
-        });
+        if (currentBalance < requestedAmount) {
+          return res.status(400).json({
+            success: false,
+            error: 'Insufficient balance',
+            message: `Saldo tidak cukup! Saldo ${sourceAccount.account_name}: Rp ${currentBalance.toLocaleString('id-ID')}, Dibutuhkan: Rp ${requestedAmount.toLocaleString('id-ID')}`,
+            details: {
+              accountName: sourceAccount.account_name,
+              currentBalance: currentBalance,
+              requestedAmount: requestedAmount,
+              shortfall: requestedAmount - currentBalance
+            }
+          });
+        }
+        
+        console.log(`[Milestone Cost] ✓ Bank account validated - sufficient balance`);
       }
+    } else {
+      console.log(`[Milestone Cost] ✓ No source account - Owner's personal cash (unlimited)`);
     }
 
     const [cost] = await sequelize.query(`
@@ -1580,6 +1675,141 @@ router.post('/:projectId/milestones/:milestoneId/activities', async (req, res) =
     res.status(500).json({
       success: false,
       error: 'Failed to log activity',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/realizations/:id
+ * @desc    Update realization entry
+ * @access  Private
+ */
+router.put('/realizations/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      actual_value, 
+      description, 
+      expense_account_id, 
+      source_account_id 
+    } = req.body;
+
+    // Validate realization exists
+    const [existing] = await sequelize.query(`
+      SELECT * FROM milestone_costs 
+      WHERE id = :id AND deleted_at IS NULL
+    `, {
+      replacements: { id },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: 'Realization not found'
+      });
+    }
+
+    // Update realization
+    await sequelize.query(`
+      UPDATE milestone_costs
+      SET 
+        amount = :actual_value,
+        description = :description,
+        account_id = :expense_account_id,
+        source_account_id = :source_account_id,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = :id
+    `, {
+      replacements: {
+        id,
+        actual_value: actual_value || existing.amount,
+        description: description !== undefined ? description : existing.description,
+        expense_account_id: expense_account_id || existing.account_id,
+        source_account_id: source_account_id || existing.source_account_id
+      }
+    });
+
+    // Get updated record
+    const [updated] = await sequelize.query(`
+      SELECT 
+        mc.*,
+        u.name as recorder_name,
+        ea.account_name as expense_account_name,
+        sa.account_name as source_account_name
+      FROM milestone_costs mc
+      LEFT JOIN users u ON mc.recorded_by = u.id
+      LEFT JOIN chart_of_accounts ea ON mc.account_id = ea.id
+      LEFT JOIN chart_of_accounts sa ON mc.source_account_id = sa.id
+      WHERE mc.id = :id
+    `, {
+      replacements: { id },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+      message: 'Realization updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating realization:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update realization',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/realizations/:id
+ * @desc    Delete realization entry (soft delete)
+ * @access  Private
+ */
+router.delete('/realizations/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate realization exists
+    const [existing] = await sequelize.query(`
+      SELECT * FROM milestone_costs 
+      WHERE id = :id AND deleted_at IS NULL
+    `, {
+      replacements: { id },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: 'Realization not found'
+      });
+    }
+
+    // Soft delete
+    await sequelize.query(`
+      UPDATE milestone_costs
+      SET 
+        deleted_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = :id
+    `, {
+      replacements: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Realization deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting realization:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete realization',
       details: error.message
     });
   }

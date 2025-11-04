@@ -286,9 +286,22 @@ router.post('/:id/milestones', async (req, res) => {
     console.log('[POST /milestones] Validated value:', JSON.stringify(value, null, 2));
     console.log('[POST /milestones] Validated budget:', value.budget, 'Type:', typeof value.budget);
 
+    // Map rab_link to category_link for database compatibility
+    const milestoneData = { ...value };
+    if (value.rab_link) {
+      // Convert rab_link to category_link format for database
+      milestoneData.categoryLink = {
+        enabled: value.rab_link.enabled,
+        category_name: value.rab_link.categoryName || value.rab_link.category_name,
+        total_value: value.rab_link.totalValue,
+        total_items: value.rab_link.totalItems
+      };
+      delete milestoneData.rab_link;
+    }
+
     const milestone = await ProjectMilestone.create({
       projectId: id,
-      ...value,
+      ...milestoneData,
       createdBy: req.body.createdBy
     });
 
@@ -347,8 +360,21 @@ router.put('/:id/milestones/:milestoneId', async (req, res) => {
       value.progress = 100;
     }
 
+    // Map rab_link to category_link for database compatibility
+    const updateData = { ...value };
+    if (value.rab_link) {
+      // Convert rab_link to category_link format for database
+      updateData.categoryLink = {
+        enabled: value.rab_link.enabled,
+        category_name: value.rab_link.categoryName || value.rab_link.category_name,
+        total_value: value.rab_link.totalValue,
+        total_items: value.rab_link.totalItems
+      };
+      delete updateData.rab_link;
+    }
+
     await milestone.update({
-      ...value,
+      ...updateData,
       updatedBy: req.body.updatedBy
     });
 

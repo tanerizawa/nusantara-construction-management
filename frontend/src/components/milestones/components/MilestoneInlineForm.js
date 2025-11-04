@@ -182,8 +182,12 @@ const MilestoneInlineForm = ({
               true // preserveUserInput = true (only fill empty fields)
             );
             
-            // Add RAB link data
-            autoFilledData.rabLink = rabData;
+            // Add RAB link data and ensure categoryName is set (fallback to
+            // first category name if the RAB summary contains categories).
+            autoFilledData.rabLink = {
+              ...rabData,
+              categoryName: rabData.categoryName || rabData.category_name || (rabData.categories && rabData.categories.length > 0 ? rabData.categories[0].category : undefined)
+            };
             
             // Track which fields were auto-filled
             const fieldsAutoFilled = {

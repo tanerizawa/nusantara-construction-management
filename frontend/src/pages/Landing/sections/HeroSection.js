@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Play, Building2, TrendingUp, Award, Users } from 'lucide-react';
+import { Building2, TrendingUp, Award, Users } from 'lucide-react';
 import { TrustBadges, CTAButtons } from '../components/UIComponents';
 import { LANDING_CONFIG, TRUST_BADGES } from '../config/landingConfig';
 import { useCTAActions } from '../hooks/useInteractions';
@@ -36,7 +36,7 @@ const HeroContent = ({ primaryCTA, secondaryCTA, onPrimaryClick, onSecondaryClic
     {/* Hero Badge */}
     <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-semibold text-sm mb-6">
       <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
-      Kontraktor Terpercaya Karawang
+      Kontraktor Terpercaya di Karawang
     </div>
     
     {/* Hero Title */}
@@ -69,37 +69,29 @@ const HeroContent = ({ primaryCTA, secondaryCTA, onPrimaryClick, onSecondaryClic
   </div>
 );
 
-// Hero Visual - Modern illustration with floating stats
+// Hero Visual - Image with floating stats
 const HeroVisual = ({ stats }) => (
   <div className="relative">
-    {/* Main illustration container */}
     <div className="relative bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl shadow-2xl overflow-hidden aspect-square">
-      {/* Construction illustration using icons */}
-      <div className="absolute inset-0 flex items-center justify-center p-12">
-        <div className="grid grid-cols-2 gap-8 w-full">
-          {/* Building icon - large */}
-          <div className="col-span-2 flex items-center justify-center">
-            <div className="relative">
-              <Building2 size={120} className="text-white/20" strokeWidth={1.5} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Building2 size={80} className="text-white animate-pulse" strokeWidth={2} />
-              </div>
-            </div>
-          </div>
-          
-          {/* Decorative icons */}
-          <div className="flex items-center justify-center">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 transform hover:scale-110 transition-transform duration-300">
-              <TrendingUp size={40} className="text-white" strokeWidth={2} />
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-center">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 transform hover:scale-110 transition-transform duration-300">
-              <Award size={40} className="text-white" strokeWidth={2} />
-            </div>
-          </div>
-        </div>
+      {/* Hero image (Pexels-ready) with fallbacks */}
+      <picture>
+        <source srcSet="/images/hero/hero.webp" type="image/webp" />
+        <source srcSet="/images/hero/hero.jpg" type="image/jpeg" />
+        <img 
+          src="/images/hero/hero.jpg"
+          alt="Ilustrasi konstruksi dan infrastruktur"
+          loading="eager"
+          decoding="async"
+          onError={(e) => { e.currentTarget.src = '/images/hero/hero-construction.svg'; }}
+          className="absolute inset-0 w-full h-full object-cover opacity-90"
+        />
+      </picture>
+      {/* Light overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black/10 to-black/0" />
+
+      {/* Subtle decorative icon in background */}
+      <div className="absolute inset-0 flex items-center justify-center p-12 pointer-events-none">
+        <Building2 size={120} className="text-white/10" strokeWidth={1.5} />
       </div>
 
       {/* Floating stats badges */}

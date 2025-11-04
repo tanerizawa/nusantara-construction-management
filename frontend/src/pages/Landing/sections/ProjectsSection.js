@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ChevronRight, CheckCircle, Clock } from 'lucide-react';
+import { Calendar, CheckCircle, Clock } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useLandingData';
 
 export const ProjectsSection = ({ projects = [], className = '' }) => {
@@ -59,6 +59,24 @@ const ProjectCard = ({ project, animated, delay = 0 }) => {
       }`}
       style={{ animationDelay: `${delay}ms` }}
     >
+      {/* Project Image */}
+      {(project.imageWebp || project.imageJpg || project.image) && (
+        <div className="relative h-40 bg-gray-100 overflow-hidden">
+          <picture>
+            {project.imageWebp && <source srcSet={project.imageWebp} type="image/webp" />}
+            {project.imageJpg && <source srcSet={project.imageJpg} type="image/jpeg" />}
+            <img
+              src={project.imageJpg || project.image}
+              alt={`Proyek: ${project.name || 'Proyek'}`}
+              loading="lazy"
+              decoding="async"
+              onError={(e) => { if (project.image && e.currentTarget.src !== window.location.origin + project.image) e.currentTarget.src = project.image; }}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </picture>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        </div>
+      )}
       <div className="p-6">
         <div className="flex items-start justify-between mb-3">
           <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{project.name || 'Proyek'}</h3>
@@ -106,4 +124,3 @@ const ProjectCard = ({ project, animated, delay = 0 }) => {
 };
 
 export default ProjectsSection;
-

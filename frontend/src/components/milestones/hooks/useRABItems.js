@@ -14,6 +14,7 @@ import api from '../../../services/api';
 export const useRABItems = (projectId, milestoneId) => {
   const [rabItems, setRABItems] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [fallbackUnapproved, setFallbackUnapproved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -52,6 +53,7 @@ export const useRABItems = (projectId, milestoneId) => {
           console.log(`[useRABItems] ✅ Loaded ${response.data.data?.length || 0} RAB items (wrapped)`);
           setRABItems(response.data.data || []);
           setSummary(response.data.summary || null);
+          setFallbackUnapproved(!!response.data.fallback_unapproved);
           setError(null);
         }
         // Handle message response (no RAB items)
@@ -173,6 +175,7 @@ export const useRABItems = (projectId, milestoneId) => {
     // Data
     rabItems,
     summary,
+    fallbackUnapproved,
     
     // State
     loading,

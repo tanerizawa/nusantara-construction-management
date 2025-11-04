@@ -18,6 +18,8 @@ export const Navigation = ({
       role="navigation" 
       aria-label="Primary"
     >
+      {/* Skip to content for accessibility */}
+      <a href="#home" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-blue-600 text-white px-3 py-2 rounded">Lewati ke konten</a>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -96,7 +98,7 @@ const CTAButton = () => {
       to="/login" 
       className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform"
     >
-      Login
+      Masuk
     </Link>
   );
 };
@@ -127,7 +129,7 @@ const MobileMenu = ({ navigation, activeSection, onClose, onNavigate }) => (
           className="block w-full text-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold"
           onClick={onClose}
         >
-          Login
+          Masuk
         </Link>
       </div>
     </div>

@@ -22,6 +22,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { sequelize } = require('../../models');
 
 // Import financial services
 const FinancialStatementService = require('../../services/FinancialStatementService');
@@ -188,65 +189,171 @@ router.get('/cash-flow', async (req, res) => {
   try {
     const {
       start_date,
-      end_date = new Date(),
+      end_date = new Date().toISOString().split('T')[0],
       subsidiary_id,
+      project_id,
       method = 'INDIRECT' // direct or indirect
     } = req.query;
 
-    // For now, return mock data to prevent 500 errors
-    // TODO: Fix CashFlowService implementation
-    const mockCashFlow = {
+    // Calculate start date (default: 1 year ago)
+    const startDate = start_date || new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0];
+    const endDate = end_date;
+
+    // Query all completed finance transactions in the date range
+    let whereConditions = `
+      status = 'completed' 
+      AND date BETWEEN :startDate AND :endDate
+    `;
+    
+    const replacements = { startDate, endDate };
+
+    if (project_id) {
+      whereConditions += ' AND project_id = :projectId';
+      replacements.projectId = project_id;
+    }
+
+    const transactions = await sequelize.query(`
+      SELECT 
+        id,
+        type,
+        category,
+        subcategory,
+        amount,
+        description,
+        date,
+        project_id,
+        payment_method,
+        reference_number
+      FROM finance_transactions
+      WHERE ${whereConditions}
+      ORDER BY date ASC
+    `, {
+      replacements,
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    // Helper function to categorize transactions
+    const categorizeTransactions = (transactions) => {
+      const operating = [];
+      const investing = [];
+      const financing = [];
+
+      transactions.forEach(txn => {
+        const amount = parseFloat(txn.amount);
+        const displayAmount = txn.type === 'expense' ? -amount : amount;
+        
+        const item = {
+          item: txn.description || `${txn.category} - ${txn.subcategory || 'Other'}`,
+          amount: displayAmount,
+          date: txn.date,
+          reference: txn.reference_number
+        };
+
+        // Categorize based on transaction category
+        const category = (txn.category || '').toLowerCase();
+        const subcategory = (txn.subcategory || '').toLowerCase();
+
+        // OPERATING ACTIVITIES - Day-to-day business operations
+        if (
+          category.includes('operational') ||
+          category.includes('salary') ||
+          category.includes('expense') ||
+          category.includes('income') ||
+          category.includes('revenue') ||
+          subcategory.includes('actual') ||
+          subcategory.includes('upah') ||
+          subcategory.includes('material')
+        ) {
+          operating.push(item);
+        }
+        // INVESTING ACTIVITIES - Long-term assets
+        else if (
+          category.includes('asset') ||
+          category.includes('equipment') ||
+          category.includes('property') ||
+          category.includes('investment') ||
+          subcategory.includes('capital')
+        ) {
+          investing.push(item);
+        }
+        // FINANCING ACTIVITIES - Loans, equity, dividends
+        else if (
+          category.includes('loan') ||
+          category.includes('debt') ||
+          category.includes('equity') ||
+          category.includes('dividend') ||
+          category.includes('financing')
+        ) {
+          financing.push(item);
+        }
+        // Default to operating for unclassified
+        else {
+          operating.push(item);
+        }
+      });
+
+      return { operating, investing, financing };
+    };
+
+    const categorized = categorizeTransactions(transactions);
+
+    // Calculate totals
+    const operatingTotal = categorized.operating.reduce((sum, item) => sum + item.amount, 0);
+    const investingTotal = categorized.investing.reduce((sum, item) => sum + item.amount, 0);
+    const financingTotal = categorized.financing.reduce((sum, item) => sum + item.amount, 0);
+    const netCashFlow = operatingTotal + investingTotal + financingTotal;
+
+    // Get opening cash balance (cash/bank accounts at start date)
+    const openingCashResult = await sequelize.query(`
+      SELECT COALESCE(SUM(current_balance), 0) as opening_cash
+      FROM chart_of_accounts
+      WHERE (account_code LIKE '1-1%' OR account_name ILIKE '%kas%' OR account_name ILIKE '%bank%')
+        AND is_active = true
+    `, {
+      type: sequelize.QueryTypes.SELECT
+    });
+    
+    const openingCash = parseFloat(openingCashResult[0]?.opening_cash || 0) - netCashFlow;
+    const closingCash = openingCash + netCashFlow;
+
+    // Return data structure matching frontend expectations
+    const cashFlowData = {
       success: true,
       data: {
         period: {
-          startDate: start_date || new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0],
-          endDate: end_date || new Date().toISOString().split('T')[0],
-          method: method
+          startDate,
+          endDate,
+          method
         },
         operatingActivities: {
-          netIncome: 3150000000,
-          adjustments: [
-            { item: 'Depreciation', amount: 450000000 },
-            { item: 'Amortization', amount: 125000000 }
-          ],
-          workingCapitalChanges: [
-            { item: 'Accounts Receivable', amount: -280000000 },
-            { item: 'Inventory', amount: -150000000 },
-            { item: 'Accounts Payable', amount: 220000000 }
-          ],
-          total: 3515000000
+          items: categorized.operating,
+          netIncome: categorized.operating
+            .filter(item => item.amount > 0)
+            .reduce((sum, item) => sum + item.amount, 0),
+          adjustments: [],
+          workingCapitalChanges: [],
+          total: operatingTotal
         },
         investingActivities: {
-          purchases: [
-            { item: 'Equipment', amount: -850000000 },
-            { item: 'Land & Buildings', amount: -450000000 }
-          ],
-          disposals: [
-            { item: 'Old Equipment', amount: 120000000 }
-          ],
-          total: -1180000000
+          purchases: categorized.investing.filter(item => item.amount < 0),
+          disposals: categorized.investing.filter(item => item.amount > 0),
+          total: investingTotal
         },
         financingActivities: {
-          loans: [
-            { item: 'Bank Loan Received', amount: 750000000 }
-          ],
-          repayments: [
-            { item: 'Loan Repayment', amount: -380000000 }
-          ],
-          dividends: [
-            { item: 'Dividends Paid', amount: -420000000 }
-          ],
-          total: -50000000
+          loans: categorized.financing.filter(item => item.amount > 0),
+          repayments: categorized.financing.filter(item => item.amount < 0 && !item.item.toLowerCase().includes('dividend')),
+          dividends: categorized.financing.filter(item => item.amount < 0 && item.item.toLowerCase().includes('dividend')),
+          total: financingTotal
         },
         summary: {
-          netCashFlow: 2285000000,
-          openingCash: 1850000000,
-          closingCash: 4135000000
+          netCashFlow,
+          openingCash,
+          closingCash
         }
       }
     };
     
-    res.json(mockCashFlow);
+    res.json(cashFlowData);
   } catch (error) {
     console.error('Error in cash flow endpoint:', error);
     res.status(500).json({

@@ -18,6 +18,9 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../../utils/formatters';
+import StatusBadge from './StatusBadge';
+import ActionButtons from './ActionButtons';
+import PaymentExecutionModal from './PaymentExecutionModal';
 
 /**
  * Modal Component with Portal - Robust Implementation
@@ -82,7 +85,11 @@ const SimplifiedRABTable = ({
   getRealizations,
   expenseAccounts = [],
   sourceAccounts = [],
-  onSubmitRealization
+  onSubmitRealization,
+  projectId,
+  milestoneId,
+  isManager = false, // Add this prop to determine if user can approve/reject
+  isFinance = false  // Add this prop for payment execution permission
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -95,6 +102,11 @@ const SimplifiedRABTable = ({
   const [saving, setSaving] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
   const [realizations, setRealizations] = useState({});
+  const [workflowLoading, setWorkflowLoading] = useState(false);
+  
+  // Payment execution modal state
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedCostForPayment, setSelectedCostForPayment] = useState(null);
 
   // Item type icons
   const itemTypeIcons = {
@@ -164,11 +176,185 @@ const SimplifiedRABTable = ({
       }
 
       // Reload data after delete
-      await loadAllRealizations();
+      if (selectedItem?.id) {
+        const data = await getRealizations(selectedItem.id);
+        setRealizations(prev => ({ ...prev, [selectedItem.id]: data || [] }));
+      }
       alert('Transaksi berhasil dihapus');
     } catch (error) {
       console.error('Error deleting realization:', error);
       alert(`Error: ${error.message}`);
+    }
+  };
+
+  // ========== WORKFLOW HANDLERS ==========
+  
+  const handleSubmitCost = async (costId) => {
+    setWorkflowLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `http://localhost:3000/api/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/submit`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit cost');
+      }
+
+      alert('✅ Realisasi biaya berhasil diajukan untuk persetujuan');
+      
+      // Reload realizations to get updated status
+      if (selectedItem?.id) {
+        const data = await getRealizations(selectedItem.id);
+        setRealizations(prev => ({ ...prev, [selectedItem.id]: data || [] }));
+      }
+    } catch (error) {
+      console.error('Error submitting cost:', error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const handleApproveCost = async (costId) => {
+    setWorkflowLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `http://localhost:3000/api/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/approve`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to approve cost');
+      }
+
+      alert('✅ Realisasi biaya telah disetujui');
+      
+      // Reload realizations to get updated status
+      if (selectedItem?.id) {
+        const data = await getRealizations(selectedItem.id);
+        setRealizations(prev => ({ ...prev, [selectedItem.id]: data || [] }));
+      }
+    } catch (error) {
+      console.error('Error approving cost:', error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const handleRejectCost = async (costId, reason) => {
+    setWorkflowLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `http://localhost:3000/api/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/reject`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ reason })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to reject cost');
+      }
+
+      alert('❌ Realisasi biaya telah ditolak');
+      
+      // Reload realizations to get updated status
+      if (selectedItem?.id) {
+        const data = await getRealizations(selectedItem.id);
+        setRealizations(prev => ({ ...prev, [selectedItem.id]: data || [] }));
+      }
+    } catch (error) {
+      console.error('Error rejecting cost:', error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  // ========== PAYMENT EXECUTION ==========
+  
+  const handleOpenPaymentModal = (costId) => {
+    // Find the cost/realization object
+    const allRealizations = Object.values(realizations).flat();
+    const cost = allRealizations.find(r => r.id === costId);
+    
+    if (!cost) {
+      alert('Cost data not found');
+      return;
+    }
+    
+    if (cost.status !== 'approved') {
+      alert('Only approved costs can be paid');
+      return;
+    }
+    
+    setSelectedCostForPayment(cost);
+    setPaymentModalOpen(true);
+  };
+
+  const handleExecutePayment = async (costId, paymentData) => {
+    setWorkflowLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `http://localhost:3000/api/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/execute-payment`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(paymentData)
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to execute payment');
+      }
+
+      const result = await response.json();
+      
+      alert(`✅ Payment executed successfully!\nTransaction ID: ${result.transactionId}`);
+      
+      // Close modal
+      setPaymentModalOpen(false);
+      setSelectedCostForPayment(null);
+      
+      // Reload realizations to get updated status
+      if (selectedItem?.id) {
+        const data = await getRealizations(selectedItem.id);
+        setRealizations(prev => ({ ...prev, [selectedItem.id]: data || [] }));
+      }
+    } catch (error) {
+      console.error('Error executing payment:', error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setWorkflowLoading(false);
     }
   };
 
@@ -236,15 +422,19 @@ const SimplifiedRABTable = ({
           amount: parseFloat(editValue),
           description: editDescription,
           accountId: editAccount,
-          sourceAccountId: editSource
+          sourceAccountId: editSource,
+          progress: 100 // Default 100% progress
         };
 
-        await onAddRealization(selectedItem, realizationData);
+        await onAddRealization(selectedItem.id, realizationData);
         alert('Realisasi berhasil ditambahkan!');
       }
       
-      // Reload data
-      await loadAllRealizations();
+      // Reload realizations for this specific item
+      if (selectedItem?.id) {
+        const data = await getRealizations(selectedItem.id);
+        setRealizations(prev => ({ ...prev, [selectedItem.id]: data || [] }));
+      }
       
       handleCancelEdit();
     } catch (error) {
@@ -638,50 +828,83 @@ const SimplifiedRABTable = ({
                               {itemRealizations.map((real, idx) => (
                                 <div 
                                   key={real.id || idx}
-                                  className="bg-[#2C2C2E] rounded p-3 border border-[#3C3C3E] flex items-center justify-between text-xs hover:border-blue-500/30 transition-colors"
+                                  className="bg-[#2C2C2E] rounded p-3 border border-[#3C3C3E] hover:border-blue-500/30 transition-colors"
                                 >
-                                  <div className="flex items-center gap-4 flex-1">
-                                    <div className="font-semibold text-blue-400 min-w-[100px]">
-                                      {formatCurrency(real.actual_value || real.amount)}
+                                  <div className="flex items-center justify-between gap-4 text-xs">
+                                    {/* Left: Amount and Details */}
+                                    <div className="flex items-center gap-4 flex-1">
+                                      <div className="font-semibold text-blue-400 min-w-[100px]">
+                                        {formatCurrency(real.actual_value || real.amount)}
+                                      </div>
+                                      {real.recorded_at && (
+                                        <div className="text-gray-500 min-w-[90px]">
+                                          {formatDate(real.recorded_at)}
+                                        </div>
+                                      )}
+                                      {real.description && (
+                                        <div className="text-gray-400 flex-1">
+                                          {real.description}
+                                        </div>
+                                      )}
+                                      {real.expense_account_name && (
+                                        <div className="text-yellow-400 min-w-[120px]">
+                                          {real.expense_account_name}
+                                        </div>
+                                      )}
+                                      {real.source_account_name && (
+                                        <div className="text-purple-400 min-w-[120px]">
+                                          {real.source_account_name}
+                                        </div>
+                                      )}
                                     </div>
-                                    {real.recorded_at && (
-                                      <div className="text-gray-500 min-w-[90px]">
-                                        {formatDate(real.recorded_at)}
-                                      </div>
-                                    )}
-                                    {real.description && (
-                                      <div className="text-gray-400 flex-1">
-                                        {real.description}
-                                      </div>
-                                    )}
-                                    {real.expense_account_name && (
-                                      <div className="text-yellow-400 min-w-[120px]">
-                                        {real.expense_account_name}
-                                      </div>
-                                    )}
-                                    {real.source_account_name && (
-                                      <div className="text-purple-400 min-w-[120px]">
-                                        {real.source_account_name}
-                                      </div>
-                                    )}
+                                    
+                                    {/* Right: Status Badge and Actions */}
+                                    <div className="flex items-center gap-2">
+                                      {/* Status Badge */}
+                                      <StatusBadge status={real.status || 'draft'} size="small" />
+                                      
+                                      {/* Edit & Delete Buttons (only if draft or rejected) */}
+                                      {(real.status === 'draft' || real.status === 'rejected' || !real.status) && (
+                                        <>
+                                          <button
+                                            onClick={() => handleEditRealization(item, real)}
+                                            className="p-1.5 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
+                                            title="Edit Realization"
+                                          >
+                                            <Edit2 size={13} />
+                                          </button>
+                                          <button
+                                            onClick={() => handleDeleteRealization(real.id)}
+                                            className="p-1.5 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                                            title="Delete Realization"
+                                          >
+                                            <X size={13} />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
                                   
-                                  {/* Edit & Delete Buttons */}
-                                  <div className="flex items-center gap-1 ml-3">
-                                    <button
-                                      onClick={() => handleEditRealization(item, real)}
-                                      className="p-1.5 hover:bg-blue-500/20 rounded text-blue-400 transition-colors"
-                                      title="Edit Realization"
-                                    >
-                                      <Edit2 size={13} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteRealization(real.id)}
-                                      className="p-1.5 hover:bg-red-500/20 rounded text-red-400 transition-colors"
-                                      title="Delete Realization"
-                                    >
-                                      <Trash2 size={13} />
-                                    </button>
+                                  {/* Rejection Reason (if rejected) */}
+                                  {real.status === 'rejected' && real.rejection_reason && (
+                                    <div className="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-xs">
+                                      <div className="text-red-400 font-semibold mb-1">Alasan Penolakan:</div>
+                                      <div className="text-gray-300">{real.rejection_reason}</div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Action Buttons (Submit/Approve/Reject/Execute Payment) */}
+                                  <div className="mt-2 flex justify-end">
+                                    <ActionButtons
+                                      cost={real}
+                                      onSubmit={handleSubmitCost}
+                                      onApprove={handleApproveCost}
+                                      onReject={handleRejectCost}
+                                      onExecutePayment={handleOpenPaymentModal}
+                                      isManager={isManager}
+                                      isFinance={isFinance}
+                                      loading={workflowLoading}
+                                    />
                                   </div>
                                 </div>
                               ))}
@@ -747,6 +970,19 @@ const SimplifiedRABTable = ({
           </div>
         </div>
       </div>
+
+      {/* Payment Execution Modal */}
+      {paymentModalOpen && selectedCostForPayment && (
+        <PaymentExecutionModal
+          cost={selectedCostForPayment}
+          onExecute={handleExecutePayment}
+          onClose={() => {
+            setPaymentModalOpen(false);
+            setSelectedCostForPayment(null);
+          }}
+          loading={workflowLoading}
+        />
+      )}
     </div>
   );
 };

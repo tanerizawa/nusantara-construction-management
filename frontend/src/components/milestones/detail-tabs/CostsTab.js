@@ -526,11 +526,15 @@ const CostsTab = ({ milestone, projectId }) => {
 
           <SimplifiedRABTable
             rabItems={rabItems}
-            onAddRealization={handleAddRealizationFromRAB}
+            onAddRealization={handleSubmitInlineRealization}
             getRealizations={getRealizations}
             expenseAccounts={expenseAccounts}
             sourceAccounts={sourceAccounts}
             onSubmitRealization={handleSubmitInlineRealization}
+            projectId={projectId}
+            milestoneId={milestone.id}
+            isManager={false} // TODO: Get from user context/auth
+            isFinance={false} // TODO: Get from user context/auth
           />
         </div>
       )}

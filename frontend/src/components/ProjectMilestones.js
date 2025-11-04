@@ -125,13 +125,20 @@ const ProjectMilestones = ({ project, onUpdate }) => {
               setEditingMilestone(selectedMilestone);
               setShowAddForm(false);
             }}
-            onDelete={() => {
-              if (window.confirm(`Are you sure you want to delete "${selectedMilestone.name}"?`)) {
-                deleteMilestone(selectedMilestone.id);
-                // Select next milestone or first one
+            onDelete={async () => {
+              if (window.confirm(`Are you sure you want to delete "${selectedMilestone.title || selectedMilestone.name}"?`)) {
                 const currentIndex = milestones.findIndex(m => m.id === selectedMilestone.id);
-                const nextMilestone = milestones[currentIndex + 1] || milestones[currentIndex - 1] || milestones[0];
-                setSelectedMilestone(nextMilestone);
+                const nextMilestone = milestones[currentIndex + 1] || milestones[currentIndex - 1] || null;
+                
+                const success = await deleteMilestone(selectedMilestone.id);
+                
+                if (success) {
+                  // Select next milestone after deletion
+                  setSelectedMilestone(nextMilestone);
+                  
+                  // Reload milestones to ensure UI is in sync
+                  await loadMilestones();
+                }
               }
             }}
             onApprove={() => approveMilestone(selectedMilestone.id)}

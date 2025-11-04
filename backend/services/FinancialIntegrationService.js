@@ -182,20 +182,21 @@ class FinancialIntegrationService {
       replacements.startDate = startDate;
     }
 
-    // Total expenses from milestone costs
+    // Total expenses from milestone costs (only approved or paid)
     const [totalResult] = await sequelize.query(`
       SELECT 
         COALESCE(SUM(mc.amount), 0) as total_expenses,
         COUNT(mc.id) as cost_count
       FROM milestone_costs mc
       WHERE mc.deleted_at IS NULL
+        AND mc.status IN ('approved', 'paid')
         ${dateFilter}
     `, {
       replacements,
       type: QueryTypes.SELECT
     });
 
-    // Expenses by category
+    // Expenses by category (only approved or paid)
     const byCategory = await sequelize.query(`
       SELECT 
         mc.cost_category,
@@ -203,6 +204,7 @@ class FinancialIntegrationService {
         COUNT(mc.id) as transaction_count
       FROM milestone_costs mc
       WHERE mc.deleted_at IS NULL
+        AND mc.status IN ('approved', 'paid')
         ${dateFilter}
       GROUP BY mc.cost_category
       ORDER BY amount DESC
@@ -211,7 +213,7 @@ class FinancialIntegrationService {
       type: QueryTypes.SELECT
     });
 
-    // Expenses by account (expense type)
+    // Expenses by account (expense type) - only approved or paid
     const byAccount = await sequelize.query(`
       SELECT 
         coa.account_code,
@@ -221,6 +223,7 @@ class FinancialIntegrationService {
       FROM milestone_costs mc
       LEFT JOIN chart_of_accounts coa ON mc.account_id = coa.id
       WHERE mc.deleted_at IS NULL
+        AND mc.status IN ('approved', 'paid')
         AND mc.account_id IS NOT NULL
         ${dateFilter}
       GROUP BY coa.account_code, coa.account_name
@@ -230,7 +233,7 @@ class FinancialIntegrationService {
       type: QueryTypes.SELECT
     });
 
-    // Expenses by month (for trends)
+    // Expenses by month (for trends) - only approved or paid
     const byMonth = await sequelize.query(`
       SELECT 
         TO_CHAR(mc.created_at, 'YYYY-MM') as month,
@@ -238,6 +241,7 @@ class FinancialIntegrationService {
         COUNT(mc.id) as cost_count
       FROM milestone_costs mc
       WHERE mc.deleted_at IS NULL
+        AND mc.status IN ('approved', 'paid')
         ${dateFilter}
       GROUP BY TO_CHAR(mc.created_at, 'YYYY-MM')
       ORDER BY month DESC

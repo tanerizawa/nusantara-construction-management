@@ -82,6 +82,56 @@ export const milestoneDetailAPI = {
   deleteCost: (projectId, milestoneId, costId) =>
     apiService.delete(`/projects/${projectId}/milestones/${milestoneId}/costs/${costId}`),
 
+  // ========== APPROVAL WORKFLOW ==========
+  
+  /**
+   * Submit cost realization for approval
+   * @param {string} projectId
+   * @param {string} milestoneId
+   * @param {string} costId
+   */
+  submitCost: (projectId, milestoneId, costId) =>
+    apiService.post(`/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/submit`),
+
+  /**
+   * Approve submitted cost realization
+   * @param {string} projectId
+   * @param {string} milestoneId
+   * @param {string} costId
+   */
+  approveCost: (projectId, milestoneId, costId) =>
+    apiService.post(`/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/approve`),
+
+  /**
+   * Reject submitted cost realization
+   * @param {string} projectId
+   * @param {string} milestoneId
+   * @param {string} costId
+   * @param {string} reason - Rejection reason (required)
+   */
+  rejectCost: (projectId, milestoneId, costId, reason) =>
+    apiService.post(`/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/reject`, { reason }),
+
+  /**
+   * Get pending (submitted) costs awaiting approval
+   * @param {string} projectId
+   * @param {string} milestoneId
+   */
+  getPendingCosts: (projectId, milestoneId) =>
+    apiService.get(`/projects/${projectId}/milestones/${milestoneId}/costs/pending`),
+
+  // ========== PAYMENT EXECUTION - Phase 2 ==========
+  
+  /**
+   * Execute payment from approved cost
+   * @param {string} projectId
+   * @param {string} milestoneId
+   * @param {string} costId
+   * @param {object} paymentData - { paymentMethod?, referenceNumber?, paymentDate?, notes? }
+   */
+  executePayment: (projectId, milestoneId, costId, paymentData = {}) =>
+    apiService.post(`/projects/${projectId}/milestones/${milestoneId}/costs/${costId}/execute-payment`, paymentData),
+
   // ========== ACTIVITIES ==========
   
   /**

@@ -31,10 +31,13 @@ const milestoneSchema = Joi.object({
   // RAB link (new field to replace category_link)
   rab_link: Joi.object({
     enabled: Joi.boolean().required(),
+    categoryName: Joi.string().allow(null).optional(), // Support camelCase from frontend
+    category_name: Joi.string().allow(null).optional(), // Support snake_case
     totalValue: Joi.number().min(0).required(),
     totalItems: Joi.number().integer().min(0).required(),
     approvedDate: Joi.date().allow(null).optional(),
-    linkedAt: Joi.date().required()
+    linkedAt: Joi.date().required(),
+    categories: Joi.array().optional() // Support categories array from RABSelector
   }).optional()
 });
 

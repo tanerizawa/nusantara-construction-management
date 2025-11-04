@@ -405,14 +405,11 @@ router.put('/:id', async (req, res) => {
       }
     }
 
-    // Auto-sync to finance if status changed
+    // DISABLED: Auto-sync to finance removed - PO/WO should go through milestone cost validation first
+    // PO/WO will only appear in finance after being recorded in milestone costs and approved
+    // This ensures proper workflow: PO → Receive → Record in Milestone → Approve → Execute Payment → Finance Transaction
     if (value.status && value.status !== previousStatus) {
-      try {
-        await POFinanceSyncService.syncPOToFinance(order.toJSON(), previousStatus);
-      } catch (syncError) {
-        console.error('Finance sync warning:', syncError.message);
-        // Don't fail the main operation, just log the warning
-      }
+      console.log(`PO status changed from ${previousStatus} to ${value.status}. Finance sync disabled - use milestone cost workflow.`);
     }
 
     res.json({
@@ -498,12 +495,9 @@ router.put('/:id/status', async (req, res) => {
 
     await order.update({ status });
 
-    // Auto-sync to finance when status changes
-    try {
-      await POFinanceSyncService.syncPOToFinance(order.toJSON());
-    } catch (syncError) {
-      console.error('Finance sync warning:', syncError.message);
-    }
+    // DISABLED: Auto-sync to finance - PO/WO must go through milestone cost validation
+    // Proper workflow: PO approved → Goods received → Record in milestone costs → Approve → Execute payment
+    console.log(`PO status updated to ${status}. Use milestone cost workflow for finance recording.`);
 
     res.json({
       success: true,

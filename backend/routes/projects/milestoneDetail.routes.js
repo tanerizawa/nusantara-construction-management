@@ -890,7 +890,7 @@ router.get('/:projectId/milestones/:milestoneId/rab-items/:rabItemId/realization
     const costs = await sequelize.query(`
       SELECT 
         mc.*,
-        u.name as recorder_name,
+        u.username as recorder_name,
         ea.account_name as expense_account_name,
         ea.account_code as expense_account_code,
         sa.account_name as source_account_name,
@@ -1381,7 +1381,7 @@ router.delete('/:projectId/milestones/:milestoneId/costs/:costId', async (req, r
 
     // Get cost details before soft deleting
     const cost = await sequelize.query(
-      'SELECT cost_category, cost_type, amount, source_account_id FROM milestone_costs WHERE id = :costId LIMIT 1',
+      'SELECT cost_category, cost_type, amount, source_account_id, status, finance_transaction_id FROM milestone_costs WHERE id = :costId LIMIT 1',
       {
         replacements: { costId },
         type: sequelize.QueryTypes.SELECT,
@@ -1393,6 +1393,43 @@ router.delete('/:projectId/milestones/:milestoneId/costs/:costId', async (req, r
       return res.status(404).json({
         success: false,
         error: 'Cost not found'
+      });
+    }
+
+    // ✅ FINANCIAL CONTROL: Prevent deletion of paid costs
+    if (cost.finance_transaction_id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete milestone cost with existing payment transaction',
+        message: 'This cost has been paid and recorded in finance transactions. For audit trail purposes, paid costs cannot be deleted.',
+        suggestion: 'If this was an error, please contact your finance team to reverse the payment transaction first.',
+        data: {
+          costId: costId,
+          status: cost.status,
+          financeTransactionId: cost.finance_transaction_id
+        }
+      });
+    }
+
+    // ✅ ADDITIONAL CHECK: Check if finance_transaction exists (backup check)
+    const financeTransaction = await sequelize.query(
+      'SELECT id FROM finance_transactions WHERE description ILIKE :pattern LIMIT 1',
+      {
+        replacements: { pattern: `%${costId}%` },
+        type: sequelize.QueryTypes.SELECT,
+        plain: true
+      }
+    );
+
+    if (financeTransaction) {
+      return res.status(403).json({
+        success: false,
+        error: 'Finance transaction exists for this cost',
+        message: 'A payment record exists for this cost. Cannot delete to maintain financial audit trail.',
+        data: {
+          costId: costId,
+          financeTransactionId: financeTransaction.id
+        }
       });
     }
 
@@ -1810,6 +1847,542 @@ router.delete('/realizations/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to delete realization',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * ============================================================
+ * APPROVAL WORKFLOW ENDPOINTS - Phase 1
+ * ============================================================
+ */
+
+/**
+ * @route   POST /api/projects/:projectId/milestones/:milestoneId/costs/:costId/submit
+ * @desc    Submit cost realization for approval
+ * @access  Private
+ */
+router.post('/:projectId/milestones/:milestoneId/costs/:costId/submit', async (req, res) => {
+  try {
+    const { costId } = req.params;
+    const username = req.headers['x-user-id'] || req.headers['x-username'] || 'system';
+
+    // Validate cost exists and is in draft status
+    const [cost] = await sequelize.query(`
+      SELECT * FROM milestone_costs 
+      WHERE id = :costId AND deleted_at IS NULL
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!cost) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cost realization not found'
+      });
+    }
+
+    if (cost.status !== 'draft') {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot submit cost with status "${cost.status}". Only draft costs can be submitted.`
+      });
+    }
+
+    // Update to submitted status
+    await sequelize.query(`
+      UPDATE milestone_costs
+      SET 
+        status = 'submitted',
+        submitted_by = :username,
+        submitted_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = :costId
+    `, {
+      replacements: { costId, username }
+    });
+
+    // Fetch updated record
+    const [updated] = await sequelize.query(`
+      SELECT 
+        mc.*,
+        ri.item_code,
+        ri.item_name,
+        ri.specification,
+        ri.unit,
+        u.username as recorded_by_name,
+        su.username as submitted_by_name
+      FROM milestone_costs mc
+      LEFT JOIN rab_items ri ON mc.rab_item_id = ri.id
+      LEFT JOIN users u ON mc.recorded_by = u.username
+      LEFT JOIN users su ON mc.submitted_by = su.username
+      WHERE mc.id = :costId
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+      message: 'Cost realization submitted for approval'
+    });
+
+  } catch (error) {
+    console.error('Error submitting cost:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit cost realization',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/projects/:projectId/milestones/:milestoneId/costs/:costId/approve
+ * @desc    Approve submitted cost realization
+ * @access  Private (Manager/Admin only)
+ */
+router.post('/:projectId/milestones/:milestoneId/costs/:costId/approve', async (req, res) => {
+  try {
+    const { costId } = req.params;
+    const username = req.headers['x-user-id'] || req.headers['x-username'] || 'system';
+
+    // Validate cost exists and is in submitted status
+    const [cost] = await sequelize.query(`
+      SELECT * FROM milestone_costs 
+      WHERE id = :costId AND deleted_at IS NULL
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!cost) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cost realization not found'
+      });
+    }
+
+    if (cost.status !== 'submitted') {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot approve cost with status "${cost.status}". Only submitted costs can be approved.`
+      });
+    }
+
+    // Update to approved status
+    await sequelize.query(`
+      UPDATE milestone_costs
+      SET 
+        status = 'approved',
+        approved_by = :username,
+        approved_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP,
+        rejection_reason = NULL,
+        rejected_by = NULL,
+        rejected_at = NULL
+      WHERE id = :costId
+    `, {
+      replacements: { costId, username }
+    });
+
+    // Fetch updated record
+    const [updated] = await sequelize.query(`
+      SELECT 
+        mc.*,
+        ri.item_code,
+        ri.item_name,
+        ri.specification,
+        ri.unit,
+        u.username as recorded_by_name,
+        su.username as submitted_by_name,
+        au.username as approved_by_name
+      FROM milestone_costs mc
+      LEFT JOIN rab_items ri ON mc.rab_item_id = ri.id
+      LEFT JOIN users u ON mc.recorded_by = u.username
+      LEFT JOIN users su ON mc.submitted_by = su.username
+      LEFT JOIN users au ON mc.approved_by = au.username
+      WHERE mc.id = :costId
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+      message: 'Cost realization approved successfully'
+    });
+
+  } catch (error) {
+    console.error('Error approving cost:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to approve cost realization',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   POST /api/projects/:projectId/milestones/:milestoneId/costs/:costId/reject
+ * @desc    Reject submitted cost realization with reason
+ * @access  Private (Manager/Admin only)
+ */
+router.post('/:projectId/milestones/:milestoneId/costs/:costId/reject', async (req, res) => {
+  try {
+    const { costId } = req.params;
+    const { reason } = req.body;
+    const username = req.headers['x-user-id'] || req.headers['x-username'] || 'system';
+
+    if (!reason || reason.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        error: 'Rejection reason is required'
+      });
+    }
+
+    // Validate cost exists and is in submitted status
+    const [cost] = await sequelize.query(`
+      SELECT * FROM milestone_costs 
+      WHERE id = :costId AND deleted_at IS NULL
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    if (!cost) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cost realization not found'
+      });
+    }
+
+    if (cost.status !== 'submitted') {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot reject cost with status "${cost.status}". Only submitted costs can be rejected.`
+      });
+    }
+
+    // Update to rejected status
+    await sequelize.query(`
+      UPDATE milestone_costs
+      SET 
+        status = 'rejected',
+        rejection_reason = :reason,
+        rejected_by = :username,
+        rejected_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = :costId
+    `, {
+      replacements: { costId, reason: reason.trim(), username }
+    });
+
+    // Fetch updated record
+    const [updated] = await sequelize.query(`
+      SELECT 
+        mc.*,
+        ri.item_code,
+        ri.item_name,
+        ri.specification,
+        ri.unit,
+        u.username as recorded_by_name,
+        su.username as submitted_by_name,
+        ru.username as rejected_by_name
+      FROM milestone_costs mc
+      LEFT JOIN rab_items ri ON mc.rab_item_id = ri.id
+      LEFT JOIN users u ON mc.recorded_by = u.username
+      LEFT JOIN users su ON mc.submitted_by = su.username
+      LEFT JOIN users ru ON mc.rejected_by = ru.username
+      WHERE mc.id = :costId
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+      message: 'Cost realization rejected'
+    });
+
+  } catch (error) {
+    console.error('Error rejecting cost:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reject cost realization',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/projects/:projectId/milestones/:milestoneId/costs/pending
+ * @desc    Get all pending (submitted) costs awaiting approval
+ * @access  Private (Manager/Admin)
+ */
+router.get('/:projectId/milestones/:milestoneId/costs/pending', async (req, res) => {
+  try {
+    const { projectId, milestoneId } = req.params;
+
+    const pendingCosts = await sequelize.query(`
+      SELECT 
+        mc.*,
+        ri.item_code,
+        ri.item_name,
+        ri.specification,
+        ri.unit,
+        u.username as recorded_by_name,
+        su.username as submitted_by_name
+      FROM milestone_costs mc
+      LEFT JOIN rab_items ri ON mc.rab_item_id = ri.id
+      LEFT JOIN users u ON mc.recorded_by = u.username
+      LEFT JOIN users su ON mc.submitted_by = su.username
+      WHERE mc.milestone_id = :milestoneId 
+        AND mc.status = 'submitted'
+        AND mc.deleted_at IS NULL
+      ORDER BY mc.submitted_at DESC
+    `, {
+      replacements: { milestoneId },
+      type: sequelize.QueryTypes.SELECT
+    });
+
+    res.json({
+      success: true,
+      data: pendingCosts,
+      count: pendingCosts.length,
+      message: `Found ${pendingCosts.length} pending cost(s) awaiting approval`
+    });
+
+  } catch (error) {
+    console.error('Error fetching pending costs:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch pending costs',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * ============================================================
+ * PAYMENT EXECUTION - Phase 2
+ * ============================================================
+ */
+
+/**
+ * @route   POST /api/projects/:projectId/milestones/:milestoneId/costs/:costId/execute-payment
+ * @desc    Execute payment from approved cost - Create finance transaction
+ * @access  Private (Finance/Manager only)
+ */
+router.post('/:projectId/milestones/:milestoneId/costs/:costId/execute-payment', async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const { costId, projectId } = req.params;
+    const { 
+      paymentMethod = 'bank_transfer',
+      referenceNumber,
+      paymentDate,
+      notes 
+    } = req.body;
+    const username = req.headers['x-user-id'] || req.headers['x-username'] || 'system';
+
+    // Validate cost exists and is in approved status
+    const [cost] = await sequelize.query(`
+      SELECT 
+        mc.*,
+        ri.description as rab_description,
+        ri.category as rab_category
+      FROM milestone_costs mc
+      LEFT JOIN rab_items ri ON mc.rab_item_id = ri.id
+      WHERE mc.id = :costId AND mc.deleted_at IS NULL
+    `, {
+      replacements: { costId },
+      type: sequelize.QueryTypes.SELECT,
+      transaction
+    });
+
+    if (!cost) {
+      await transaction.rollback();
+      return res.status(404).json({
+        success: false,
+        error: 'Cost realization not found'
+      });
+    }
+
+    if (cost.status !== 'approved') {
+      await transaction.rollback();
+      return res.status(400).json({
+        success: false,
+        error: `Cannot execute payment for cost with status "${cost.status}". Only approved costs can be paid.`
+      });
+    }
+
+    // Check if already paid
+    if (cost.finance_transaction_id) {
+      await transaction.rollback();
+      return res.status(400).json({
+        success: false,
+        error: 'Payment already executed for this cost',
+        transactionId: cost.finance_transaction_id
+      });
+    }
+
+    // Use approved_by from the cost record
+    const approvedByUser = cost.approved_by || username;
+
+    // Generate transaction ID
+    const transactionId = `FT-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    
+    // Determine transaction type and category based on cost
+    const transactionType = 'expense'; // milestone costs are always expenses
+    const category = cost.cost_category || 'operational';
+    const subcategory = cost.cost_type || 'actual';
+
+    // Create finance transaction
+    await sequelize.query(`
+      INSERT INTO finance_transactions (
+        id,
+        type,
+        category,
+        subcategory,
+        amount,
+        description,
+        date,
+        project_id,
+        account_from,
+        account_to,
+        payment_method,
+        reference_number,
+        status,
+        approved_by,
+        approved_at,
+        notes,
+        created_at,
+        updated_at
+      ) VALUES (
+        :id,
+        :type,
+        :category,
+        :subcategory,
+        :amount,
+        :description,
+        :date,
+        :projectId,
+        :accountFrom,
+        :accountTo,
+        :paymentMethod,
+        :referenceNumber,
+        'completed',
+        :approvedBy,
+        CURRENT_TIMESTAMP,
+        :notes,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+      )
+    `, {
+      replacements: {
+        id: transactionId,
+        type: transactionType,
+        category: category,
+        subcategory: subcategory,
+        amount: cost.amount,
+        description: `Payment for: ${cost.description || cost.rab_description || 'Milestone cost'} (Cost ID: ${costId})`,
+        date: paymentDate || new Date().toISOString().split('T')[0],
+        projectId: projectId,
+        accountFrom: cost.source_account_id, // Bank/Cash account
+        accountTo: cost.account_id,   // Expense account
+        paymentMethod: paymentMethod,
+        referenceNumber: referenceNumber || `REF-${transactionId}`,
+        approvedBy: approvedByUser,
+        notes: notes || `Auto-created from milestone cost approval. Milestone Cost ID: ${costId}`
+      },
+      transaction
+    });
+
+    // Update milestone_costs with transaction link and paid status
+    await sequelize.query(`
+      UPDATE milestone_costs
+      SET 
+        status = 'paid',
+        finance_transaction_id = :transactionId,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = :costId
+    `, {
+      replacements: { costId, transactionId },
+      transaction
+    });
+
+    // Update Chart of Accounts balances if accounts are specified
+    // Deduct from source account (Bank/Cash)
+    if (cost.source_account_id) {
+      await sequelize.query(`
+        UPDATE chart_of_accounts
+        SET 
+          current_balance = current_balance - :amount,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = :accountId
+      `, {
+        replacements: {
+          amount: cost.amount,
+          accountId: cost.source_account_id
+        },
+        transaction
+      });
+    }
+
+    // Add to expense account (if tracked)
+    if (cost.account_id) {
+      await sequelize.query(`
+        UPDATE chart_of_accounts
+        SET 
+          current_balance = current_balance + :amount,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = :accountId
+      `, {
+        replacements: {
+          amount: cost.amount,
+          accountId: cost.account_id
+        },
+        transaction
+      });
+    }
+
+    await transaction.commit();
+
+    // Return success response
+    res.json({
+      success: true,
+      message: 'Payment executed successfully',
+      data: {
+        costId: costId,
+        transactionId: transactionId,
+        amount: cost.amount,
+        status: 'paid',
+        paymentDate: paymentDate || new Date().toISOString().split('T')[0],
+        referenceNumber: referenceNumber || `REF-${transactionId}`
+      }
+    });
+
+  } catch (error) {
+    // Rollback only if transaction is still active
+    if (transaction && !transaction.finished) {
+      try {
+        await transaction.rollback();
+      } catch (rollbackError) {
+        console.error('Error rolling back transaction:', rollbackError);
+      }
+    }
+    
+    console.error('Error executing payment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to execute payment',
       details: error.message
     });
   }

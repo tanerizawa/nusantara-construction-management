@@ -73,32 +73,38 @@ const ProjectCreateForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E]">
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
-        {/* Compact Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            onClick={handleBack}
-            variant="ghost"
-            size="sm"
-            className="text-[#0A84FF] hover:text-[#0A84FF]/80 hover:bg-[#0A84FF]/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Kembali
-          </Button>
-          
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.12),_transparent_50%)]" />
+      </div>
+      <div className="relative z-10 mx-auto max-w-5xl px-4 py-8 space-y-6">
+        <div className="flex flex-col gap-4 rounded-3xl border border-white/5 bg-[#0b0f19]/85 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#0A84FF]/10 rounded-lg">
-              <Building2 className="h-5 w-5 text-[#0A84FF]" />
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-gradient-to-br from-[#0ea5e9]/30 to-[#6366f1]/30 p-3 text-white">
+                <Building2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="eyebrow-label text-white/60">Project Creation</p>
+                <h1 className="text-3xl font-semibold text-white">Buat Proyek Baru</h1>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-white">
-              Buat Proyek Baru
-            </h1>
+          </div>
+          <div className="text-sm text-white/60">
+            Isi detail proyek dan pastikan data subsidiari, klien, dan timeline lengkap sebelum disimpan.
           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Basic Information */}
           <BasicInfoSection
             formData={formData}
@@ -135,13 +141,13 @@ const ProjectCreateForm = () => {
           />
 
           {/* Submit Buttons */}
-          <div className="flex items-center justify-end gap-4 pt-2">
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-end">
             <Button
               type="button"
               onClick={handleBack}
               variant="outline"
               disabled={loading}
-              className="px-6 py-2.5 border-[#38383A] text-[#98989D] hover:text-white hover:border-[#48484A]"
+              className="w-full rounded-2xl border border-white/10 px-6 py-3 text-white/70 hover:border-white/40 hover:text-white sm:w-auto"
             >
               Batal
             </Button>
@@ -149,11 +155,11 @@ const ProjectCreateForm = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white border border-[#0A84FF]/20"
+              className="w-full rounded-2xl border border-white/10 bg-gradient-to-r from-[#0ea5e9] via-[#2563eb] to-[#7c3aed] px-6 py-3 font-semibold text-white shadow-[0_15px_35px_rgba(37,99,235,0.35)] hover:brightness-110 sm:w-auto"
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="mr-2 h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                   Menyimpan...
                 </>
               ) : (

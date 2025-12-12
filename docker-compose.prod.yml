@@ -1,0 +1,197 @@
+# ========================================
+# Docker Compose - Production Setup
+# Optimized for production deployment
+# ========================================
+
+services:
+  # ========================================
+  # PostgreSQL Database
+  # ========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: nusantara-postgres-prod
+    restart: always
+    environment:
+      POSTGRES_DB: nusantara_construction
+      POSTGRES_USER: hadez
+      POSTGRES_PASSWORD: T@n12089
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+      # Production PostgreSQL optimizations
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - nusantara-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d nusantara_construction"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'      # 75% of 2 cores
+          memory: 1G       # Safe limit for PostgreSQL
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ========================================
+  # Backend API (Production with PM2)
+  # ========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.prod
+    container_name: nusantara-backend-prod
+    restart: always
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Jakarta
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: nusantara_construction
+      DB_USERNAME: hadez
+      DB_PASSWORD: T@n12089
+      DB_DIALECT: postgres
+      # Security
+      JWT_SECRET: ${JWT_SECRET:-nusantara-jwt-secret-2025}
+      # Server
+      PORT: 5000
+      # Logging (production - errors only)
+      LOG_LEVEL: ${LOG_LEVEL:-error}
+      # Optional services
+      FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      APP_NAME: "Nusantara YK Construction"
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER:-}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backend/logs:/app/logs
+    networks:
+      - nusantara-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'      # 75% of 2 cores
+          memory: 3G       # Generous limit for backend
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ========================================
+  # Frontend (Production - Nginx)
+  # ========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:5000}
+    container_name: nusantara-frontend-prod
+    restart: always
+    ports:
+      - "8090:80"
+      # - "443:443"  # Uncomment when SSL is configured
+    networks:
+      - nusantara-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Resource limits commented for build process - npm build needs more RAM
+    # Will be re-enabled after successful build
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1.0'
+    #       memory: 512M
+    #     reservations:
+    #       cpus: '0.1'
+    #       memory: 64M
+
+  # ========================================
+  # Nginx Reverse Proxy (Optional - Advanced)
+  # Uncomment if you want separate reverse proxy
+  # ========================================
+  # nginx-proxy:
+  #   image: nginx:alpine
+  #   container_name: nusantara-nginx-proxy
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/proxy.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   networks:
+  #     - nusantara-network
+  #   depends_on:
+  #     - frontend
+  #     - backend
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  nusantara-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/16
+
+# ========================================
+# Volumes (Persistent Data)
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
+
+# ========================================
+# Usage Instructions:
+# ========================================
+# 1. Build images:
+#    docker-compose -f docker-compose.prod.yml build
+#
+# 2. Start services:
+#    docker-compose -f docker-compose.prod.yml up -d
+#
+# 3. View logs:
+#    docker-compose -f docker-compose.prod.yml logs -f
+#
+# 4. Stop services:
+#    docker-compose -f docker-compose.prod.yml down
+#
+# 5. Restart specific service:
+#    docker-compose -f docker-compose.prod.yml restart frontend
+#
+# 6. Check resource usage:
+#    docker stats
+#
+# 7. Clean up (remove containers and volumes):
+#    docker-compose -f docker-compose.prod.yml down -v

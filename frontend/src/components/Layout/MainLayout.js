@@ -14,7 +14,11 @@ const MainLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-[#1C1C1E]">
+    <div className="relative flex h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 opacity-70" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,116,144,0.2),_transparent_45%)]" />
+      </div>
+
       {/* Sidebar */}
       <Sidebar 
         isOpen={sidebarOpen} 
@@ -22,12 +26,12 @@ const MainLayout = ({ children }) => {
       />
       
       {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="relative z-10 flex flex-1 flex-col overflow-hidden lg:ml-64">
         {/* Header - seamlessly connected to sidebar */}
         <Header onMenuClick={handleMenuClick} />
         
         {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#1C1C1E] p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
           {children}
         </main>
       </div>

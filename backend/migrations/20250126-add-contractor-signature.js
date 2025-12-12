@@ -8,14 +8,21 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn('berita_acara', 'contractor_signature', {
-      type: Sequelize.TEXT,
-      allowNull: true,
-      comment: 'Base64 encoded contractor signature image for handover document'
-    });
+    // Check if column already exists
+    const tableDescription = await queryInterface.describeTable('berita_acara');
+    if (!tableDescription.contractor_signature) {
+      await queryInterface.addColumn('berita_acara', 'contractor_signature', {
+        type: Sequelize.TEXT,
+        allowNull: true,
+        comment: 'Base64 encoded contractor signature image for handover document'
+      });
+    }
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn('berita_acara', 'contractor_signature');
+    const tableDescription = await queryInterface.describeTable('berita_acara');
+    if (tableDescription.contractor_signature) {
+      await queryInterface.removeColumn('berita_acara', 'contractor_signature');
+    }
   }
 };

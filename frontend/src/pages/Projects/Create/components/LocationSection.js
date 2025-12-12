@@ -21,91 +21,84 @@ const LocationSection = ({ formData, handleInputChange }) => {
   };
 
   return (
-    <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <span className="w-1 h-5 bg-[#0A84FF] rounded-full"></span>
-        Lokasi Proyek
-      </h2>
+    <section className="rounded-3xl border border-white/5 bg-[#080b13]/85 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="eyebrow-label text-white/60">Step 3</p>
+          <h2 className="text-xl font-semibold text-white">Lokasi Proyek</h2>
+          <p className="text-sm text-white/50">Lengkapi alamat administratif dan titik GPS untuk kebutuhan audit lapangan.</p>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-3">
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Alamat Lengkap (Opsional)
           </label>
           <input
             type="text"
             value={formData.location?.address || ''}
             onChange={(e) => handleInputChange('location.address', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="Nama jalan, nomor, patokan (opsional)"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Desa / Kelurahan <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.location?.village || ''}
             onChange={(e) => handleInputChange('location.village', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="Nama desa atau kelurahan"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Kecamatan <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.location?.district || ''}
             onChange={(e) => handleInputChange('location.district', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="Nama kecamatan"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Kabupaten / Kota <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.location?.city || ''}
             onChange={(e) => handleInputChange('location.city', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="Nama kabupaten atau kota"
             required
           />
         </div>
 
         <div className="md:col-span-3">
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Provinsi <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={formData.location?.province || ''}
             onChange={(e) => handleInputChange('location.province', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="Nama provinsi"
             required
           />
-        </div>
+      </div>
       </div>
 
       {/* GPS Coordinates Section */}
@@ -113,8 +106,7 @@ const LocationSection = ({ formData, handleInputChange }) => {
         <button
           type="button"
           onClick={() => setShowMapPicker(!showMapPicker)}
-          className="flex items-center gap-2 text-[#0A84FF] hover:text-[#0077ED] 
-                   transition-colors duration-200 font-medium mb-4"
+          className="mb-4 inline-flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-white/40 hover:text-white"
         >
           <Map size={20} />
           <span>{showMapPicker ? 'Sembunyikan Peta' : 'Pilih Koordinat GPS'}</span>
@@ -123,20 +115,20 @@ const LocationSection = ({ formData, handleInputChange }) => {
 
         {/* Coordinate Summary */}
         {formData.coordinates?.latitude && formData.coordinates?.longitude && (
-          <div className="mb-4 p-4 bg-[#1C1C1E] border border-[#38383A] rounded-lg">
-            <div className="text-sm text-[#98989D] mb-2">Koordinat Terpilih:</div>
-            <div className="flex flex-wrap gap-4 text-sm">
+          <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="mb-2 text-sm text-white/60">Koordinat Terpilih:</div>
+            <div className="flex flex-wrap gap-4 text-sm text-white">
               <div>
-                <span className="text-[#98989D]">Latitude: </span>
-                <span className="text-white font-mono">{formData.coordinates.latitude.toFixed(8)}</span>
+                <span className="text-white/60">Latitude: </span>
+                <span className="font-mono">{formData.coordinates.latitude.toFixed(8)}</span>
               </div>
               <div>
-                <span className="text-[#98989D]">Longitude: </span>
-                <span className="text-white font-mono">{formData.coordinates.longitude.toFixed(8)}</span>
+                <span className="text-white/60">Longitude: </span>
+                <span className="font-mono">{formData.coordinates.longitude.toFixed(8)}</span>
               </div>
               <div>
-                <span className="text-[#98989D]">Radius: </span>
-                <span className="text-white">{formData.coordinates.radius || 100}m</span>
+                <span className="text-white/60">Radius: </span>
+                <span>{formData.coordinates.radius || 100}m</span>
               </div>
             </div>
           </div>
@@ -144,7 +136,7 @@ const LocationSection = ({ formData, handleInputChange }) => {
 
         {/* Map Picker */}
         {showMapPicker && (
-          <div className="mt-4">
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-3">
             <ProjectLocationPicker
               coordinates={{
                 latitude: formData.coordinates?.latitude || null,
@@ -163,7 +155,7 @@ const LocationSection = ({ formData, handleInputChange }) => {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

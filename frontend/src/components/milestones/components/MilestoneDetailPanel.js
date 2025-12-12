@@ -54,16 +54,16 @@ const MilestoneDetailPanel = ({
             onClick={() => setShowMilestoneDropdown(!showMilestoneDropdown)}
             className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-[#1C1C1E] hover:bg-[#38383A] border border-[#38383A] rounded-lg text-white transition-colors"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               <div 
                 className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: statusInfo.bgOpacity }}
               >
                 <StatusIcon size={14} style={{ color: statusInfo.color }} />
               </div>
-              <span className="font-semibold truncate">{milestone.name}</span>
+              <span className="font-semibold break-words line-clamp-2 text-left flex-1">{milestone.name}</span>
               <span 
-                className="px-2 py-0.5 rounded text-xs font-medium"
+                className="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap flex-shrink-0"
                 style={{ 
                   backgroundColor: statusInfo.bgOpacity,
                   color: statusInfo.color
@@ -74,7 +74,7 @@ const MilestoneDetailPanel = ({
             </div>
             <ChevronDown 
               size={16} 
-              className={`text-[#8E8E93] transition-transform ${showMilestoneDropdown ? 'rotate-180' : ''}`}
+              className={`text-[#8E8E93] transition-transform flex-shrink-0 ${showMilestoneDropdown ? 'rotate-180' : ''}`}
             />
           </button>
 
@@ -110,10 +110,10 @@ const MilestoneDetailPanel = ({
                         <MIcon size={14} style={{ color: mStatus.color }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-white truncate">{m.name}</div>
-                        <div className="flex items-center gap-2 mt-1">
+                        <div className="font-semibold text-white break-words line-clamp-2">{m.name}</div>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span 
-                            className="px-2 py-0.5 rounded text-xs font-medium"
+                            className="px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap"
                             style={{ 
                               backgroundColor: mStatus.bgOpacity,
                               color: mStatus.color
@@ -121,7 +121,7 @@ const MilestoneDetailPanel = ({
                           >
                             {mStatus.text}
                           </span>
-                          <span className="text-xs text-[#8E8E93]">
+                          <span className="text-xs text-[#8E8E93] whitespace-nowrap">
                             {m.progress}% complete
                           </span>
                         </div>
@@ -139,20 +139,20 @@ const MilestoneDetailPanel = ({
       <div className="flex-shrink-0 p-6 border-b border-[#38383A]">
         <div className="flex items-start justify-between mb-4">
           {/* Left: Title Only (Status shown in dropdown) */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-4">
             {milestones.length <= 1 && (
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
                 <div 
                   className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: statusInfo.bgOpacity }}
                 >
                   <StatusIcon size={20} style={{ color: statusInfo.color }} />
                 </div>
-                <h2 className="text-2xl font-bold text-white truncate">
+                <h2 className="text-2xl font-bold text-white break-words flex-1 min-w-0">
                   {milestone.name}
                 </h2>
                 <span 
-                  className="px-3 py-1 rounded-lg text-sm font-medium"
+                  className="px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap flex-shrink-0"
                   style={{ 
                     backgroundColor: statusInfo.bgOpacity,
                     color: statusInfo.color

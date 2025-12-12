@@ -33,6 +33,7 @@ const DashboardPage = () => {
   } = useDashboardSummary();
 
   // Use new summary data if available, fallback to old data
+  const resolvedData = summaryData || dashboardData;
   const loading = summaryData ? summaryLoading : oldLoading;
   const error = summaryError || oldError;
   const handleRefresh = summaryData ? refreshSummary : fetchDashboardData;
@@ -46,30 +47,29 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="p-5 bg-[#1C1C1E] min-h-screen">
-      {/* Header */}
-      <DashboardHeader 
-        loading={loading} 
-        onRefresh={handleRefresh} 
-      />
-
-      {/* Enhanced Stats Grid - 8 cards */}
-      <EnhancedStatsGrid data={summaryData || dashboardData} />
-
-      {/* Approval Section - PRIORITY */}
-      <ApprovalSection />
-
-      {/* Quick Links & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        {/* Quick Links - Revised */}
-        <QuickLinks />
-
-        {/* Recent Activities */}
-        <RecentActivities activities={recentActivities} />
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 blur-3xl opacity-70" aria-hidden="true">
+        <div className="mx-auto h-full max-w-3xl bg-gradient-to-r from-[#0ea5e9]/30 via-[#6366f1]/30 to-[#f472b6]/20" />
       </div>
 
-      {/* Project Status Overview */}
-      <ProjectStatusOverview projectData={(summaryData || dashboardData)?.projects} />
+      <div className="relative z-10 flex flex-col gap-6">
+        <DashboardHeader 
+          loading={loading} 
+          onRefresh={handleRefresh}
+          insightData={resolvedData}
+        />
+
+        <EnhancedStatsGrid data={resolvedData} />
+
+        <ApprovalSection />
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <QuickLinks />
+          <RecentActivities activities={recentActivities} />
+        </div>
+
+        <ProjectStatusOverview projectData={resolvedData?.projects} />
+      </div>
     </div>
   );
 };

@@ -44,6 +44,14 @@ export const RAB_ITEM_TYPES = [
     description: 'Biaya overhead dan operasional',
     workflow: 'direct_payment',
     paymentMethod: 'expense_payment'
+  },
+  { 
+    value: 'tax', 
+    label: 'Pajak', 
+    color: 'orange',
+    description: 'Pajak dan biaya administrasi perpajakan',
+    workflow: 'direct_payment',
+    paymentMethod: 'tax_payment'
   }
 ];
 

@@ -25,6 +25,10 @@ const BeritaAcara = require('./BeritaAcara');
 const ProgressPayment = require('./ProgressPayment');
 const DeliveryReceipt = require('./DeliveryReceipt');
 
+// RAB Realization Models
+const RABRealization = require('./RABRealization');
+const RealizationDocument = require('./RealizationDocument');
+
 // Attendance System Models
 const AttendanceRecord = require('./AttendanceRecord');
 const ProjectLocation = require('./ProjectLocation');
@@ -197,6 +201,39 @@ const setupAssociations = () => {
   ProjectRAB.belongsTo(Project, {
     foreignKey: 'projectId',
     as: 'project'
+  });
+
+  // ProjectRAB - RABRealization relationships
+  ProjectRAB.hasMany(RABRealization, {
+    foreignKey: 'rabItemId',
+    as: 'realizations'
+  });
+  
+  RABRealization.belongsTo(ProjectRAB, {
+    foreignKey: 'rabItemId',
+    as: 'rabItem'
+  });
+
+  // Project - RABRealization relationships (direct)
+  Project.hasMany(RABRealization, {
+    foreignKey: 'projectId',
+    as: 'rabRealizations'
+  });
+  
+  RABRealization.belongsTo(Project, {
+    foreignKey: 'projectId',
+    as: 'project'
+  });
+
+  // RABRealization - RealizationDocument relationships
+  RABRealization.hasMany(RealizationDocument, {
+    foreignKey: 'realizationId',
+    as: 'documents'
+  });
+  
+  RealizationDocument.belongsTo(RABRealization, {
+    foreignKey: 'realizationId',
+    as: 'realization'
   });
 
   // Project - ProjectMilestone relationships
@@ -605,7 +642,10 @@ module.exports = {
     AttendanceRecord,
     ProjectLocation,
     AttendanceSettings,
-    LeaveRequest
+    LeaveRequest,
+    // RAB Realization System Models
+    RABRealization,
+    RealizationDocument
   },
   setupAssociations,
   syncDatabase,

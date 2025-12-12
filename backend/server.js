@@ -177,6 +177,9 @@ app.use(express.urlencoded({
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve public files (templates, etc) statically
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
 // Logging with environment configuration
 const logFormat = isProduction 
   ? 'combined' 
@@ -247,6 +250,37 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
+// Public download endpoint for RAB template (before auth middleware)
+app.get('/download/rab-template', (req, res) => {
+  const templatePath = path.join(__dirname, 'public/templates/template-rap-import.xlsx');
+  
+  // Check if file exists
+  if (!fs.existsSync(templatePath)) {
+    return res.status(404).json({
+      success: false,
+      error: 'Template file not found'
+    });
+  }
+
+  // Set headers for download
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=template-rap-import.xlsx');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow CORS for download
+  
+  // Send file
+  res.sendFile(templatePath, (err) => {
+    if (err) {
+      console.error('Error sending template file:', err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to download template'
+        });
+      }
+    }
+  });
+});
+
 // Route middleware with logging and monitoring
 const monitoringMiddleware = require('./middleware/monitoring.middleware');
 const auditMiddleware = require('./middleware/audit.middleware');
@@ -268,6 +302,8 @@ app.use('/api/stats', require('./routes/stats'));
 
 // Projects API - Modular Routes (Phase 1 Complete - 54 endpoints)
 app.use('/api/projects', require('./routes/projects/index'));
+app.use('/api/projects', require('./routes/projects/realization.routes')); // RAB Realization tracking (FASE 1)
+app.use('/api/projects', require('./routes/projects/nonRABExpense.routes')); // Non-RAB expenses (overhead, etc)
 
 // Subsidiaries API - Updated for COA Integration
 // OLD: app.use('/api/subsidiaries', require('./routes/subsidiaries/index')); // Modular routes (Phase 5)

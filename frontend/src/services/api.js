@@ -18,25 +18,29 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     
-    // Log request data based on method
-    let dataLog = 'N/A';
-    const method = config.method?.toLowerCase();
-    if (['post', 'put', 'patch'].includes(method)) {
-      dataLog = config.data;
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+      let dataLog = 'N/A';
+      const method = config.method?.toLowerCase();
+      if (['post', 'put', 'patch'].includes(method)) {
+        dataLog = config.data;
+      }
+      
+      console.log('🔐 AXIOS REQUEST DEBUG:', {
+        url: config.url,
+        method: config.method,
+        hasToken: !!token,
+        tokenPreview: token ? token.substring(0, 20) + '...' : 'No token',
+        data: dataLog
+      });
     }
-    
-    console.log('🔐 AXIOS REQUEST DEBUG:', {
-      url: config.url,
-      method: config.method,
-      hasToken: !!token,
-      tokenPreview: token ? token.substring(0, 20) + '...' : 'No token',
-      data: dataLog
-    });
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token added to request headers');
-    } else {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Token added to request headers');
+      }
+    } else if (process.env.NODE_ENV === 'development') {
       console.log('❌ No token found in localStorage');
     }
     
@@ -44,22 +48,26 @@ apiClient.interceptors.request.use(
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
       
-      console.log('=== AXIOS INTERCEPTOR DEBUG ===');
-      console.log('FormData detected in interceptor');
-      console.log('URL:', config.url);
-      console.log('Method:', config.method);
-      console.log('Headers after Content-Type removal:', config.headers);
-      console.log('FormData entries:');
-      for (let pair of config.data.entries()) {
-        console.log(pair[0] + ': ', pair[1]);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('=== AXIOS INTERCEPTOR DEBUG ===');
+        console.log('FormData detected in interceptor');
+        console.log('URL:', config.url);
+        console.log('Method:', config.method);
+        console.log('Headers after Content-Type removal:', config.headers);
+        console.log('FormData entries:');
+        for (let pair of config.data.entries()) {
+          console.log(pair[0] + ': ', pair[1]);
+        }
+        console.log('==============================');
       }
-      console.log('==============================');
     }
     
     return config;
   },
   (error) => {
-    console.log('❌ AXIOS REQUEST ERROR:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('❌ AXIOS REQUEST ERROR:', error);
+    }
     return Promise.reject(error);
   }
 );
@@ -67,11 +75,13 @@ apiClient.interceptors.request.use(
 // Response interceptor untuk error handling
 apiClient.interceptors.response.use(
   (response) => {
-    console.log('✅ AXIOS RESPONSE SUCCESS:', {
-      url: response.config.url,
-      status: response.status,
-      dataPreview: JSON.stringify(response.data).substring(0, 100) + '...'
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ AXIOS RESPONSE SUCCESS:', {
+        url: response.config.url,
+        status: response.status,
+        dataPreview: JSON.stringify(response.data).substring(0, 100) + '...'
+      });
+    }
     return response;
   },
   async (error) => {

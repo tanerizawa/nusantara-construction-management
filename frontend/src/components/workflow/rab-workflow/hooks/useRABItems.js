@@ -127,6 +127,8 @@ const useRABItems = (projectId, onDataChange) => {
           name: item.description || 'No description', // Add name field for ApprovalSection
           category: item.category || 'Unknown',
           description: item.description || 'No description',
+          itemType: item.itemType || item.item_type || 'material', // Add itemType field
+          item_type: item.item_type || item.itemType || 'material', // Keep both for compatibility
           unit: item.unit || 'Unit',
           quantity: parseFloat(item.quantity) || 0,
           unitPrice: parseFloat(item.unitPrice) || 0,

@@ -196,7 +196,9 @@ export const isUserAuthenticated = () => {
  * @returns {Promise<boolean>} Success status
  */
 export const handleDeepLink = async (url, navigate) => {
-  console.log('📱 Handling deep link:', url);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('📱 Handling deep link:', url);
+  }
 
   try {
     // Parse deep link
@@ -213,7 +215,9 @@ export const handleDeepLink = async (url, navigate) => {
 
     // Check authentication
     if (routeConfig.requiresAuth && !isUserAuthenticated()) {
-      console.warn('Authentication required for:', routeConfig.route);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Authentication required for:', routeConfig.route);
+      }
       
       // Store intended destination
       sessionStorage.setItem('redirectAfterLogin', JSON.stringify({
@@ -399,13 +403,17 @@ export const registerDeepLinkListener = (navigate) => {
 
   window.addEventListener('nusantara-deep-link', handleCustomEvent);
 
-  console.log('📱 Deep link listener registered');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('📱 Deep link listener registered');
+  }
 
   // Return cleanup function
   return () => {
     navigator.serviceWorker?.removeEventListener('message', handleMessage);
     window.removeEventListener('nusantara-deep-link', handleCustomEvent);
-    console.log('📱 Deep link listener unregistered');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📱 Deep link listener unregistered');
+    }
   };
 };
 

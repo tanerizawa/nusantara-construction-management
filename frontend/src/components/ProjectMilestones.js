@@ -53,18 +53,18 @@ const ProjectMilestones = ({ project, onUpdate }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
+          <p className="eyebrow-label text-white/60">Workflow</p>
           <h3 className="text-xl font-semibold text-white">Project Milestones</h3>
-          <p className="text-[#8E8E93]">Kelola tonggak pencapaian proyek</p>
+          <p className="text-sm text-white/60">Kelola tonggak pencapaian proyek</p>
         </div>
         <button 
           onClick={() => {
             setShowAddForm(!showAddForm);
             setEditingMilestone(null);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors"
+          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-gradient-to-r from-[#0ea5e9] via-[#2563eb] to-[#7c3aed] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(37,99,235,0.35)] transition hover:brightness-110"
         >
           {showAddForm ? (
             <>
@@ -145,10 +145,10 @@ const ProjectMilestones = ({ project, onUpdate }) => {
             onProgressUpdate={updateMilestoneProgress}
           />
         ) : (
-          <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] p-16 text-center h-full flex items-center justify-center">
+          <div className="flex h-full items-center justify-center rounded-3xl border border-white/10 bg-white/5 p-16 text-center">
             <div>
-              <p className="text-[#8E8E93] text-lg mb-2">No Milestone Available</p>
-              <p className="text-[#636366] text-sm">Add a new milestone to get started</p>
+              <p className="text-lg font-semibold text-white">Belum Ada Milestone</p>
+              <p className="text-sm text-white/60">Tambahkan milestone baru untuk memulai tracking</p>
             </div>
           </div>
         )}

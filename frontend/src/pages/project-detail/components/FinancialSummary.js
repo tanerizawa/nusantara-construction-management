@@ -12,55 +12,50 @@ import { formatCurrency } from '../utils';
  */
 const FinancialSummary = ({ project, workflowData }) => {
   return (
-    <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-        <h3 className="text-base font-semibold text-white flex items-center">
-          <DollarSign className="h-4 w-4 mr-2 text-[#30D158]" />
-          Ringkasan Keuangan
-        </h3>
+    <div className="rounded-3xl border border-white/5 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.35)]">
+      <div className="flex items-center border-b border-white/10 px-5 py-3 text-white">
+        <DollarSign className="mr-2 h-4 w-4 text-[#34d399]" />
+        <h3 className="text-base font-semibold">Ringkasan Keuangan</h3>
       </div>
-      <div className="p-4">
-        <div className="space-y-3">
-          <div 
-            className="flex justify-between items-center p-3 bg-[#1C1C1E] border border-[#38383A] rounded-lg hover:bg-[#38383A]/30 transition-colors cursor-default"
-            title="Total budget yang dialokasikan untuk proyek ini"
-          >
-            <span className="text-sm font-medium text-[#8E8E93]">Total Budget</span>
-            <span className="text-base font-bold text-white">
-              {formatCurrency(project.totalBudget)}
-            </span>
-          </div>
-          <div 
-            className="flex justify-between items-center p-3 bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-lg hover:bg-[#0A84FF]/20 transition-colors cursor-default"
-            title="Total RAP yang telah disetujui"
-          >
-            <span className="text-sm font-medium text-[#8E8E93]">RAP Approved</span>
-            <span className="text-base font-semibold text-[#0A84FF]">
-              {formatCurrency(workflowData.budgetSummary?.approvedAmount || 0)}
-            </span>
-          </div>
-          <div 
-            className="flex justify-between items-center p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-lg hover:bg-[#FF9F0A]/20 transition-colors cursor-default"
-            title="Total nilai Purchase Order yang telah dibuat"
-          >
-            <span className="text-sm font-medium text-[#8E8E93]">PO Committed</span>
-            <span className="text-base font-semibold text-[#FF9F0A]">
-              {formatCurrency(workflowData.budgetSummary?.committedAmount || 0)}
-            </span>
-          </div>
-          <div 
-            className="flex justify-between items-center p-3 bg-[#30D158]/10 border border-[#30D158]/30 rounded-lg hover:bg-[#30D158]/20 transition-colors cursor-default"
-            title="Total pengeluaran aktual yang telah dicatat"
-          >
-            <span className="text-sm font-medium text-[#8E8E93]">Actual Spent</span>
-            <span className="text-base font-semibold text-[#30D158]">
-              {formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
-            </span>
-          </div>
-        </div>
+      <div className="space-y-3 p-4">
+        <FinancialRow
+          label="Total Budget"
+          value={formatCurrency(project.totalBudget)}
+          badgeClass="from-[#60a5fa]/25 to-[#2563eb]/15 text-[#bae6fd]"
+          valueClass="text-white"
+        />
+        <FinancialRow
+          label="RAP Approved"
+          value={formatCurrency(workflowData.budgetSummary?.approvedAmount || 0)}
+          badgeClass="from-[#6366f1]/25 to-[#8b5cf6]/15 text-[#ddd6fe]"
+          valueClass="text-[#c4b5fd]"
+        />
+        <FinancialRow
+          label="PO Committed"
+          value={formatCurrency(workflowData.budgetSummary?.committedAmount || 0)}
+          badgeClass="from-[#fbbf24]/25 to-[#f97316]/15 text-[#fde68a]"
+          valueClass="text-[#fbbf24]"
+        />
+        <FinancialRow
+          label="Actual Spent"
+          value={formatCurrency(workflowData.budgetSummary?.actualSpent || 0)}
+          badgeClass="from-[#34d399]/25 to-[#22c55e]/15 text-[#bbf7d0]"
+          valueClass="text-[#34d399]"
+        />
       </div>
     </div>
   );
 };
+
+const FinancialRow = ({ label, value, badgeClass, valueClass }) => (
+  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#05070d] px-4 py-3">
+    <div className="flex items-center gap-3">
+      <div className={`rounded-2xl bg-gradient-to-br ${badgeClass} px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]`}>
+        {label}
+      </div>
+    </div>
+    <span className={`text-base font-semibold ${valueClass}`}>{value}</span>
+  </div>
+);
 
 export default FinancialSummary;

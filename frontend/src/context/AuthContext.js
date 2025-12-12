@@ -76,8 +76,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       
       const loginUrl = `${API_URL}/auth/login`;
-      console.log('🔗 Login URL:', loginUrl);
-      console.log('🌐 Current hostname:', window.location.hostname);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔗 Login URL:', loginUrl);
+        console.log('🌐 Current hostname:', window.location.hostname);
+      }
       
       const response = await fetch(loginUrl, {
         method: 'POST',

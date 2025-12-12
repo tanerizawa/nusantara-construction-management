@@ -12,12 +12,14 @@ const DeepLinkRouter = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log('🔗 DeepLinkRouter mounted');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔗 DeepLinkRouter mounted');
+    }
 
     // Check for post-login redirect
     if (location.pathname === '/dashboard' || location.pathname === '/') {
       const redirected = handlePostLoginRedirect(navigate);
-      if (redirected) {
+      if (redirected && process.env.NODE_ENV === 'development') {
         console.log('✅ Post-login redirect handled');
       }
     }
@@ -30,7 +32,9 @@ const DeepLinkRouter = () => {
     const deepLink = urlParams.get('deeplink');
     
     if (deepLink) {
-      console.log('🌐 Deep link from URL param:', deepLink);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🌐 Deep link from URL param:', deepLink);
+      }
       
       // Remove deeplink param from URL
       urlParams.delete('deeplink');

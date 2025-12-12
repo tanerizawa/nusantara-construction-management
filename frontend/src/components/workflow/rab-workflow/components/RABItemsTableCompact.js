@@ -115,12 +115,25 @@ const RABItemsTableCompact = ({
                 <div className="flex items-center">
                   <div className="mr-2">
                     <div className="font-medium">{item.description}</div>
-                    <div className="text-xs text-[#8E8E93] flex items-center">
+                    <div className="text-xs text-[#8E8E93] flex items-center gap-1.5">
                       <span className="font-medium text-[#5AC8FA]">{item.unit}</span>
+                      {(item.itemType || item.item_type) && (
+                        <>
+                          <span>•</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#0A84FF]/20 text-[#0A84FF]">
+                            {(item.itemType || item.item_type) === 'material' ? 'Material' :
+                             (item.itemType || item.item_type) === 'service' ? 'Jasa' :
+                             (item.itemType || item.item_type) === 'labor' ? 'Tenaga' :
+                             (item.itemType || item.item_type) === 'equipment' ? 'Alat' :
+                             (item.itemType || item.item_type) === 'overhead' ? 'Overhead' :
+                             (item.itemType || item.item_type) === 'tax' ? 'Pajak' : (item.itemType || item.item_type)}
+                          </span>
+                        </>
+                      )}
                       {item.specifications && (
                         <>
-                          <span className="mx-1">•</span>
-                          <span>{item.specifications.length > 30 ? item.specifications.substring(0, 30) + '...' : item.specifications}</span>
+                          <span>•</span>
+                          <span>{item.specifications.length > 25 ? item.specifications.substring(0, 25) + '...' : item.specifications}</span>
                         </>
                       )}
                     </div>

@@ -1,33 +1,58 @@
-# Production-like Dockerfile for React Frontend
-FROM node:18-alpine AS builder
+# ==================================
+# Stage 1: Build React Application
+# ==================================
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install --production --legacy-peer-deps
+# Install ALL dependencies (including devDependencies for build)
+# Try `npm ci` for reproducible installs; if it fails (lockfile mismatch),
+# fall back to `npm install --legacy-peer-deps` so the build can continue.
+RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps && \
+  npm cache clean --force
 
-# Copy the rest of the application
+# Copy source code
 COPY . .
 
-# Build the app
-RUN npm run build
+# Build production bundle with optimizations
+ENV NODE_ENV=production
+ENV GENERATE_SOURCEMAP=false
+ENV INLINE_RUNTIME_CHUNK=false
+ENV IMAGE_INLINE_SIZE_LIMIT=0
 
-# Serve with nginx
+RUN npm run build && \
+    echo "Build completed successfully" && \
+    ls -lh build/
+
+# ==================================
+# Stage 2: Production Server (Nginx)
+# ==================================
 FROM nginx:alpine
 
-# Copy build files to nginx
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
+# Remove default nginx config
+RUN rm -rf /etc/nginx/conf.d/*
+
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy built files from builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy nginx config
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/
+# Verify files copied
+RUN ls -lh /usr/share/nginx/html
 
-# Expose port
-EXPOSE 3000
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
 
-# Start nginx
+# Expose port 80 (nginx default)
+EXPOSE 80
+
+# Start nginx in foreground
 CMD ["nginx", "-g", "daemon off;"]

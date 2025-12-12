@@ -5,6 +5,8 @@
  */
 
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const ProjectRAB = require('../../models/ProjectRAB');
 const Project = require('../../models/Project');
 const ProjectTeamMember = require('../../models/ProjectTeamMember');
@@ -12,6 +14,40 @@ const User = require('../../models/User');
 const fcmNotificationService = require('../../services/FCMNotificationService');
 
 const router = express.Router();
+
+/**
+ * @route   GET /api/projects/rab/download-template
+ * @desc    Download RAB Excel template
+ * @access  Public (no auth required for template download)
+ */
+router.get('/rab/download-template', (req, res) => {
+  const templatePath = path.join(__dirname, '../../public/templates/template-rap-import.xlsx');
+  
+  // Check if file exists
+  if (!fs.existsSync(templatePath)) {
+    return res.status(404).json({
+      success: false,
+      error: 'Template file not found'
+    });
+  }
+
+  // Set headers for download
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=template-rap-import.xlsx');
+  
+  // Send file
+  res.sendFile(templatePath, (err) => {
+    if (err) {
+      console.error('Error sending template file:', err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to download template'
+        });
+      }
+    }
+  });
+});
 
 /**
  * Helper: Find users who should be notified about RAB approval requests
@@ -165,15 +201,25 @@ router.get('/:id/rab', async (req, res) => {
       order: [[sortBy, sortOrder]]
     });
 
+    // Transform items to ensure camelCase for frontend
+    const transformedItems = rabItems.map(item => {
+      const itemData = item.toJSON();
+      // Ensure itemType is available (Sequelize should auto-convert item_type to itemType)
+      return {
+        ...itemData,
+        itemType: itemData.itemType || itemData.item_type || 'material'
+      };
+    });
+
     // Calculate summary
     const summary = {
-      total: rabItems.length,
-      totalAmount: rabItems.reduce((sum, item) => sum + parseFloat(item.totalPrice || 0), 0),
-      approved: rabItems.filter(item => item.status === 'approved').length,
-      draft: rabItems.filter(item => item.status === 'draft').length, // Changed from 'pending' to 'draft'
-      under_review: rabItems.filter(item => item.status === 'under_review').length,
-      rejected: rabItems.filter(item => item.status === 'rejected').length,
-      byCategory: rabItems.reduce((acc, item) => {
+      total: transformedItems.length,
+      totalAmount: transformedItems.reduce((sum, item) => sum + parseFloat(item.totalPrice || 0), 0),
+      approved: transformedItems.filter(item => item.status === 'approved').length,
+      draft: transformedItems.filter(item => item.status === 'draft').length, // Changed from 'pending' to 'draft'
+      under_review: transformedItems.filter(item => item.status === 'under_review').length,
+      rejected: transformedItems.filter(item => item.status === 'rejected').length,
+      byCategory: transformedItems.reduce((acc, item) => {
         if (!acc[item.category]) {
           acc[item.category] = { count: 0, amount: 0 };
         }
@@ -185,7 +231,7 @@ router.get('/:id/rab', async (req, res) => {
 
     res.json({
       success: true,
-      data: rabItems,
+      data: transformedItems,
       summary
     });
   } catch (error) {
@@ -203,9 +249,14 @@ router.get('/:id/rab', async (req, res) => {
  * @desc    Get single RAB item details
  * @access  Private
  */
-router.get('/:id/rab/:rabId', async (req, res) => {
+router.get('/:id/rab/:rabId', async (req, res, next) => {
   try {
     const { id, rabId } = req.params;
+
+    // Skip this route if rabId is 'realizations' - it should be handled by realization.routes.js
+    if (rabId === 'realizations') {
+      return next('route');
+    }
 
     const rabItem = await ProjectRAB.findOne({
       where: { id: rabId, projectId: id }

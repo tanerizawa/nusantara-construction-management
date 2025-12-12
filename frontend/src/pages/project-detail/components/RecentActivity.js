@@ -123,12 +123,10 @@ const RecentActivity = ({ project, workflowData }) => {
   }, [project, workflowData]);
   
   return (
-    <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-        <h3 className="text-base font-semibold text-white flex items-center">
-          <Activity className="h-5 w-5 mr-2 text-[#0A84FF]" />
-          Aktivitas Terbaru
-        </h3>
+    <div className="rounded-3xl border border-white/5 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.35)]">
+      <div className="flex items-center border-b border-white/10 px-5 py-3 text-white">
+        <Activity className="mr-2 h-5 w-5 text-[#60a5fa]" />
+        <h3 className="text-base font-semibold">Aktivitas Terbaru</h3>
       </div>
       <div className="p-4">
         {activities.length > 0 ? (
@@ -136,9 +134,9 @@ const RecentActivity = ({ project, workflowData }) => {
             {activities.map((activity, index) => {
               const IconComponent = activity.icon;
               return (
-                <div key={index} className="flex items-start space-x-3 p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
+                <div key={index} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-[#05070d] px-4 py-3 transition hover:border-white/30">
                   <div 
-                    className="p-1.5 rounded-lg flex-shrink-0" 
+                    className="flex h-9 w-9 items-center justify-center rounded-2xl"
                     style={{ backgroundColor: `${activity.color}20` }}
                   >
                     <IconComponent 
@@ -146,14 +144,14 @@ const RecentActivity = ({ project, workflowData }) => {
                       style={{ color: activity.color }} 
                     />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white line-clamp-1">
                       {activity.title}
                     </p>
-                    <p className="text-xs text-[#8E8E93] truncate">
+                    <p className="text-xs text-white/60 line-clamp-1">
                       {activity.description}
                     </p>
-                    <p className="text-xs text-[#98989D] mt-1">
+                    <p className="text-xs text-white/40">
                       {formatDate(activity.timestamp)}
                     </p>
                   </div>
@@ -162,12 +160,10 @@ const RecentActivity = ({ project, workflowData }) => {
             })}
           </div>
         ) : (
-          <div className="text-center py-8 px-4">
-            <Activity className="h-12 w-12 mx-auto text-[#636366] mb-3" />
-            <p className="text-white font-medium mb-1">Belum Ada Aktivitas</p>
-            <p className="text-sm text-[#8E8E93] leading-relaxed">
-              Aktivitas proyek akan muncul di sini
-            </p>
+          <div className="px-4 py-8 text-center text-white/60">
+            <Activity className="mb-3 h-12 w-12 mx-auto text-white/30" />
+            <p className="font-medium text-white">Belum Ada Aktivitas</p>
+            <p className="text-sm text-white/60">Aktivitas proyek akan muncul di sini</p>
           </div>
         )}
       </div>

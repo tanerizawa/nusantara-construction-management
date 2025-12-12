@@ -283,13 +283,14 @@ router.get('/transactional', async (req, res) => {
  */
 router.get('/cash/accounts', async (req, res) => {
   try {
-    // Get all active cash and bank accounts
+    // Get all active cash and bank accounts (only child accounts level 4+, not parent level 3)
     const cashAccounts = await ChartOfAccounts.findAll({
       where: { 
-        account_type: 'CASH_AND_BANK',
-        is_active: true
+        accountSubType: 'CASH_AND_BANK',
+        isActive: true,
+        level: { [Op.gt]: 3 } // Only level 4 and above (exclude parent "1101 - Kas & Bank" which is level 3)
       },
-      order: [['account_code', 'ASC']]
+      order: [['accountCode', 'ASC']]
     });
 
     // Format for transaction form dropdown
@@ -299,7 +300,8 @@ router.get('/cash/accounts', async (req, res) => {
       name: account.accountName,
       balance: parseFloat(account.currentBalance || 0),
       type: account.accountType,
-      // Display format: "Bank BCA (1101.01) - Rp 1.091.000.000"
+      level: account.level,
+      // Display format: "Bank BCA (1101.03) - Rp 1.091.000.000"
       displayName: `${account.accountName} (${account.accountCode})`,
       formattedBalance: new Intl.NumberFormat('id-ID', {
         style: 'currency',

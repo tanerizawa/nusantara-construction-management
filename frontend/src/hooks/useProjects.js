@@ -75,7 +75,9 @@ export const useProjects = (options = {}) => {
         page: state.page
       };
 
-      console.log('🚀 FETCHING PROJECTS WITH PARAMS:', params);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🚀 FETCHING PROJECTS WITH PARAMS:', params);
+      }
 
       // Fetch both filtered projects and all projects for stats
       const [response, allProjectsResponse] = await Promise.all([
@@ -83,8 +85,16 @@ export const useProjects = (options = {}) => {
         projectAPI.getAll({ limit: 1000 }) // Get all projects for stats calculation
       ]);
 
-      console.log('🎯 REAL API RESPONSE:', response);
-      console.log('📊 ALL PROJECTS RESPONSE:', allProjectsResponse);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎯 FILTERED RESPONSE:', response);
+        console.log('   └─ Filtered items:', response.data?.length);
+        console.log('   └─ Filtered pagination.total:', response.pagination?.total);
+        console.log('   └─ Filtered pagination.totalPages:', response.pagination?.totalPages);
+        console.log('📊 ALL PROJECTS RESPONSE:', allProjectsResponse);
+        console.log('   └─ All items:', allProjectsResponse.data?.length);
+        console.log('   └─ All pagination.total:', allProjectsResponse.pagination?.total);
+        console.log('   └─ All pagination.totalPages:', allProjectsResponse.pagination?.totalPages);
+      }
 
       const data = response.data || response || []; // Handle different response structures
       const allProjects = allProjectsResponse.data || allProjectsResponse || [];
@@ -193,11 +203,18 @@ export const useProjects = (options = {}) => {
       }).length
     };
 
+    // FIXED: Calculate totalPages correctly from server pagination count
+    // If count is 0, totalPages should be 0 (no pagination needed)
+    // If count is 1-10 with pageSize 10, totalPages should be 1
+    const calculatedTotalPages = state.serverPagination.count > 0 
+      ? Math.ceil(state.serverPagination.count / state.pageSize)
+      : 0;
+
     return {
       hasProjects: state.projects.length > 0,
-      totalPages: Math.ceil(state.serverPagination.count / state.pageSize),
+      totalPages: calculatedTotalPages,
       isFirstPage: state.page === 1,
-      isLastPage: state.page >= Math.ceil(state.serverPagination.count / state.pageSize),
+      isLastPage: calculatedTotalPages <= 1 || state.page >= calculatedTotalPages,
       hasFilters: state.filters.status || state.filters.priority,
       isEmpty: !state.loading && state.projects.length === 0,
       stats

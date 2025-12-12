@@ -120,6 +120,12 @@ export const useWorkflowData = (project) => {
         data: project.milestonesList || project.milestones || []
       },
       
+      // Milestone Costs - Extract from all milestones' costs arrays
+      // Each milestone may have costs array, we need to flatten all of them
+      milestoneCosts: (project.milestonesList || project.milestones || [])
+        .flatMap(milestone => milestone.costs || [])
+        .filter(cost => cost && !cost.deleted_at), // Filter out deleted costs
+      
       // Berita Acara - ALREADY in project from backend
       beritaAcara: project.beritaAcara || [],
       beritaAcaraStatus: {
@@ -142,11 +148,14 @@ export const useWorkflowData = (project) => {
       deliveryReceiptsCount: enhancedWorkflowData.deliveryReceipts.length,
       pendingApprovals: enhancedWorkflowData.approvalStatus.pending,
       milestonesDataCount: enhancedWorkflowData.milestones.data.length,
+      milestoneCostsCount: enhancedWorkflowData.milestoneCosts.length,
+      totalMilestoneCosts: enhancedWorkflowData.milestoneCosts.reduce((sum, cost) => sum + (parseFloat(cost.amount) || 0), 0),
       milestonesData: enhancedWorkflowData.milestones.data.map(m => ({
         id: m.id,
         title: m.title,
         status: m.status,
-        progress: m.progress
+        progress: m.progress,
+        costsCount: m.costs?.length || 0
       }))
     });
 

@@ -7,18 +7,24 @@ const getApiUrl = () => {
   // PRIORITAS 1: Production hostname detection (FIRST!)
   const hostname = window.location.hostname;
   if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
-    console.log('🌐 Production mode - using https://nusantaragroup.co/api');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌐 Production mode - using https://nusantaragroup.co/api');
+    }
     return 'https://nusantaragroup.co/api';
   }
 
   // PRIORITAS 2: Environment Variable
   if (process.env.REACT_APP_API_URL) {
-    console.log('🔧 Using ENV API URL:', process.env.REACT_APP_API_URL);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔧 Using ENV API URL:', process.env.REACT_APP_API_URL);
+    }
     return process.env.REACT_APP_API_URL;
   }
 
   // PRIORITAS 3: Development fallback
-  console.log('🏠 Development mode - using /api');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🏠 Development mode - using /api');
+  }
   return '/api';
 };
 
@@ -50,8 +56,10 @@ export const getImageUrl = (path) => {
   return `${BASE_URL}${path}`;
 };
 
-console.log('📊 Config:', {
-  API_URL,
-  BASE_URL,
-  hostname: window.location.hostname
-});
+if (process.env.NODE_ENV === 'development') {
+  console.log('📊 Config:', {
+    API_URL,
+    BASE_URL,
+    hostname: window.location.hostname
+  });
+}

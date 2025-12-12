@@ -52,46 +52,69 @@ export const StatsCard = ({
   onClick,
   urgent = false
 }) => {
-  const colorClasses = {
-    blue: 'text-[#0A84FF] bg-[#0A84FF]/10',
-    green: 'text-[#30D158] bg-[#30D158]/10',
-    red: 'text-[#FF453A] bg-[#FF453A]/10',
-    yellow: 'text-[#FF9F0A] bg-[#FF9F0A]/10',
-    orange: 'text-[#FF9F0A] bg-[#FF9F0A]/10',
-    purple: 'text-[#BF5AF2] bg-[#BF5AF2]/10',
-    cyan: 'text-[#64D2FF] bg-[#64D2FF]/10',
-    indigo: 'text-[#5E5CE6] bg-[#5E5CE6]/10',
-    gray: 'text-[#98989D] bg-[#98989D]/10'
+  const getTrendTone = () => {
+    if (!trend) return 'text-white/70';
+    if (trend.includes('⚠️') || trend.toLowerCase().includes('mendesak') || trend.toLowerCase().includes('terlambat')) {
+      return 'text-[#facc15]';
+    }
+    if (trend.startsWith('+') || trend.toLowerCase().includes('tersisa')) {
+      return 'text-[#34d399]';
+    }
+    return 'text-white/70';
+  };
+
+  const iconBackgrounds = {
+    blue: 'text-[#60a5fa]',
+    green: 'text-[#34d399]',
+    red: 'text-[#fb7185]',
+    yellow: 'text-[#facc15]',
+    orange: 'text-[#f97316]',
+    purple: 'text-[#c084fc]',
+    cyan: 'text-[#67e8f9]',
+    indigo: 'text-[#818cf8]',
+    gray: 'text-[#94a3b8]'
+  };
+
+  const panelGlows = {
+    blue: 'from-[#60a5fa1f] via-transparent to-transparent',
+    green: 'from-[#34d3991f] via-transparent to-transparent',
+    red: 'from-[#fb71851f] via-transparent to-transparent',
+    yellow: 'from-[#facc151f] via-transparent to-transparent',
+    orange: 'from-[#fb923c1f] via-transparent to-transparent',
+    purple: 'from-[#c084fc1f] via-transparent to-transparent',
+    cyan: 'from-[#67e8f91f] via-transparent to-transparent',
+    indigo: 'from-[#818cf81f] via-transparent to-transparent',
+    gray: 'from-[#94a3b81f] via-transparent to-transparent'
   };
 
   return (
     <div 
-      className={`bg-[#2C2C2E] border rounded-xl p-4 transition-all duration-150 ${
+      className={`group relative overflow-hidden rounded-2xl border border-white/5 bg-[rgba(12,16,24,0.85)] p-5 transition-all duration-300 ${
         urgent 
-          ? 'border-[#FF453A] animate-pulse' 
-          : 'border-[#38383A] hover:border-[#48484A]'
+          ? 'shadow-[0_0_35px_rgba(248,113,113,0.35)] ring-1 ring-[#fb7185]/40' 
+          : 'hover:-translate-y-1 hover:shadow-[0_25px_45px_rgba(0,0,0,0.45)]'
       } ${onClick ? 'cursor-pointer' : ''}`}
       onClick={onClick}
     >
-      <div className="flex items-center justify-between">
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${panelGlows[color] || panelGlows.blue} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+
+      <div className="relative flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-[#98989D] truncate mb-1.5">{title}</p>
-          <p className="text-xl font-bold text-white mb-0.5">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-white/50 mb-2 break-words">{title}</p>
+          <p className="text-2xl font-semibold text-white mb-1 break-words">
             {typeof value === 'number' ? formatNumber(value) : value}
           </p>
           {subtitle && (
-            <p className="text-xs text-[#636366]">{subtitle}</p>
+            <p className="text-sm text-white/60 break-words">{subtitle}</p>
           )}
           {trend && (
-            <div className="flex items-center mt-1.5">
-              <span className={`text-xs font-medium ${trend.startsWith('+') ? 'text-[#30D158]' : trend.includes('⚠️') ? 'text-[#FF9F0A]' : 'text-[#98989D]'}`}>
-                {trend}
-              </span>
+            <div className={`mt-3 inline-flex items-center rounded-full border border-white/10 px-3 py-1 text-xs ${getTrendTone()}`}>
+              {trend}
             </div>
           )}
         </div>
         {Icon && (
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClasses[color]}`}>
+          <div className={`relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-lg ${iconBackgrounds[color] || iconBackgrounds.blue}`}>
             <Icon className="h-5 w-5" />
           </div>
         )}

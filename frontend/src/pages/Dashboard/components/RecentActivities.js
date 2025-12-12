@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Activity, Building, ShoppingCart, CheckCircle, AlertTriangle } from 'lucide-react';
 
 /**
@@ -8,6 +9,7 @@ import { Activity, Building, ShoppingCart, CheckCircle, AlertTriangle } from 'lu
  * @returns {JSX.Element} Recent activities UI
  */
 const RecentActivities = ({ activities = [] }) => {
+  const navigate = useNavigate();
   // Map activity types to their respective icons
   const getActivityIcon = (type) => {
     switch (type) {
@@ -35,26 +37,44 @@ const RecentActivities = ({ activities = [] }) => {
   };
 
   return (
-    <div className="lg:col-span-2 bg-[#2C2C2E] border border-[#38383A] p-5 rounded-xl hover:border-[#48484A] transition-colors">
-      <h3 className="text-base font-semibold text-white mb-3">Aktivitas Terbaru</h3>
-      <div className="space-y-4">
+    <div className="xl:col-span-2 rounded-3xl border border-white/5 bg-[#090d16]/85 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Aktivitas Terbaru</h3>
+          <p className="text-xs text-white/50">Log sistem dan aktivitas proyek 24 jam terakhir</p>
+        </div>
+        <button
+          onClick={() => navigate('/notifications')}
+          className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50 transition hover:text-white"
+        >
+          Lihat log
+        </button>
+      </div>
+      <div className="mt-5 space-y-4">
         {activities.length === 0 ? (
-          <div className="text-center py-8 text-[#636366]">
-            <Activity className="h-8 w-8 mx-auto mb-2 text-[#636366]" />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-10 text-white/60">
+            <Activity className="mb-3 h-8 w-8" />
             <p>Belum ada aktivitas terbaru</p>
           </div>
         ) : (
           activities.map((activity, index) => (
-            <div key={index} className="flex items-start space-x-3 py-2.5 border-b border-[#38383A] last:border-b-0">
-              <div className="flex-shrink-0">
-                {getActivityIcon(activity.type)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white leading-snug">{activity.title || activity.description || activity.type || 'Aktivitas'}</p>
-                {activity.description && (
-                  <p className="text-xs text-[#98989D]">{activity.description}</p>
-                )}
-                <p className="text-xs text-[#636366] mt-1">{activity.timestamp || formatTimestamp(activity.date)}</p>
+            <div key={index} className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-4 transition hover:-translate-y-0.5 hover:border-white/20">
+              <div className="flex items-start gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                  {getActivityIcon(activity.type)}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-white break-words">{activity.title || activity.description || activity.type || 'Aktivitas'}</p>
+                    <span className="text-[11px] text-white/50">
+                      {activity.type ? activity.type.replace('_', ' ') : 'log'}
+                    </span>
+                  </div>
+                  {activity.description && (
+                    <p className="text-xs text-white/60 break-words">{activity.description}</p>
+                  )}
+                  <p className="mt-2 text-[11px] text-white/40 break-words">{activity.timestamp || formatTimestamp(activity.date)}</p>
+                </div>
               </div>
             </div>
           ))

@@ -9,6 +9,7 @@ const QuickStatusBar = ({ project, onStatusUpdate }) => {
   const [selectedStatus, setSelectedStatus] = useState(project?.status || 'active');
   const [notes, setNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   const statusOptions = [
     { value: 'planning', label: 'Perencanaan', color: '#FF9500' },
@@ -31,41 +32,51 @@ const QuickStatusBar = ({ project, onStatusUpdate }) => {
 
   const handleUpdate = async () => {
     if (selectedStatus === project?.status && !notes.trim()) {
-      return; // No changes
+      return;
     }
 
     setIsUpdating(true);
+    setFeedback(null);
     try {
-      await onStatusUpdate?.({
+      const result = await onStatusUpdate?.({
         status: selectedStatus,
         notes: notes.trim()
       });
-      setNotes(''); // Clear notes after successful update
+      
+      setNotes('');
+      setFeedback({
+        type: 'success',
+        message: 'Status proyek berhasil diperbarui.'
+      });
     } catch (error) {
-      console.error('Failed to update status:', error);
+      const errorData = error.response?.data;
+      let message = errorData?.message || errorData?.error || error.message || 'Terjadi kesalahan saat mengubah status.';
+
+      if (errorData?.requirements?.length) {
+        message += ` Persyaratan: ${errorData.requirements.join(', ')}`;
+      }
+
+      setFeedback({
+        type: 'error',
+        message
+      });
     } finally {
       setIsUpdating(false);
     }
   };
 
   return (
-    <div className="bg-[#2C2C2E] rounded-xl p-4 md:p-5 mb-4 border border-[#38383A]">
-      <div className="flex flex-col md:flex-row md:items-center gap-4">
-        {/* Label */}
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5 shadow-[0_10px_30px_rgba(0,0,0,0.25)] backdrop-blur">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <div className="flex-shrink-0">
-          <label className="text-sm font-medium text-[#8E8E93]">
-            Quick Status Update:
-          </label>
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60">Quick Status Update</p>
         </div>
 
-        {/* Status Dropdown */}
         <div className="relative flex-shrink-0 w-full md:w-64">
           <select
             value={selectedStatus}
             onChange={handleStatusChange}
-            className="w-full appearance-none bg-[#1C1C1E] text-white rounded-lg px-4 py-2.5 pr-10 
-                     border border-[#38383A] focus:border-[#0A84FF] focus:outline-none focus:ring-1 focus:ring-[#0A84FF]
-                     transition-colors text-sm font-medium"
+            className="w-full appearance-none rounded-2xl border border-white/10 bg-[#05070d] px-4 py-3 pr-10 text-sm font-semibold text-white outline-none transition focus:border-[#0ea5e9]"
             style={{ color: currentStatus?.color }}
           >
             {statusOptions.map(option => (
@@ -74,35 +85,41 @@ const QuickStatusBar = ({ project, onStatusUpdate }) => {
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93] pointer-events-none" />
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
         </div>
 
-        {/* Notes Input */}
         <div className="flex-1 min-w-0">
           <input
             type="text"
             value={notes}
             onChange={handleNotesChange}
             placeholder="Catatan perubahan status (opsional)"
-            className="w-full bg-[#1C1C1E] text-white placeholder-[#636366] rounded-lg px-4 py-2.5
-                     border border-[#38383A] focus:border-[#0A84FF] focus:outline-none focus:ring-1 focus:ring-[#0A84FF]
-                     transition-colors text-sm"
+            className="w-full rounded-2xl border border-white/10 bg-[#05070d] px-4 py-3 text-sm text-white placeholder-white/40 outline-none transition focus:border-[#0ea5e9]"
           />
         </div>
 
-        {/* Update Button (shown if changes made) */}
         {(selectedStatus !== project?.status || notes.trim()) && (
           <button
             onClick={handleUpdate}
             disabled={isUpdating}
-            className="flex-shrink-0 bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white px-5 py-2.5 rounded-lg
-                     font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-                     whitespace-nowrap"
+            className="flex-shrink-0 rounded-2xl border border-white/10 bg-gradient-to-r from-[#0ea5e9] via-[#2563eb] to-[#7c3aed] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(37,99,235,0.35)] transition hover:brightness-110 disabled:opacity-60"
           >
-            {isUpdating ? 'Updating...' : 'Update'}
+            {isUpdating ? 'Memperbarui...' : 'Perbarui Status'}
           </button>
         )}
       </div>
+
+      {feedback && (
+        <div
+          className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${
+            feedback.type === 'success'
+              ? 'border-[#34d399]/40 bg-[#34d399]/15 text-[#bbf7d0]'
+              : 'border-[#fb7185]/40 bg-[#fb7185]/15 text-[#fecdd3]'
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
     </div>
   );
 };

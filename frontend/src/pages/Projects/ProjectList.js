@@ -171,8 +171,11 @@ const ProjectList = () => {
 
   // Render helper untuk loading/error states
   const renderState = (Component, props) => (
-    <div className="min-h-screen bg-[#1C1C1E]">
-      <div className="container mx-auto px-4 py-6">
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_45%)]" />
+      </div>
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8">
         <Breadcrumb items={[{ label: 'Proyek' }]} />
         <Component {...props} />
       </div>
@@ -190,18 +193,18 @@ const ProjectList = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E]">
-      <div className="container mx-auto px-4 py-6 space-y-5">
-        {/* Breadcrumb Navigation */}
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_45%)]" />
+      </div>
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 space-y-6">
         <Breadcrumb items={[{ label: projectsTranslations.title }]} />
 
-        {/* Compact Header with Statistics */}
         <CompactProjectHeader 
           stats={stats}
           onCreateProject={handleCreateProject}
         />
 
-        {/* Search, Filter, and Sort Toolbar */}
         <ProjectToolbar
           searchTerm={searchTerm}
           onSearchChange={handleSearchChange}
@@ -220,7 +223,6 @@ const ProjectList = () => {
           isSearching={isDebouncing}
         />
 
-        {/* Bulk Action Toolbar - Shows when projects are selected */}
         {selectedProjects.length > 0 && (
           <BulkActionToolbar
             selectedCount={selectedProjects.length}
@@ -234,9 +236,7 @@ const ProjectList = () => {
           />
         )}
 
-        {/* Professional Content Area */}
         <div className="space-y-5">
-          {/* Empty State */}
           {filteredAndSortedProjects.length === 0 ? (
             <EmptyState
               title={searchTerm || hasActiveFilters ? ui.emptyState.noResults : ui.emptyState.noData}
@@ -259,7 +259,6 @@ const ProjectList = () => {
               }
             />
           ) : (
-            /* Compact Project Table */
             <>
               <CompactProjectTable
                 projects={filteredAndSortedProjects}
@@ -272,11 +271,10 @@ const ProjectList = () => {
                 onDelete={handleDeleteProject}
               />
 
-              {/* Results Info */}
-              <div className="flex items-center justify-between text-sm">
-                <div className="text-[#8E8E93]">
-                  {ui.pagination.showing} <span className="text-white font-medium">{filteredAndSortedProjects.length}</span> {ui.pagination.of}{' '}
-                  <span className="text-white font-medium">{stats.total || projects.length}</span> {projectsTranslations.title.toLowerCase()}
+              <div className="flex flex-col gap-2 text-sm text-white/70 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  {ui.pagination.showing} <span className="font-semibold text-white">{filteredAndSortedProjects.length}</span> {ui.pagination.of}{' '}
+                  <span className="font-semibold text-white">{stats.total || projects.length}</span> {projectsTranslations.title.toLowerCase()}
                   {(searchTerm || hasActiveFilters) && (
                     <span className="text-[#0A84FF]"> (difilter)</span>
                   )}
@@ -285,7 +283,6 @@ const ProjectList = () => {
             </>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <Pagination
               currentPage={page}

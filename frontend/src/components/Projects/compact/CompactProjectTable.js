@@ -61,18 +61,18 @@ const CompactProjectTable = memo(({
 
   if (!projects?.length) {
     return (
-      <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-8 text-center">
-        <p className="text-[#8E8E93]">Tidak ada proyek ditemukan</p>
+      <div className="rounded-3xl border border-white/5 bg-white/5 p-8 text-center text-white/70">
+        <p>Tidak ada proyek ditemukan</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-3xl border border-white/5 bg-[#070b13]/85 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[#1C1C1E]">
-            <tr className="border-b border-[#38383A]">
+          <thead className="bg-white/5">
+            <tr className="border-b border-white/10 text-white/60">
               {/* Checkbox Column */}
               {onSelectAll && (
                 <th className="px-4 py-2.5 text-center w-[50px]">
@@ -85,29 +85,29 @@ const CompactProjectTable = memo(({
                       }
                     }}
                     onChange={(e) => onSelectAll(e.target.checked)}
-                    className="w-4 h-4 rounded border-[#636366] bg-[#2C2C2E] text-[#0A84FF] 
+                    className="h-4 w-4 rounded border-white/30 bg-transparent text-[#0A84FF] 
                                focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-0
                                cursor-pointer"
                     aria-label="Pilih semua proyek"
                   />
                 </th>
               )}
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-[#636366] w-[30%]">
+              <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-[30%]">
                 Proyek
               </th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-[#636366] w-[15%]">
+              <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-[15%]">
                 Subsidiary
               </th>
-              <th className="px-4 py-2.5 text-left text-xs font-medium text-[#636366] w-[15%]">
+              <th className="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-[15%]">
                 Klien / Lokasi
               </th>
-              <th className="px-4 py-2.5 text-right text-xs font-medium text-[#636366] w-[18%]">
+              <th className="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-[18%]">
                 Budget / Jadwal
               </th>
-              <th className="px-4 py-2.5 text-center text-xs font-medium text-[#636366] w-[20%]">
+              <th className="px-4 py-2.5 text-center text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-[20%]">
                 Progress
               </th>
-              <th className="px-4 py-2.5 text-center text-xs font-medium text-[#636366] w-[12%]">
+              <th className="px-4 py-2.5 text-center text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-[12%]">
                 Aksi
               </th>
             </tr>
@@ -119,8 +119,8 @@ const CompactProjectTable = memo(({
               return (
               <tr 
                 key={project.id} 
-                className={`border-b border-[#38383A] hover:bg-[#3A3A3C] transition-colors duration-150
-                           ${isSelected ? 'bg-[#0A84FF]/10' : ''}`}
+                className={`border-b border-white/5 transition-colors duration-150 hover:bg-white/5
+                           ${isSelected ? 'bg-[#0ea5e9]/10' : ''}`}
               >
                 {/* Checkbox Column */}
                 {onSelectProject && (
@@ -129,7 +129,7 @@ const CompactProjectTable = memo(({
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => onSelectProject(project.id)}
-                      className="w-4 h-4 rounded border-[#636366] bg-[#2C2C2E] text-[#0A84FF] 
+                      className="h-4 w-4 rounded border-white/30 bg-transparent text-[#0A84FF] 
                                  focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-0
                                  cursor-pointer"
                       aria-label={`Pilih proyek ${project.name}`}
@@ -141,14 +141,14 @@ const CompactProjectTable = memo(({
                   <div className="flex items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <div 
-                        className="font-medium text-white truncate cursor-pointer hover:text-[#0A84FF] transition-colors duration-150"
+                        className="line-clamp-2 break-words font-medium text-white transition-colors duration-150 hover:text-[#60a5fa]"
                         onClick={() => onView?.(project)}
                       >
                         {project.name}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <CompactStatusBadge status={project.status} size="xs" />
-                        <span className="text-xs font-mono text-[#636366]">
+                        <span className="font-mono text-xs text-white/40">
                           #{project.projectCode || project.code || project.id}
                         </span>
                       </div>
@@ -158,31 +158,31 @@ const CompactProjectTable = memo(({
 
                 {/* Subsidiary Column */}
                 <td className="px-4 py-3">
-                  <div className="text-sm text-white truncate">
+                  <div className="truncate text-sm text-white">
                     {project.subsidiaryInfo?.name || project.subsidiary?.name || '-'}
                   </div>
-                  <div className="text-xs text-[#636366] truncate">
+                  <div className="truncate text-xs text-white/50">
                     {project.subsidiaryInfo?.code || project.subsidiary?.code || 'Tidak ada'}
                   </div>
                 </td>
 
                 {/* Client / Location Column */}
                 <td className="px-4 py-3">
-                  <div className="text-sm text-[#98989D] truncate">
+                  <div className="line-clamp-2 break-words text-sm text-white/70">
                     {project.client?.company || project.client?.name || project.client || project.clientName || 'Tidak ada klien'}
                   </div>
-                  <div className="text-xs text-[#636366] truncate">
+                  <div className="line-clamp-2 break-words text-xs text-white/50">
                     {formatLocation(project.location)}
                   </div>
                 </td>
 
                 {/* Budget / Timeline Column */}
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1 font-medium text-white text-sm">
-                    <DollarSign className="h-3 w-3 text-[#30D158]" />
+                  <div className="flex items-center justify-end gap-1 text-sm font-medium text-white">
+                    <DollarSign className="h-3 w-3 text-[#34d399]" />
                     {formatCurrency(project.budget)}
                   </div>
-                  <div className="flex items-center justify-end gap-1 text-xs text-[#636366] mt-0.5">
+                  <div className="mt-0.5 flex items-center justify-end gap-1 text-xs text-white/50">
                     <Calendar className="h-3 w-3" />
                     {formatDate(project.startDate)} - {formatDate(project.endDate)}
                   </div>
@@ -191,9 +191,9 @@ const CompactProjectTable = memo(({
                 {/* Progress Column */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-[#3A3A3C] rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 overflow-hidden rounded-full bg-white/10">
                       <div 
-                        className={`h-full ${getProgressColor(project.progress || 0)} rounded-full transition-all duration-300`}
+                        className={`h-full rounded-full ${getProgressColor(project.progress || 0)} transition-all duration-300`}
                         style={{ width: `${project.progress || 0}%` }}
                       />
                     </div>
@@ -205,7 +205,7 @@ const CompactProjectTable = memo(({
 
                 {/* Actions Column */}
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-center gap-0.5">
+                  <div className="flex items-center justify-center gap-1">
                     <CompactIconButton 
                       icon={Eye} 
                       size="xs" 

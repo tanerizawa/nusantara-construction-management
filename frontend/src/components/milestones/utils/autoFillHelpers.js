@@ -136,10 +136,12 @@ export const calculateTargetDate = (rabSummary, project) => {
  * Calculate priority based on budget size
  * 
  * Thresholds:
- * - > 500M = Critical
+ * - > 500M = Urgent (highest priority in DB enum)
  * - 200M-500M = High
  * - 50M-200M = Medium
  * - < 50M = Low
+ * 
+ * Valid priority enum values: 'low', 'medium', 'high', 'urgent'
  * 
  * @param {Object} rabSummary - RAB summary data
  * @returns {string} Priority level
@@ -148,7 +150,7 @@ export const calculatePriority = (rabSummary) => {
   const budget = rabSummary?.totalValue || 0;
   
   if (budget > 500000000) {
-    return 'critical'; // > 500M
+    return 'urgent';   // > 500M (was 'critical', fixed to match DB enum)
   } else if (budget > 200000000) {
     return 'high';     // 200M - 500M
   } else if (budget > 50000000) {

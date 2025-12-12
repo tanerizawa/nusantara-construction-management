@@ -97,21 +97,30 @@ const StatItem = ({ stat, animated, delay = 0 }) => {
   );
 };
 
-export const TrustBadges = ({ badges, className = '' }) => (
-  <div className={`pt-8 ${className}`}>
-    <p className="text-sm text-gray-500 mb-4 font-semibold">Dipercaya oleh:</p>
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      {badges.map((badge, index) => (
-        <div 
-          key={index} 
-          className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl py-3 px-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 transform"
-        >
-          <div className="text-sm font-bold text-gray-700">{badge}</div>
-        </div>
-      ))}
+export const TrustBadges = ({ badges, className = '', variant = 'light' }) => {
+  const isDark = variant === 'dark';
+  return (
+    <div className={`pt-8 ${className}`}>
+      <p className={`text-sm mb-4 font-semibold ${isDark ? 'text-white/70' : 'text-gray-500'}`}>
+        Dipercaya oleh:
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {badges.map((badge, index) => (
+          <div 
+            key={index} 
+            className={`backdrop-blur-sm rounded-xl py-3 px-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 transform ${
+              isDark 
+                ? 'bg-white/10 border border-white/15 text-white/80' 
+                : 'bg-white/80 border border-gray-200 text-gray-700'
+            }`}
+          >
+            <div className="text-sm font-bold">{badge}</div>
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const CTAButtons = ({ 
   primaryCTA, 

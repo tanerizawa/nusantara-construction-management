@@ -45,6 +45,13 @@ export const workflowTabsConfig = [
         description: 'Rencana Anggaran Biaya'
       },
       {
+        id: 'rab-realization',
+        label: 'Realisasi Belanja',
+        path: 'rab-realization',
+        icon: TrendingUp,
+        description: 'Tracking realisasi belanja vs anggaran RAP'
+      },
+      {
         id: 'purchase-orders',
         label: 'Purchase Orders',
         path: 'purchase-orders',

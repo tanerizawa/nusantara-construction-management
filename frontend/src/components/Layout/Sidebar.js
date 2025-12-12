@@ -119,7 +119,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               className={`w-full flex items-center justify-between space-x-3 px-4 py-3 rounded-lg transition-colors duration-150 group focus:outline-none focus:ring-2 focus:ring-[#0A84FF] ${
                 itemActive || item.submenu?.some(sub => isActive(sub.path))
                   ? 'bg-[#0A84FF]/20 text-[#0A84FF] border border-[#0A84FF]/30'
-                  : 'text-[#98989D] hover:text-white hover:bg-[#2C2C2E]'
+                  : 'text-[#98989D] hover:text-white hover:bg-white/5'
               }`}
             >
               <div className="flex items-center space-x-3">
@@ -151,7 +151,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               } ${
                 isActive
                   ? 'bg-[#0A84FF]/20 text-[#0A84FF] border border-[#0A84FF]/30'
-                  : 'text-[#98989D] hover:text-white hover:bg-[#2C2C2E]'
+                  : 'text-[#98989D] hover:text-white hover:bg-white/5'
               }`
             }
           >
@@ -166,12 +166,12 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1C1C1E] border-r border-[#38383A] transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-white/5 bg-[#090d16]/90 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.45)] transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         
         {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-[#38383A]">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-white/5">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-br from-[#0A84FF] to-[#5E5CE6] rounded-lg flex items-center justify-center shadow-lg">
               <span className="text-white text-sm font-bold">NG</span>
@@ -182,7 +182,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-[#98989D] hover:text-white hover:bg-[#2C2C2E] transition-colors duration-150 lg:hidden focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
+            className="p-2 rounded-lg text-[#98989D] hover:text-white hover:bg-white/10 transition-colors duration-150 lg:hidden focus:outline-none focus:ring-2 focus:ring-[#0A84FF]"
           >
             <X size={20} />
           </button>
@@ -196,8 +196,8 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Footer - Version Info */}
-        <div className="p-4 border-t border-[#38383A]">
-          <div className="px-4 py-2 rounded-lg bg-[#2C2C2E]">
+        <div className="p-4 border-t border-white/5">
+          <div className="px-4 py-2 rounded-lg bg-white/5">
             <div className="text-center">
               <p className="text-xs text-[#98989D]">Version 2.1.0</p>
               <p className="text-xs text-[#636366]">© 2025 Nusantara Group</p>

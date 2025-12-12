@@ -252,7 +252,7 @@ const MilestoneInlineForm = ({
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-                <option value="critical">Critical</option>
+                <option value="urgent">Urgent</option>
               </select>
               {autoFilledFields.priority && (
                 <div className="absolute right-8 top-1/2 -translate-y-1/2">

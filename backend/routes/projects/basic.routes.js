@@ -105,11 +105,13 @@ router.get("/", async (req, res) => {
     }
 
     // Fetch projects with related data
+    // Use distinct: true to fix count issue with includes
     const { count, rows: projects } = await Project.findAndCountAll({
       where,
       limit: parseInt(limit),
       offset: parseInt(offset),
       order: [[sortBy, sortOrder]],
+      distinct: true, // Fix: Ensure accurate count when using includes
       include: [
         {
           model: User,
@@ -157,7 +159,7 @@ router.get("/", async (req, res) => {
         total: count,
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(count / limit),
+        totalPages: Math.ceil(count / parseInt(limit)),
       },
     });
   } catch (error) {
@@ -614,7 +616,7 @@ router.post("/", verifyToken, async (req, res) => {
 
 /**
  * @route   PATCH /api/projects/:id/status
- * @desc    Quick status update (dedicated endpoint)
+ * @desc    Quick status update (dedicated endpoint) with workflow validation
  * @access  Private
  */
 router.patch("/:id/status", verifyToken, async (req, res) => {
@@ -635,12 +637,36 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
       });
     }
 
-    // Find project
+    // Find project by ID (supports custom project IDs like 2025LTS001)
     const project = await Project.findByPk(id);
     if (!project) {
       return res.status(404).json({
         success: false,
         error: "Project not found",
+      });
+    }
+
+    const newStatus = value.status;
+    const oldStatus = project.status;
+
+    console.log('[PATCH /projects/:id/status] Status transition:', {
+      projectId: project.id,
+      oldStatus,
+      newStatus
+    });
+
+    // ✅ WORKFLOW VALIDATION: Check if status transition is allowed
+    const validationResult = await validateStatusTransition(project.id, oldStatus, newStatus);
+    
+    console.log('[PATCH /projects/:id/status] Validation result:', validationResult);
+    
+    if (!validationResult.allowed) {
+      return res.status(400).json({
+        success: false,
+        error: 'Status transition not allowed',
+        message: validationResult.message,
+        requirements: validationResult.requirements,
+        currentState: validationResult.currentState
       });
     }
 
@@ -665,6 +691,7 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
       success: true,
       message: "Status updated successfully",
       data: project,
+      validation: validationResult.warnings || null
     });
   } catch (error) {
     console.error("[PATCH /projects/:id/status] Error:", error);
@@ -675,6 +702,164 @@ router.patch("/:id/status", verifyToken, async (req, res) => {
     });
   }
 });
+
+/**
+ * Validate if status transition is allowed based on project workflow state
+ * @param {string} projectId - Project ID
+ * @param {string} oldStatus - Current status
+ * @param {string} newStatus - Target status
+ * @returns {Object} Validation result with allowed flag and message
+ */
+async function validateStatusTransition(projectId, oldStatus, newStatus) {
+  const { sequelize } = require('../../models');
+  
+  console.log('[validateStatusTransition] Called with:', { projectId, oldStatus, newStatus });
+  
+  // Allow backwards transitions (for corrections)
+  const backwardsTransitions = {
+    'completed': ['active', 'on_hold'],
+    'active': ['planning'],
+    'cancelled': ['planning', 'active']
+  };
+  
+  if (backwardsTransitions[oldStatus]?.includes(newStatus)) {
+    console.log('[validateStatusTransition] Backward transition allowed');
+    return {
+      allowed: true,
+      message: 'Status rollback allowed for corrections'
+    };
+  }
+
+  // Validate forward transitions
+  if (newStatus === 'completed') {
+    console.log('[validateStatusTransition] Checking completion requirements...');
+    
+    // ✅ CHECK 1: Must have milestones
+    const [milestoneCount] = await sequelize.query(
+      `SELECT COUNT(*) as count FROM project_milestones WHERE project_id = :projectId`,
+      {
+        replacements: { projectId },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    console.log('[validateStatusTransition] Milestone count:', milestoneCount);
+
+    if (parseInt(milestoneCount.count) === 0) {
+      console.log('[validateStatusTransition] REJECTED: No milestones');
+      return {
+        allowed: false,
+        message: 'Cannot complete project without milestones',
+        requirements: [
+          '❌ Create at least one milestone to track project progress',
+          'Milestones help track deliverables and timeline'
+        ],
+        currentState: {
+          milestones: 0,
+          required: 'At least 1 milestone'
+        }
+      };
+    }
+
+    // ✅ CHECK 2: All milestones must be completed
+    const [incompleteMilestones] = await sequelize.query(
+      `SELECT COUNT(*) as count 
+       FROM project_milestones 
+       WHERE project_id = :projectId 
+         AND status != 'completed'`,
+      {
+        replacements: { projectId },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    if (parseInt(incompleteMilestones.count) > 0) {
+      const [milestoneDetails] = await sequelize.query(
+        `SELECT 
+           COUNT(*) as total,
+           COUNT(*) FILTER (WHERE status = 'completed') as completed,
+           COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress,
+           COUNT(*) FILTER (WHERE status = 'pending') as pending
+         FROM project_milestones 
+         WHERE project_id = :projectId`,
+        {
+          replacements: { projectId },
+          type: sequelize.QueryTypes.SELECT
+        }
+      );
+
+      return {
+        allowed: false,
+        message: 'Cannot complete project with incomplete milestones',
+        requirements: [
+          '❌ Complete all milestones before finishing project',
+          `${milestoneDetails.completed}/${milestoneDetails.total} milestones completed`,
+          milestoneDetails.in_progress > 0 ? `${milestoneDetails.in_progress} in progress` : null,
+          milestoneDetails.pending > 0 ? `${milestoneDetails.pending} pending` : null
+        ].filter(Boolean),
+        currentState: {
+          total: milestoneDetails.total,
+          completed: milestoneDetails.completed,
+          remaining: incompleteMilestones.count
+        }
+      };
+    }
+
+    // ✅ CHECK 3: RAB should have realizations (optional but warning)
+    const [rabStats] = await sequelize.query(
+      `SELECT 
+         COUNT(DISTINCT r.id) as total_rab_items,
+         COUNT(DISTINCT mc.id) as realized_items,
+         COALESCE(SUM(r.total_price), 0) as total_rab_value,
+         COALESCE(SUM(mc.amount), 0) as realized_value
+       FROM project_rab r
+       LEFT JOIN milestone_costs mc ON mc.rab_item_id = r.id AND mc.deleted_at IS NULL
+       WHERE r.project_id = :projectId 
+         AND r.is_approved = true`,
+      {
+        replacements: { projectId },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    const warnings = [];
+    
+    if (parseInt(rabStats.total_rab_items) > 0 && parseInt(rabStats.realized_items) === 0) {
+      warnings.push({
+        level: 'warning',
+        message: 'No RAB items have been realized yet',
+        suggestion: 'Consider recording actual costs in milestone costs before completing'
+      });
+    }
+
+    if (parseInt(rabStats.total_rab_items) > 0 && parseFloat(rabStats.realized_value) < parseFloat(rabStats.total_rab_value) * 0.5) {
+      warnings.push({
+        level: 'warning',
+        message: `Only ${((parseFloat(rabStats.realized_value) / parseFloat(rabStats.total_rab_value)) * 100).toFixed(1)}% of RAB budget realized`,
+        suggestion: 'Ensure all actual costs are recorded'
+      });
+    }
+
+    return {
+      allowed: true,
+      message: 'All requirements met for project completion',
+      warnings: warnings.length > 0 ? warnings : null,
+      currentState: {
+        milestones: milestoneCount.count,
+        allCompleted: true,
+        rabItems: rabStats.total_rab_items,
+        realizedItems: rabStats.realized_items
+      }
+    };
+  }
+
+  // Other status transitions (planning → active, etc.) - allowed by default
+  return {
+    allowed: true,
+    message: 'Status transition allowed'
+  };
+}
+
 
 /**
  * @route   PUT /api/projects/:id

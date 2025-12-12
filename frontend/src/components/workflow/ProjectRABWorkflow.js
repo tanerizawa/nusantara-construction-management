@@ -331,7 +331,7 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
 
       {/* Notification */}
       <Notification 
@@ -341,32 +341,27 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       />
 
       {/* Header with Actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 rounded-3xl border border-white/5 bg-[#05070d]/85 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-white">RAP Management</h2>
-          <p className="text-sm text-[#8E8E93]">Rencana Anggaran Pelaksanaan untuk {project.name}</p>
+          <p className="eyebrow-label text-white/60">Budget Control</p>
+          <h2 className="text-xl font-semibold text-white">RAP Management</h2>
+          <p className="text-sm text-white/60">Rencana Anggaran Pelaksanaan untuk {project.name}</p>
         </div>
-        
-        <div className="flex items-center space-x-3">
-          {/* Approval Status Indicator */}
+        <div className="flex flex-wrap items-center gap-3">
           {approvalStatus && (
             <StatusBadge status={approvalStatus.status} />
           )}
-
-          {/* Add RAP Button - Only show if not approved */}
           {canAddItems(approvalStatus) && (
             <button
               onClick={handleAddClick}
-              className="flex items-center px-6 py-3 bg-[#30D158] text-white rounded-lg hover:bg-[#30D158]/90 transition-colors font-medium"
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-gradient-to-r from-[#60a5fa] to-[#7c3aed] px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(124,58,237,0.35)] transition hover:brightness-110"
             >
-              <List className="h-5 w-5 mr-2" />
+              <List className="h-5 w-5" />
               Kelola RAP
             </button>
           )}
-          
-          {/* Show message when RAP is approved */}
           {approvalStatus?.status === 'approved' && (
-            <div className="text-sm text-[#98989D] italic">
+            <div className="text-sm text-white/60 italic">
               RAP telah disetujui - tidak dapat menambah item baru
             </div>
           )}
@@ -377,9 +372,10 @@ const ProjectRABWorkflow = ({ projectId, project, onDataChange }) => {
       <RABSummaryCards rabItems={rabItems} approvalStatus={approvalStatus} />
 
       {/* RAB Items Table with Inline Approval */}
-      <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#38383A]">
-          <h3 className="text-base font-semibold text-white">Daftar Item RAP</h3>
+      <div className="overflow-hidden rounded-3xl border border-white/5 bg-[#05070d]/85 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-3 text-white">
+          <h3 className="text-base font-semibold">Daftar Item RAP</h3>
+          <span className="text-xs text-white/60">{rabItems.length} item</span>
         </div>
         
         {/* Bulk Input Form */}

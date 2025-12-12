@@ -84,7 +84,10 @@ export const Pagination = ({
     }
   };
   
-  if (totalPages <= 1 && !showInfo) return null;
+  // BEST PRACTICE: Don't show pagination if only 1 page or no items
+  if (totalPages <= 1 || totalItems === 0) {
+    return null;
+  }
   
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 ${className}`} {...props}>

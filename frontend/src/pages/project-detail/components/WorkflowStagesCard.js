@@ -6,17 +6,19 @@ import { workflowStages } from '../config';
  * WorkflowStagesCard Component
  * Displays the sequential workflow stages with status indicators
  * 
- * UPDATED LOGIC (Oct 13, 2025):
- * - Procurement dapat berjalan parallel dengan Execution
+ * UPDATED LOGIC (Nov 4, 2025):
+ * - Procurement tracking menggunakan realisasi biaya di milestone, BUKAN delivery receipts
+ * - Pengadaan considered complete ketika 90%+ dari PO budget sudah direalisasikan di milestone costs
  * - Execution dimulai ketika:
- *   1. Ada Delivery Receipt (tanda terima PO), ATAU
+ *   1. Ada milestone costs (realisasi biaya), ATAU
  *   2. Ada milestone yang sedang berjalan, ATAU
- *   3. Procurement selesai (semua PO diterima)
- * - Execution tidak perlu tunggu Procurement 100% selesai
+ *   3. Ada milestone yang sudah dibuat
+ * - Execution progress tracked through milestone progress dan total realisasi biaya
  * - Execution dianggap SELESAI ketika:
  *   1. Semua milestone mencapai 100% progress, ATAU
  *   2. Semua milestone berstatus 'completed'
  * - Status project 'completed' sebagai fallback jika tidak ada milestone
+ * - Tidak lagi menggunakan delivery receipts untuk tracking procurement/execution
  */
 const WorkflowStagesCard = ({ workflowData, project }) => {
   // Calculate stages based on real project data with parallel workflow logic
@@ -30,23 +32,30 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
     const rab_completed = planning_completed && rab_approved;
     
     // Stage 3: Procurement - Pengadaan material (dapat berjalan parallel)
+    // NEW LOGIC: Procurement completed based on milestone cost realization, not delivery receipts
     const has_purchase_orders = workflowData.purchaseOrders?.length > 0;
     const po_approved = workflowData.purchaseOrders?.some(po => 
       po.status === 'approved' || po.status === 'received'
-    ); // Check both approved AND received
-    const all_po_received = workflowData.purchaseOrders?.every(po => po.status === 'received');
-    const procurement_completed = rab_completed && has_purchase_orders && all_po_received;
+    );
     
-    // Stage 4: Execution - Pelaksanaan (dimulai saat ada delivery receipt ATAU milestone aktif)
-    // LOGIC BARU: Tidak perlu tunggu procurement selesai 100%
-    // Execution dimulai jika ada delivery receipt ATAU ada milestone yang sedang berjalan ATAU procurement completed
-    const has_delivery_receipts = workflowData.deliveryReceipts?.length > 0;
+    // Calculate procurement realization through milestone costs
+    const totalPOAmount = workflowData.purchaseOrders?.reduce((sum, po) => sum + (parseFloat(po.totalAmount) || 0), 0) || 0;
+    const realizedAmount = workflowData.milestoneCosts?.reduce((sum, cost) => sum + (parseFloat(cost.amount) || 0), 0) || 0;
+    const procurement_realization = totalPOAmount > 0 ? (realizedAmount / totalPOAmount) : 0;
+    
+    // Procurement considered completed when 90%+ of PO budget is realized in milestones
+    const procurement_completed = rab_completed && has_purchase_orders && procurement_realization >= 0.9;
+    
+    // Stage 4: Execution - Pelaksanaan (dimulai saat ada realisasi biaya di milestone ATAU milestone aktif)
+    // NEW LOGIC: Tidak pakai delivery receipt, tapi milestone cost realization
+    const has_milestone_costs = workflowData.milestoneCosts && workflowData.milestoneCosts.length > 0;
     
     // Debug milestone data
     console.log('🔍 Execution Stage Debug:', {
       milestones: workflowData.milestones,
       milestonesData: workflowData.milestones?.data,
-      projectStatus: project.status
+      projectStatus: project.status,
+      has_milestone_costs
     });
     
     const has_active_milestones = workflowData.milestones?.data?.some(m => {
@@ -62,18 +71,15 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
     );
     
     // Check if execution should start
-    // Fixed: Use procurement_completed OR po_approved (not require both)
-    // ALSO: If there are milestones (even completed ones), execution must have started
+    // NEW: Execution starts when there are milestone costs OR active milestones OR completed milestones
     const execution_started = rab_completed && (
-      procurement_completed || 
-      po_approved || 
-      has_delivery_receipts || 
-      has_active_milestones ||
+      has_milestone_costs ||  // Ada realisasi biaya di milestone
+      has_active_milestones ||  // Ada milestone sedang berjalan
       has_milestones  // If milestones exist, execution must have started
     );
     
     console.log('✅ Execution Calculation:', {
-      has_delivery_receipts,
+      has_milestone_costs,
       has_active_milestones,
       rab_completed,
       po_approved,
@@ -118,85 +124,51 @@ const WorkflowStagesCard = ({ workflowData, project }) => {
 
   return (
     <div className="space-y-4">
-      {/* Progress Line */}
-      <div className="relative">
-        {/* Background line */}
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-[#38383A]"></div>
-        
-        {/* Stages */}
+      <div className="relative pl-8">
+        <div className="absolute left-[1.55rem] top-0 bottom-0 w-[2px] bg-white/10" />
         <div className="space-y-4">
-          {stages.map((stage, index) => {
+          {stages.map((stage) => {
             const IconComponent = stage.icon;
-            const isActive = stage.active; // Use computed active state
+            const isActive = stage.active;
             const isCompleted = stage.completed;
-            
+
             return (
-              <div key={stage.id} className="relative flex items-start">
-                {/* Stage Indicator */}
-                <div className={`
-                  relative z-10 flex items-center justify-center w-12 h-12 rounded-full border-4 transition-all duration-300 ${
-                    isCompleted 
-                      ? 'bg-[#30D158] border-[#30D158]/30 text-white' 
-                      : isActive 
-                      ? 'bg-[#0A84FF] border-[#0A84FF]/30 text-white' 
-                      : 'bg-[#2C2C2E] border-[#38383A] text-[#636366]'
-                  }
-                `}>
+              <div key={stage.id} className="relative flex items-start gap-4">
+                <div
+                  className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-[3px] text-white transition ${
+                    isCompleted
+                      ? 'border-[#34d399]/40 bg-gradient-to-br from-[#34d399] to-[#22c55e] shadow-[0_10px_25px_rgba(34,197,94,0.35)]'
+                      : isActive
+                      ? 'border-[#60a5fa]/40 bg-gradient-to-br from-[#60a5fa] to-[#2563eb] shadow-[0_10px_25px_rgba(96,165,250,0.35)]'
+                      : 'border-white/10 bg-[#05070d]'
+                  }`}
+                >
                   {isCompleted ? (
                     <CheckCircle className="h-6 w-6" />
                   ) : (
-                    <IconComponent className="h-6 w-6" />
+                    <IconComponent className="h-6 w-6 text-white/80" />
                   )}
                 </div>
-
-                {/* Stage Content */}
-                <div className="ml-4 flex-1 min-w-0">
-                  <div className={`
-                    p-4 rounded-lg border transition-all duration-300 ${
-                      isCompleted 
-                        ? 'bg-[#30D158]/10 border-[#30D158]/30' 
-                        : isActive 
-                        ? 'bg-[#0A84FF]/10 border-[#0A84FF]/30' 
-                        : 'bg-[#1C1C1E] border-[#38383A]'
-                    }
-                  `}>
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className={`font-semibold ${
-                        isCompleted 
-                          ? 'text-[#30D158]' 
-                          : isActive 
-                          ? 'text-[#0A84FF]' 
-                          : 'text-[#8E8E93]'
-                      }`}>
-                        {stage.label}
-                      </h5>
-                      
-                      <div className="flex items-center space-x-2">
-                        {isCompleted && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#30D158]/20 text-[#30D158]">
-                            Selesai
-                          </span>
-                        )}
-                        {isActive && !isCompleted && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#0A84FF]/20 text-[#0A84FF]">
-                            Sedang Berjalan
-                          </span>
-                        )}
-                        {!isCompleted && !isActive && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#3A3A3C] text-[#8E8E93]">
-                            Menunggu
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Stage Description */}
-                    <p className="text-sm text-[#8E8E93] mb-2">{stage.description}</p>
-                    
-                    {/* Stage Details */}
-                    <div className="text-xs text-[#98989D]">
-                      {getStageDetails(stage.id, project, workflowData)}
-                    </div>
+                <div className="flex-1 rounded-2xl border border-white/10 bg-[#05070d]/80 p-4">
+                  <div className="flex items-center justify-between">
+                    <h5 className={`text-sm font-semibold ${
+                      isCompleted ? 'text-[#34d399]' : isActive ? 'text-[#60a5fa]' : 'text-white/70'
+                    }`}>
+                      {stage.label}
+                    </h5>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      isCompleted
+                        ? 'border border-[#34d399]/30 bg-[#34d399]/15 text-[#bbf7d0]'
+                        : isActive
+                        ? 'border border-[#60a5fa]/30 bg-[#60a5fa]/15 text-[#dbeafe]'
+                        : 'border border-white/10 bg-white/5 text-white/60'
+                    }`}>
+                      {isCompleted ? 'Selesai' : isActive ? 'Sedang Berjalan' : 'Menunggu'}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-white/60">{stage.description}</p>
+                  <div className="mt-3 text-xs text-white/50">
+                    {getStageDetails(stage.id, project, workflowData)}
                   </div>
                 </div>
               </div>
@@ -231,15 +203,15 @@ const getStageDetails = (stageId, project, workflowData) => {
       const totalPO = workflowData.purchaseOrders?.length || 0;
       const approvedPO = workflowData.purchaseOrders?.filter(po => po.status === 'approved' || po.status === 'received')?.length || 0;
       
-      // Count PO that have delivery receipts (received status)
-      const receivedPO = workflowData.purchaseOrders?.filter(po => {
-        // Check if this PO has any delivery receipt with received/completed status
-        return workflowData.deliveryReceipts?.some(dr => 
-          dr.poNumber === po.id && (dr.status === 'received' || dr.status === 'completed')
-        );
-      })?.length || 0;
+      // NEW LOGIC: Track procurement through milestone cost realization instead of delivery receipts
+      // Calculate how much of approved PO budget has been realized in milestone costs
+      const totalPOAmount = workflowData.purchaseOrders?.reduce((sum, po) => sum + (parseFloat(po.totalAmount) || 0), 0) || 0;
+      const realizedAmount = workflowData.milestoneCosts?.reduce((sum, cost) => sum + (parseFloat(cost.amount) || 0), 0) || 0;
       
-      const hasExecution = workflowData.deliveryReceipts?.length > 0;
+      // Calculate realization percentage
+      const realizationPercentage = totalPOAmount > 0 
+        ? Math.round((realizedAmount / totalPOAmount) * 100)
+        : 0;
       
       return (
         <div className="space-y-1">
@@ -247,15 +219,15 @@ const getStageDetails = (stageId, project, workflowData) => {
           {totalPO > 0 && (
             <>
               <p>• Disetujui: {approvedPO} dari {totalPO} PO</p>
-              <p>• Diterima: {receivedPO} dari {totalPO} PO</p>
-              {hasExecution && receivedPO < totalPO && (
+              <p>• Realisasi Biaya: {realizationPercentage}% (Rp {(realizedAmount / 1000000).toFixed(1)}M dari Rp {(totalPOAmount / 1000000).toFixed(1)}M)</p>
+              {realizationPercentage > 0 && realizationPercentage < 100 && (
                 <p className="text-[#0A84FF] font-medium mt-2">
-                  ℹ️ Material sedang diterima bertahap, eksekusi sudah dimulai
+                  ℹ️ Pengadaan sedang berjalan, biaya direalisasikan di milestone
                 </p>
               )}
-              {receivedPO === totalPO && (
+              {realizationPercentage >= 100 && (
                 <p className="text-[#30D158] font-medium mt-2">
-                  ✓ Semua material sudah diterima lengkap
+                  ✓ Semua pengadaan telah direalisasikan
                 </p>
               )}
             </>
@@ -263,8 +235,9 @@ const getStageDetails = (stageId, project, workflowData) => {
         </div>
       );
     case 'execution':
-      const hasDeliveryReceipts = workflowData.deliveryReceipts?.length > 0;
-      const deliveryCount = workflowData.deliveryReceipts?.length || 0;
+      // NEW LOGIC: Track execution through milestone costs and milestone progress
+      const milestoneCosts = workflowData.milestoneCosts || [];
+      const totalCostRealized = milestoneCosts.reduce((sum, cost) => sum + (parseFloat(cost.amount) || 0), 0);
       
       // Get all milestones
       const allMilestones = workflowData.milestones?.data || [];
@@ -329,16 +302,16 @@ const getStageDetails = (stageId, project, workflowData) => {
                 </div>
               )}
               
-              {hasDeliveryReceipts && (
-                <p className="text-xs mt-2">• {deliveryCount} tanda terima material</p>
+              {milestoneCosts.length > 0 && (
+                <p className="text-xs mt-2">• Rp {(totalCostRealized / 1000000).toFixed(1)}M biaya sudah direalisasikan dari {milestoneCosts.length} transaksi</p>
               )}
             </>
           ) : (
             <>
               <p className="text-[#FF9500] font-medium">⚠️ Siap untuk eksekusi</p>
               <p className="text-xs">Belum ada milestone dibuat</p>
-              {hasDeliveryReceipts && (
-                <p className="text-xs">• {deliveryCount} tanda terima material sudah diterima</p>
+              {milestoneCosts.length > 0 && (
+                <p className="text-xs">• Rp {(totalCostRealized / 1000000).toFixed(1)}M biaya sudah direalisasikan</p>
               )}
               <p className="text-xs text-[#0A84FF] mt-2">
                 💡 Buat milestone untuk mulai tracking progress eksekusi

@@ -41,7 +41,7 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-[#1C1C1E] backdrop-blur-xl border-b border-[#38383A] shadow-lg">
+    <header className="sticky top-0 z-30 border-b border-white/5 bg-[#090d16]/80 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.35)]">
       <div className="flex items-center justify-between h-16 px-4 lg:px-6">
         {/* Left Section */}
         <div className="flex items-center space-x-4">

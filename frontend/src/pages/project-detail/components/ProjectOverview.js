@@ -60,26 +60,23 @@ const ProjectOverview = ({ project, workflowData }) => {
   const projectProgress = calculateProjectProgress(workflowData, project);
 
   return (
-    <div className="space-y-4">
-      {/* Project Stats Cards - Responsive Grid - Compact */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Budget Card */}
-        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_15px_35px_rgba(0,0,0,0.35)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#30D158]/20 rounded-lg">
-                <DollarSign className="h-5 w-5 text-[#30D158]" />
+              <div className="rounded-2xl bg-gradient-to-br from-[#34d399]/30 to-[#22c55e]/20 p-2">
+                <DollarSign className="h-5 w-5 text-[#bbf7d0]" />
               </div>
               <div>
-                <p className="text-xs text-[#8E8E93]">Budget Utilization</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Budget Utilization</p>
                 <p className="text-lg font-semibold text-white">{budgetUtilization}%</p>
               </div>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-[#38383A]">
-            {/* Progress Bar */}
+          <div className="mt-3 space-y-2">
             <div className="mb-3">
-              <div className="w-full bg-[#38383A] rounded-full h-2 overflow-hidden">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
                 <div 
                   className={`h-full rounded-full transition-all duration-500 ${
                     budgetUtilization > 90 ? 'bg-[#FF453A]' :
@@ -91,119 +88,103 @@ const ProjectOverview = ({ project, workflowData }) => {
               </div>
             </div>
             
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-[#98989D]">Terpakai:</span>
-              <span className="text-xs text-white font-medium">
+            <div className="flex justify-between text-xs text-white/60">
+              <span>Terpakai</span>
+              <span className="font-semibold text-white">
                 {formatCurrency(workflowData?.budgetSummary?.actualSpent || 0)}
               </span>
             </div>
-            <div className="flex justify-between items-center mt-1">
-              <span className="text-xs text-[#98989D]">Total Budget:</span>
-              <span className="text-xs text-[#8E8E93]">
+            <div className="flex justify-between text-xs text-white/60">
+              <span>Total Budget</span>
+              <span className="text-white/70">
                 {formatCurrency(project.totalBudget || 0)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Project Progress Card */}
-        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_15px_35px_rgba(0,0,0,0.35)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#0A84FF]/20 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-[#0A84FF]" />
+              <div className="rounded-2xl bg-gradient-to-br from-[#60a5fa]/30 to-[#6366f1]/20 p-2">
+                <TrendingUp className="h-5 w-5 text-[#c7d2fe]" />
               </div>
               <div>
-                <p className="text-xs text-[#8E8E93]">Project Progress</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Project Progress</p>
                 <p className="text-lg font-semibold text-white">{projectProgress}%</p>
               </div>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-[#38383A]">
-            {/* Progress Bar */}
-            <div className="w-full bg-[#38383A] rounded-full h-2 overflow-hidden">
+          <div className="mt-3 space-y-2">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
               <div 
-                className="h-full bg-[#0A84FF] rounded-full transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-[#60a5fa] to-[#a855f7] transition-all duration-500"
                 style={{ width: `${projectProgress}%` }}
               />
             </div>
-            <p className="text-xs text-[#98989D] mt-2">Kelengkapan tahapan workflow</p>
+            <p className="text-xs text-white/60">Kelengkapan tahapan workflow</p>
           </div>
         </div>
 
-        {/* Team Card */}
-        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_15px_35px_rgba(0,0,0,0.35)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#BF5AF2]/20 rounded-lg">
-                <Users className="h-5 w-5 text-[#BF5AF2]" />
+              <div className="rounded-2xl bg-gradient-to-br from-[#c084fc]/30 to-[#a855f7]/20 p-2">
+                <Users className="h-5 w-5 text-[#f3e8ff]" />
               </div>
               <div>
-                <p className="text-xs text-[#8E8E93]">Anggota Tim</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Anggota Tim</p>
                 <p className="text-lg font-semibold text-white">{project.teamMembers?.length || 0}</p>
               </div>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-[#38383A]">
-            <p className="text-xs text-[#98989D]">Tim Aktif</p>
+          <div className="mt-3 border-t border-white/10 pt-2">
+            <p className="text-xs text-white/60">Tim aktif saat ini</p>
           </div>
         </div>
 
-        {/* Documents Card */}
-        <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_15px_35px_rgba(0,0,0,0.35)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#FF9F0A]/20 rounded-lg">
-                <FileText className="h-5 w-5 text-[#FF9F0A]" />
+              <div className="rounded-2xl bg-gradient-to-br from-[#fbbf24]/30 to-[#f59e0b]/20 p-2">
+                <FileText className="h-5 w-5 text-[#fef3c7]" />
               </div>
               <div>
-                <p className="text-xs text-[#8E8E93]">Dokumen</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-white/60">Dokumen</p>
                 <p className="text-lg font-semibold text-white">{project.documents?.length || 0}</p>
               </div>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-[#38383A]">
-            <p className="text-xs text-[#98989D]">File Terlampir</p>
+          <div className="mt-3 border-t border-white/10 pt-2">
+            <p className="text-xs text-white/60">File terlampir</p>
           </div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Column - Main Information */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Project Information */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
           <ProjectInformationCard project={project} />
 
-          {/* Project Description */}
           {project.description && (
-            <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-              <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-                <h3 className="text-base font-semibold text-white">Deskripsi Proyek</h3>
-              </div>
-              <div className="p-4">
-                <p className="text-sm text-[#98989D] leading-relaxed whitespace-pre-wrap break-words">
-                  {project.description}
-                </p>
-              </div>
+            <div className="rounded-3xl border border-white/5 bg-white/5 p-5 shadow-[0_15px_35px_rgba(0,0,0,0.35)]">
+              <h3 className="text-base font-semibold text-white">Deskripsi Proyek</h3>
+              <p className="mt-3 text-sm leading-relaxed text-white/70 whitespace-pre-wrap break-words">
+                {project.description}
+              </p>
             </div>
           )}
 
-          {/* Workflow Stages - Project Flow Route */}
-          <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-            <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-              <h3 className="text-base font-semibold text-white flex items-center">
-                <CalendarIconWhite size={16} className="mr-2 text-[#30D158]" />
-                Alur Tahapan Proyek
-              </h3>
+          <div className="overflow-hidden rounded-3xl border border-white/5 bg-white/5">
+            <div className="flex items-center border-b border-white/10 px-5 py-3 text-white">
+              <CalendarIconWhite size={16} className="mr-2 text-[#30D158]" />
+              <h3 className="text-base font-semibold">Alur Tahapan Proyek</h3>
             </div>
-            <div className="p-4">
+            <div className="p-5">
               <WorkflowStagesCard workflowData={workflowData} project={project} />
             </div>
           </div>
         </div>
 
-        {/* Right Column - Summary Cards */}
         <div className="space-y-4">
           <FinancialSummary project={project} workflowData={workflowData} />
           <QuickStats project={project} workflowData={workflowData} />
@@ -234,141 +215,127 @@ const ProjectInformationCard = ({ project }) => {
   };
 
   return (
-    <div className="bg-[#2C2C2E] rounded-lg border border-[#38383A] overflow-hidden">
-      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-white flex items-center">
-            <CalendarIconWhite size={16} className="mr-2 text-[#0A84FF]" />
-            Informasi Proyek
-          </h3>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleViewContract}
-              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-[#8E8E93] bg-[#2C2C2E] border border-[#38383A] rounded-lg hover:bg-[#38383A] hover:text-white transition-colors"
-              title="Lihat kontrak proyek"
-            >
-              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-              Kontrak
-            </button>
-            <button
-              onClick={handleEditProject}
-              className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-[#0A84FF] rounded-lg hover:bg-[#0A84FF]/80 transition-colors"
-              title="Edit informasi proyek"
-            >
-              <Edit className="h-3.5 w-3.5 mr-1.5" />
-              Edit Proyek
-            </button>
-          </div>
+    <div className="rounded-3xl border border-white/5 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.35)]">
+      <div className="flex flex-col gap-3 border-b border-white/10 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="flex items-center text-base font-semibold text-white">
+          <CalendarIconWhite size={16} className="mr-2 text-[#60a5fa]" />
+          Informasi Proyek
+        </h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleViewContract}
+            className="inline-flex items-center rounded-2xl border border-white/10 px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:border-white/30 hover:text-white"
+            title="Lihat kontrak proyek"
+          >
+            <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+            Kontrak
+          </button>
+          <button
+            onClick={handleEditProject}
+            className="inline-flex items-center rounded-2xl border border-white/10 bg-gradient-to-r from-[#0ea5e9] via-[#2563eb] to-[#7c3aed] px-3 py-1.5 text-xs font-semibold text-white shadow-[0_12px_24px_rgba(37,99,235,0.35)] transition hover:brightness-110"
+            title="Edit informasi proyek"
+          >
+            <Edit className="mr-1.5 h-3.5 w-3.5" />
+            Edit Proyek
+          </button>
         </div>
       </div>
-      <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Nama Proyek</label>
-              <h2 className="text-lg font-bold text-white break-words word-wrap">
-                {project.name || project.title || 'Nama proyek tidak tersedia'}
-              </h2>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Kode Proyek</label>
-              <p className="text-sm font-semibold text-white bg-[#1C1C1E] px-3 py-2 rounded-lg border border-[#38383A]">
-                {project.code || project.id || '-'}
+      <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-2">
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Nama Proyek</label>
+            <h2 className="mt-1 text-lg font-semibold text-white break-words">
+              {project.name || project.title || 'Nama proyek tidak tersedia'}
+            </h2>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Kode Proyek</label>
+            <p className="mt-1 rounded-2xl border border-white/10 bg-[#05070d] px-3 py-2 text-sm font-semibold text-white">
+              {project.code || project.id || '-'}
+            </p>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Jenis Proyek</label>
+            <p className="mt-1 text-sm text-white/80">
+              {project.type || project.category || 'Konstruksi Umum'}
+            </p>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Subsidiary</label>
+            <div className="mt-1 rounded-2xl border border-white/10 bg-[#05070d] px-3 py-2">
+              <p className="text-sm font-semibold text-white">
+                {project.subsidiaryInfo?.name || project.subsidiary?.name || 'Tidak ada subsidiary'}
               </p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Jenis Proyek</label>
-              <p className="text-sm text-white">
-                {project.type || project.category || 'Konstruksi Umum'}
-              </p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Subsidiary / Anak Perusahaan</label>
-              <div className="bg-[#1C1C1E] px-3 py-2 rounded-lg border border-[#38383A]">
-                <p className="text-sm font-semibold text-white">
-                  {project.subsidiaryInfo?.name || project.subsidiary?.name || 'Tidak ada subsidiary'}
+              {(project.subsidiaryInfo?.code || project.subsidiary?.code) && (
+                <p className="text-xs text-white/50">
+                  Kode: {project.subsidiaryInfo?.code || project.subsidiary?.code}
                 </p>
-                {(project.subsidiaryInfo?.code || project.subsidiary?.code) && (
-                  <p className="text-xs text-[#636366] mt-0.5">
-                    Kode: {project.subsidiaryInfo?.code || project.subsidiary?.code}
-                  </p>
-                )}
-                {(project.subsidiaryInfo?.specialization || project.subsidiary?.specialization) && (
-                  <p className="text-xs text-[#8E8E93] mt-1">
-                    {project.subsidiaryInfo?.specialization || project.subsidiary?.specialization}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Klien</label>
-              <div className="text-sm text-white">
-                {renderClientInfo(project.client, project.clientName)}
-              </div>
+              )}
+              {(project.subsidiaryInfo?.specialization || project.subsidiary?.specialization) && (
+                <p className="text-xs text-white/60">{project.subsidiaryInfo?.specialization || project.subsidiary?.specialization}</p>
+              )}
             </div>
           </div>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Lokasi Proyek</label>
-              <div className="flex items-start space-x-2">
-                <MapPin className="h-4 w-4 text-[#8E8E93] mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-white break-words word-wrap leading-relaxed">
-                  {renderLocationInfo(project.location)}
-                </p>
-              </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Klien</label>
+            <div className="mt-1 text-sm text-white/80">
+              {renderClientInfo(project.client, project.clientName)}
             </div>
-            
-            {/* GPS Coordinates Display */}
-            {(project.coordinates?.latitude && project.coordinates?.longitude) && (
-              <div>
-                <label className="block text-xs font-medium text-[#8E8E93] mb-1">Koordinat GPS</label>
-                <div className="bg-[#1C1C1E] px-3 py-2 rounded-lg border border-[#38383A]">
-                  <div className="flex items-start space-x-2">
-                    <MapPin className="h-4 w-4 text-[#0A84FF] mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-[#8E8E93]">Latitude:</span>
-                        <span className="text-sm text-white font-mono">{project.coordinates.latitude.toFixed(6)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-[#8E8E93]">Longitude:</span>
-                        <span className="text-sm text-white font-mono">{project.coordinates.longitude.toFixed(6)}</span>
-                      </div>
-                      {project.coordinates.radius && (
-                        <div className="flex items-center justify-between pt-1 border-t border-[#38383A]">
-                          <span className="text-xs text-[#8E8E93]">Radius Area:</span>
-                          <span className="text-sm text-[#0A84FF]">{project.coordinates.radius}m</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Lokasi</label>
+            <div className="mt-1 flex items-start gap-2 text-sm text-white/80">
+              <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0 text-white/50" />
+              <p className="leading-relaxed">
+                {renderLocationInfo(project.location)}
+              </p>
+            </div>
+          </div>
+
+          {(project.coordinates?.latitude && project.coordinates?.longitude) && (
+            <div>
+              <label className="text-xs uppercase tracking-[0.3em] text-white/60">Koordinat GPS</label>
+              <div className="mt-1 rounded-2xl border border-white/10 bg-[#05070d] px-3 py-2 text-sm text-white">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60">Latitude</span>
+                  <span className="font-mono">{project.coordinates.latitude.toFixed(6)}</span>
                 </div>
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Durasi Proyek</label>
-              <div className="flex items-center space-x-2">
-                <CalendarIconWhite size={16} className="text-[#8E8E93]" />
-                <p className="text-sm text-white">
-                  {project.startDate && project.endDate ? (
-                    <>
-                      {formatDate(project.startDate)} - {formatDate(project.endDate)}
-                      <span className="ml-2 text-xs text-[#636366]">
-                        ({calculateDaysDifference(project.startDate, project.endDate)} hari)
-                      </span>
-                    </>
-                  ) : 'Tanggal belum ditentukan'}
-                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60">Longitude</span>
+                  <span className="font-mono">{project.coordinates.longitude.toFixed(6)}</span>
+                </div>
+                {project.coordinates.radius && (
+                  <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2 text-white/70">
+                    <span>Radius Area</span>
+                    <span>{project.coordinates.radius}m</span>
+                  </div>
+                )}
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-1">Status Saat Ini</label>
-              <div className="flex items-center space-x-2">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                  {getStatusText(project.status)}
-                </span>
-              </div>
+          )}
+
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Durasi</label>
+            <div className="mt-1 flex items-center gap-2 text-sm text-white/80">
+              <CalendarIconWhite size={16} className="text-white/50" />
+              {project.startDate && project.endDate ? (
+                <>
+                  {formatDate(project.startDate)} - {formatDate(project.endDate)}
+                  <span className="text-xs text-white/50">
+                    ({calculateDaysDifference(project.startDate, project.endDate)} hari)
+                  </span>
+                </>
+              ) : 'Tanggal belum ditentukan'}
+            </div>
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-[0.3em] text-white/60">Status</label>
+            <div className="mt-1">
+              <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusColor(project.status)}`}>
+                {getStatusText(project.status)}
+              </span>
             </div>
           </div>
         </div>

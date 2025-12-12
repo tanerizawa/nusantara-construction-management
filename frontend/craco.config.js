@@ -39,8 +39,12 @@ module.exports = {
         "http": false,
         "https": false,
         "os": false,
-        "assert": require.resolve("assert")
+        "assert": require.resolve("assert"),
+        "process/browser": require.resolve("process/browser.js")
       };
+      
+      // Enable fullySpecified: false to handle ESM modules without extensions
+      webpackConfig.resolve.fullySpecified = false;
       
       // Fix plugins that don't have apply method
       webpackConfig.plugins = webpackConfig.plugins.filter(

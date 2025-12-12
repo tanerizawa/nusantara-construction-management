@@ -6,24 +6,24 @@ import React from 'react';
  */
 const ClientInfoSection = ({ formData, errors, handleInputChange }) => {
   return (
-    <div className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <span className="w-1 h-5 bg-[#0A84FF] rounded-full"></span>
-        Informasi Klien
-      </h2>
+    <section className="rounded-3xl border border-white/5 bg-[#080b13]/85 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur">
+      <div className="mb-5">
+        <p className="eyebrow-label text-white/60">Step 2</p>
+        <h2 className="text-xl font-semibold text-white">Informasi Klien</h2>
+        <p className="text-sm text-white/50">Detail perusahaan klien membantu sinkronisasi kontrak dan dokumen formal.</p>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Nama Perusahaan *
           </label>
           <input
             type="text"
             value={formData.client.company}
             onChange={(e) => handleInputChange('client.company', e.target.value)}
-            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                      ${errors['client.company'] ? 'border-[#FF3B30]' : 'border-[#38383A]'}
-                      bg-[#1C1C1E] text-white`}
+            className={`w-full rounded-2xl border px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0
+                      ${errors['client.company'] ? 'border-[#fb7185] bg-[#1c0f13]' : 'border-white/10 bg-white/5'}`}
             placeholder="Nama perusahaan klien"
           />
           {errors['client.company'] && (
@@ -32,51 +32,45 @@ const ClientInfoSection = ({ formData, errors, handleInputChange }) => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Kontak Person
           </label>
           <input
             type="text"
             value={formData.client.contact}
             onChange={(e) => handleInputChange('client.contact', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="Nama kontak person"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Telepon Klien
           </label>
           <input
             type="tel"
             value={formData.client.phone}
             onChange={(e) => handleInputChange('client.phone', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="081234567890"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#98989D] mb-2">
+          <label className="block text-xs uppercase tracking-[0.3em] text-white/60 mb-2">
             Email Klien
           </label>
           <input
             type="email"
             value={formData.client.email}
             onChange={(e) => handleInputChange('client.email', e.target.value)}
-            className="w-full px-4 py-2.5 border border-[#38383A] rounded-lg 
-                     focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent
-                     bg-[#1C1C1E] text-white"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:ring-0"
             placeholder="email@client.com"
           />
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

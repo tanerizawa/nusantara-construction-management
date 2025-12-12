@@ -72,7 +72,7 @@ const Landing = () => {
   const displayStats = transformStatsToDisplay(stats);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50 text-slate-900">
       {/* Navigation */}
       <Navigation 
         isMenuOpen={isMenuOpen}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Archive, Download, Trash2, X, FileText, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Archive, Trash2, X, FileText, FileSpreadsheet, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
 import { useTranslation } from '../../i18n';
 
@@ -22,15 +22,14 @@ const BulkActionToolbar = ({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-lg p-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        {/* Selection Info */}
-        <div className="flex items-center gap-3">
-          <span className="text-white font-medium">
+    <section className="rounded-3xl border border-[#0ea5e9]/25 bg-[#0ea5e9]/10 p-5 shadow-[0_20px_45px_rgba(14,165,233,0.25)] backdrop-blur">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-3 text-white">
+          <span className="text-sm font-semibold tracking-wide">
             {isLoading ? (
               <>
-                <Loader2 className="inline w-4 h-4 mr-2 animate-spin" />
-                Memproses {selectedCount} proyek...
+                <Loader2 className="inline h-4 w-4 animate-spin" />
+                <span className="ml-2">Memproses {selectedCount} proyek...</span>
               </>
             ) : (
               `${selectedCount} proyek dipilih`
@@ -40,83 +39,57 @@ const BulkActionToolbar = ({
             <button
               onClick={onClearSelection}
               disabled={disabled}
-              className="text-[#8E8E93] hover:text-white transition-colors duration-150
-                         disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-white/70 transition hover:text-white disabled:opacity-50"
               aria-label="Batalkan pilihan"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
-
-        {/* Bulk Actions */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Archive Selected */}
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             onClick={onBulkArchive}
             disabled={disabled}
             size="sm"
             variant="secondary"
-            className="!bg-[#8E8E93]/20 !text-[#8E8E93] 
-                       hover:!bg-[#8E8E93]/30 hover:!text-white
-                       !border !border-[#8E8E93]/30
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-all duration-150"
+            className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-white/80 hover:bg-white/20"
           >
-            <Archive className="w-4 h-4" />
+            <Archive className="h-4 w-4" />
             <span>{common.archive}</span>
           </Button>
-
-          {/* Export to Excel */}
           <Button
             onClick={onBulkExportExcel}
             disabled={disabled}
             size="sm"
             variant="secondary"
-            className="!bg-[#30D158]/20 !text-[#30D158] 
-                       hover:!bg-[#30D158]/30 hover:!text-white
-                       !border !border-[#30D158]/30
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-all duration-150"
+            className="rounded-2xl border border-[#34d399]/30 bg-[#34d399]/15 px-4 py-2 text-[#d1fae5] hover:bg-[#34d399]/25"
           >
-            <FileSpreadsheet className="w-4 h-4" />
+            <FileSpreadsheet className="h-4 w-4" />
             <span>{common.download} Excel</span>
           </Button>
-
-          {/* Export to PDF */}
           <Button
             onClick={onBulkExportPDF}
             disabled={disabled}
             size="sm"
             variant="secondary"
-            className="!bg-[#BF5AF2]/20 !text-[#BF5AF2] 
-                       hover:!bg-[#BF5AF2]/30 hover:!text-white
-                       !border !border-[#BF5AF2]/30
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-all duration-150"
+            className="rounded-2xl border border-[#c084fc]/30 bg-[#c084fc]/15 px-4 py-2 text-[#f3e8ff] hover:bg-[#c084fc]/25"
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="h-4 w-4" />
             <span>{common.download} PDF</span>
           </Button>
-
-          {/* Delete Selected */}
           <Button
             onClick={onBulkDelete}
             disabled={disabled}
             size="sm"
             variant="destructive"
-            className="!bg-[#FF3B30]/20 !text-[#FF3B30] 
-                       hover:!bg-[#FF3B30]/30 hover:!text-white
-                       !border !border-[#FF3B30]/30
-                       disabled:opacity-50 disabled:cursor-not-allowed
-                       transition-all duration-150"
+            className="rounded-2xl border border-[#fb7185]/40 bg-[#fb7185]/15 px-4 py-2 text-[#fecdd3] hover:bg-[#fb7185]/25"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="h-4 w-4" />
             <span>{common.delete}</span>
           </Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

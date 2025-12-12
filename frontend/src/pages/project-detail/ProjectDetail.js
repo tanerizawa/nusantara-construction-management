@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { AlertTriangle, Building, ChevronRight, Home } from 'lucide-react';
+import { AlertTriangle, Building, ChevronRight, Home, MapPin, Calendar, DollarSign } from 'lucide-react';
 
 // Hooks
 import { useProjectDetail, useWorkflowData } from './hooks';
+import { formatCurrency, formatDate } from './utils';
 
 // Components
 import { ProjectOverview } from './components';
@@ -21,6 +22,7 @@ import {
   ProfessionalApprovalDashboard
 } from '../../components/workflow';
 import { ReportGenerator } from '../../components/workflow/reports';
+import RealizationTracker from '../../components/workflow/rab-workflow/components/RealizationTracker';
 import PurchaseOrdersManager from '../../components/workflow/purchase-orders/PurchaseOrdersManager';
 import WorkOrdersManager from '../../components/workflow/work-orders/WorkOrdersManager';
 
@@ -112,92 +114,124 @@ const ProjectDetail = () => {
     );
   }
 
-  // Main render
+  const statusMap = {
+    planning: { label: 'Perencanaan', className: 'border-[#fbbf24]/50 bg-[#fbbf24]/15 text-[#fde68a]' },
+    active: { label: 'Aktif', className: 'border-[#60a5fa]/50 bg-[#60a5fa]/15 text-[#bae6fd]' },
+    on_hold: { label: 'Terhenti', className: 'border-[#fb7185]/40 bg-[#fb7185]/15 text-[#fecdd3]' },
+    completed: { label: 'Selesai', className: 'border-[#34d399]/40 bg-[#34d399]/15 text-[#bbf7d0]' },
+    cancelled: { label: 'Dibatalkan', className: 'border-white/20 bg-white/10 text-white/70' }
+  };
+
+  const activeStatus = statusMap[project.status] || statusMap.active;
+  const projectCode = project.projectCode || project.code || id;
+  const clientName = project.client?.company || project.client?.name || project.clientName || '-';
+  const locationText = project.location?.city || project.location?.province || project.location?.address || '-';
+  const startDate = project.timeline?.startDate || project.startDate;
+  const endDate = project.timeline?.endDate || project.endDate;
+  const timelineRange = startDate || endDate
+    ? `${formatDate(startDate) || '?'} — ${formatDate(endDate) || '?'}`
+    : 'Belum ditentukan';
+  const totalBudget = formatCurrency(project.totalBudget || workflowData?.budgetSummary?.totalBudget || 0);
+
   return (
-    <div className="min-h-screen bg-[#1C1C1E]">
-      {/* Breadcrumbs */}
-      <div className="border-b border-[#38383A] bg-[#2C2C2E]">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
-          <div className="flex items-center space-x-2 text-sm">
-            <Link 
-              to="/" 
-              className="text-[#8E8E93] hover:text-[#0A84FF] flex items-center transition-colors"
-            >
-              <Home className="w-4 h-4" />
-            </Link>
-            <ChevronRight className="w-4 h-4 text-[#636366]" />
-            <Link 
-              to="/projects" 
-              className="text-[#8E8E93] hover:text-[#0A84FF] transition-colors"
-            >
-              Proyek
-            </Link>
-            <ChevronRight className="w-4 h-4 text-[#636366]" />
-            <span className="text-white font-medium truncate max-w-md">
-              {project?.name || 'Detail Proyek'}
-            </span>
-          </div>
-        </div>
+    <div className="relative isolate min-h-screen bg-[#03050b] text-white">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.18),_transparent_45%),_radial-gradient(circle_at_20%_20%,rgba(147,51,234,0.15),transparent_35%)]" />
       </div>
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-        {/* Quick Status Update Bar */}
-        <QuickStatusBar 
-          project={project}
-          onStatusUpdate={async (update) => {
-            try {
-              console.log('Status update:', update);
-              
-              // Use projectAPI.updateStatus with dedicated endpoint
-              const response = await projectAPI.updateStatus(id, {
-                status: update.status,
-                status_notes: update.notes
-              });
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10 space-y-6">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-white/60">
+          <Link to="/" className="transition hover:text-white">
+            <Home className="h-4 w-4" />
+          </Link>
+          <ChevronRight className="h-4 w-4 text-white/30" />
+          <Link to="/projects" className="transition hover:text-white">
+            Proyek
+          </Link>
+          <ChevronRight className="h-4 w-4 text-white/30" />
+          <span className="line-clamp-1 font-medium text-white">{project?.name || 'Detail Proyek'}</span>
+        </div>
 
-              if (!response.success) {
-                throw new Error(response.error || 'Failed to update status');
-              }
+        <section className="rounded-3xl border border-white/5 bg-[#080b13]/80 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="eyebrow-label text-white/60">Project #{projectCode}</p>
+              <h1 className="text-3xl font-semibold text-white">{project.name}</h1>
+              {project.description && (
+                <p className="mt-2 max-w-3xl text-sm text-white/60 line-clamp-2">{project.description}</p>
+              )}
+            </div>
+            <span className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] ${activeStatus.className}`}>
+              {activeStatus.label}
+            </span>
+          </div>
 
-              // Show success notification
-              window.dispatchEvent(new CustomEvent('show-notification', {
-                detail: {
-                  type: 'success',
-                  message: 'Status proyek berhasil diupdate',
-                  duration: 3000
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-white/60">Klien</p>
+              <p className="mt-1 text-sm font-semibold text-white">{clientName}</p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-white/60">Lokasi</p>
+              <p className="mt-1 inline-flex items-center gap-1 text-sm text-white">
+                <MapPin className="h-4 w-4 text-white/50" />
+                {locationText}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-white/60">Budget</p>
+              <p className="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-white">
+                <DollarSign className="h-4 w-4 text-[#34d399]" />
+                {totalBudget}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.3em] text-white/60">Timeline</p>
+              <p className="mt-1 inline-flex items-center gap-2 text-sm text-white">
+                <Calendar className="h-4 w-4 text-white/50" />
+                {timelineRange}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <QuickStatusBar 
+              project={project}
+              onStatusUpdate={async (update) => {
+                console.log('Status update:', update);
+                const response = await projectAPI.updateStatus(id, {
+                  status: update.status,
+                  status_notes: update.notes
+                });
+
+                if (response.success) {
+                  await fetchProject();
                 }
-              }));
+                
+                return response;
+              }}
+            />
+          </div>
+        </section>
 
-              // Refresh project data
-              await fetchProject();
-            } catch (error) {
-              console.error('Failed to update status:', error);
-              // Show error notification
-              window.dispatchEvent(new CustomEvent('show-notification', {
-                detail: {
-                  type: 'error',
-                  message: error.message || 'Gagal mengupdate status proyek',
-                  duration: 5000
-                }
-              }));
-            }
-          }}
-        />
+        <section className="rounded-3xl border border-white/5 bg-[#080b13]/70 px-4 py-3 shadow-[0_25px_60px_rgba(0,0,0,0.35)] backdrop-blur">
+          <WorkflowTabsNavigation 
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+        </section>
 
-        {/* Workflow Tabs Navigation */}
-        <WorkflowTabsNavigation 
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-
-        {/* Tab Content */}
-        <div>
+        <div className="space-y-6">
           {activeTab === 'overview' && project && (
             <ProjectOverview project={project} workflowData={workflowData} />
           )}
           
           {activeTab === 'rab-workflow' && project && (
             <ProjectRABWorkflow projectId={id} project={project} onDataChange={fetchProject} />
+          )}
+          
+          {activeTab === 'rab-realization' && project && (
+            <RealizationTracker projectId={id} project={project} />
           )}
           
           {activeTab === 'purchase-orders' && project && (

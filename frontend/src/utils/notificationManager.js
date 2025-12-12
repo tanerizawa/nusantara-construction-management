@@ -24,7 +24,9 @@ class NotificationManager {
    */
   async initialize() {
     try {
-      console.log('🔔 Initializing NotificationManager...');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔔 Initializing NotificationManager...');
+      }
 
       // Check if notifications are supported
       if (!isNotificationSupported()) {
@@ -34,7 +36,9 @@ class NotificationManager {
 
       // Check current permission
       const currentPermission = getNotificationPermission();
-      console.log('📋 Current notification permission:', currentPermission);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📋 Current notification permission:', currentPermission);
+      }
 
       // If already granted, register token
       if (currentPermission === 'granted') {
@@ -45,7 +49,9 @@ class NotificationManager {
       this.listenForMessages();
 
       this.isInitialized = true;
-      console.log('✅ NotificationManager initialized successfully');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ NotificationManager initialized successfully');
+      }
       return true;
     } catch (error) {
       console.error('❌ Error initializing NotificationManager:', error);
@@ -107,7 +113,9 @@ class NotificationManager {
       }
 
       await registerFCMToken(this.fcmToken);
-      console.log('✅ FCM token registered');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ FCM token registered');
+      }
       return true;
     } catch (error) {
       console.error('❌ Error registering FCM token:', error);

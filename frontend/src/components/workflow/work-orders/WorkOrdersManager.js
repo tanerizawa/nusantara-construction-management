@@ -57,50 +57,39 @@ const WorkOrdersManager = ({ projectId, project, onDataChange }) => {
 
   return (
     <div className="space-y-6">
-      {/* Sub-tabs Header */}
-      <div className="bg-gradient-to-br from-[#1C1C1E] to-[#2C2C2E] border border-[#38383A] rounded-xl p-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#AF52DE]/10 rounded-lg">
-            <Clipboard size={24} className="text-[#AF52DE]" />
+      <div className="rounded-3xl border border-white/5 bg-[#05070d]/90 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-2xl bg-gradient-to-br from-[#c084fc]/30 to-[#a855f7]/20 p-3 text-white">
+              <Clipboard size={24} />
+            </div>
+            <div>
+              <p className="eyebrow-label text-white/60">Execution</p>
+              <h2 className="text-xl font-semibold text-white">Work Orders</h2>
+              <p className="text-sm text-white/60">
+                Manajemen Work Order untuk jasa, tenaga kerja, dan peralatan
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h2 className="text-xl font-semibold text-white">Work Orders</h2>
-            <p className="text-sm text-[#8E8E93] mt-1">
-              Manajemen Work Order untuk jasa, tenaga kerja, dan peralatan
-            </p>
+          <div className="flex gap-2 rounded-2xl border border-white/10 bg-[#05070d] p-1">
+            {[
+              { key: 'history', label: 'Riwayat WO', icon: List },
+              { key: 'create', label: 'Buat WO', icon: Plus }
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setActiveSubTab(key)}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                  activeSubTab === key
+                    ? 'bg-gradient-to-r from-[#c084fc] to-[#ec4899] text-white shadow-[0_12px_24px_rgba(236,72,153,0.35)]'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <Icon size={16} />
+                {label}
+              </button>
+            ))}
           </div>
-        </div>
-
-        {/* Sub-tab Navigation */}
-        <div className="flex gap-2 mt-4 p-1 bg-[#1C1C1E] rounded-lg">
-          <button
-            onClick={() => setActiveSubTab('history')}
-            className={`
-              flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
-              text-sm font-medium transition-all
-              ${activeSubTab === 'history'
-                ? 'bg-[#AF52DE] text-white shadow-lg'
-                : 'text-[#8E8E93] hover:text-white hover:bg-[#2C2C2E]'
-              }
-            `}
-          >
-            <List size={16} />
-            Riwayat WO
-          </button>
-          <button
-            onClick={() => setActiveSubTab('create')}
-            className={`
-              flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
-              text-sm font-medium transition-all
-              ${activeSubTab === 'create'
-                ? 'bg-[#AF52DE] text-white shadow-lg'
-                : 'text-[#8E8E93] hover:text-white hover:bg-[#2C2C2E]'
-              }
-            `}
-          >
-            <Plus size={16} />
-            Buat WO
-          </button>
         </div>
       </div>
 

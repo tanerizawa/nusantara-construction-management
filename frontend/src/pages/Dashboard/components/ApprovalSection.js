@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, Clock, DollarSign, Calendar, User } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, DollarSign, Calendar, User, RefreshCw } from 'lucide-react';
 import api from '../../../services/api';
 
 /**
@@ -69,6 +69,16 @@ const formatRelativeTime = (date) => {
   return 'Baru saja';
 };
 
+const CARD_ACCENTS = {
+  rab: 'from-[#0ea5e9]/15 via-transparent to-transparent',
+  progress_payment: 'from-[#34d399]/15 via-transparent to-transparent',
+  purchase_order: 'from-[#f97316]/15 via-transparent to-transparent',
+  work_order: 'from-[#a855f7]/15 via-transparent to-transparent',
+  delivery: 'from-[#facc15]/15 via-transparent to-transparent',
+  leave: 'from-[#fb7185]/15 via-transparent to-transparent',
+  default: 'from-white/10 via-transparent to-transparent'
+};
+
 /**
  * Approval Card Component
  */
@@ -101,8 +111,8 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
           <>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">{item.description}</h4>
-                <p className="text-xs text-[#98989D]">
+                <h4 className="text-sm font-semibold text-white mb-1 break-words">{item.description}</h4>
+                <p className="text-xs text-[#98989D] break-words">
                   {item.projectName} ({item.projectCode})
                 </p>
               </div>
@@ -140,10 +150,10 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
           <>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">
+                <h4 className="text-sm font-semibold text-white mb-1 break-words">
                   Pembayaran #{item.invoiceNumber || item.id}
                 </h4>
-                <p className="text-xs text-[#98989D]">
+                <p className="text-xs text-[#98989D] break-words">
                   {item.projectName} ({item.projectCode})
                 </p>
               </div>
@@ -181,10 +191,10 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
           <>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">
+                <h4 className="text-sm font-semibold text-white mb-1 break-words">
                   PO #{item.poNumber}
                 </h4>
-                <p className="text-xs text-[#98989D]">
+                <p className="text-xs text-[#98989D] break-words">
                   {item.supplierName}
                   {item.projectName && ` • ${item.projectName}`}
                 </p>
@@ -232,10 +242,10 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
           <>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">
+                <h4 className="text-sm font-semibold text-white mb-1 break-words">
                   WO #{item.woNumber}
                 </h4>
-                <p className="text-xs text-[#98989D]">
+                <p className="text-xs text-[#98989D] break-words">
                   {item.contractorName || '—'}
                   {item.projectName && ` • ${item.projectName}`}
                 </p>
@@ -286,7 +296,7 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
                 <h4 className="text-sm font-semibold text-white mb-1">
                   Surat Jalan #{item.receiptNumber}
                 </h4>
-                <p className="text-xs text-[#98989D]">{item.supplierName}</p>
+                <p className="text-xs text-[#98989D] break-words">{item.supplierName}</p>
               </div>
               <UrgencyBadge urgency={item.urgency} />
             </div>
@@ -317,10 +327,10 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
           <>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
-                <h4 className="text-sm font-semibold text-white mb-1">
+                <h4 className="text-sm font-semibold text-white mb-1 break-words">
                   Cuti {item.leaveType}
                 </h4>
-                <p className="text-xs text-[#98989D]">{item.employeeName}</p>
+                <p className="text-xs text-[#98989D] break-words">{item.employeeName}</p>
               </div>
               <UrgencyBadge urgency={item.urgency} />
             </div>
@@ -358,65 +368,69 @@ const ApprovalCard = ({ item, type, onApprove, onReject, loading }) => {
     }
   };
 
-  return (
-    <div className="bg-[#2C2C2E] border border-[#38383A] p-4 rounded-lg hover:border-[#48484A] transition-all duration-150">
-      {renderCardContent()}
+  const accentClass = CARD_ACCENTS[type] || CARD_ACCENTS.default;
 
-      {/* Action Buttons */}
-      {!showConfirm ? (
-        <div className="flex gap-2">
-          <button
-            onClick={() => handleAction('approve')}
-            disabled={loading}
-            className="flex-1 bg-[#30D158] hover:bg-[#30D158]/80 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-150 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle className="h-4 w-4 inline mr-1.5" />
-            Approve
-          </button>
-          <button
-            onClick={() => handleAction('reject')}
-            disabled={loading}
-            className="flex-1 bg-[#FF453A] hover:bg-[#FF453A]/80 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-150 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <AlertCircle className="h-4 w-4 inline mr-1.5" />
-            Reject
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <textarea
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            placeholder="Tambahkan komentar (opsional)..."
-            className="w-full bg-[#1C1C1E] border border-[#38383A] text-white placeholder-[#636366] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#0A84FF] resize-none"
-            rows="2"
-          />
-          <div className="flex gap-2">
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-5 backdrop-blur-lg transition duration-300 hover:-translate-y-0.5 hover:border-white/20">
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${accentClass} opacity-0 transition duration-300 group-hover:opacity-100`} />
+      <div className="relative space-y-4">
+        {renderCardContent()}
+
+        {!showConfirm ? (
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
-              onClick={confirmAction}
+              onClick={() => handleAction('approve')}
               disabled={loading}
-              className={`flex-1 font-medium py-2 px-4 rounded-lg transition-colors duration-150 text-sm disabled:opacity-50 disabled:cursor-not-allowed ${
-                action === 'approve'
-                  ? 'bg-[#30D158] hover:bg-[#30D158]/80 text-white'
-                  : 'bg-[#FF453A] hover:bg-[#FF453A]/80 text-white'
-              }`}
+              className="flex-1 rounded-xl bg-gradient-to-r from-[#22c55e] to-[#16a34a] py-2.5 px-4 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(34,197,94,0.35)] transition hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? 'Processing...' : `Confirm ${action === 'approve' ? 'Approve' : 'Reject'}`}
+              <CheckCircle className="mb-0.5 mr-1.5 inline h-4 w-4" />
+              Approve
             </button>
             <button
-              onClick={() => {
-                setShowConfirm(false);
-                setComments('');
-                setAction(null);
-              }}
+              onClick={() => handleAction('reject')}
               disabled={loading}
-              className="flex-1 bg-[#3A3A3C] hover:bg-[#48484A] text-white font-medium py-2 px-4 rounded-lg transition-colors duration-150 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-xl bg-gradient-to-r from-[#fb7185] to-[#ef4444] py-2.5 px-4 text-sm font-semibold text-white shadow-[0_15px_35px_rgba(248,113,113,0.35)] transition hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Cancel
+              <AlertCircle className="mb-0.5 mr-1.5 inline h-4 w-4" />
+              Reject
             </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="space-y-3">
+            <textarea
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="Tambahkan komentar (opsional)..."
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/40 focus:border-[#0ea5e9] focus:outline-none"
+              rows="2"
+            />
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={confirmAction}
+                disabled={loading}
+                className={`flex-1 rounded-xl py-2.5 px-4 text-sm font-semibold text-white shadow transition hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${
+                  action === 'approve'
+                    ? 'bg-gradient-to-r from-[#22c55e] to-[#16a34a]'
+                    : 'bg-gradient-to-r from-[#fb7185] to-[#ef4444]'
+                }`}
+              >
+                {loading ? 'Processing...' : `Konfirmasi ${action === 'approve' ? 'Approve' : 'Reject'}`}
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirm(false);
+                  setComments('');
+                  setAction(null);
+                }}
+                disabled={loading}
+                className="flex-1 rounded-xl border border-white/10 bg-transparent py-2.5 px-4 text-sm font-medium text-white/80 transition hover:border-white/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Batalkan
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -537,79 +551,88 @@ const ApprovalSection = () => {
   const totalPending = tabs.reduce((sum, tab) => sum + tab.count, 0);
 
   return (
-    <div className="bg-[#2C2C2E] border border-[#38383A] rounded-xl p-6 mb-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <AlertCircle className="h-6 w-6 text-[#FF9F0A] mr-2" />
-          <h3 className="text-lg font-semibold text-white">
-            Pending Approvals
-          </h3>
-          {totalPending > 0 && (
-            <span className="ml-3 bg-[#FF453A] text-white text-xs font-bold px-2 py-1 rounded-full">
-              {totalPending}
-            </span>
+    <section className="relative overflow-hidden rounded-3xl border border-white/5 bg-[#0b0e16]/90 p-6 shadow-[0_25px_60px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/5 via-transparent to-transparent" />
+      <div className="pointer-events-none absolute -right-24 top-10 h-56 w-56 rounded-full bg-[#0ea5e9]/20 blur-3xl" />
+      <div className="relative space-y-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.4em] text-white/60">Approval Workflow</p>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
+                <AlertCircle className="h-5 w-5 text-[#facc15]" />
+                <div>
+                  <p className="text-sm font-semibold text-white">Approval Tertunda</p>
+                  <p className="text-xs text-white/50">Harap selesaikan prioritas ini</p>
+                </div>
+              </div>
+              {totalPending > 0 && (
+                <span className="rounded-full bg-gradient-to-r from-[#fb7185] to-[#ef4444] px-3 py-1 text-xs font-bold text-white shadow-[0_10px_30px_rgba(248,113,113,0.35)]">
+                  {totalPending} item
+                </span>
+              )}
+            </div>
+          </div>
+
+          <button
+            onClick={fetchApprovals}
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Memuat...' : 'Segarkan Data'}
+          </button>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex min-w-[180px] items-center justify-between gap-3 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                activeTab === tab.id
+                  ? 'border-[#0ea5e9] bg-[#0ea5e9]/20 text-white shadow-[0_12px_30px_rgba(14,165,233,0.25)]'
+                  : 'border-white/5 bg-white/5 text-white/60 hover:border-white/20 hover:text-white'
+              }`}
+            >
+              <span>{tab.label}</span>
+              {tab.count > 0 && (
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                  activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-white/10 text-white/80'
+                }`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="space-y-4">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-10 text-white/60">
+              <Clock className="mb-3 h-8 w-8 animate-spin" />
+              <p>Memuat data persetujuan...</p>
+            </div>
+          ) : currentApprovals.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-10 text-white/60">
+              <CheckCircle className="mb-3 h-8 w-8 text-[#34d399]" />
+              <p>Tidak ada approval tertunda 🎉</p>
+            </div>
+          ) : (
+            currentApprovals.map((item) => (
+              <ApprovalCard
+                key={item.id}
+                item={item}
+                type={activeTab}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                loading={actionLoading}
+              />
+            ))
           )}
         </div>
-        <button
-          onClick={fetchApprovals}
-          disabled={loading}
-          className="text-[#0A84FF] hover:text-[#0A84FF]/80 text-sm font-medium disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Refresh'}
-        </button>
       </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium text-sm transition-all duration-150 ${
-              activeTab === tab.id
-                ? 'bg-[#0A84FF] text-white'
-                : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#48484A] hover:text-white'
-            }`}
-          >
-            {tab.label}
-            {tab.count > 0 && (
-              <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs font-bold ${
-                activeTab === tab.id ? 'bg-white/20' : 'bg-[#FF453A] text-white'
-              }`}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="space-y-3">
-        {loading ? (
-          <div className="text-center py-8 text-[#636366]">
-            <Clock className="h-8 w-8 mx-auto mb-2 animate-spin" />
-            <p>Loading approvals...</p>
-          </div>
-        ) : currentApprovals.length === 0 ? (
-          <div className="text-center py-8 text-[#636366]">
-            <CheckCircle className="h-8 w-8 mx-auto mb-2 text-[#30D158]" />
-            <p>No pending approvals</p>
-          </div>
-        ) : (
-          currentApprovals.map((item) => (
-            <ApprovalCard
-              key={item.id}
-              item={item}
-              type={activeTab}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              loading={actionLoading}
-            />
-          ))
-        )}
-      </div>
-    </div>
+    </section>
   );
 };
 

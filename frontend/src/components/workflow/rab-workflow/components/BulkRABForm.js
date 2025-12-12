@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Plus, Trash2, Save, FileText, X, Info, Upload, Download, AlertTriangle } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { RAB_CATEGORIES, RAB_ITEM_TYPES, getItemTypeConfig } from '../config/rabCategories';
 import { formatCurrency } from '../../../../utils/formatters';
 import { validateRABForm, isFormValid } from '../utils/rabValidation';
@@ -37,34 +38,394 @@ const BulkRABForm = ({
     };
   }
 
-  const downloadTemplate = () => {
-    const templateData = [
+  const getTemplateData = () => {
+    return [
+      // PEKERJAAN PERSIAPAN
       {
-        'Tipe Item': 'material',
-        'Kategori': 'Struktur',
-        'Deskripsi': 'Semen Portland PC 40kg',
-        'Unit': 'sak',
-        'Quantity': 100,
-        'Harga Unit': 65000,
-        'Spesifikasi': 'Semen grade A'
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Persiapan',
+        'Deskripsi': 'Pembersihan Lahan',
+        'Unit': 'm²',
+        'Qty': 200,
+        'Harga Unit': 15000
       },
       {
-        'Tipe Item': 'service',
-        'Kategori': 'Finishing',
-        'Deskripsi': 'Jasa Cat Tembok',
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Persiapan',
+        'Deskripsi': 'Papan Kayu untuk Bouwplank',
+        'Unit': 'm³',
+        'Qty': 0.5,
+        'Harga Unit': 3500000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Persiapan',
+        'Deskripsi': 'Pemasangan Bouwplank',
+        'Unit': 'm',
+        'Qty': 50,
+        'Harga Unit': 25000
+      },
+      
+      // PEKERJAAN TANAH
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Tanah',
+        'Deskripsi': 'Galian Tanah Pondasi',
+        'Unit': 'm³',
+        'Qty': 30,
+        'Harga Unit': 85000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Tanah',
+        'Deskripsi': 'Urugan Tanah Kembali',
+        'Unit': 'm³',
+        'Qty': 15,
+        'Harga Unit': 75000
+      },
+      
+      // PEKERJAAN PONDASI
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Pondasi',
+        'Deskripsi': 'Pasir Beton',
+        'Unit': 'm³',
+        'Qty': 10,
+        'Harga Unit': 350000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Pondasi',
+        'Deskripsi': 'Batu Kali/Gunung',
+        'Unit': 'm³',
+        'Qty': 20,
+        'Harga Unit': 450000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Pondasi',
+        'Deskripsi': 'Semen Portland PC 40kg',
+        'Unit': 'sak',
+        'Qty': 150,
+        'Harga Unit': 65000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Pondasi',
+        'Deskripsi': 'Pasang Pondasi Batu Kali',
+        'Unit': 'm³',
+        'Qty': 20,
+        'Harga Unit': 450000
+      },
+      
+      // PEKERJAAN STRUKTUR
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Struktur',
+        'Deskripsi': 'Besi Beton Polos 8mm',
+        'Unit': 'kg',
+        'Qty': 500,
+        'Harga Unit': 14000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Struktur',
+        'Deskripsi': 'Besi Beton Ulir 12mm',
+        'Unit': 'kg',
+        'Qty': 800,
+        'Harga Unit': 14500
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Struktur',
+        'Deskripsi': 'Kawat Beton',
+        'Unit': 'kg',
+        'Qty': 25,
+        'Harga Unit': 22000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Struktur',
+        'Deskripsi': 'Multiplek 9mm',
+        'Unit': 'lembar',
+        'Qty': 40,
+        'Harga Unit': 185000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Struktur',
+        'Deskripsi': 'Bekisting Kolom',
         'Unit': 'm²',
-        'Quantity': 250,
-        'Harga Unit': 25000,
-        'Spesifikasi': 'Cat akrilik 2 lapis'
+        'Qty': 60,
+        'Harga Unit': 125000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Struktur',
+        'Deskripsi': 'Pengecoran Beton K-225',
+        'Unit': 'm³',
+        'Qty': 25,
+        'Harga Unit': 950000
+      },
+      
+      // PEKERJAAN DINDING
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Dinding',
+        'Deskripsi': 'Bata Merah Press',
+        'Unit': 'bh',
+        'Qty': 8000,
+        'Harga Unit': 800
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Dinding',
+        'Deskripsi': 'Pasang Dinding Bata 1/2 Batu',
+        'Unit': 'm²',
+        'Qty': 150,
+        'Harga Unit': 85000
+      },
+      {
+        'Tipe': 'service',
+        'Kategori': 'Pekerjaan Dinding',
+        'Deskripsi': 'Plester + Acian Dinding',
+        'Unit': 'm²',
+        'Qty': 300,
+        'Harga Unit': 45000
+      },
+      
+      // PEKERJAAN ATAP
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Atap',
+        'Deskripsi': 'Rangka Atap Baja Ringan',
+        'Unit': 'm²',
+        'Qty': 120,
+        'Harga Unit': 125000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Atap',
+        'Deskripsi': 'Genteng Metal Pasir',
+        'Unit': 'm²',
+        'Qty': 125,
+        'Harga Unit': 95000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Atap',
+        'Deskripsi': 'Pemasangan Rangka + Genteng',
+        'Unit': 'm²',
+        'Qty': 120,
+        'Harga Unit': 75000
+      },
+      
+      // PEKERJAAN PLAFON
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Plafon',
+        'Deskripsi': 'Gypsum Board 9mm',
+        'Unit': 'lembar',
+        'Qty': 80,
+        'Harga Unit': 45000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Plafon',
+        'Deskripsi': 'Rangka Hollow Galvanis',
+        'Unit': 'batang',
+        'Qty': 60,
+        'Harga Unit': 35000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Plafon',
+        'Deskripsi': 'Pasang Plafon Gypsum',
+        'Unit': 'm²',
+        'Qty': 100,
+        'Harga Unit': 65000
+      },
+      
+      // PEKERJAAN LANTAI
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Lantai',
+        'Deskripsi': 'Keramik 40x40 cm',
+        'Unit': 'm²',
+        'Qty': 100,
+        'Harga Unit': 85000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Lantai',
+        'Deskripsi': 'Semen Instan untuk Nat',
+        'Unit': 'sak',
+        'Qty': 10,
+        'Harga Unit': 45000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Lantai',
+        'Deskripsi': 'Pasang Keramik Lantai',
+        'Unit': 'm²',
+        'Qty': 100,
+        'Harga Unit': 75000
+      },
+      
+      // PEKERJAAN FINISHING
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Finishing',
+        'Deskripsi': 'Cat Tembok Interior Avian',
+        'Unit': 'kg',
+        'Qty': 60,
+        'Harga Unit': 85000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Finishing',
+        'Deskripsi': 'Cat Tembok Eksterior Weathershield',
+        'Unit': 'kg',
+        'Qty': 40,
+        'Harga Unit': 125000
+      },
+      {
+        'Tipe': 'service',
+        'Kategori': 'Pekerjaan Finishing',
+        'Deskripsi': 'Jasa Pengecatan Dinding',
+        'Unit': 'm²',
+        'Qty': 300,
+        'Harga Unit': 25000
+      },
+      
+      // PEKERJAAN SANITASI
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Sanitasi',
+        'Deskripsi': 'Kloset Duduk + Tangki',
+        'Unit': 'set',
+        'Qty': 2,
+        'Harga Unit': 1250000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Sanitasi',
+        'Deskripsi': 'Wastafel + Kran',
+        'Unit': 'set',
+        'Qty': 2,
+        'Harga Unit': 750000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Sanitasi',
+        'Deskripsi': 'Pipa PVC 3 inch',
+        'Unit': 'batang',
+        'Qty': 20,
+        'Harga Unit': 45000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Sanitasi',
+        'Deskripsi': 'Instalasi Plambing',
+        'Unit': 'titik',
+        'Qty': 8,
+        'Harga Unit': 350000
+      },
+      
+      // PEKERJAAN PINTU & JENDELA
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Pintu & Jendela',
+        'Deskripsi': 'Pintu Panel Kayu + Kusen',
+        'Unit': 'unit',
+        'Qty': 6,
+        'Harga Unit': 1850000
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Pintu & Jendela',
+        'Deskripsi': 'Jendela Aluminium + Kaca',
+        'Unit': 'unit',
+        'Qty': 8,
+        'Harga Unit': 950000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Pintu & Jendela',
+        'Deskripsi': 'Pasang Pintu & Jendela',
+        'Unit': 'unit',
+        'Qty': 14,
+        'Harga Unit': 150000
+      },
+      
+      // PEKERJAAN LISTRIK
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Listrik',
+        'Deskripsi': 'Kabel NYM 2x2.5mm',
+        'Unit': 'meter',
+        'Qty': 200,
+        'Harga Unit': 8500
+      },
+      {
+        'Tipe': 'material',
+        'Kategori': 'Pekerjaan Listrik',
+        'Deskripsi': 'MCB 2 Ampere',
+        'Unit': 'unit',
+        'Qty': 6,
+        'Harga Unit': 45000
+      },
+      {
+        'Tipe': 'labor',
+        'Kategori': 'Pekerjaan Listrik',
+        'Deskripsi': 'Instalasi Listrik + Titik Lampu',
+        'Unit': 'titik',
+        'Qty': 20,
+        'Harga Unit': 250000
       }
     ];
+  };
 
-    const csvContent = convertToCSV(templateData);
+  const downloadTemplateExcel = () => {
+    // Download template from public endpoint (no auth required)
+    const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const templateUrl = `${backendUrl}/download/rab-template`;
+    
+    // Use window.open to trigger download
+    window.open(templateUrl, '_blank');
+  };
+
+  const downloadTemplateCSV = () => {
+    const templateData = getTemplateData();
+    
+    // Create CSV content
+    const headers = Object.keys(templateData[0]);
+    const csvRows = [
+      headers.join(','),
+      ...templateData.map(row => 
+        headers.map(header => {
+          const value = row[header];
+          // Wrap in quotes if contains comma or is string
+          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+            return `"${value.replace(/"/g, '""')}"`;
+          }
+          return value;
+        }).join(',')
+      )
+    ];
+    
+    const csvContent = csvRows.join('\n');
+    
+    // Create and download CSV file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'template-rap-import.csv';
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'template-rap-import.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   const convertToCSV = (data) => {
@@ -79,14 +440,36 @@ const BulkRABForm = ({
 
     setImportError('');
     
+    const fileName = file.name.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+    const isCSV = fileName.endsWith('.csv');
+    
+    if (!isExcel && !isCSV) {
+      setImportError('Format file tidak didukung. Gunakan .xlsx, .xls, atau .csv');
+      return;
+    }
+    
     const reader = new FileReader();
+    
     reader.onload = (e) => {
       try {
-        const text = e.target.result;
-        const parsedItems = parseCSV(text);
+        let parsedItems;
+        
+        if (isExcel) {
+          // Parse Excel file
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+          parsedItems = parseImportedData(jsonData);
+        } else {
+          // Parse CSV file
+          const text = e.target.result;
+          parsedItems = parseCSV(text);
+        }
         
         if (parsedItems.length === 0) {
-          setImportError('File CSV kosong atau format tidak valid');
+          setImportError('File kosong atau format tidak valid');
           return;
         }
 
@@ -97,37 +480,65 @@ const BulkRABForm = ({
       }
     };
     
-    reader.readAsText(file);
+    // Read file based on type
+    if (isExcel) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file);
+    }
+    
     // Reset file input
     event.target.value = '';
   };
 
-  const parseCSV = (text) => {
-    const lines = text.split('\n');
-    const headers = lines[0].split(',').map(h => h.trim());
-    
-    const requiredHeaders = ['Tipe Item', 'Kategori', 'Deskripsi', 'Unit', 'Quantity', 'Harga Unit'];
-    const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-    
-    if (missingHeaders.length > 0) {
-      throw new Error(`Header yang diperlukan: ${missingHeaders.join(', ')}`);
-    }
-
+  const parseImportedData = (jsonData) => {
     const items = [];
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
+    const validItemTypes = RAB_ITEM_TYPES.map(t => t.value);
+    const validCategories = RAB_CATEGORIES.map(c => c.value);
+    
+    for (let i = 0; i < jsonData.length; i++) {
+      const row = jsonData[i];
+      const rowNum = i + 2; // Excel row number (header is row 1)
       
-      const values = line.split(',').map(v => v.trim());
+      // Validate Tipe
+      const itemType = normalizeItemType(row['Tipe']);
+      if (!validItemTypes.includes(itemType)) {
+        throw new Error(`Baris ${rowNum}: Tipe "${row['Tipe']}" tidak valid. Pilih: ${validItemTypes.join(', ')}`);
+      }
+      
+      // Kategori is free text, no validation needed
+      const category = row['Kategori'] || '';
+      
+      // Validate required fields
+      if (!row['Deskripsi'] || !row['Deskripsi'].trim()) {
+        throw new Error(`Baris ${rowNum}: Deskripsi wajib diisi`);
+      }
+      
+      if (!row['Unit'] || !row['Unit'].trim()) {
+        throw new Error(`Baris ${rowNum}: Unit wajib diisi`);
+      }
+      
+      // Validate numbers
+      const qty = parseFloat(row['Qty']);
+      if (isNaN(qty) || qty <= 0) {
+        throw new Error(`Baris ${rowNum}: Qty harus berupa angka lebih dari 0`);
+      }
+      
+      const unitPrice = parseFloat(row['Harga Unit']);
+      if (isNaN(unitPrice) || unitPrice < 0) {
+        throw new Error(`Baris ${rowNum}: Harga Unit harus berupa angka (minimal 0)`);
+      }
+      
+      // Map Excel columns to item fields
       const item = {
         id: Date.now() + Math.random() + i,
-        itemType: values[headers.indexOf('Tipe Item')] || 'material',
-        category: values[headers.indexOf('Kategori')] || '',
-        description: values[headers.indexOf('Deskripsi')] || '',
-        unit: values[headers.indexOf('Unit')] || '',
-        quantity: parseFloat(values[headers.indexOf('Quantity')]) || 0,
-        unitPrice: parseFloat(values[headers.indexOf('Harga Unit')]) || 0,
-        specifications: values[headers.indexOf('Spesifikasi')] || '',
+        itemType: itemType,
+        category: category,
+        description: row['Deskripsi'].trim(),
+        unit: row['Unit'].trim(),
+        quantity: qty,
+        unitPrice: unitPrice,
+        specifications: '',
         supplier: '',
         laborCategory: '',
         serviceScope: ''
@@ -137,6 +548,39 @@ const BulkRABForm = ({
     }
     
     return items;
+  };
+  
+  const normalizeItemType = (type) => {
+    if (!type) return 'material';
+    const normalized = type.toLowerCase().trim();
+    const validTypes = ['material', 'service', 'labor', 'equipment', 'overhead', 'tax'];
+    return validTypes.includes(normalized) ? normalized : 'material';
+  };
+
+  const parseCSV = (text) => {
+    const lines = text.trim().split('\n');
+    if (lines.length < 2) {
+      throw new Error('File CSV harus memiliki header dan minimal 1 baris data');
+    }
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/['"]/g, ''));
+    const rows = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''));
+      const rowData = {};
+      
+      headers.forEach((header, index) => {
+        rowData[header] = values[index] || '';
+      });
+      
+      rows.push(rowData);
+    }
+
+    return parseImportedData(rows);
   };
 
   const addNewRow = () => {
@@ -266,11 +710,21 @@ const BulkRABForm = ({
           {/* Import/Export Actions */}
           <div className="flex items-center space-x-2">
             <button
-              onClick={downloadTemplate}
-              className="flex items-center px-3 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-colors text-sm"
+              onClick={downloadTemplateExcel}
+              className="flex items-center px-3 py-2 bg-[#34C759] text-white rounded-lg hover:bg-[#34C759]/90 transition-colors text-sm"
+              title="Download template dalam format Excel (.xlsx)"
             >
               <Download className="h-4 w-4 mr-2" />
-              Download Template
+              Template Excel
+            </button>
+            
+            <button
+              onClick={downloadTemplateCSV}
+              className="flex items-center px-3 py-2 bg-[#5856D6] text-white rounded-lg hover:bg-[#5856D6]/90 transition-colors text-sm"
+              title="Download template dalam format CSV (.csv)"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Template CSV
             </button>
             
             <input
@@ -364,6 +818,7 @@ const BulkRABForm = ({
                           <option value="labor">Tenaga</option>
                           <option value="equipment">Alat</option>
                           <option value="overhead">Overhead</option>
+                          <option value="tax">Pajak</option>
                         </select>
                         {itemErrors.itemType && (
                           <p className="text-[#FF3B30] text-xs mt-1">{itemErrors.itemType}</p>
@@ -372,18 +827,13 @@ const BulkRABForm = ({
 
                       {/* Category */}
                       <td className="py-2 px-3">
-                        <select
+                        <input
+                          type="text"
                           value={item.category}
                           onChange={(e) => updateItem(item.id, 'category', e.target.value)}
+                          placeholder="Kategori..."
                           className="w-full px-2 py-1.5 text-xs bg-[#2C2C2E] border border-[#38383A] rounded text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="">Pilih Kategori</option>
-                          {RAB_CATEGORIES.map(cat => (
-                            <option key={cat.value} value={cat.value}>
-                              {cat.label}
-                            </option>
-                          ))}
-                        </select>
+                        />
                         {itemErrors.category && (
                           <p className="text-[#FF3B30] text-xs mt-1">{itemErrors.category}</p>
                         )}
@@ -549,6 +999,44 @@ const BulkRABForm = ({
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
                   Jasa → Perintah Kerja
                 </span>
+              </div>
+            </div>
+
+            {/* Template Guide */}
+            <div className="mt-4 bg-[#1C1C1E] border border-[#38383A] rounded-lg p-4">
+              <div className="flex items-start space-x-2">
+                <Info className="h-5 w-5 text-[#0A84FF] flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-white mb-2">Panduan Format Template</h4>
+                  <div className="space-y-2 text-xs text-[#8E8E93]">
+                    <div>
+                      <p className="font-semibold text-[#98989D] mb-1">6 Kolom yang diperlukan:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>
+                          <span className="text-white">Tipe</span> - Pilihan: 
+                          <span className="text-[#0A84FF] ml-1">
+                            {RAB_ITEM_TYPES.map(t => t.value).join(', ')}
+                          </span>
+                        </li>
+                        <li>
+                          <span className="text-white">Kategori</span> - Text bebas (manual input, opsional)
+                        </li>
+                        <li><span className="text-white">Deskripsi</span> - Nama/deskripsi lengkap item (wajib)</li>
+                        <li><span className="text-white">Unit</span> - satuan: sak, m², m³, hari, kg, ton, dll (wajib)</li>
+                        <li><span className="text-white">Qty</span> - Jumlah dalam angka (wajib, harus &gt; 0)</li>
+                        <li><span className="text-white">Harga Unit</span> - Harga per unit dalam angka (wajib, minimal 0)</li>
+                      </ul>
+                    </div>
+                    <div className="pt-2 border-t border-[#38383A]">
+                      <p className="text-[#34C759]">
+                        ✅ Template Excel sudah memiliki dropdown list untuk kolom Tipe saja
+                      </p>
+                      <p className="text-[#FF9F0A] mt-1">
+                        💡 Download template untuk melihat contoh format yang benar
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -26,7 +26,9 @@ try {
   // Check if messaging is supported
   if ('serviceWorker' in navigator && 'PushManager' in window) {
     messaging = getMessaging(app);
-    console.log('✅ Firebase Messaging initialized successfully');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Firebase Messaging initialized successfully');
+    }
   } else {
     console.warn('⚠️ Push notifications not supported in this browser');
   }
@@ -51,7 +53,9 @@ export const requestNotificationPermission = async () => {
     }
 
     if (permission === 'granted') {
-      console.log('✅ Notification permission granted');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Notification permission granted');
+      }
       
       if (!messaging) {
         throw new Error('Firebase messaging not initialized');
@@ -64,7 +68,9 @@ export const requestNotificationPermission = async () => {
       });
 
       if (currentToken) {
-        console.log('✅ FCM Token received:', currentToken.substring(0, 20) + '...');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✅ FCM Token received:', currentToken.substring(0, 20) + '...');
+        }
         return currentToken;
       } else {
         console.warn('⚠️ No registration token available');
@@ -91,7 +97,9 @@ export const onForegroundMessage = (callback) => {
   }
 
   return onMessage(messaging, (payload) => {
-    console.log('📩 Foreground message received:', payload);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📩 Foreground message received:', payload);
+    }
     
     // Extract notification data
     const notificationTitle = payload.notification?.title || 'New Notification';
@@ -152,7 +160,9 @@ export const registerFCMToken = async (token) => {
     }
 
     const data = await response.json();
-    console.log('✅ FCM token registered with backend:', data);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ FCM token registered with backend:', data);
+    }
     return data;
   } catch (error) {
     console.error('❌ Error registering FCM token:', error);

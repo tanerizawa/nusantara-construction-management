@@ -7,54 +7,48 @@ import { BarChart3, Calculator, Clock, ShoppingCart } from 'lucide-react';
  */
 const QuickStats = ({ project, workflowData }) => {
   return (
-    <div className="bg-[#2C2C2E] rounded-lg  border border-[#38383A] overflow-hidden">
-      <div className="px-4 py-3 bg-[#1C1C1E] border-b border-[#38383A]">
-        <h3 className="text-base font-semibold text-white flex items-center">
-          <BarChart3 className="h-5 w-5 mr-2 text-[#BF5AF2]" />
-          Statistik Cepat
-        </h3>
+    <div className="rounded-3xl border border-white/5 bg-white/5 shadow-[0_25px_60px_rgba(0,0,0,0.35)]">
+      <div className="flex items-center border-b border-white/10 px-5 py-3 text-white">
+        <BarChart3 className="mr-2 h-5 w-5 text-[#c084fc]" />
+        <h3 className="text-base font-semibold">Statistik Cepat</h3>
       </div>
-      <div className="p-4">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#0A84FF]/20 rounded-lg">
-                <Calculator className="h-4 w-4 text-[#0A84FF]" />
-              </div>
-              <span className="text-sm font-medium text-[#98989D]">RAP Items</span>
-            </div>
-            <span className="text-base font-bold text-white">
-              {project.rabItems?.length || 0}
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#FF9F0A]/20 rounded-lg">
-                <Clock className="h-4 w-4 text-[#FF9F0A]" />
-              </div>
-              <span className="text-sm font-medium text-[#98989D]">Pending Approvals</span>
-            </div>
-            <span className="text-base font-bold text-[#FF9F0A]">
-              {workflowData.approvalStatus?.pending || 0}
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between p-3 hover:bg-[#1C1C1E] rounded-lg transition-colors">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-[#30D158]/20 rounded-lg">
-                <ShoppingCart className="h-4 w-4 text-[#30D158]" />
-              </div>
-              <span className="text-sm font-medium text-[#98989D]">Active POs</span>
-            </div>
-            <span className="text-base font-bold text-[#30D158]">
-              {workflowData.purchaseOrders?.filter(po => po.status === 'active').length || 0}
-            </span>
-          </div>
-        </div>
+      <div className="space-y-3 p-4">
+        <StatRow
+          icon={Calculator}
+          iconClass="from-[#60a5fa]/30 to-[#2563eb]/20 text-[#bfdbfe]"
+          label="RAP Items"
+          value={project.rabItems?.length || 0}
+          valueClass="text-white"
+        />
+        <StatRow
+          icon={Clock}
+          iconClass="from-[#fbbf24]/30 to-[#f97316]/20 text-[#fde68a]"
+          label="Pending Approvals"
+          value={workflowData.approvalStatus?.pending || 0}
+          valueClass="text-[#fbbf24]"
+        />
+        <StatRow
+          icon={ShoppingCart}
+          iconClass="from-[#34d399]/30 to-[#22c55e]/20 text-[#bbf7d0]"
+          label="Active POs"
+          value={workflowData.purchaseOrders?.filter(po => po.status === 'active').length || 0}
+          valueClass="text-[#34d399]"
+        />
       </div>
     </div>
   );
 };
+
+const StatRow = ({ icon: Icon, iconClass, label, value, valueClass }) => (
+  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-[#05070d] px-4 py-3">
+    <div className="flex items-center gap-3">
+      <div className={`rounded-2xl bg-gradient-to-br ${iconClass} p-2`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <span className="text-sm text-white/70">{label}</span>
+    </div>
+    <span className={`text-base font-semibold ${valueClass}`}>{value}</span>
+  </div>
+);
 
 export default QuickStats;

@@ -133,16 +133,23 @@ const SimplifiedRABTable = ({
     console.log('[SimplifiedRABTable] Document body exists:', !!document.body);
     console.log('[SimplifiedRABTable] ReactDOM.createPortal exists:', !!ReactDOM.createPortal);
     
+    // Find Kas Tunai account (default for petty cash)
+    const kasTunaiAccount = sourceAccounts.find(account => 
+      account.accountName?.toLowerCase().includes('kas tunai') || 
+      account.accountCode === '1101.07'
+    );
+    
     setSelectedItem(item);
     setEditMode('add');
     setEditingRealizationId(null);
     setEditValue('');
     setEditDescription('');
     setEditAccount(expenseAccounts[0]?.id || '');
-    setEditSource(sourceAccounts[0]?.id || '');
+    // Default to Kas Tunai if found, otherwise first account
+    setEditSource(kasTunaiAccount?.id || sourceAccounts[0]?.id || '');
     setModalOpen(true);
     
-    console.log('[SimplifiedRABTable] After setState - modalOpen should be true');
+    console.log('[SimplifiedRABTable] Default source account set to:', kasTunaiAccount?.accountName || sourceAccounts[0]?.accountName);
   };
 
   const handleEditRealization = (item, realization) => {
@@ -610,7 +617,14 @@ const SimplifiedRABTable = ({
                   className="w-full px-4 py-2.5 bg-[#1C1C1E] border border-[#3C3C3E] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select source account...</option>
-                  {sourceAccounts.map(account => {
+                  {/* Sort: Kas Tunai first, then others */}
+                  {[...sourceAccounts].sort((a, b) => {
+                    const aIsKasTunai = a.accountName?.toLowerCase().includes('kas tunai') || a.accountCode === '1101.07';
+                    const bIsKasTunai = b.accountName?.toLowerCase().includes('kas tunai') || b.accountCode === '1101.07';
+                    if (aIsKasTunai && !bIsKasTunai) return -1; // a first
+                    if (!aIsKasTunai && bIsKasTunai) return 1;  // b first
+                    return 0; // keep original order
+                  }).map(account => {
                     const isKasTunai = account.accountName?.toLowerCase().includes('kas tunai') || account.accountCode === '1101.07';
                     const displayLabel = isKasTunai 
                       ? `${account.accountCode} - ${account.accountName} (Unlimited)`

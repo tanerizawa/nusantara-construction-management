@@ -20,7 +20,7 @@ const milestoneSchema = Joi.object({
   targetDate: Joi.date().required(),
   completedDate: Joi.date().optional(),
   assignedTo: Joi.string().optional(),
-  priority: Joi.string().valid('low', 'medium', 'high', 'critical').default('medium'),
+  priority: Joi.string().valid('low', 'medium', 'high', 'urgent').default('medium'),
   status: Joi.string().valid('pending', 'in_progress', 'completed', 'cancelled').default('pending'),
   progress: Joi.number().min(0).max(100).default(0),
   budget: Joi.number().min(0).optional(),
@@ -517,11 +517,84 @@ router.delete('/:id/milestones/:milestoneId', async (req, res) => {
       });
     }
 
+    // ✅ FINANCIAL CONTROL: Check for milestone costs with payments
+    const costsWithPayments = await sequelize.query(
+      `SELECT id, description, amount, status, finance_transaction_id 
+       FROM milestone_costs 
+       WHERE milestone_id = :milestoneId 
+         AND finance_transaction_id IS NOT NULL 
+         AND deleted_at IS NULL
+       LIMIT 5`,
+      {
+        replacements: { milestoneId },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    if (costsWithPayments.length > 0) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot delete milestone with paid costs',
+        message: `This milestone has ${costsWithPayments.length} cost(s) that have been paid. For audit trail purposes, milestones with payment records cannot be deleted.`,
+        suggestion: 'Please cancel the milestone status instead, or contact finance team to reverse the payments first.',
+        data: {
+          milestoneId: milestoneId,
+          paidCostsCount: costsWithPayments.length,
+          paidCosts: costsWithPayments.map(c => ({
+            id: c.id,
+            description: c.description,
+            amount: parseFloat(c.amount),
+            status: c.status
+          }))
+        }
+      });
+    }
+
+    // ✅ RESTORE BALANCES: Get all unpaid costs and restore their source account balances
+    const unpaidCosts = await sequelize.query(
+      `SELECT id, description, amount, source_account_id 
+       FROM milestone_costs 
+       WHERE milestone_id = :milestoneId 
+         AND finance_transaction_id IS NULL 
+         AND deleted_at IS NULL
+         AND source_account_id IS NOT NULL`,
+      {
+        replacements: { milestoneId },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    // Restore balances before deleting
+    for (const cost of unpaidCosts) {
+      const amount = parseFloat(cost.amount) || 0;
+      await sequelize.query(
+        `UPDATE chart_of_accounts 
+         SET current_balance = current_balance + :amount,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = :sourceAccountId`,
+        {
+          replacements: {
+            amount: amount,
+            sourceAccountId: cost.source_account_id
+          },
+          type: sequelize.QueryTypes.UPDATE
+        }
+      );
+      console.log(`[Milestone Delete] Restored ${amount} to account ${cost.source_account_id} (cost: ${cost.id})`);
+    }
+
+    // Delete milestone (will cascade delete costs via foreign key)
     await milestone.destroy();
 
     res.json({
       success: true,
-      message: 'Milestone deleted successfully'
+      message: 'Milestone deleted successfully',
+      data: {
+        restoredBalances: unpaidCosts.length > 0 ? {
+          count: unpaidCosts.length,
+          totalRestored: unpaidCosts.reduce((sum, c) => sum + parseFloat(c.amount), 0)
+        } : null
+      }
     });
   } catch (error) {
     console.error('Error deleting milestone:', error);

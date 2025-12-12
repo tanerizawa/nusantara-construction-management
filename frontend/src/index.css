@@ -1,6 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --nk-base: #05060a;
+  --nk-surface: rgba(18, 22, 31, 0.92);
+  --nk-surface-muted: rgba(18, 22, 31, 0.75);
+  --nk-border: rgba(255, 255, 255, 0.08);
+  --nk-border-strong: rgba(255, 255, 255, 0.14);
+  --nk-glow: rgba(110, 231, 183, 0.25);
+  --nk-text-primary: #f4f5f7;
+  --nk-text-muted: #9ea7b3;
+  --nk-text-soft: #6f7785;
+  --nk-gradient-1: radial-gradient(circle at 20% 20%, rgba(41, 83, 255, 0.25), transparent 45%);
+  --nk-gradient-2: radial-gradient(circle at 80% 0%, rgba(148, 58, 255, 0.2), transparent 55%);
+  --nk-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--nk-base);
+  background-image: var(--nk-gradient-1), var(--nk-gradient-2), linear-gradient(135deg, #05060a 0%, #0c0d12 100%);
+  color: var(--nk-text-primary);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: -0.01em;
+  color: var(--nk-text-primary);
+}
+
+.eyebrow-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+::selection {
+  background: rgba(80, 250, 123, 0.35);
+  color: #fff;
+}
+
+.matte-panel {
+  background: var(--nk-surface);
+  border: 1px solid var(--nk-border);
+  border-radius: 1rem;
+  box-shadow: var(--nk-shadow);
+  backdrop-filter: blur(10px);
+}
+
+.matte-panel-muted {
+  background: var(--nk-surface-muted);
+  border: 1px solid var(--nk-border);
+  border-radius: 1rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.matte-divider {
+  border-color: var(--nk-border);
+}
+
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(147, 51, 234, 0.3));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
 
 /* =================================================================
    LOADING ANIMATIONS

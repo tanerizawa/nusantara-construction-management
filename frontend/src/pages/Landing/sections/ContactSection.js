@@ -15,9 +15,9 @@ export const ContactSection = ({ className = '' }) => {
   return (
     <section 
       id="contact" 
-      className={`py-20 bg-gradient-to-br from-blue-50 to-indigo-50 ${className}`}
+      className={`py-16 bg-gradient-to-br from-blue-50 to-indigo-50 ${className}`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -29,7 +29,7 @@ export const ContactSection = ({ className = '' }) => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-16">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
           {/* Contact Information */}
           <ContactInfo contact={contact} />
           

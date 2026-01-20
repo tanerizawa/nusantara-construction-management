@@ -2,7 +2,8 @@ import React from 'react';
 
 /**
  * Modal untuk membuat progress payment baru
- * TODO: Implement full form functionality
+ * @deprecated Use PaymentCreateForm.js instead which has full functionality
+ * This component is kept for backward compatibility
  */
 const PaymentCreateModal = ({ show, onClose, onSubmit }) => {
   if (!show) return null;

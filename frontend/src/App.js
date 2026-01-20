@@ -32,7 +32,7 @@ const ProjectEdit = lazy(() => import('./pages/ProjectEdit'));
 const Manpower = lazy(() => import('./pages/Manpower'));
 const Users = lazy(() => import('./pages/Users'));
 const Analytics = lazy(() => import('./pages/Analytics'));
-const Notifications = lazy(() => import('./pages/Notifications'));
+const NotificationsPage = lazy(() => import('./pages/Notifications'));
 const Subsidiaries = lazy(() => import('./pages/Subsidiaries'));
 const SubsidiaryCreate = lazy(() => import('./pages/SubsidiaryCreate'));
 const SubsidiaryDetail = lazy(() => import('./pages/SubsidiaryDetail'));
@@ -52,7 +52,7 @@ const AttendanceHistory = lazy(() => import('./pages/AttendanceHistory'));
 const MonthlySummary = lazy(() => import('./pages/MonthlySummary'));
 const LeaveRequestPage = lazy(() => import('./pages/LeaveRequestPage'));
 const AttendanceSettings = lazy(() => import('./pages/AttendanceSettings'));
-const NotificationPage = lazy(() => import('./pages/NotificationPage'));
+
 
 // Lazy load routes
 const AssetRoutes = lazy(() => import('./routes/AssetRoutes'));
@@ -286,7 +286,7 @@ function App() {
               <Route path="/notifications" element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <NotificationPage />
+                    <NotificationsPage />
                   </MainLayout>
                 </ProtectedRoute>
               } />

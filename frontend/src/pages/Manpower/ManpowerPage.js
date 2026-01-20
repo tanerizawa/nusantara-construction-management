@@ -78,15 +78,21 @@ const ManpowerPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#1C1C1E]">
+      <div className="relative isolate min-h-screen flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+          <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_45%)]" />
+        </div>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0A84FF]"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E] p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_45%)]" />
+      </div>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 space-y-6">
         {/* Header */}
         <ManpowerHeader onAddClick={handleAddEmployee} />
 

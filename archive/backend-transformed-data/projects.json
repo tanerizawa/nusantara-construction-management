@@ -1,0 +1,172 @@
+[
+  {
+    "id": "PRJ-2025-001",
+    "projectCode": "NGK-RES-001",
+    "name": "Pembangunan Rumah Tinggal Jl. Mawar",
+    "description": "Pembangunan rumah tinggal 2 lantai dengan luas bangunan 120m² di kawasan Karawang Barat",
+    "clientName": "PT Mawar Indah",
+    "clientContact": {
+      "contactPerson": "Ibu Sari Dewi",
+      "phone": "+62-267-123456",
+      "email": "sari@mawarindah.com",
+      "address": "Jl. Mawar No. 45, Karawang Barat"
+    },
+    "location": {
+      "address": "Jl. Mawar No. 45, Karawang Barat",
+      "city": "Karawang",
+      "province": "Jawa Barat"
+    },
+    "timeline": {
+      "startDate": "2025-01-15",
+      "endDate": "2025-06-15"
+    },
+    "status": "in_progress",
+    "phase": "construction",
+    "progress": {
+      "percentage": 45,
+      "lastUpdate": "2025-09-01"
+    },
+    "budget": 850000000,
+    "actualCost": 320000000,
+    "startDate": "2025-01-15",
+    "endDate": "2025-06-15",
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "PRJ-2025-002",
+    "projectCode": "NGK-COM-001",
+    "name": "Renovasi Gedung Perkantoran PT XYZ",
+    "description": "Renovasi total gedung perkantoran 3 lantai meliputi interior, eksterior, dan sistem MEP",
+    "clientName": "PT XYZ Corporation",
+    "clientContact": {
+      "contactPerson": "Bapak John Doe",
+      "phone": "+62-267-789012",
+      "email": "john.doe@xyz.com",
+      "address": "Jl. Industri Raya Km 8, Karawang Timur"
+    },
+    "location": {
+      "address": "Jl. Industri Raya Km 8, Karawang Timur",
+      "city": "Karawang",
+      "province": "Jawa Barat"
+    },
+    "timeline": {
+      "startDate": "2025-02-01",
+      "endDate": "2025-08-31"
+    },
+    "status": "planning",
+    "phase": "design",
+    "progress": {
+      "percentage": 15,
+      "lastUpdate": "2025-09-01"
+    },
+    "budget": 1250000000,
+    "actualCost": 125000000,
+    "startDate": "2025-02-01",
+    "endDate": "2025-08-31",
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "PRJ-2025-003",
+    "projectCode": "NGK-INF-001",
+    "name": "Pembangunan Infrastruktur Jalan Komplek Perumahan",
+    "description": "Pembangunan jalan aspal, drainase, dan penerangan jalan di komplek perumahan Green Valley",
+    "clientName": "PT Green Valley Developer",
+    "clientContact": {
+      "contactPerson": "Bapak Bambang Sutrisno",
+      "phone": "+62-267-345678",
+      "email": "bambang@greenvalley.co.id",
+      "address": "Komplek Green Valley, Karawang Selatan"
+    },
+    "location": {
+      "address": "Komplek Green Valley, Karawang Selatan",
+      "city": "Karawang",
+      "province": "Jawa Barat"
+    },
+    "timeline": {
+      "startDate": "2025-03-01",
+      "endDate": "2025-07-31"
+    },
+    "status": "planning",
+    "phase": "survey",
+    "progress": {
+      "percentage": 5,
+      "lastUpdate": "2025-09-01"
+    },
+    "budget": 2150000000,
+    "actualCost": 0,
+    "startDate": "2025-03-01",
+    "endDate": "2025-07-31",
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "PRJ-2024-015",
+    "projectCode": "NGK-IND-002",
+    "name": "Pembangunan Gudang Industri PT ABC",
+    "description": "Pembangunan gudang industri dengan luas 2000m² untuk penyimpanan dan distribusi",
+    "clientName": "PT ABC Industries",
+    "clientContact": {
+      "contactPerson": "Ibu Maria Sari",
+      "phone": "+62-267-567890",
+      "email": "maria@abc-industries.com",
+      "address": "Kawasan Industri Karawang, Blok A-15"
+    },
+    "location": {
+      "address": "Kawasan Industri Karawang, Blok A-15",
+      "city": "Karawang",
+      "province": "Jawa Barat"
+    },
+    "timeline": {
+      "startDate": "2024-10-01",
+      "endDate": "2025-02-28"
+    },
+    "status": "completed",
+    "phase": "handover",
+    "progress": {
+      "percentage": 100,
+      "lastUpdate": "2025-02-28"
+    },
+    "budget": 3200000000,
+    "actualCost": 2800000000,
+    "startDate": "2024-10-01",
+    "endDate": "2025-02-28",
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "PRJ-2024-018",
+    "projectCode": "NGK-GOV-001",
+    "name": "Renovasi Kantor Kelurahan Karawang Wetan",
+    "description": "Renovasi kantor kelurahan meliputi perbaikan struktur, interior, dan fasilitas umum",
+    "clientName": "Pemerintah Kabupaten Karawang",
+    "clientContact": {
+      "contactPerson": "Bapak Lurah H. Sucipto",
+      "phone": "+62-267-111222",
+      "email": "kelurahan.karawangwetan@karawangkab.go.id",
+      "address": "Jl. Raya Karawang Wetan No. 123"
+    },
+    "location": {
+      "address": "Jl. Raya Karawang Wetan No. 123",
+      "city": "Karawang",
+      "province": "Jawa Barat"
+    },
+    "timeline": {
+      "startDate": "2024-11-15",
+      "endDate": "2025-04-15"
+    },
+    "status": "in_progress",
+    "phase": "finishing",
+    "progress": {
+      "percentage": 85,
+      "lastUpdate": "2025-09-01"
+    },
+    "budget": 875000000,
+    "actualCost": 650000000,
+    "startDate": "2024-11-15",
+    "endDate": "2025-04-15",
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  }
+]

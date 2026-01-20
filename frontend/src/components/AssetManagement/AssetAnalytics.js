@@ -88,43 +88,41 @@ const AssetAnalytics = () => {
   }
 
   return (
-    <div className="p-6 bg-[#1C1C1E] min-h-screen">
+    <div className="p-6 bg-[#0b0f19] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#2C2C2E] rounded-xl p-6 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Total Aset</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Total Aset</p>
                 <p className="text-3xl font-bold text-white">{analytics.total || 0}</p>
               </div>
-              <div className="w-14 h-14 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
-                <Package className="h-7 w-7 text-[#0A84FF]" />
+              <div className="w-14 h-14 bg-[#0ea5e9]/20 rounded-xl flex items-center justify-center">
+                <Package className="h-7 w-7 text-[#0ea5e9]" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-6 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Total Nilai</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Total Nilai</p>
                 <p className="text-2xl font-bold text-white">{formatCurrency(analytics.totalValue || 0)}</p>
               </div>
-              <div className="w-14 h-14 bg-[#30D158]/20 rounded-xl flex items-center justify-center">
-                <DollarSign className="h-7 w-7 text-[#30D158]" />
+              <div className="w-14 h-14 bg-emerald-400/20 rounded-xl flex items-center justify-center">
+                <DollarSign className="h-7 w-7 text-emerald-400" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-6 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Rata-rata Nilai</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Rata-rata Nilai</p>
                 <p className="text-2xl font-bold text-white">{formatCurrency(analytics.averageValue || 0)}</p>
               </div>
-              <div className="w-14 h-14 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-7 w-7 text-[#0A84FF]" />
+              <div className="w-14 h-14 bg-[#0ea5e9]/20 rounded-xl flex items-center justify-center">
+                <TrendingUp className="h-7 w-7 text-[#0ea5e9]" />
               </div>
             </div>
           </div>
@@ -132,7 +130,7 @@ const AssetAnalytics = () => {
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg flex items-center justify-between">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center justify-between">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
               <X className="h-4 w-4" />
@@ -141,7 +139,7 @@ const AssetAnalytics = () => {
         )}
 
         {/* By Category */}
-        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] p-6">
+        <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-bold text-white flex items-center">
               <PieChart className="h-5 w-5 mr-2 text-[#0A84FF]" />
@@ -158,14 +156,14 @@ const AssetAnalytics = () => {
           
           <div className="space-y-4">
             {Object.entries(analytics.byCategory || {}).map(([key, data]) => (
-              <div key={key} className="flex items-center justify-between p-4 bg-[#1C1C1E] rounded-lg">
+              <div key={key} className="flex items-center justify-between p-4 bg-white/5 rounded-xl">
                 <div>
-                  <p className="text-sm font-medium text-white">{categoryNames[key] || key}</p>
-                  <p className="text-xs text-[#98989D] mt-1">{data.count} aset</p>
+                  <p className="text-sm font-semibold text-white">{categoryNames[key] || key}</p>
+                  <p className="text-xs text-white/60 mt-1">{data.count} aset</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-[#0A84FF]">{formatCurrency(data.value)}</p>
-                  <p className="text-xs text-[#636366] mt-1">
+                  <p className="text-sm font-bold text-[#0ea5e9]">{formatCurrency(data.value)}</p>
+                  <p className="text-xs text-white/40 mt-1">
                     {((data.value / (analytics.totalValue || 1)) * 100).toFixed(1)}%
                   </p>
                 </div>
@@ -175,7 +173,7 @@ const AssetAnalytics = () => {
         </div>
 
         {/* By Status */}
-        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] p-6">
+        <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
           <h3 className="text-lg font-bold text-white flex items-center mb-6">
             <BarChart3 className="h-5 w-5 mr-2 text-[#0A84FF]" />
             Aset per Status
@@ -192,9 +190,9 @@ const AssetAnalytics = () => {
               const color = colors[key] || '#98989D';
               
               return (
-                <div key={key} className="bg-[#1C1C1E] rounded-lg p-4 text-center">
+                <div key={key} className="bg-white/5 rounded-xl p-4 text-center">
                   <p className="text-3xl font-bold mb-2" style={{ color }}>{count}</p>
-                  <p className="text-sm text-[#98989D]">{statusNames[key] || key}</p>
+                  <p className="text-sm text-white/60">{statusNames[key] || key}</p>
                 </div>
               );
             })}

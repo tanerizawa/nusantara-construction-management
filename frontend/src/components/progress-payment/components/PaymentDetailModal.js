@@ -2,7 +2,8 @@ import React from 'react';
 
 /**
  * Modal untuk menampilkan detail payment
- * TODO: Implement full detail view
+ * @deprecated Use PaymentDetailView.js instead which has full functionality
+ * This component is kept for backward compatibility
  */
 const PaymentDetailModal = ({ payment, onClose }) => {
   if (!payment) return null;

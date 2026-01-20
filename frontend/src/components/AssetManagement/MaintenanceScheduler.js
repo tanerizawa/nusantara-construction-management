@@ -85,55 +85,52 @@ const MaintenanceScheduler = () => {
   }
 
   return (
-    <div className="p-6 bg-[#1C1C1E] min-h-screen">
+    <div className="p-6 bg-[#0b0f19] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Total Aset</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Total Aset</p>
                 <p className="text-2xl font-bold text-white">{stats.total}</p>
               </div>
-              <div className="w-12 h-12 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
-                <Package className="h-6 w-6 text-[#0A84FF]" />
+              <div className="w-12 h-12 bg-[#0ea5e9]/20 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-[#0ea5e9]" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Terlambat</p>
-                <p className="text-2xl font-bold text-[#FF453A]">{stats.overdue}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Terlambat</p>
+                <p className="text-2xl font-bold text-red-400">{stats.overdue}</p>
               </div>
-              <div className="w-12 h-12 bg-[#FF453A]/20 rounded-xl flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-[#FF453A]" />
+              <div className="w-12 h-12 bg-red-400/20 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-red-400" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Segera</p>
-                <p className="text-2xl font-bold text-[#FF9F0A]">{stats.upcoming}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Segera</p>
+                <p className="text-2xl font-bold text-amber-400">{stats.upcoming}</p>
               </div>
-              <div className="w-12 h-12 bg-[#FF9F0A]/20 rounded-xl flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-[#FF9F0A]" />
+              <div className="w-12 h-12 bg-amber-400/20 rounded-xl flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-amber-400" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Normal</p>
-                <p className="text-2xl font-bold text-[#30D158]">{stats.ok}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Normal</p>
+                <p className="text-2xl font-bold text-emerald-400">{stats.ok}</p>
               </div>
-              <div className="w-12 h-12 bg-[#30D158]/20 rounded-xl flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-[#30D158]" />
+              <div className="w-12 h-12 bg-emerald-400/20 rounded-xl flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-emerald-400" />
               </div>
             </div>
           </div>
@@ -141,7 +138,7 @@ const MaintenanceScheduler = () => {
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg flex items-center justify-between">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center justify-between">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
               <X className="h-4 w-4" />
@@ -150,18 +147,18 @@ const MaintenanceScheduler = () => {
         )}
 
         {/* Search */}
-        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] p-4">
+        <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
           <div className="flex gap-4">
             <input
               type="text"
               placeholder="Cari aset..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-4 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-lg text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-[#0ea5e9] focus:border-transparent transition-all"
             />
             <button
               onClick={fetchAssets}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#0ea5e9] text-white rounded-xl hover:bg-[#0ea5e9]/90 transition-all shadow-lg shadow-[#0ea5e9]/20"
             >
               <RefreshCw className="h-5 w-5" />
               Refresh
@@ -170,32 +167,32 @@ const MaintenanceScheduler = () => {
         </div>
 
         {/* Maintenance Table */}
-        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] overflow-hidden">
+        <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[#1C1C1E] border-b border-[#38383A]">
+              <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Aset</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Interval</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Jadwal Berikutnya</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Hari</th>
-                  <th className="px-3 py-3 text-center text-xs font-medium text-[#98989D] uppercase w-24">Status</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Aset</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Interval</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Jadwal Berikutnya</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Hari</th>
+                  <th className="px-3 py-4 text-center text-xs font-medium text-white/50 uppercase w-24">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#38383A]">
+              <tbody className="divide-y divide-white/10">
                 {filteredAssets.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center">
-                      <Package className="h-12 w-12 text-[#636366] mx-auto mb-3" />
-                      <p className="text-[#98989D]">Tidak ada data perawatan</p>
+                    <td colSpan="5" className="px-6 py-12 text-center bg-white/5 rounded-xl">
+                      <Package className="h-12 w-12 text-white/30 mx-auto mb-3" />
+                      <p className="text-white/60">Tidak ada data perawatan</p>
                     </td>
                   </tr>
                 ) : (
                   filteredAssets.map((asset) => (
-                    <tr key={asset.id} className="hover:bg-[#38383A]/30 transition-colors">
+                    <tr key={asset.id} className="hover:bg-white/10 transition-colors">
                       <td className="px-3 py-3">
-                        <div className="text-sm font-medium text-white">{asset.assetName}</div>
-                        <div className="text-xs text-[#636366] mt-0.5">{asset.assetCode}</div>
+                        <div className="text-sm font-semibold text-white">{asset.assetName}</div>
+                        <div className="text-xs text-white/40 mt-0.5">{asset.assetCode}</div>
                       </td>
                       <td className="px-3 py-3 text-sm text-white">
                         {asset.maintenanceInterval} bulan
@@ -207,7 +204,7 @@ const MaintenanceScheduler = () => {
                         {asset.daysUntilMaintenance > 0 ? `${asset.daysUntilMaintenance} hari` : `${Math.abs(asset.daysUntilMaintenance)} hari terlambat`}
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(asset.status)}`}>
+                        <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full border ${getStatusColor(asset.status)} bg-white/10`}>
                           {asset.status === 'OVERDUE' ? 'Terlambat' : asset.status === 'UPCOMING' ? 'Segera' : 'Normal'}
                         </span>
                       </td>

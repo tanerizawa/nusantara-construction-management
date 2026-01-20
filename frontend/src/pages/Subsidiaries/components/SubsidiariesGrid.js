@@ -16,7 +16,7 @@ const SubsidiariesGrid = ({ subsidiaries, loading, onDelete }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-48 rounded-lg animate-pulse" style={{ backgroundColor: "#2C2C2E" }}></div>
+          <div key={i} className="h-48 rounded-3xl animate-pulse bg-white/5 border border-white/5"></div>
         ))}
       </div>
     );
@@ -25,9 +25,9 @@ const SubsidiariesGrid = ({ subsidiaries, loading, onDelete }) => {
   // Show empty state when no subsidiaries
   if (subsidiaries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-lg" style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}>
-        <p className="text-xl font-medium mb-2" style={{ color: "#FFFFFF" }}>Tidak ada anak usaha ditemukan</p>
-        <p style={{ color: "#98989D" }}>Tidak ada anak usaha yang sesuai dengan filter yang dipilih</p>
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border border-white/5 bg-[#0b0f19]/80 backdrop-blur-xl">
+        <p className="text-xl font-medium mb-2 text-white">Tidak ada anak usaha ditemukan</p>
+        <p className="text-white/50">Tidak ada anak usaha yang sesuai dengan filter yang dipilih</p>
       </div>
     );
   }

@@ -37,41 +37,41 @@ const BasicInfoView = ({ subsidiary }) => {
       {/* Company Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Nama Perusahaan</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Nama Perusahaan</label>
           <p className="text-white text-base">{subsidiary.name || '-'}</p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Kode Perusahaan</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Kode Perusahaan</label>
           <p className="text-white font-mono text-base">{subsidiary.code || '-'}</p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Status</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Status</label>
           <div>{getStatusBadge(subsidiary.status)}</div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Spesialisasi</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Spesialisasi</label>
           <p className="text-white text-base">{getSpecializationLabel(subsidiary.specialization)}</p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Perusahaan Induk</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Perusahaan Induk</label>
           <p className="text-white text-base">{subsidiary.parentCompany || '-'}</p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Tahun Berdiri</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Tahun Berdiri</label>
           <p className="text-white text-base flex items-center">
-            <Calendar className="h-4 w-4 mr-2 text-[#8E8E93]" />
+            <Calendar className="h-4 w-4 mr-2 text-white/40" />
             {subsidiary.establishedYear || '-'}
           </p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Jumlah Karyawan</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Jumlah Karyawan</label>
           <p className="text-white text-base flex items-center">
-            <Users className="h-4 w-4 mr-2 text-[#8E8E93]" />
+            <Users className="h-4 w-4 mr-2 text-white/40" />
             {subsidiary.employeeCount || '-'} karyawan
           </p>
         </div>
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Ukuran Perusahaan</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Ukuran Perusahaan</label>
           <p className="text-white text-base">
             {subsidiary.profileInfo?.companySize === 'small' ? 'Small (1-50 employees)' :
              subsidiary.profileInfo?.companySize === 'medium' ? 'Medium (51-250 employees)' :
@@ -83,7 +83,7 @@ const BasicInfoView = ({ subsidiary }) => {
       {/* Description */}
       {subsidiary.description && (
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Deskripsi</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Deskripsi</label>
           <p className="text-white text-base leading-relaxed whitespace-pre-wrap">
             {subsidiary.description}
           </p>
@@ -93,7 +93,7 @@ const BasicInfoView = ({ subsidiary }) => {
       {/* Business Description */}
       {subsidiary.profileInfo?.businessDescription && (
         <div>
-          <label className="block text-xs font-medium text-[#8E8E93] mb-2">Deskripsi Bisnis</label>
+          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Deskripsi Bisnis</label>
           <p className="text-white text-base leading-relaxed whitespace-pre-wrap">
             {subsidiary.profileInfo.businessDescription}
           </p>
@@ -101,34 +101,34 @@ const BasicInfoView = ({ subsidiary }) => {
       )}
 
       {/* Contact Information */}
-      <div className="bg-[#1C1C1E] border border-[#38383A] rounded-lg p-6">
+      <div className="rounded-2xl border border-white/5 bg-white/5 p-6">
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
           <Phone className="h-5 w-5 mr-2" />
           Informasi Kontak
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">Telepon</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Telepon</label>
             <p className="text-white text-base flex items-center">
-              <Phone className="h-4 w-4 mr-2 text-[#8E8E93]" />
+              <Phone className="h-4 w-4 mr-2 text-white/40" />
               {subsidiary.contactInfo?.phone || '-'}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">Email</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Email</label>
             <p className="text-white text-base flex items-center">
-              <Mail className="h-4 w-4 mr-2 text-[#8E8E93]" />
+              <Mail className="h-4 w-4 mr-2 text-white/40" />
               {subsidiary.contactInfo?.email || '-'}
             </p>
           </div>
           {subsidiary.profileInfo?.website && (
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-[#8E8E93] mb-2">Website</label>
+              <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Website</label>
               <a 
                 href={subsidiary.profileInfo.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#0A84FF] text-base flex items-center hover:text-[#409CFF] transition-colors"
+                className="text-[#0ea5e9] text-base flex items-center hover:text-[#38bdf8] transition-colors"
               >
                 <Globe className="h-4 w-4 mr-2" />
                 {subsidiary.profileInfo.website}
@@ -140,25 +140,25 @@ const BasicInfoView = ({ subsidiary }) => {
       </div>
 
       {/* Address */}
-      <div className="bg-[#1C1C1E] border border-[#38383A] rounded-lg p-6">
+      <div className="rounded-2xl border border-white/5 bg-white/5 p-6">
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
           <MapPin className="h-5 w-5 mr-2" />
           Alamat
         </h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">Alamat Lengkap</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Alamat Lengkap</label>
             <p className="text-white text-base">
               {subsidiary.address?.street || '-'}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-2">Kota</label>
+              <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Kota</label>
               <p className="text-white text-base">{subsidiary.address?.city || '-'}</p>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[#8E8E93] mb-2">Negara</label>
+              <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Negara</label>
               <p className="text-white text-base">{subsidiary.address?.country || '-'}</p>
             </div>
           </div>
@@ -167,7 +167,7 @@ const BasicInfoView = ({ subsidiary }) => {
 
       {/* Certifications */}
       {subsidiary.certification && subsidiary.certification.length > 0 && (
-        <div className="bg-[#1C1C1E] border border-[#38383A] rounded-lg p-6">
+        <div className="rounded-2xl border border-white/5 bg-white/5 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Sertifikasi</h3>
           <div className="space-y-2">
             {subsidiary.certification.map((cert, index) => (

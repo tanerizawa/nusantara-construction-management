@@ -1,6 +1,8 @@
 /**
  * useTransactions Hook
  * Custom hook for managing finance transactions CRUD operations
+ * Note: voidedBy and reversedBy are now handled by the modal components
+ * using useAuth hook, and passed to these functions via parameters
  */
 
 import { useState, useCallback, useEffect } from "react";
@@ -442,7 +444,7 @@ export const useTransactions = (
   /**
    * Confirm void transaction
    */
-  const confirmVoidTransaction = async ({ transactionId, reason }) => {
+  const confirmVoidTransaction = async ({ transactionId, reason, voidedBy }) => {
     console.log('🚫 Confirming void for transaction:', transactionId);
     console.log('📝 Void reason:', reason);
 
@@ -451,7 +453,7 @@ export const useTransactions = (
 
       const response = await api.post(`/finance/${transactionId}/void`, {
         reason: reason,
-        voidedBy: 'current-user' // TODO: Get from auth context
+        voidedBy: voidedBy || 'system'
       });
 
       console.log('📥 Void response:', response);
@@ -499,7 +501,7 @@ export const useTransactions = (
   /**
    * Confirm reverse transaction
    */
-  const confirmReverseTransaction = async ({ transactionId, reason, correctedData }) => {
+  const confirmReverseTransaction = async ({ transactionId, reason, correctedData, reversedBy }) => {
     console.log('🔄 Confirming reverse for transaction:', transactionId);
     console.log('📝 Reverse reason:', reason);
     console.log('📊 Corrected data:', correctedData);
@@ -509,7 +511,7 @@ export const useTransactions = (
 
       const response = await api.post(`/finance/${transactionId}/reverse`, {
         reason: reason,
-        reversedBy: 'current-user', // TODO: Get from auth context
+        reversedBy: reversedBy || 'system',
         correctedData: correctedData
       });
 

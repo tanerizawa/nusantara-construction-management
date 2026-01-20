@@ -1,0 +1,206 @@
+[
+  {
+    "id": "FIN-001",
+    "type": "income",
+    "category": "project_payment",
+    "amount": 255000000,
+    "description": "Termin 1 - Proyek Rumah Tinggal Jl. Mawar (PRJ-2025-001)",
+    "date": "2025-01-20",
+    "projectId": "Rumah",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pemasukan",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-002",
+    "type": "expense",
+    "category": "materials",
+    "amount": 85000000,
+    "description": "Pembelian besi beton 12mm - Proyek Jl. Mawar",
+    "date": "2025-01-25",
+    "projectId": "Jl",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-003",
+    "type": "expense",
+    "category": "materials",
+    "amount": 45000000,
+    "description": "Pembelian semen portland 50kg - Proyek Jl. Mawar",
+    "date": "2025-01-28",
+    "projectId": "Jl",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-004",
+    "type": "income",
+    "category": "project_payment",
+    "amount": 170000000,
+    "description": "Termin 2 - Proyek Rumah Tinggal Jl. Mawar (PRJ-2025-001)",
+    "date": "2025-03-15",
+    "projectId": "Rumah",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pemasukan",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-005",
+    "type": "expense",
+    "category": "salary",
+    "amount": 125000000,
+    "description": "Gaji karyawan bulan Februari 2025",
+    "date": "2025-03-01",
+    "projectId": null,
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-006",
+    "type": "income",
+    "category": "income_other",
+    "amount": 125000000,
+    "description": "Down Payment - Renovasi Gedung PT XYZ (PRJ-2025-002)",
+    "date": "2025-02-05",
+    "projectId": "2025",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pemasukan",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-007",
+    "type": "expense",
+    "category": "equipment",
+    "amount": 35000000,
+    "description": "Sewa alat berat excavator - Proyek Green Valley",
+    "date": "2025-03-10",
+    "projectId": "Green",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-008",
+    "type": "income",
+    "category": "income_other",
+    "amount": 400000000,
+    "description": "Pembayaran Final - Gudang PT ABC (PRJ-2024-015)",
+    "date": "2025-02-28",
+    "projectId": "2024",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pemasukan",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-009",
+    "type": "expense",
+    "category": "materials",
+    "amount": 65000000,
+    "description": "Pembelian keramik dan material finishing - Kelurahan",
+    "date": "2025-03-20",
+    "projectId": null,
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "FIN-010",
+    "type": "income",
+    "category": "project_payment",
+    "amount": 225000000,
+    "description": "Termin 3 - Renovasi Kantor Kelurahan (PRJ-2024-018)",
+    "date": "2025-04-01",
+    "projectId": "2024",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pemasukan",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "FIN-011",
+    "type": "expense",
+    "category": "salary",
+    "amount": 130000000,
+    "description": "Gaji karyawan bulan Maret 2025",
+    "date": "2025-04-01",
+    "projectId": null,
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "FIN-012",
+    "type": "expense",
+    "category": "materials",
+    "amount": 25000000,
+    "description": "Pembelian material cat dan finishing - Proyek PT XYZ",
+    "date": "2025-04-15",
+    "projectId": "PT",
+    "status": "completed",
+    "reference": null,
+    "metadata": {
+      "originalType": "Pengeluaran",
+      "importedFrom": "mockup"
+    },
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  }
+]

@@ -1,30 +1,27 @@
 /**
  * SINGLE SOURCE OF TRUTH untuk konfigurasi API
  * PRODUCTION FIX: Hostname detection FIRST
+ * Updated: 2025-12-21 - Removed console.log in production
  */
+
+// Helper to check if we're in production
+const isProduction = () => {
+  const hostname = window.location.hostname;
+  return hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup');
+};
 
 const getApiUrl = () => {
   // PRIORITAS 1: Production hostname detection (FIRST!)
-  const hostname = window.location.hostname;
-  if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🌐 Production mode - using https://nusantaragroup.co/api');
-    }
+  if (isProduction()) {
     return 'https://nusantaragroup.co/api';
   }
 
   // PRIORITAS 2: Environment Variable
   if (process.env.REACT_APP_API_URL) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔧 Using ENV API URL:', process.env.REACT_APP_API_URL);
-    }
     return process.env.REACT_APP_API_URL;
   }
 
   // PRIORITAS 3: Development fallback
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🏠 Development mode - using /api');
-  }
   return '/api';
 };
 
@@ -46,8 +43,7 @@ export const getImageUrl = (path) => {
   if (path.startsWith('http')) return path;
   
   // For production, use relative URL to leverage Apache proxy
-  const hostname = window.location.hostname;
-  if (hostname === 'nusantaragroup.co' || hostname.includes('nusantaragroup')) {
+  if (isProduction()) {
     // Return path as-is, browser will use current protocol + domain
     return path;
   }
@@ -56,7 +52,8 @@ export const getImageUrl = (path) => {
   return `${BASE_URL}${path}`;
 };
 
-if (process.env.NODE_ENV === 'development') {
+// Only log in development mode (local development, not production)
+if (process.env.NODE_ENV === 'development' && !isProduction()) {
   console.log('📊 Config:', {
     API_URL,
     BASE_URL,

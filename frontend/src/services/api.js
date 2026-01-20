@@ -1,8 +1,13 @@
 import axios from 'axios';
-import { API_URL } from '../utils/config';
+import { API_URL, IS_PRODUCTION } from '../utils/config';
 
 // Use centralized API configuration
 const API_BASE_URL = API_URL;
+
+// Helper for conditional logging (only in local development)
+const isDev = process.env.NODE_ENV === 'development' && !IS_PRODUCTION;
+const devLog = (...args) => isDev && console.log(...args);
+const devError = (...args) => isDev && console.error(...args);
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -18,15 +23,15 @@ apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     
-    // Only log in development mode
-    if (process.env.NODE_ENV === 'development') {
+    // Only log in local development mode
+    if (isDev) {
       let dataLog = 'N/A';
       const method = config.method?.toLowerCase();
       if (['post', 'put', 'patch'].includes(method)) {
         dataLog = config.data;
       }
       
-      console.log('🔐 AXIOS REQUEST DEBUG:', {
+      devLog('🔐 AXIOS REQUEST DEBUG:', {
         url: config.url,
         method: config.method,
         hasToken: !!token,
@@ -37,37 +42,33 @@ apiClient.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Token added to request headers');
-      }
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log('❌ No token found in localStorage');
+      devLog('✅ Token added to request headers');
+    } else {
+      devLog('❌ No token found in localStorage');
     }
     
     // For FormData, remove Content-Type to let axios set it automatically
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
       
-      if (process.env.NODE_ENV === 'development') {
-        console.log('=== AXIOS INTERCEPTOR DEBUG ===');
-        console.log('FormData detected in interceptor');
-        console.log('URL:', config.url);
-        console.log('Method:', config.method);
-        console.log('Headers after Content-Type removal:', config.headers);
-        console.log('FormData entries:');
+      if (isDev) {
+        devLog('=== AXIOS INTERCEPTOR DEBUG ===');
+        devLog('FormData detected in interceptor');
+        devLog('URL:', config.url);
+        devLog('Method:', config.method);
+        devLog('Headers after Content-Type removal:', config.headers);
+        devLog('FormData entries:');
         for (let pair of config.data.entries()) {
-          console.log(pair[0] + ': ', pair[1]);
+          devLog(pair[0] + ': ', pair[1]);
         }
-        console.log('==============================');
+        devLog('==============================');
       }
     }
     
     return config;
   },
   (error) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('❌ AXIOS REQUEST ERROR:', error);
-    }
+    devError('❌ AXIOS REQUEST ERROR:', error);
     return Promise.reject(error);
   }
 );
@@ -75,20 +76,18 @@ apiClient.interceptors.request.use(
 // Response interceptor untuk error handling
 apiClient.interceptors.response.use(
   (response) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('✅ AXIOS RESPONSE SUCCESS:', {
-        url: response.config.url,
-        status: response.status,
-        dataPreview: JSON.stringify(response.data).substring(0, 100) + '...'
-      });
-    }
+    devLog('✅ AXIOS RESPONSE SUCCESS:', {
+      url: response.config.url,
+      status: response.status,
+      dataPreview: JSON.stringify(response.data).substring(0, 100) + '...'
+    });
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
     
-    // Log all errors normally - all endpoints should exist
-    console.error('API Error:', {
+    // Log errors only in development
+    devError('API Error:', {
       url: error.config?.url,
       status: error.response?.status,
       message: error.message,
@@ -112,7 +111,7 @@ apiClient.interceptors.response.use(
       originalRequest._retry = (originalRequest._retry || 0) + 1;
       
       if (originalRequest._retry <= 2) {
-        console.log(`🔄 Retrying request (attempt ${originalRequest._retry}/2):`, error.config?.url);
+        devLog(`🔄 Retrying request (attempt ${originalRequest._retry}/2):`, error.config?.url);
         
         // Wait before retry (exponential backoff)
         await new Promise(resolve => setTimeout(resolve, originalRequest._retry * 1000));

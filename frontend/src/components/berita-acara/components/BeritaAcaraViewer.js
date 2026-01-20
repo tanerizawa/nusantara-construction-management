@@ -36,8 +36,9 @@ const BeritaAcaraViewer = ({
   };
 
   const handleDownload = () => {
-    // TODO: Implement PDF generation
-    alert('Fitur download PDF akan segera tersedia');
+    // Use browser's native print-to-PDF functionality
+    // User can select "Save as PDF" in the print dialog
+    window.print();
   };
 
   return (

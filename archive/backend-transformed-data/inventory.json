@@ -1,0 +1,234 @@
+[
+  {
+    "id": "INV-001",
+    "itemCode": "CMT-POR-T1-50KG",
+    "name": "Semen Portland Type I",
+    "category": "materials",
+    "subcategory": "",
+    "brand": "",
+    "unit": "sak",
+    "specification": "Semen portland tipe I kemasan 50kg untuk konstruksi umum",
+    "currentStock": 2500,
+    "reservedStock": 0,
+    "minimumStock": 500,
+    "maximumStock": 5000,
+    "location": {
+      "warehouse": "Gudang Utama",
+      "rack": "A-001",
+      "zone": "Material Dasar"
+    },
+    "primarySupplier": "PT Semen Padang",
+    "alternativeSuppliers": [
+      "PT Holcim",
+      "PT Indocement"
+    ],
+    "lastPurchasePrice": 65000,
+    "averagePrice": 63500,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-002",
+    "itemCode": "STL-RBR-12MM",
+    "name": "Besi Beton 12mm",
+    "category": "materials",
+    "subcategory": "",
+    "brand": "",
+    "unit": "batang",
+    "specification": "Besi beton ulir diameter 12mm panjang 12m SNI",
+    "currentStock": 150,
+    "reservedStock": 0,
+    "minimumStock": 50,
+    "maximumStock": 500,
+    "location": {
+      "warehouse": "Gudang Utama",
+      "rack": "B-002",
+      "zone": "Material Struktur"
+    },
+    "primarySupplier": "PT Krakatau Steel",
+    "alternativeSuppliers": [
+      "PT Gunung Garuda",
+      "PT Hanil Jaya Steel"
+    ],
+    "lastPurchasePrice": 95000,
+    "averagePrice": 92000,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-003",
+    "itemCode": "FIN-KRM-40X40",
+    "name": "Keramik 40x40 cm",
+    "category": "finishing",
+    "subcategory": "",
+    "brand": "",
+    "unit": "m2",
+    "specification": "Keramik lantai 40x40cm grade A untuk interior",
+    "currentStock": 1200,
+    "reservedStock": 0,
+    "minimumStock": 200,
+    "maximumStock": 2000,
+    "location": {
+      "warehouse": "Gudang Finishing",
+      "rack": "C-001",
+      "zone": "Material Finishing"
+    },
+    "primarySupplier": "PT Roman Granit",
+    "alternativeSuppliers": [
+      "PT Mulia Ceramic",
+      "PT Asia Tile"
+    ],
+    "lastPurchasePrice": 45000,
+    "averagePrice": 43500,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-004",
+    "itemCode": "RMX-K300",
+    "name": "Ready Mix Concrete K-300",
+    "category": "materials",
+    "subcategory": "",
+    "brand": "",
+    "unit": "m3",
+    "specification": "Beton ready mix mutu K-300 untuk konstruksi struktural",
+    "currentStock": 0,
+    "reservedStock": 0,
+    "minimumStock": 0,
+    "maximumStock": 100,
+    "location": {
+      "warehouse": "Supplier Direct",
+      "rack": "N/A",
+      "zone": "Direct Delivery"
+    },
+    "primarySupplier": "PT Varia Usaha Beton",
+    "alternativeSuppliers": [
+      "PT Beton Cor Prima",
+      "PT Adhimix Precast"
+    ],
+    "lastPurchasePrice": 850000,
+    "averagePrice": 825000,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-005",
+    "itemCode": "FIN-CAT-INT-20L",
+    "name": "Cat Tembok Interior",
+    "category": "finishing",
+    "subcategory": "",
+    "brand": "",
+    "unit": "kaleng",
+    "specification": "Cat tembok interior water based 20 liter",
+    "currentStock": 85,
+    "reservedStock": 0,
+    "minimumStock": 20,
+    "maximumStock": 200,
+    "location": {
+      "warehouse": "Gudang Finishing",
+      "rack": "D-003",
+      "zone": "Material Cat"
+    },
+    "primarySupplier": "PT Nippon Paint",
+    "alternativeSuppliers": [
+      "PT Propan Raya",
+      "PT Avian Brands"
+    ],
+    "lastPurchasePrice": 285000,
+    "averagePrice": 275000,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-006",
+    "itemCode": "PLP-PVC-4IN",
+    "name": "Pipa PVC 4 inch",
+    "category": "plumbing",
+    "subcategory": "",
+    "brand": "",
+    "unit": "batang",
+    "specification": "Pipa PVC 4 inch panjang 4m untuk instalasi air",
+    "currentStock": 120,
+    "reservedStock": 0,
+    "minimumStock": 30,
+    "maximumStock": 300,
+    "location": {
+      "warehouse": "Gudang MEP",
+      "rack": "E-001",
+      "zone": "Material Plumbing"
+    },
+    "primarySupplier": "PT Rucika",
+    "alternativeSuppliers": [
+      "PT Wavin",
+      "PT Pralon"
+    ],
+    "lastPurchasePrice": 125000,
+    "averagePrice": 120000,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-007",
+    "itemCode": "ELC-NYM-2.5MM",
+    "name": "Kabel NYM 2.5mm",
+    "category": "electrical",
+    "subcategory": "",
+    "brand": "",
+    "unit": "meter",
+    "specification": "Kabel NYM 2.5mm² untuk instalasi listrik rumah",
+    "currentStock": 2500,
+    "reservedStock": 0,
+    "minimumStock": 500,
+    "maximumStock": 5000,
+    "location": {
+      "warehouse": "Gudang MEP",
+      "rack": "F-002",
+      "zone": "Material Elektrikal"
+    },
+    "primarySupplier": "PT Kabelindo Murni",
+    "alternativeSuppliers": [
+      "PT Jembo Cable",
+      "PT Voksel Electric"
+    ],
+    "lastPurchasePrice": 8500,
+    "averagePrice": 8200,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  },
+  {
+    "id": "INV-008",
+    "itemCode": "ROF-GTG-BTN",
+    "name": "Genteng Beton",
+    "category": "roofing",
+    "subcategory": "",
+    "brand": "",
+    "unit": "buah",
+    "specification": "Genteng beton natural untuk atap",
+    "currentStock": 3000,
+    "reservedStock": 0,
+    "minimumStock": 500,
+    "maximumStock": 5000,
+    "location": {
+      "warehouse": "Gudang Atap",
+      "rack": "G-001",
+      "zone": "Material Atap"
+    },
+    "primarySupplier": "PT Monier",
+    "alternativeSuppliers": [
+      "PT Eagle Roofing",
+      "PT Kanmuri"
+    ],
+    "lastPurchasePrice": 3500,
+    "averagePrice": 3400,
+    "isActive": true,
+    "createdAt": "2025-09-07T12:46:32.246Z",
+    "updatedAt": "2025-09-07T12:46:32.246Z"
+  }
+]

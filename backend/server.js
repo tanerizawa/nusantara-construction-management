@@ -49,25 +49,34 @@ const logError = (error, req = null) => {
   }
 };
 
+// Trust proxy - required when behind Nginx reverse proxy
+if (isProduction) {
+  app.set('trust proxy', 1);
+}
+
 // Security middleware with production configuration
-// Temporarily disabled for CORS debugging
-/*
 app.use(helmet({
   contentSecurityPolicy: isProduction ? {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "https://nusantaragroup.co", "wss:"],
+      frameSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
     },
   } : false,
   hsts: isProduction ? {
     maxAge: 31536000,
     includeSubDomains: true,
     preload: true
-  } : false
+  } : false,
+  crossOriginEmbedderPolicy: false, // Disable for external resources
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
-*/
 
 app.use(compression({
   filter: (req, res) => {
@@ -140,20 +149,23 @@ const corsOptions = {
   preflightContinue: false
 };
 
-// Debug CORS
-console.log('🔧 CORS Configuration:', { isProduction, corsOptions });
+// Only log CORS config in development
+if (!isProduction) {
+  console.log('🔧 CORS Configuration:', { isProduction, corsOptions });
+}
 
 app.use(cors(corsOptions));
 
 // Additional explicit OPTIONS handling for problematic routes
 app.options('*', cors(corsOptions));
 
-// Debug middleware untuk melihat request
-app.use((req, res, next) => {
-  console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'no-origin'}`);
-  console.log(`🔧 Headers: ${JSON.stringify(req.headers, null, 2)}`);
-  next();
-});
+// Debug middleware - ONLY in development
+if (!isProduction) {
+  app.use((req, res, next) => {
+    console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'no-origin'}`);
+    next();
+  });
+}
 
 // Request parsing with security limits
 app.use(express.json({ 

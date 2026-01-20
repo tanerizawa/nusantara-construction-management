@@ -126,12 +126,12 @@ const ReportGeneratorModal = ({
     }
   };
 
-  // Handle download report (future: export to PDF/Excel)
+  // Handle download report (exports to JSON, use Print > Save as PDF for PDF export)
   const handleDownloadReport = () => {
     if (!generatedReport) return;
 
-    // For now, download as JSON
-    // TODO: Implement PDF/Excel export
+    // Download as JSON format
+    // Note: For PDF export, use browser Print > Save as PDF
     const dataStr = JSON.stringify(generatedReport, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);

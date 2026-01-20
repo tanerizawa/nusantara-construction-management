@@ -9,7 +9,7 @@ import { QuantityInput } from '../../../../components/ui/NumberInput';
  * Create PO View
  * Form for creating a new Purchase Order from selected RAB items
  * 
- * TODO: Extract full functionality from original ProjectPurchaseOrders.js lines 986-1362
+ * Note: Full PO creation functionality is implemented in this component
  */
 const CreatePOView = ({ 
   selectedRABItems, 

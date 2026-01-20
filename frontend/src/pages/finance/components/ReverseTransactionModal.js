@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, X } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { useAuth } from '../../../context/AuthContext';
 
 /**
  * ReverseTransactionModal Component
@@ -31,6 +32,7 @@ const ReverseTransactionModal = ({
   accounts = [],
   loading = false
 }) => {
+  const { user } = useAuth();
   const [reason, setReason] = useState('');
   const [correctedData, setCorrectedData] = useState({
     type: '',
@@ -112,7 +114,7 @@ const ReverseTransactionModal = ({
     try {
       await onReverse({
         reason: reason.trim(),
-        reversedBy: 'current-user', // TODO: Get from auth context
+        reversedBy: user?.id || user?.username || 'unknown',
         correctedData: {
           ...correctedData,
           amount: parseFloat(correctedData.amount)

@@ -12,64 +12,56 @@ const StatsCards = ({ stats }) => {
   if (!stats) return null;
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {/* Total Subsidiaries */}
-      <div className="rounded-xl p-6 shadow-sm" 
-        style={{ 
-          background: "linear-gradient(135deg, rgba(10, 132, 255, 0.2) 0%, rgba(10, 132, 255, 0.1) 100%)",
-          border: "1px solid rgba(10, 132, 255, 0.3)" 
-        }}>
+      <div className="rounded-3xl border border-white/5 bg-[#070b13]/85 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm" style={{ color: "#98989D" }}>Total Anak Usaha</p>
-            <p className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>{stats.total || 0}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-1">Total Anak Usaha</p>
+            <p className="text-3xl font-bold text-white">{stats.total || 0}</p>
           </div>
-          <Building className="w-8 h-8" style={{ color: "#0A84FF" }} />
+          <div className="w-12 h-12 bg-[#0A84FF]/20 rounded-2xl flex items-center justify-center">
+            <Building className="h-6 w-6 text-[#0A84FF]" />
+          </div>
         </div>
       </div>
 
       {/* Active Subsidiaries */}
-      <div className="rounded-xl p-6 shadow-sm" 
-        style={{ 
-          background: "linear-gradient(135deg, rgba(52, 199, 89, 0.2) 0%, rgba(52, 199, 89, 0.1) 100%)",
-          border: "1px solid rgba(52, 199, 89, 0.3)" 
-        }}>
+      <div className="rounded-3xl border border-white/5 bg-[#070b13]/85 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm" style={{ color: "#98989D" }}>Anak Usaha Aktif</p>
-            <p className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>{stats.active || 0}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-1">Anak Usaha Aktif</p>
+            <p className="text-3xl font-bold text-[#30D158]">{stats.active || 0}</p>
           </div>
-          <Award className="w-8 h-8" style={{ color: "#34C759" }} />
+          <div className="w-12 h-12 bg-[#30D158]/20 rounded-2xl flex items-center justify-center">
+            <Award className="h-6 w-6 text-[#30D158]" />
+          </div>
         </div>
       </div>
 
       {/* Total Employees */}
-      <div className="rounded-xl p-6 shadow-sm" 
-        style={{ 
-          background: "linear-gradient(135deg, rgba(255, 159, 10, 0.2) 0%, rgba(255, 159, 10, 0.1) 100%)",
-          border: "1px solid rgba(255, 159, 10, 0.3)" 
-        }}>
+      <div className="rounded-3xl border border-white/5 bg-[#070b13]/85 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm" style={{ color: "#98989D" }}>Total Karyawan</p>
-            <p className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>{stats.totalEmployees || 0}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-1">Total Karyawan</p>
+            <p className="text-3xl font-bold text-[#FF9F0A]">{stats.totalEmployees || 0}</p>
           </div>
-          <Users className="w-8 h-8" style={{ color: "#FF9F0A" }} />
+          <div className="w-12 h-12 bg-[#FF9F0A]/20 rounded-2xl flex items-center justify-center">
+            <Users className="h-6 w-6 text-[#FF9F0A]" />
+          </div>
         </div>
       </div>
 
       {/* Specializations Count */}
-      <div className="rounded-xl p-6 shadow-sm" 
-        style={{ 
-          background: "linear-gradient(135deg, rgba(191, 90, 242, 0.2) 0%, rgba(191, 90, 242, 0.1) 100%)",
-          border: "1px solid rgba(191, 90, 242, 0.3)" 
-        }}>
+      <div className="rounded-3xl border border-white/5 bg-[#070b13]/85 p-5 shadow-[0_25px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm" style={{ color: "#98989D" }}>Spesialisasi</p>
-            <p className="text-2xl font-bold" style={{ color: "#FFFFFF" }}>{stats.specializations || 0}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-1">Spesialisasi</p>
+            <p className="text-3xl font-bold text-[#8b5cf6]">{stats.specializations || 0}</p>
           </div>
-          <MapPin className="w-8 h-8" style={{ color: "#BF5AF2" }} />
+          <div className="w-12 h-12 bg-[#8b5cf6]/20 rounded-2xl flex items-center justify-center">
+            <MapPin className="h-6 w-6 text-[#8b5cf6]" />
+          </div>
         </div>
       </div>
     </div>

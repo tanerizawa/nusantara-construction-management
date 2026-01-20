@@ -102,10 +102,10 @@ const MonthlySummary = () => {
     return nextMonth > today;
   };
 
-  // Export summary to PDF (placeholder for future implementation)
+  // Export summary to PDF using browser print dialog
   const handleExportPDF = () => {
-    alert('Export to PDF feature coming soon!');
-    // TODO: Implement PDF export using jsPDF or similar library
+    // Use browser's native print-to-PDF functionality
+    window.print();
   };
 
   return (

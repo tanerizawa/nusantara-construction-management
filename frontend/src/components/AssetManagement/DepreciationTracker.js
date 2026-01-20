@@ -121,55 +121,52 @@ const DepreciationTracker = () => {
   }
 
   return (
-    <div className="p-6 bg-[#1C1C1E] min-h-screen">
+    <div className="p-6 bg-[#0b0f19] min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Total Aset</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Total Aset</p>
                 <p className="text-2xl font-bold text-white">{stats.totalAssets}</p>
               </div>
-              <div className="w-12 h-12 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
-                <Package className="h-6 w-6 text-[#0A84FF]" />
+              <div className="w-12 h-12 bg-[#0ea5e9]/20 rounded-xl flex items-center justify-center">
+                <Package className="h-6 w-6 text-[#0ea5e9]" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Total Biaya</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Total Biaya</p>
                 <p className="text-lg font-bold text-white">{formatCurrency(stats.totalCost)}</p>
               </div>
-              <div className="w-12 h-12 bg-[#0A84FF]/20 rounded-xl flex items-center justify-center">
-                <Calculator className="h-6 w-6 text-[#0A84FF]" />
+              <div className="w-12 h-12 bg-[#0ea5e9]/20 rounded-xl flex items-center justify-center">
+                <Calculator className="h-6 w-6 text-[#0ea5e9]" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Akumulasi Depresiasi</p>
-                <p className="text-lg font-bold text-[#FF9F0A]">{formatCurrency(stats.totalDepreciation)}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Akumulasi Depresiasi</p>
+                <p className="text-lg font-bold text-amber-400">{formatCurrency(stats.totalDepreciation)}</p>
               </div>
-              <div className="w-12 h-12 bg-[#FF9F0A]/20 rounded-xl flex items-center justify-center">
-                <TrendingDown className="h-6 w-6 text-[#FF9F0A]" />
+              <div className="w-12 h-12 bg-amber-400/20 rounded-xl flex items-center justify-center">
+                <TrendingDown className="h-6 w-6 text-amber-400" />
               </div>
             </div>
           </div>
-
-          <div className="bg-[#2C2C2E] rounded-xl p-4 shadow-sm border border-[#38383A]">
+          <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[#98989D] mb-1">Nilai Buku Bersih</p>
-                <p className="text-lg font-bold text-[#30D158]">{formatCurrency(stats.totalNetBook)}</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Nilai Buku Bersih</p>
+                <p className="text-lg font-bold text-emerald-400">{formatCurrency(stats.totalNetBook)}</p>
               </div>
-              <div className="w-12 h-12 bg-[#30D158]/20 rounded-xl flex items-center justify-center">
-                <Calculator className="h-6 w-6 text-[#30D158]" />
+              <div className="w-12 h-12 bg-emerald-400/20 rounded-xl flex items-center justify-center">
+                <Calculator className="h-6 w-6 text-emerald-400" />
               </div>
             </div>
           </div>
@@ -177,7 +174,7 @@ const DepreciationTracker = () => {
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg flex items-center justify-between">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center justify-between">
             <span>{error}</span>
             <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">
               <X className="h-4 w-4" />
@@ -186,18 +183,18 @@ const DepreciationTracker = () => {
         )}
 
         {/* Search */}
-        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] p-4">
+        <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl border border-white/10 p-4">
           <div className="flex gap-4">
             <input
               type="text"
               placeholder="Cari aset..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-4 py-2 bg-[#1C1C1E] border border-[#38383A] rounded-lg text-white placeholder-[#636366] focus:ring-2 focus:ring-[#0A84FF] focus:border-transparent"
+              className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-[#0ea5e9] focus:border-transparent transition-all"
             />
             <button
               onClick={fetchAssetsWithDepreciation}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A84FF]/90 transition-all"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#0ea5e9] text-white rounded-xl hover:bg-[#0ea5e9]/90 transition-all shadow-lg shadow-[#0ea5e9]/20"
             >
               <RefreshCw className="h-5 w-5" />
               Refresh
@@ -206,36 +203,36 @@ const DepreciationTracker = () => {
         </div>
 
         {/* Assets Table */}
-        <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] overflow-hidden">
+        <div className="bg-[#0b0f19]/90 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[#1C1C1E] border-b border-[#38383A]">
+              <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase w-8"></th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Aset</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Metode</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Harga Beli</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Akumulasi</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Nilai Buku</th>
-                  <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase">Per Tahun</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase w-8"></th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Aset</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Metode</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Harga Beli</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Akumulasi</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Nilai Buku</th>
+                  <th className="px-3 py-4 text-left text-xs font-medium text-white/50 uppercase">Per Tahun</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#38383A]">
+              <tbody className="divide-y divide-white/10">
                 {filteredAssets.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center">
-                      <Package className="h-12 w-12 text-[#636366] mx-auto mb-3" />
-                      <p className="text-[#98989D]">Tidak ada data aset</p>
+                    <td colSpan="7" className="px-6 py-12 text-center bg-white/5 rounded-xl">
+                      <Package className="h-12 w-12 text-white/30 mx-auto mb-3" />
+                      <p className="text-white/60">Tidak ada data aset</p>
                     </td>
                   </tr>
                 ) : (
                   filteredAssets.map((asset) => (
                     <React.Fragment key={asset.id}>
-                      <tr className="hover:bg-[#38383A]/30 transition-colors">
+                      <tr className="hover:bg-white/10 transition-colors">
                         <td className="px-3 py-3">
                           <button
                             onClick={() => toggleRowExpand(asset.id)}
-                            className="text-[#98989D] hover:text-white transition-colors"
+                            className="text-white/50 hover:text-white transition-colors"
                             title={expandedRow === asset.id ? "Tutup Jadwal" : "Lihat Jadwal"}
                           >
                             {expandedRow === asset.id ? (
@@ -246,20 +243,20 @@ const DepreciationTracker = () => {
                           </button>
                         </td>
                         <td className="px-3 py-3">
-                          <div className="text-sm font-medium text-white">{asset.assetName}</div>
-                          <div className="text-xs text-[#636366] mt-0.5">{asset.assetCode}</div>
+                          <div className="text-sm font-semibold text-white">{asset.assetName}</div>
+                          <div className="text-xs text-white/40 mt-0.5">{asset.assetCode}</div>
                         </td>
                         <td className="px-3 py-3">
                           <div className="text-sm text-white">{depreciationMethods[asset.depreciationMethod]}</div>
-                          <div className="text-xs text-[#98989D] mt-0.5">{asset.usefulLife} tahun</div>
+                          <div className="text-xs text-white/60 mt-0.5">{asset.usefulLife} tahun</div>
                         </td>
                         <td className="px-3 py-3 text-sm text-white">
                           {formatCurrency(asset.purchasePrice || 0)}
                         </td>
-                        <td className="px-3 py-3 text-sm text-[#FF9F0A]">
+                        <td className="px-3 py-3 text-sm text-amber-400">
                           {formatCurrency(asset.accumulatedDepreciation || 0)}
                         </td>
-                        <td className="px-3 py-3 text-sm text-[#30D158] font-medium">
+                        <td className="px-3 py-3 text-sm text-emerald-400 font-medium">
                           {formatCurrency(asset.netBookValue || 0)}
                         </td>
                         <td className="px-3 py-3 text-sm text-white">
@@ -269,36 +266,35 @@ const DepreciationTracker = () => {
 
                       {/* Inline Schedule */}
                       {expandedRow === asset.id && (
-                        <tr className="bg-[#1C1C1E]/80">
+                        <tr className="bg-white/10">
                           <td colSpan="7" className="px-6 py-4">
                             <div className="space-y-3">
                               <h4 className="text-sm font-semibold text-white mb-3">
                                 Jadwal Depresiasi - {asset.assetName}
                               </h4>
-                              
                               <div className="overflow-x-auto">
                                 <table className="w-full">
-                                  <thead className="bg-[#2C2C2E]">
+                                  <thead className="bg-white/5">
                                     <tr>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Tahun</th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Depresiasi</th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Akumulasi</th>
-                                      <th className="px-4 py-2 text-left text-xs font-medium text-[#98989D] uppercase">Nilai Buku</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-white/50 uppercase">Tahun</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-white/50 uppercase">Depresiasi</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-white/50 uppercase">Akumulasi</th>
+                                      <th className="px-4 py-2 text-left text-xs font-medium text-white/50 uppercase">Nilai Buku</th>
                                     </tr>
                                   </thead>
-                                  <tbody className="divide-y divide-[#38383A]">
+                                  <tbody className="divide-y divide-white/10">
                                     {generateDepreciationSchedule(asset).map((item) => (
-                                      <tr key={item.year} className="hover:bg-[#38383A]/30">
+                                      <tr key={item.year} className="hover:bg-white/10">
                                         <td className="px-4 py-2 text-sm text-white">
                                           Tahun {item.yearNumber} ({item.year})
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-[#FF9F0A]">
+                                        <td className="px-4 py-2 text-sm text-amber-400">
                                           {formatCurrency(item.depreciation)}
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-[#FF453A]">
+                                        <td className="px-4 py-2 text-sm text-red-400">
                                           {formatCurrency(item.accumulated)}
                                         </td>
-                                        <td className="px-4 py-2 text-sm text-[#30D158] font-medium">
+                                        <td className="px-4 py-2 text-sm text-emerald-400 font-medium">
                                           {formatCurrency(item.netBookValue)}
                                         </td>
                                       </tr>

@@ -21,21 +21,21 @@ const QuickLinks = () => {
       text: 'Dokumentasi Kegiatan', 
       subtext: 'Unggah berita acara dan foto lapangan',
       gradient: 'from-[#34d399] to-[#22c55e]',
-      path: '/berita-acara'
+      path: '/projects'
     },
     { 
       icon: Upload, 
-      text: 'Upload Progress Foto', 
-      subtext: 'Perbarui perkembangan proyek terbaru',
+      text: 'Kelola Proyek', 
+      subtext: 'Lihat dan kelola semua proyek aktif',
       gradient: 'from-[#f97316] to-[#f43f5e]',
       path: '/projects'
     },
     { 
       icon: BarChart3, 
-      text: 'Lihat Laporan', 
+      text: 'Lihat Analitik', 
       subtext: 'Buka analitik keuangan & operasional',
       gradient: 'from-[#a855f7] to-[#ec4899]',
-      path: '/reports'
+      path: '/analytics'
     }
   ];
   

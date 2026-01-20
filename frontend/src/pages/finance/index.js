@@ -141,12 +141,9 @@ const Finance = () => {
       case 'transactions':
         return (
           <div className="space-y-6">
-            <div className="rounded-xl p-6" style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A'
-            }}>
+            <div className="rounded-2xl p-6 border border-white/5 bg-[#0b0f19]/80 backdrop-blur-xl">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
+                <h2 className="text-2xl font-semibold text-white">
                   Manajemen Transaksi
                 </h2>
                 <div className="flex flex-wrap gap-3">
@@ -168,12 +165,11 @@ const Finance = () => {
                   />
                   <button
                     onClick={() => transactions.setShowTransactionForm(!transactions.showTransactionForm)}
-                    className="px-4 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
-                    style={{
-                      backgroundColor: transactions.showTransactionForm ? 'rgba(255, 69, 58, 0.15)' : 'rgba(10, 132, 255, 0.15)',
-                      color: transactions.showTransactionForm ? '#FF453A' : '#0A84FF',
-                      border: transactions.showTransactionForm ? '1px solid rgba(255, 69, 58, 0.3)' : '1px solid rgba(10, 132, 255, 0.3)'
-                    }}
+                    className={`px-4 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 ${
+                      transactions.showTransactionForm 
+                        ? 'bg-[#FF453A]/15 text-[#FF453A] border border-[#FF453A]/30' 
+                        : 'bg-[#0ea5e9]/15 text-[#0ea5e9] border border-[#0ea5e9]/30'
+                    }`}
                   >
                     <span>{transactions.showTransactionForm ? 'Batalkan' : 'Transaksi Baru'}</span>
                   </button>
@@ -183,26 +179,23 @@ const Finance = () => {
 
             {/* Info Banner - Explaining Transaction Types */}
             {!transactions.showTransactionForm && transactions.transactions.length === 0 && (
-              <div className="rounded-xl p-4" style={{
-                background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
-                border: '1px solid rgba(10, 132, 255, 0.3)'
-              }}>
+              <div className="rounded-2xl p-4 border border-[#0ea5e9]/30 bg-[#0ea5e9]/10">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0 mt-1">
-                    <svg className="w-5 h-5" style={{ color: '#0A84FF' }} fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-[#0ea5e9]" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-sm font-semibold mb-1" style={{ color: '#0A84FF' }}>
+                    <h4 className="text-sm font-semibold mb-1 text-[#0ea5e9]">
                       Transaksi Keuangan Manual
                     </h4>
-                    <p className="text-xs leading-relaxed" style={{ color: '#98989D' }}>
+                    <p className="text-xs leading-relaxed text-white/60">
                       Tab ini untuk transaksi keuangan manual (biaya operasional, pendapatan lain-lain, dan sebagainya).
                       Untuk data konstruksi (pembayaran progres, biaya milestone), lihat tab <strong>Ruang Kerja Keuangan</strong> atau <strong>Keuangan Proyek</strong>.
                     </p>
-                    <div className="mt-2 text-xs" style={{ color: '#98989D' }}>
-                      💡 <strong>Tips:</strong> Klik tombol "<span style={{ color: '#0A84FF' }}>Tambah Transaksi</span>" untuk menambahkan transaksi keuangan baru.
+                    <div className="mt-2 text-xs text-white/60">
+                      💡 <strong>Tips:</strong> Klik tombol "<span className="text-[#0ea5e9]">Tambah Transaksi</span>" untuk menambahkan transaksi keuangan baru.
                     </div>
                   </div>
                 </div>
@@ -212,41 +205,32 @@ const Finance = () => {
             {/* Transaction Summary */}
             {!transactions.showTransactionForm && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
-                  background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.15), rgba(48, 209, 88, 0.05))',
-                  border: '1px solid rgba(48, 209, 88, 0.3)'
-                }}>
-                  <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
+                <div className="rounded-2xl p-5 transition-transform hover:scale-105 border border-[#30D158]/20 bg-[#30D158]/10">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/50 mb-2">
                     Total Pendapatan
                   </p>
-                  <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
+                  <p className="text-2xl font-bold text-[#30D158]">
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.income)}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Hanya transaksi manual</p>
+                  <p className="text-xs mt-1 text-white/50">Hanya transaksi manual</p>
                 </div>
-                <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 69, 58, 0.15), rgba(255, 69, 58, 0.05))',
-                  border: '1px solid rgba(255, 69, 58, 0.3)'
-                }}>
-                  <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
+                <div className="rounded-2xl p-5 transition-transform hover:scale-105 border border-[#FF453A]/20 bg-[#FF453A]/10">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/50 mb-2">
                     Total Pengeluaran
                   </p>
-                  <p className="text-2xl font-bold" style={{ color: '#FF453A' }}>
+                  <p className="text-2xl font-bold text-[#FF453A]">
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.expense)}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Hanya transaksi manual</p>
+                  <p className="text-xs mt-1 text-white/50">Hanya transaksi manual</p>
                 </div>
-                <div className="rounded-xl p-5 transition-transform hover:scale-105" style={{
-                  background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
-                  border: '1px solid rgba(10, 132, 255, 0.3)'
-                }}>
-                  <p className="text-sm font-medium mb-2" style={{ color: '#98989D' }}>
+                <div className="rounded-2xl p-5 transition-transform hover:scale-105 border border-[#0ea5e9]/20 bg-[#0ea5e9]/10">
+                  <p className="text-xs uppercase tracking-[0.15em] text-white/50 mb-2">
                     Saldo Bersih
                   </p>
-                  <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
+                  <p className="text-2xl font-bold text-[#0ea5e9]">
                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(transactions.transactionSummary.balance)}
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#98989D' }}>Hanya transaksi manual</p>
+                  <p className="text-xs mt-1 text-white/50">Hanya transaksi manual</p>
                 </div>
               </div>
             )}
@@ -346,12 +330,9 @@ const Finance = () => {
       case 'reports':
         return (
           <div className="space-y-6">
-            <div className="rounded-xl p-6" style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A'
-            }}>
+            <div className="rounded-2xl p-6 border border-white/5 bg-[#0b0f19]/80 backdrop-blur-xl">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
+                <h2 className="text-2xl font-semibold text-white">
                   Laporan Keuangan (Sesuai PSAK)
                 </h2>
                 <TransactionFilters
@@ -402,12 +383,9 @@ const Finance = () => {
       case 'projects':
         return (
           <div className="space-y-6">
-            <div className="rounded-xl p-6" style={{
-              backgroundColor: '#2C2C2E',
-              border: '1px solid #38383A'
-            }}>
+            <div className="rounded-2xl p-6 border border-white/5 bg-[#0b0f19]/80 backdrop-blur-xl">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-semibold" style={{ color: '#FFFFFF' }}>
+                <h2 className="text-2xl font-semibold text-white">
                   Keuangan Proyek
                 </h2>
                 <TransactionFilters
@@ -439,34 +417,32 @@ const Finance = () => {
 
       default:
         return (
-          <div className="rounded-xl p-12 text-center" style={{
-            backgroundColor: '#2C2C2E',
-            border: '1px solid #38383A'
-          }}>
-            <FileText className="w-16 h-16 mx-auto mb-4" style={{ color: '#636366' }} />
-            <p style={{ color: '#98989D' }}>Pilih tab untuk melihat konten</p>
+          <div className="rounded-2xl p-12 text-center border border-white/5 bg-[#0b0f19]/80 backdrop-blur-xl">
+            <FileText className="w-16 h-16 mx-auto mb-4 text-white/30" />
+            <p className="text-white/60">Pilih tab untuk melihat konten</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#1C1C1E' }}>
-      <div className="max-w-7xl mx-auto p-4 lg:p-8 space-y-6">
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_45%)]" />
+      </div>
+      <div className="relative z-10 max-w-7xl mx-auto p-4 lg:p-8 space-y-6">
         {/* Header Section */}
-        <div className="rounded-xl p-6 lg:p-8 shadow-lg" style={{ 
-          backgroundColor: '#2C2C2E',
-          border: '1px solid #38383A'
-        }}>
+        <div className="rounded-3xl p-6 lg:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.55)] border border-white/5 bg-[#0b0f19]/90 backdrop-blur-xl">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-gradient-to-br from-[#0ea5e9]/40 to-[#8b5cf6]/40 blur-3xl" />
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <div className="flex items-center mb-3">
-                <Banknote className="w-10 h-10 mr-4" style={{ color: '#0A84FF' }} />
+                <Banknote className="w-10 h-10 mr-4 text-[#0ea5e9]" />
                 <div>
-                  <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>
+                  <h1 className="text-3xl font-bold text-white">
                     Sistem Manajemen Keuangan
                   </h1>
-                  <p className="mt-1" style={{ color: '#98989D', fontSize: '0.95rem' }}>
+                  <p className="mt-1 text-white/60 text-sm">
                     Manajemen keuangan sesuai PSAK untuk Nusantara Construction Group
                   </p>
                 </div>
@@ -475,17 +451,14 @@ const Finance = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl p-4 transition-transform hover:scale-105" style={{
-                background: 'linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.05))',
-                border: '1px solid rgba(10, 132, 255, 0.3)'
-              }}>
+              <div className="rounded-2xl p-4 transition-transform hover:scale-105 border border-[#0ea5e9]/20 bg-[#0ea5e9]/10">
                 <div className="flex items-center">
-                  <DollarSign className="w-8 h-8" style={{ color: '#0A84FF' }} />
+                  <DollarSign className="w-8 h-8 text-[#0ea5e9]" />
                   <div className="ml-3">
-                    <p className="text-xs font-medium" style={{ color: '#98989D' }}>
+                    <p className="text-xs uppercase tracking-[0.15em] text-white/50">
                       Total Pendapatan
                     </p>
-                    <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>
+                    <p className="text-2xl font-bold text-[#0ea5e9]">
                       {new Intl.NumberFormat('id-ID', { 
                         style: 'currency', 
                         currency: 'IDR', 
@@ -497,17 +470,14 @@ const Finance = () => {
                 </div>
               </div>
 
-              <div className="rounded-xl p-4 transition-transform hover:scale-105" style={{
-                background: 'linear-gradient(135deg, rgba(48, 209, 88, 0.15), rgba(48, 209, 88, 0.05))',
-                border: '1px solid rgba(48, 209, 88, 0.3)'
-              }}>
+              <div className="rounded-2xl p-4 transition-transform hover:scale-105 border border-[#30D158]/20 bg-[#30D158]/10">
                 <div className="flex items-center">
-                  <TrendingUp className="w-8 h-8" style={{ color: '#30D158' }} />
+                  <TrendingUp className="w-8 h-8 text-[#30D158]" />
                   <div className="ml-3">
-                    <p className="text-xs font-medium" style={{ color: '#98989D' }}>
+                    <p className="text-xs uppercase tracking-[0.15em] text-white/50">
                       Saldo Bersih
                     </p>
-                    <p className="text-2xl font-bold" style={{ color: '#30D158' }}>
+                    <p className="text-2xl font-bold text-[#30D158]">
                       {new Intl.NumberFormat('id-ID', { 
                         style: 'currency', 
                         currency: 'IDR', 
@@ -523,10 +493,7 @@ const Finance = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="rounded-xl p-2" style={{
-          backgroundColor: '#2C2C2E',
-          border: '1px solid #38383A'
-        }}>
+        <div className="rounded-2xl p-2 border border-white/5 bg-[#0b0f19]/80 backdrop-blur-xl">
           <div className="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
             {tabs.map((tab) => {
               const Icon = tab.icon;
@@ -535,12 +502,11 @@ const Finance = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="flex items-center space-x-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 whitespace-nowrap"
-                  style={{
-                    backgroundColor: isActive ? 'rgba(10, 132, 255, 0.15)' : 'transparent',
-                    color: isActive ? '#0A84FF' : '#98989D',
-                    border: isActive ? '1px solid rgba(10, 132, 255, 0.3)' : '1px solid transparent'
-                  }}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 whitespace-nowrap ${
+                    isActive 
+                      ? 'bg-[#0ea5e9]/15 text-[#0ea5e9] border border-[#0ea5e9]/30' 
+                      : 'text-white/60 border border-transparent hover:text-white hover:bg-white/5'
+                  }`}
                   title={tab.description}
                 >
                   <Icon className="w-5 h-5" />

@@ -37,8 +37,11 @@ const SubsidiariesList = () => {
   } = useSubsidiaryFilters(subsidiaries);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#1C1C1E" }}>
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="relative isolate min-h-screen">
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+        <div className="h-full w-full bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_45%)]" />
+      </div>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 space-y-6">
         {/* Header */}
         <PageHeader />
         
@@ -61,7 +64,7 @@ const SubsidiariesList = () => {
         
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 rounded-lg text-red-300 bg-red-900/20 border border-red-900">
+          <div className="rounded-2xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-4 py-3 text-[#FF453A] backdrop-blur-xl">
             {error}
           </div>
         )}

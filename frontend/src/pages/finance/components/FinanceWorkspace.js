@@ -18,7 +18,7 @@ const FinanceWorkspace = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold" style={{ color: "#FFFFFF" }}>
+        <h2 className="text-2xl font-semibold text-white">
           Dasbor Ruang Kerja Keuangan
         </h2>
       </div>

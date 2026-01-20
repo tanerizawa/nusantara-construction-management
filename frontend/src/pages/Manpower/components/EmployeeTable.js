@@ -13,16 +13,16 @@ const EmployeeRow = ({
   onDelete
 }) => {
   return (
-    <tr className="hover:bg-[#38383A]/30 transition-colors">
-      <td className="px-3 py-3">
+    <tr className="border-b border-white/5 transition-colors duration-150 hover:bg-white/5">
+      <td className="px-4 py-3">
         <div className="flex items-center gap-2">
           <div>
-            <div className="text-sm font-medium text-white">{employee.name}</div>
-            <div className="text-xs text-[#636366] mt-0.5">{employee.employeeId}</div>
+            <div className="font-medium text-white">{employee.name}</div>
+            <div className="text-xs text-white/50 mt-0.5">{employee.employeeId}</div>
           </div>
           {employee.userId && (
             <div 
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#30D158]/20 text-[#30D158] rounded text-xs"
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#30D158]/20 text-[#30D158] rounded-lg text-xs"
               title={`Has user account: ${employee.userAccount?.username || 'linked'}`}
             >
               <Key className="h-3 w-3" />
@@ -31,34 +31,34 @@ const EmployeeRow = ({
           )}
         </div>
       </td>
-      <td className="px-3 py-3">
+      <td className="px-4 py-3">
         <div className="text-sm text-white">{employee.position}</div>
-        <div className="text-xs text-[#98989D] mt-0.5">{employee.department}</div>
+        <div className="text-xs text-white/50 mt-0.5">{employee.department}</div>
       </td>
-      <td className="px-3 py-3">
-        <div className="text-xs text-[#98989D]">{employee.email || '-'}</div>
-        <div className="text-xs text-[#98989D] mt-0.5">{employee.phone || '-'}</div>
+      <td className="px-4 py-3">
+        <div className="text-xs text-white/60">{employee.email || '-'}</div>
+        <div className="text-xs text-white/50 mt-0.5">{employee.phone || '-'}</div>
       </td>
-      <td className="px-3 py-3 text-center">
+      <td className="px-4 py-3 text-center">
         <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(employee.status)}`}>
           {formatStatus(employee.status)}
         </span>
       </td>
-      <td className="px-3 py-3">
+      <td className="px-4 py-3">
         <div className="flex items-center justify-center gap-1">
           <button
             onClick={() => onViewDetail(employee)}
-            className="p-1 text-[#0A84FF] hover:bg-[#0A84FF]/10 rounded transition-colors"
+            className="p-1.5 text-[#0ea5e9] hover:bg-[#0ea5e9]/10 rounded-lg transition-colors"
             title="Lihat Detail"
           >
-            <Eye className="h-3.5 w-3.5" />
+            <Eye className="h-4 w-4" />
           </button>
           <button
             onClick={() => onDelete(employee.id)}
-            className="p-1 text-[#FF453A] hover:bg-[#FF453A]/10 rounded transition-colors"
+            className="p-1.5 text-[#FF453A] hover:bg-[#FF453A]/10 rounded-lg transition-colors"
             title="Hapus"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </td>
@@ -73,9 +73,9 @@ const EmployeeRow = ({
 const EmptyState = () => (
   <tr>
     <td colSpan="5" className="px-6 py-12 text-center">
-      <Users className="h-12 w-12 text-[#636366] mx-auto mb-3" />
-      <p className="text-[#98989D]">Tidak ada data karyawan</p>
-      <p className="text-sm text-[#636366] mt-1">Silakan tambahkan karyawan baru</p>
+      <Users className="h-12 w-12 text-white/30 mx-auto mb-3" />
+      <p className="text-white/60">Tidak ada data karyawan</p>
+      <p className="text-sm text-white/40 mt-1">Silakan tambahkan karyawan baru</p>
     </td>
   </tr>
 );
@@ -93,29 +93,29 @@ const EmployeeTable = ({
   formComponent
 }) => {
   return (
-    <div className="bg-[#2C2C2E] rounded-xl shadow-sm border border-[#38383A] overflow-hidden">
+    <div className="overflow-hidden rounded-3xl border border-white/5 bg-[#070b13]/85 shadow-[0_25px_60px_rgba(0,0,0,0.45)]">
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-[#1C1C1E] border-b border-[#38383A]">
-            <tr>
-              <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase tracking-wider">
+        <table className="w-full text-sm">
+          <thead className="bg-white/5">
+            <tr className="border-b border-white/10 text-white/60">
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.2em] text-white/50">
                 Karyawan
               </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.2em] text-white/50">
                 Posisi & Dept
               </th>
-              <th className="px-3 py-3 text-left text-xs font-medium text-[#98989D] uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-[0.2em] text-white/50">
                 Kontak
               </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-[#98989D] uppercase tracking-wider w-20">
+              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-20">
                 Status
               </th>
-              <th className="px-3 py-3 text-center text-xs font-medium text-[#98989D] uppercase tracking-wider w-20">
+              <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-[0.2em] text-white/50 w-20">
                 Aksi
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#38383A]">
+          <tbody className="divide-y divide-white/5">
             {/* Inline Add Form */}
             {isAddingInline && formComponent}
 

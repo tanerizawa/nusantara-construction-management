@@ -31,33 +31,31 @@ const SubsidiaryCard = ({ subsidiary, onDelete }) => {
 
   return (
     <div 
-      className="rounded-xl overflow-hidden shadow-sm"
-      style={{ backgroundColor: "#2C2C2E", border: "1px solid #38383A" }}
+      className="rounded-3xl overflow-hidden border border-white/5 bg-[#070b13]/85 backdrop-blur-xl shadow-[0_25px_60px_rgba(0,0,0,0.45)] transition-all duration-300 hover:border-white/10 hover:shadow-[0_30px_70px_rgba(0,0,0,0.55)]"
     >
       <div className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-xl font-semibold" style={{ color: "#FFFFFF" }}>
+            <h3 className="text-xl font-semibold text-white">
               {subsidiary.name}
             </h3>
-            <p className="text-sm mt-1" style={{ color: "#98989D" }}>
+            <p className="text-sm mt-1 text-white/50">
               {subsidiary.code}
             </p>
           </div>
           
           {/* Status Badge */}
           <div 
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-            style={{ 
-              backgroundColor: statusConfig.bgColor,
-              border: `1px solid ${statusConfig.borderColor}`,
-              color: statusConfig.textColor
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
+              subsidiary.status === 'active' 
+                ? 'bg-[#30D158]/20 border border-[#30D158]/30 text-[#30D158]'
+                : 'bg-[#FF453A]/20 border border-[#FF453A]/30 text-[#FF453A]'
+            }`}
           >
             {statusConfig.icon === 'CheckCircle' && <CheckCircle size={14} />}
             {statusConfig.icon === 'XCircle' && <XCircle size={14} />}
-            <span className="text-xs font-medium">{statusConfig.label}</span>
+            <span>{statusConfig.label}</span>
           </div>
         </div>
         
@@ -65,8 +63,8 @@ const SubsidiaryCard = ({ subsidiary, onDelete }) => {
         <div className="space-y-3 mb-6">
           {subsidiary.specialization && (
             <div className="flex items-center gap-2">
-              <MapPin size={16} style={{ color: "#98989D" }} />
-              <span style={{ color: "#FFFFFF" }}>
+              <MapPin size={16} className="text-white/40" />
+              <span className="text-white/80">
                 {SPECIALIZATION_LABELS[subsidiary.specialization] || subsidiary.specialization}
               </span>
             </div>
@@ -74,40 +72,37 @@ const SubsidiaryCard = ({ subsidiary, onDelete }) => {
           
           {subsidiary.establishedYear && (
             <div className="flex items-center gap-2">
-              <Calendar size={16} style={{ color: "#98989D" }} />
-              <span style={{ color: "#FFFFFF" }}>{formatYear(subsidiary.establishedYear)}</span>
+              <Calendar size={16} className="text-white/40" />
+              <span className="text-white/80">{formatYear(subsidiary.establishedYear)}</span>
             </div>
           )}
           
           {subsidiary.employeeCount !== undefined && (
             <div className="flex items-center gap-2">
-              <Users size={16} style={{ color: "#98989D" }} />
-              <span style={{ color: "#FFFFFF" }}>{formatEmployeeCount(subsidiary.employeeCount)}</span>
+              <Users size={16} className="text-white/40" />
+              <span className="text-white/80">{formatEmployeeCount(subsidiary.employeeCount)}</span>
             </div>
           )}
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-2 mt-6 pt-4" style={{ borderTop: "1px solid #38383A" }}>
+        <div className="flex items-center gap-2 mt-6 pt-4 border-t border-white/5">
           <button
             onClick={() => navigate(`/subsidiaries/${subsidiary.id}`)}
-            className="flex items-center justify-center flex-1 gap-2 py-2 rounded-lg transition-colors"
-            style={{ backgroundColor: "#38383A", color: "#FFFFFF" }}
+            className="flex items-center justify-center flex-1 gap-2 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
             <Eye size={16} />
             Detail
           </button>
           <button
             onClick={() => navigate(`/subsidiaries/${subsidiary.id}/edit`)}
-            className="flex items-center justify-center gap-2 p-2 rounded-lg transition-colors"
-            style={{ backgroundColor: "#38383A", color: "#FFFFFF" }}
+            className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-white/10 bg-white/5 text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
             <Edit size={16} />
           </button>
           <button
             onClick={() => onDelete(subsidiary.id)}
-            className="flex items-center justify-center gap-2 p-2 rounded-lg transition-colors"
-            style={{ backgroundColor: "rgba(255, 69, 58, 0.2)", color: "#FF453A", border: "1px solid rgba(255, 69, 58, 0.3)" }}
+            className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-[#FF453A]/30 bg-[#FF453A]/10 text-[#FF453A] hover:bg-[#FF453A]/20 transition-colors"
           >
             <Trash2 size={16} />
           </button>

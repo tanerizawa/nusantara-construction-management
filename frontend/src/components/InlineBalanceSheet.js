@@ -75,8 +75,9 @@ const InlineBalanceSheet = ({
             <span>Cetak</span>
           </button>
           <button
-            onClick={() => {/* TODO: Implement PDF export */}}
+            onClick={handlePrint}
             className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+            title="Gunakan 'Save as PDF' pada dialog print untuk menyimpan sebagai PDF"
           >
             <Download className="w-4 h-4" />
             <span>Unduh PDF</span>

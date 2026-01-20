@@ -11,9 +11,9 @@ const ErrorAlert = ({ error, onDismiss }) => {
   if (!error) return null;
   
   return (
-    <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg flex items-center justify-between">
-      <span>{error}</span>
-      <button onClick={onDismiss} className="text-red-400 hover:text-red-300">
+    <div className="rounded-2xl border border-[#FF453A]/30 bg-[#FF453A]/10 px-4 py-3 flex items-center justify-between backdrop-blur-xl">
+      <span className="text-[#FF453A]">{error}</span>
+      <button onClick={onDismiss} className="p-1 text-[#FF453A] hover:bg-[#FF453A]/10 rounded-lg transition-colors">
         <X className="h-4 w-4" />
       </button>
     </div>

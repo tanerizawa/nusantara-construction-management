@@ -1,0 +1,74 @@
+[
+  {
+    "id": "USR-001",
+    "username": "admin",
+    "email": "admin@nusantaragroup.co",
+    "password": "$2b$10$sample-hashed-password-for-admin",
+    "role": "admin",
+    "profile": {
+      "fullName": "Administrator Nusantara Group",
+      "position": "System Administrator",
+      "phone": "+62-21-1234567",
+      "avatar": "/uploads/avatars/admin.jpg",
+      "department": "IT",
+      "joinDate": "2023-01-01"
+    },
+    "permissions": [
+      "all"
+    ],
+    "isActive": true,
+    "lastLogin": null,
+    "loginAttempts": 0,
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "USR-002",
+    "username": "manager",
+    "email": "manager@nusantaragroup.co",
+    "password": "$2b$10$sample-hashed-password-for-manager",
+    "role": "manager",
+    "profile": {
+      "fullName": "Budi Santoso",
+      "position": "Project Manager",
+      "phone": "+62-812-3456-7890",
+      "avatar": "/uploads/avatars/manager.jpg",
+      "department": "Construction",
+      "joinDate": "2023-02-15"
+    },
+    "permissions": [
+      "projects.manage",
+      "users.view",
+      "finance.view"
+    ],
+    "isActive": true,
+    "lastLogin": null,
+    "loginAttempts": 0,
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  },
+  {
+    "id": "USR-003",
+    "username": "supervisor",
+    "email": "supervisor@nusantaragroup.co",
+    "password": "$2b$10$sample-hashed-password-for-supervisor",
+    "role": "supervisor",
+    "profile": {
+      "fullName": "Ahmad Fauzi",
+      "position": "Site Supervisor",
+      "phone": "+62-813-4567-8901",
+      "avatar": "/uploads/avatars/supervisor.jpg",
+      "department": "Construction",
+      "joinDate": "2023-03-01"
+    },
+    "permissions": [
+      "projects.view",
+      "inventory.manage"
+    ],
+    "isActive": true,
+    "lastLogin": null,
+    "loginAttempts": 0,
+    "createdAt": "2025-09-07T12:46:32.245Z",
+    "updatedAt": "2025-09-07T12:46:32.245Z"
+  }
+]

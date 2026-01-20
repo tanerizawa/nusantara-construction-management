@@ -6,6 +6,7 @@ import { useRABItems } from '../hooks/useRABItems';
 import { COST_CATEGORIES, COST_TYPES } from '../services/milestoneDetailAPI';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 import api from '../../../services/api';
+import { useAuth } from '../../../context/AuthContext';
 
 // New RAB Integration Components
 import EnhancedBudgetSummary from './costs/EnhancedBudgetSummary';
@@ -13,6 +14,7 @@ import SimplifiedRABTable from './costs/SimplifiedRABTable';
 import AdditionalCostsSection from './costs/AdditionalCostsSection';
 
 const CostsTab = ({ milestone, projectId }) => {
+  const { user } = useAuth();
   const { costs, summary, loading, addCost, updateCost, deleteCost } = useMilestoneCosts(projectId, milestone.id);
   
   // NEW: RAB Items Hook
@@ -533,8 +535,8 @@ const CostsTab = ({ milestone, projectId }) => {
             onSubmitRealization={handleSubmitInlineRealization}
             projectId={projectId}
             milestoneId={milestone.id}
-            isManager={false} // TODO: Get from user context/auth
-            isFinance={false} // TODO: Get from user context/auth
+            isManager={user?.role === 'admin' || user?.role === 'project_manager' || user?.role === 'manager'}
+            isFinance={user?.role === 'admin' || user?.role === 'finance_manager'}
           />
         </div>
       )}

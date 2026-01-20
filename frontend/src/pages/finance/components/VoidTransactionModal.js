@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { XCircle, AlertTriangle, X } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { useAuth } from '../../../context/AuthContext';
 
 /**
  * VoidTransactionModal Component
@@ -27,6 +28,7 @@ const VoidTransactionModal = ({
   transaction,
   loading = false
 }) => {
+  const { user } = useAuth();
   const [reason, setReason] = useState('');
   const [errors, setErrors] = useState({});
 
@@ -55,7 +57,7 @@ const VoidTransactionModal = ({
     try {
       await onVoid({
         reason: reason.trim(),
-        voidedBy: 'current-user' // TODO: Get from auth context
+        voidedBy: user?.id || user?.username || 'unknown'
       });
       handleClose();
     } catch (error) {

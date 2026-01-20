@@ -45,32 +45,32 @@ const LegalInfoView = ({ subsidiary }) => {
   return (
     <div className="space-y-6">
       {/* Company Legal Info */}
-      <div className="bg-[#1C1C1E] border border-[#38383A] rounded-lg p-6">
+      <div className="rounded-2xl border border-white/5 bg-white/5 p-6">
         <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
           <Shield className="h-5 w-5 mr-2" />
           Informasi Legal Perusahaan
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">Nomor Registrasi Perusahaan</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Nomor Registrasi Perusahaan</label>
             <p className="text-white text-base font-mono">
               {subsidiary.legalInfo?.companyRegistrationNumber || '-'}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">NPWP</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">NPWP</label>
             <p className="text-white text-base font-mono">
               {subsidiary.legalInfo?.taxIdentificationNumber || '-'}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">Nomor Izin Usaha</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Nomor Izin Usaha</label>
             <p className="text-white text-base font-mono">
               {subsidiary.legalInfo?.businessLicenseNumber || '-'}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-[#8E8E93] mb-2">Nomor Registrasi PPN</label>
+            <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-2">Nomor Registrasi PPN</label>
             <p className="text-white text-base font-mono">
               {subsidiary.legalInfo?.vatRegistrationNumber || '-'}
             </p>
@@ -80,7 +80,7 @@ const LegalInfoView = ({ subsidiary }) => {
 
       {/* Articles of Incorporation */}
       {subsidiary.legalInfo?.articlesOfIncorporation && (
-        <div className="bg-[#1C1C1E] border border-[#38383A] rounded-lg p-6">
+        <div className="rounded-2xl border border-white/5 bg-white/5 p-6">
           <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
             <FileText className="h-5 w-5 mr-2" />
             Akta Pendirian
@@ -93,40 +93,40 @@ const LegalInfoView = ({ subsidiary }) => {
 
       {/* Permits and Licenses */}
       {subsidiary.permits && subsidiary.permits.length > 0 && (
-        <div className="bg-[#1C1C1E] border border-[#38383A] rounded-lg p-6">
+        <div className="rounded-2xl border border-white/5 bg-white/5 p-6">
           <h3 className="text-lg font-semibold text-white mb-4">Izin & Perizinan</h3>
           <div className="space-y-4">
             {subsidiary.permits.map((permit, index) => (
               <div 
                 key={index}
-                className="bg-[#2C2C2E] border border-[#38383A] rounded-lg p-4"
+                className="rounded-xl border border-white/5 bg-white/5 p-4"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h4 className="text-white font-semibold text-base">{permit.name || `Izin ${index + 1}`}</h4>
                     {permit.number && (
-                      <p className="text-[#8E8E93] text-sm font-mono mt-1">No: {permit.number}</p>
+                      <p className="text-white/60 text-sm font-mono mt-1">No: {permit.number}</p>
                     )}
                   </div>
                   {getPermitStatusBadge(permit.status)}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <label className="block text-xs text-[#8E8E93] mb-1">Diterbitkan Oleh</label>
+                    <label className="block text-xs text-white/50 mb-1">Diterbitkan Oleh</label>
                     <p className="text-white">{permit.issuedBy || '-'}</p>
                   </div>
                   <div>
-                    <label className="block text-xs text-[#8E8E93] mb-1">Tanggal Terbit</label>
+                    <label className="block text-xs text-white/50 mb-1">Tanggal Terbit</label>
                     <p className="text-white">{formatDate(permit.issuedDate)}</p>
                   </div>
                   <div>
-                    <label className="block text-xs text-[#8E8E93] mb-1">Tanggal Kadaluarsa</label>
+                    <label className="block text-xs text-white/50 mb-1">Tanggal Kadaluarsa</label>
                     <p className="text-white">{formatDate(permit.expiryDate)}</p>
                   </div>
                 </div>
                 {permit.description && (
-                  <div className="mt-3 pt-3 border-t border-[#38383A]">
-                    <p className="text-[#98989D] text-sm">{permit.description}</p>
+                  <div className="mt-3 pt-3 border-t border-white/5">
+                    <p className="text-white/60 text-sm">{permit.description}</p>
                   </div>
                 )}
               </div>
@@ -139,8 +139,8 @@ const LegalInfoView = ({ subsidiary }) => {
       {(!subsidiary.legalInfo || Object.keys(subsidiary.legalInfo).length === 0) && 
        (!subsidiary.permits || subsidiary.permits.length === 0) && (
         <div className="text-center py-12">
-          <Shield className="h-12 w-12 text-[#636366] mx-auto mb-4" />
-          <p className="text-[#8E8E93]">Belum ada informasi legal yang tersedia</p>
+          <Shield className="h-12 w-12 text-white/30 mx-auto mb-4" />
+          <p className="text-white/60">Belum ada informasi legal yang tersedia</p>
         </div>
       )}
     </div>

@@ -1,0 +1,11 @@
+{
+  "transformedAt": "2025-09-07T12:46:32.252Z",
+  "summary": {
+    "users": 3,
+    "projects": 5,
+    "finance": 12,
+    "inventory": 8
+  },
+  "errors": [],
+  "warnings": []
+}

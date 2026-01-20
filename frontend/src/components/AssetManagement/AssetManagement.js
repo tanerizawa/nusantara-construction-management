@@ -40,19 +40,19 @@ const AssetManagement = () => {
   const ActiveComponent = tabs.find(tab => tab.id === activeTab)?.component;
 
   return (
-    <div className="min-h-screen bg-[#1C1C1E]">
+    <div className="min-h-screen bg-[#0b0f19] bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.15),_transparent_50%)]">
       {/* Header */}
-      <div className="bg-[#2C2C2E] border-b border-[#38383A]">
-        <div className="px-6 py-6">
+      <div className="bg-[#0b0f19]/90 backdrop-blur-xl border-b border-white/10">
+        <div className="px-6 py-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Asset Management</h1>
-            <p className="text-[#98989D] mt-2">Kelola aset konstruksi dan peralatan proyek</p>
+            <h1 className="text-3xl font-bold text-white tracking-tight">Asset Management</h1>
+            <p className="text-white/50 mt-2">Kelola aset konstruksi dan peralatan proyek</p>
           </div>
         </div>
 
         {/* Tab Navigation */}
         <div className="px-6">
-          <nav className="flex space-x-2" aria-label="Tabs">
+          <nav className="flex space-x-1" aria-label="Tabs">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -61,9 +61,9 @@ const AssetManagement = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`${
                     activeTab === tab.id
-                      ? 'bg-[#0A84FF] text-white'
-                      : 'text-[#98989D] hover:text-white hover:bg-[#38383A]/30'
-                  } inline-flex items-center px-4 py-2.5 font-medium text-sm rounded-t-lg transition-all duration-200`}
+                      ? 'bg-[#0ea5e9] text-white shadow-lg shadow-[#0ea5e9]/20'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                  } inline-flex items-center px-5 py-3 font-medium text-sm rounded-xl transition-all duration-300`}
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{tab.label}</span>

@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const UserNotificationService = require('../services/UserNotificationService');
 const { Notification, NotificationPreference } = require('../models');
+const { verifyToken } = require('../middleware/auth');
 
 // ====================================================================
-// NOTIFICATION DELIVERY ROUTES
+// NOTIFICATION DELIVERY ROUTES (Admin only - no auth middleware needed here as they're internal)
 // ====================================================================
 
 /**
@@ -95,7 +96,7 @@ router.post('/send-to-roles', async (req, res) => {
 });
 
 // ====================================================================
-// USER NOTIFICATION ROUTES
+// USER NOTIFICATION ROUTES (Protected - requires authentication)
 // ====================================================================
 
 /**
@@ -103,17 +104,10 @@ router.post('/send-to-roles', async (req, res) => {
  * @desc    Get current user's notifications
  * @access  Private
  */
-router.get('/my', async (req, res) => {
+router.get('/my', verifyToken, async (req, res) => {
   try {
-    // TODO: Get userId from auth middleware (req.user.id)
-    const userId = req.query.userId; // Temporary for testing
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
+    // Get userId from JWT token (set by verifyToken middleware)
+    const userId = req.user.id;
 
     const {
       limit = 20,
@@ -147,16 +141,9 @@ router.get('/my', async (req, res) => {
  * @desc    Get unread notification count
  * @access  Private
  */
-router.get('/my/unread-count', async (req, res) => {
+router.get('/my/unread-count', verifyToken, async (req, res) => {
   try {
-    const userId = req.query.userId; // TODO: Get from auth
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
+    const userId = req.user.id;
 
     const count = await Notification.count({
       where: {
@@ -184,17 +171,10 @@ router.get('/my/unread-count', async (req, res) => {
  * @desc    Mark notification as read
  * @access  Private
  */
-router.patch('/:id/read', async (req, res) => {
+router.patch('/:id/read', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.body.userId; // TODO: Get from auth
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
+    const userId = req.user.id;
 
     await UserNotificationService.markAsRead(id, userId);
 
@@ -217,16 +197,9 @@ router.patch('/:id/read', async (req, res) => {
  * @desc    Mark all notifications as read
  * @access  Private
  */
-router.patch('/mark-all-read', async (req, res) => {
+router.patch('/mark-all-read', verifyToken, async (req, res) => {
   try {
-    const userId = req.body.userId; // TODO: Get from auth
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
+    const userId = req.user.id;
 
     await UserNotificationService.markAllAsRead(userId);
 
@@ -253,14 +226,15 @@ router.patch('/mark-all-read', async (req, res) => {
  * @desc    Register device token for push notifications
  * @access  Private
  */
-router.post('/register-device', async (req, res) => {
+router.post('/register-device', verifyToken, async (req, res) => {
   try {
-    const { userId, token } = req.body; // TODO: userId from auth
+    const userId = req.user.id;
+    const { token } = req.body;
 
-    if (!userId || !token) {
+    if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'userId and token are required'
+        error: 'token is required'
       });
     }
 
@@ -285,14 +259,15 @@ router.post('/register-device', async (req, res) => {
  * @desc    Unregister device token
  * @access  Private
  */
-router.post('/unregister-device', async (req, res) => {
+router.post('/unregister-device', verifyToken, async (req, res) => {
   try {
-    const { userId, token } = req.body; // TODO: userId from auth
+    const userId = req.user.id;
+    const { token } = req.body;
 
-    if (!userId || !token) {
+    if (!token) {
       return res.status(400).json({
         success: false,
-        error: 'userId and token are required'
+        error: 'token is required'
       });
     }
 
@@ -321,16 +296,9 @@ router.post('/unregister-device', async (req, res) => {
  * @desc    Get user notification preferences
  * @access  Private
  */
-router.get('/preferences', async (req, res) => {
+router.get('/preferences', verifyToken, async (req, res) => {
   try {
-    const userId = req.query.userId; // TODO: Get from auth
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
+    const userId = req.user.id;
 
     let preferences = await NotificationPreference.findOne({
       where: { userId }
@@ -372,17 +340,10 @@ router.get('/preferences', async (req, res) => {
  * @desc    Update notification preferences
  * @access  Private
  */
-router.put('/preferences', async (req, res) => {
+router.put('/preferences', verifyToken, async (req, res) => {
   try {
-    const userId = req.body.userId; // TODO: Get from auth
+    const userId = req.user.id;
     const { emailEnabled, pushEnabled, smsEnabled, categories, quietHours } = req.body;
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
 
     let preferences = await NotificationPreference.findOne({
       where: { userId }
@@ -427,17 +388,10 @@ router.put('/preferences', async (req, res) => {
  * @desc    Delete notification
  * @access  Private
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.body.userId; // TODO: Get from auth
-
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Authentication required'
-      });
-    }
+    const userId = req.user.id;
 
     const notification = await Notification.findOne({
       where: { id, userId }
